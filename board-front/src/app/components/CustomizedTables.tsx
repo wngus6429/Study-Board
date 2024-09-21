@@ -50,14 +50,16 @@ const rows = [
 export default function CustomizedTables() {
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 700 }} aria-label="customized table">
+      <Table sx={{ maxWidth: 1000 }} aria-label="customized table">
         <TableHead>
           <TableRow>
-            <StyledTableCell>Dessert (100g serving)</StyledTableCell>
-            <StyledTableCell align="right">Calories</StyledTableCell>
-            <StyledTableCell align="right">Fat&nbsp;(g)</StyledTableCell>
-            <StyledTableCell align="right">Carbs&nbsp;(g)</StyledTableCell>
-            <StyledTableCell align="right">Protein&nbsp;(g)</StyledTableCell>
+            <StyledTableCell>게시글 번호</StyledTableCell>
+            <StyledTableCell>제목</StyledTableCell>
+            <StyledTableCell>댓글갯수</StyledTableCell>
+            <StyledTableCell>작성자</StyledTableCell>
+            <StyledTableCell>등록일</StyledTableCell>
+            <StyledTableCell>조회수</StyledTableCell>
+            <StyledTableCell>추천</StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -66,10 +68,12 @@ export default function CustomizedTables() {
               <StyledTableCell component="th" scope="row">
                 {row.name}
               </StyledTableCell>
-              <StyledTableCell align="right">{row.calories}</StyledTableCell>
-              <StyledTableCell align="right">{row.fat}</StyledTableCell>
-              <StyledTableCell align="right">{row.carbs}</StyledTableCell>
-              <StyledTableCell align="right">{row.protein}</StyledTableCell>
+              <StyledTableCell>{row.calories}</StyledTableCell>
+              <StyledTableCell>{row.fat}</StyledTableCell>
+              <StyledTableCell>{row.carbs}</StyledTableCell>
+              <StyledTableCell>{row.protein}</StyledTableCell>
+              <StyledTableCell>{row.protein}</StyledTableCell>
+              <StyledTableCell>{row.protein}</StyledTableCell>
             </StyledTableRow>
           ))}
         </TableBody>

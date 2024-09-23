@@ -5,16 +5,16 @@ export class Story {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ nullable: false })
   title: string;
 
-  @Column('text')
+  @Column({ type: 'text', nullable: false })
   content: string;
 
-  @Column()
+  @Column({ nullable: false })
   creator: string;
 
-  @Column({ default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
   @Column({ default: 0 })
@@ -23,6 +23,6 @@ export class Story {
   @Column({ default: 0 })
   likeCount: number;
 
-  @Column('text', { nullable: true }) // comments를 JSON 문자열로 저장
+  @Column({ type: 'text', nullable: true }) // comments를 JSON 문자열로 저장
   comments: string;
 }

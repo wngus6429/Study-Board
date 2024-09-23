@@ -17,9 +17,8 @@ export class AppController {
   async createStory(@Body() createStoryDto: CreateStoryDto) {
     // 클라이언트에서 받은 데이터를 console.log로 출력
     console.log('Received Data:', createStoryDto);
-    return '반응중';
     // 서비스로 전달하여 데이터베이스에 저장할 수 있습니다.
-    // return this.appService.create(createStoryDto);
+    return this.appService.create(createStoryDto);
   }
   // @Get()
   // getAll(): Story {

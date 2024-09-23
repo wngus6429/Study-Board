@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Story } from './entities/Story.entity';
+import { CreateStoryDto } from './dto/create-story.dto';
 
 // 메서드 하나만 있는 기본적인 서비스가 있는 파일
 @Injectable()
@@ -16,6 +17,11 @@ export class AppService {
     return this.storyRepository.find({
       select: ['id', 'title', 'creator', 'createdAt', 'readCount', 'likeCount'],
     });
+  }
+
+  async create(createStoryDto: CreateStoryDto): Promise<Story> {
+    console.log('Received Data:', createStoryDto);
+    return this.storyRepository.save(createStoryDto);
   }
 
   // 상세 페이지에 필요한 전체 데이터 가져오기

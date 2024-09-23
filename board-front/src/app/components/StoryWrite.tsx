@@ -5,6 +5,7 @@ import axios from "axios";
 import React, { FormEvent, useState } from "react";
 
 export default function StoryWrite() {
+  const [writer, setWriter] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
 
@@ -13,6 +14,7 @@ export default function StoryWrite() {
     mutationFn: async (e: FormEvent) => {
       e.preventDefault();
       return axios.post("http://localhost:9000/story/create", {
+        creator: writer,
         title,
         content,
       });
@@ -43,6 +45,16 @@ export default function StoryWrite() {
         noValidate
         autoComplete="off"
       >
+        {" "}
+        <TextField
+          required
+          id="filled-required"
+          label="작성자"
+          defaultValue=""
+          variant="filled"
+          fullWidth
+          onChange={(e) => setWriter(e.target.value)}
+        />
         <TextField
           required
           id="filled-required"

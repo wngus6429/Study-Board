@@ -8,6 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
+import { Story } from "../types/story";
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -29,13 +30,7 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function createData(
-  name: string,
-  calories: number,
-  fat: number,
-  carbs: number,
-  protein: number
-) {
+function createData(name: string, calories: number, fat: number, carbs: number, protein: number) {
   return { name, calories, fat, carbs, protein };
 }
 
@@ -47,7 +42,11 @@ const rows = [
   createData("Gingerbread", 356, 16.0, 49, 3.9),
 ];
 
-export default function CustomizedTables() {
+interface CustomizedTablesProps {
+  tableData: any;
+}
+
+export default function CustomizedTables({ tableData }: CustomizedTablesProps) {
   return (
     <TableContainer component={Paper}>
       <Table sx={{ maxWidth: 1000 }} aria-label="customized table">
@@ -63,17 +62,17 @@ export default function CustomizedTables() {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map((row) => (
-            <StyledTableRow key={row.name}>
+          {tableData.map((row: Story) => (
+            <StyledTableRow key={row.id}>
               <StyledTableCell component="th" scope="row">
-                {row.name}
+                {row.id}
               </StyledTableCell>
-              <StyledTableCell>{row.calories}</StyledTableCell>
-              <StyledTableCell>{row.fat}</StyledTableCell>
-              <StyledTableCell>{row.carbs}</StyledTableCell>
-              <StyledTableCell>{row.protein}</StyledTableCell>
-              <StyledTableCell>{row.protein}</StyledTableCell>
-              <StyledTableCell>{row.protein}</StyledTableCell>
+              <StyledTableCell>{row.title}</StyledTableCell>
+              <StyledTableCell>{row.content}</StyledTableCell>
+              <StyledTableCell>{row.creator}</StyledTableCell>
+              <StyledTableCell>{row.createdAt.toLocaleString()}</StyledTableCell>
+              <StyledTableCell>{row.readCount}</StyledTableCell>
+              <StyledTableCell>{row.likeCount}</StyledTableCell>
             </StyledTableRow>
           ))}
         </TableBody>

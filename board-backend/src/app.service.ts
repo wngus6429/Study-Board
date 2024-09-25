@@ -14,9 +14,19 @@ export class AppService {
 
   // 목록 페이지에 필요한 데이터만 가져오기
   async findAll(): Promise<Partial<Story>[]> {
-    return this.storyRepository.find({
-      select: ['id', 'title', 'creator', 'createdAt', 'readCount', 'likeCount'],
-    });
+    console.log('움직임1');
+    return this.storyRepository.find();
+    // return this.storyRepository.find({
+    //   select: [
+    //     'id',
+    //     'title',
+    //     'content',
+    //     'creator',
+    //     'createdAt',
+    //     'readCount',
+    //     'likeCount',
+    //   ],
+    // });
   }
 
   async create(createStoryDto: CreateStoryDto): Promise<Story> {

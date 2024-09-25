@@ -8,9 +8,10 @@ import { CreateStoryDto } from './dto/create-story.dto';
 export class AppController {
   constructor(private readonly appService: AppService) {}
 
-  @Get('/getAll')
-  home() {
-    return '모든 데이터 받아올 준비함';
+  @Get('/getall')
+  async getAllStory(): Promise<any> {
+    console.log('움직임2');
+    return this.appService.findAll();
   }
 
   @Post('/create')

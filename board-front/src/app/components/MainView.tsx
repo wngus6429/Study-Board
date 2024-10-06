@@ -3,9 +3,10 @@ import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { CircularProgress } from "@mui/material";
+import StoryWrite from "./StoryWrite";
 
 const MainView = (): ReactNode => {
-  const { data, error, isLoading } = useQuery({
+  const { data, error, isLoading, refetch } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
       return await axios.get("http://localhost:9000/story/getall").then((res) => res.data);
@@ -22,6 +23,7 @@ const MainView = (): ReactNode => {
 
   return (
     <div>
+      <StoryWrite reSearch={refetch} />
       <CustomizedTables tableData={data} />
     </div>
   );

@@ -4,7 +4,11 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import React, { FormEvent, useState } from "react";
 
-export default function StoryWrite() {
+interface StoryWriteProps {
+  reSearch: () => void;
+}
+
+export default function StoryWrite({ reSearch }: StoryWriteProps) {
   const [writer, setWriter] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
@@ -22,6 +26,7 @@ export default function StoryWrite() {
     onSuccess: (data) => {
       // 요청 성공 시 처리 로직
       alert("글 작성이 완료되었습니다!");
+      reSearch();
       console.log("Response Data:", data);
     },
     onError: (error) => {

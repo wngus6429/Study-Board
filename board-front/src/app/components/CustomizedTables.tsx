@@ -46,7 +46,6 @@ export default function CustomizedTables({ tableData }: CustomizedTablesProps) {
           <TableRow>
             <StyledTableCell>게시글 번호</StyledTableCell>
             <StyledTableCell>제목</StyledTableCell>
-            <StyledTableCell>댓글갯수</StyledTableCell>
             <StyledTableCell>작성자</StyledTableCell>
             <StyledTableCell>등록일</StyledTableCell>
             <StyledTableCell>조회수</StyledTableCell>
@@ -60,7 +59,6 @@ export default function CustomizedTables({ tableData }: CustomizedTablesProps) {
                 {row.id}
               </StyledTableCell>
               <StyledTableCell>{row.title}</StyledTableCell>
-              <StyledTableCell>{row.content}</StyledTableCell>
               <StyledTableCell>{row.creator}</StyledTableCell>
               <StyledTableCell>{row.createdAt.toLocaleString()}</StyledTableCell>
               <StyledTableCell>{row.readCount}</StyledTableCell>

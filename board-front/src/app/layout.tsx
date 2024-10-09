@@ -1,9 +1,9 @@
-"use client";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import NavMenuBar from "./components/NavMenuBar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import RQProvider from "./components/RQProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -17,11 +17,10 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const queryClient = new QueryClient();
   return (
     <html lang="en">
-      <QueryClientProvider client={queryClient}>
-        <body className={inter.className}>
+      <body className={inter.className}>
+        <RQProvider>
           {/* 전체 레이아웃을 가로로 배치 */}
           <div style={{ display: "flex", height: "100vh" }}>
             {/* 왼쪽 네비게이션 */}
@@ -29,8 +28,8 @@ export default function RootLayout({
             {/* 메인 콘텐츠: 오른쪽에 배치 */}
             <div style={{ flexGrow: 1, padding: "1rem" }}>{children}</div>
           </div>
-        </body>
-      </QueryClientProvider>
+        </RQProvider>
+      </body>
     </html>
   );
 }

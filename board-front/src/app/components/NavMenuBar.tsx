@@ -9,7 +9,7 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { name: "Home", path: "/" },
-  { name: "글작성", path: "/write" },
+  { name: "스카이림", path: "/skyrim" },
   { name: "Contact", path: "/contact" },
 ];
 

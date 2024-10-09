@@ -2,13 +2,11 @@
 import { TextField, Box, Typography, Paper, Button } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 
-interface StoryWriteProps {
-  reSearch: () => void;
-}
-
-export default function StoryWrite({ reSearch }: StoryWriteProps) {
+export default function StoryWrite() {
+  const Router = useRouter();
   const [writer, setWriter] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
@@ -24,10 +22,8 @@ export default function StoryWrite({ reSearch }: StoryWriteProps) {
       });
     },
     onSuccess: (data) => {
-      // 요청 성공 시 처리 로직
-      alert("글 작성이 완료되었습니다!");
-      reSearch();
       console.log("Response Data:", data);
+      Router.push("/");
     },
     onError: (error) => {
       // 요청 실패 시 처리 로직

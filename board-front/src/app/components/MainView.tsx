@@ -23,7 +23,7 @@ const MainView = (): ReactNode => {
 
   return (
     <div>
-      <StoryWrite reSearch={refetch} />
+      {/* <StoryWrite reSearch={refetch} /> */}
       <CustomizedTables tableData={data} />
     </div>
   );

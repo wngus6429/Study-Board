@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { css } from "@emotion/react";
+import HtmlTable from "./HtmlTable";
 
 const MainView = (): ReactNode => {
   const Router = useRouter();
@@ -41,6 +42,7 @@ const MainView = (): ReactNode => {
         글쓰기
       </Button>
       <CustomizedTables tableData={data} />
+      <HtmlTable tableData={data} />
     </>
   );
 };

@@ -41,28 +41,28 @@ interface CustomizedTablesProps {
 export default function CustomizedTables({ tableData }: CustomizedTablesProps) {
   return (
     <TableContainer component={Paper}>
-      <Table sx={{ maxWidth: 1000 }} aria-label="customized table">
+      <Table sx={{ width: "100%" }} aria-label="customized table">
         <TableHead>
           <TableRow>
-            <StyledTableCell>게시글 번호</StyledTableCell>
-            <StyledTableCell>제목</StyledTableCell>
-            <StyledTableCell>작성자</StyledTableCell>
-            <StyledTableCell>등록일</StyledTableCell>
+            <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>게시글 번호</StyledTableCell>
+            <StyledTableCell sx={{ width: "500px" }}>제목</StyledTableCell>
+            <StyledTableCell sx={{ width: "80px" }}>작성자</StyledTableCell>
+            <StyledTableCell sx={{ width: "220px" }}>등록일</StyledTableCell>
             <StyledTableCell>조회수</StyledTableCell>
-            <StyledTableCell>추천</StyledTableCell>
+            <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>추천</StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {tableData.map((row: Story) => (
             <StyledTableRow key={row.id}>
-              <StyledTableCell component="th" scope="row">
+              <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
                 {row.id}
               </StyledTableCell>
               <StyledTableCell>{row.title}</StyledTableCell>
               <StyledTableCell>{row.creator}</StyledTableCell>
               <StyledTableCell>{row.createdAt.toLocaleString()}</StyledTableCell>
               <StyledTableCell>{row.readCount}</StyledTableCell>
-              <StyledTableCell>{row.likeCount}</StyledTableCell>
+              <StyledTableCell sx={{ textAlign: "center" }}>{row.likeCount}</StyledTableCell>
             </StyledTableRow>
           ))}
         </TableBody>

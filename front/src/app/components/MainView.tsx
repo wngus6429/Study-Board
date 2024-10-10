@@ -1,3 +1,4 @@
+/** @jsxImportSource @emotion/react */
 "use client";
 import React, { ReactNode } from "react";
 import CustomizedTables from "./CustomizedTables";
@@ -5,6 +6,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { Button, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
+import { css } from "@emotion/react";
 
 const MainView = (): ReactNode => {
   const Router = useRouter();
@@ -21,7 +23,13 @@ const MainView = (): ReactNode => {
 
   if (isLoading)
     return (
-      <div style={{ display: "flex", justifyContent: "center", height: "100vh" }}>
+      <div
+        css={css`
+          display: "flex";
+          justify-content: "center";
+          height: "100vh";
+        `}
+      >
         <CircularProgress />
       </div>
     );

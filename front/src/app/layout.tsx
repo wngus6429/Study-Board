@@ -4,6 +4,7 @@ import "./globals.css";
 import NavMenuBar from "./components/NavMenuBar";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import RQProvider from "./components/RQProvider";
+import NavBar from "@/app/components/NavBar";
 
 const inter = Inter({ subsets: ["latin"] });
 

@@ -43,7 +43,11 @@ const Register = (): ReactNode => {
       alert("약관에 동의해주세요.");
       return;
     }
-    const data = { email, password, nickname };
+    const data = { user_email: email, password, nickname };
+    console.log('data:', data);
+    //! fetch에서는 credentials: 'include'로 쿠키를 전달할 수 있음
+    //! axios에서는 withCredentials: true로 쿠키를 전달할 수 있음
+    // {data, withCredentials: true})
     await axios
       .post("http://localhost:9000/auth/signup", data)
       .then((res: any) => {

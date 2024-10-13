@@ -7,7 +7,8 @@ export class AuthController {
   constructor(private authUserService: AuthService) {}
 
   @Post('signup')
-  async signup(@Body(ValidationPipe) userData: AuthUserDto): Promise<void> {
+  async signup(@Body() userData: AuthUserDto): Promise<void> {
+    console.log('userData:', userData);
     return await this.authUserService.signUp(userData);
   }
 

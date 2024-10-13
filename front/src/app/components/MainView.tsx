@@ -4,7 +4,7 @@ import React, { ReactNode } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { Button, CircularProgress } from "@mui/material";
+import { Alert, Button, CircularProgress } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { css } from "@emotion/react";
 import HtmlTable from "./HtmlTable";
@@ -38,6 +38,11 @@ const MainView = (): ReactNode => {
 
   return (
     <>
+      {/* {signupFlag && (
+        <Alert variant="outlined" severity="success">
+          This is an outlined success Alert.
+        </Alert>
+      )} */}
       <Button variant="outlined" onClick={moveWrite}>
         글쓰기
       </Button>

@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Story } from './entities/Story.entity';
+import { AuthModule } from './auth/auth.module';
+import { StoryModule } from './story/story.module';
 
 //어플리케이션의 루트 모듈이 있는 파일
 @Module({
@@ -17,9 +16,8 @@ import { Story } from './entities/Story.entity';
       entities: [__dirname + '/**/*.entity{.ts,.js}'], // 엔티티 파일 경로
       synchronize: true, // 애플리케이션 실행 시 데이터베이스 스키마를 자동으로 동기화 (개발 중에만 true로 설정, 운영 환경에서는 false로 설정)
     }),
-    TypeOrmModule.forFeature([Story]),
+    StoryModule,
+    AuthModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
 })
 export class AppModule {}

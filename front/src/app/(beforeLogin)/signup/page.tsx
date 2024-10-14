@@ -17,7 +17,8 @@ import Grid from "@mui/material/Grid2";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 
-const Register = (): ReactNode => {
+// 회원가입 화면
+const SignupPage = (): ReactNode => {
   const theme = createTheme();
   const [checked, setChecked] = useState(false);
 
@@ -162,4 +163,4 @@ const Register = (): ReactNode => {
   );
 };
 
-export default Register;
+export default SignupPage;

@@ -1,16 +1,10 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Button,
-  TextField,
-  Typography,
-  Box,
-  Container,
-  Alert,
-} from "@mui/material";
+import { Button, TextField, Typography, Box, Container, Alert } from "@mui/material";
 import axios from "axios";
 
+// 로그인 화면
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,17 +16,26 @@ const LoginPage = () => {
 
     try {
       // 로그인 API 요청
-      const response = await axios.post("/api/login", {
-        email,
+      console.log("확인", {
+        user_email: email,
         password,
       });
-
+      const response = await axios.post(
+        "http://localhost:9000/auth/signin",
+        {
+          user_email: email,
+          password,
+        },
+        { withCredentials: true }
+      ); // 쿠키를 포함하여 요청
+      // alert("Login Response:", response);
+      console.log("Login Response:", response);
       if (response.status === 200) {
         // 성공 시 리다이렉트
-        router.push("/dashboard");
+        router.push("/");
       }
     } catch (error) {
-      setError("Invalid credentials");
+      setError("유효하지 않은 요청입니다.");
     }
   };
 
@@ -56,20 +59,10 @@ const LoginPage = () => {
             width: "100%",
           }}
         >
-          <Typography
-            component="h1"
-            variant="h5"
-            textAlign="center"
-            gutterBottom
-          >
+          <Typography component="h1" variant="h5" textAlign="center" gutterBottom>
             로그인
           </Typography>
-          <Box
-            component="form"
-            onSubmit={handleLogin}
-            noValidate
-            sx={{ mt: 1 }}
-          >
+          <Box component="form" onSubmit={handleLogin} noValidate sx={{ mt: 1 }}>
             <TextField
               margin="normal"
               required
@@ -95,12 +88,7 @@ const LoginPage = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
             {error && <Alert severity="error">{error}</Alert>}
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              sx={{ mt: 3, mb: 2 }}
-            >
+            <Button type="submit" fullWidth variant="contained" sx={{ mt: 3, mb: 2 }}>
               로그인
             </Button>
           </Box>

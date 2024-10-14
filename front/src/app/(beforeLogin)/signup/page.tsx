@@ -16,9 +16,11 @@ import {
 import Grid from "@mui/material/Grid2";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 // 회원가입 화면
 const SignupPage = (): ReactNode => {
+  const router = useRouter();
   const theme = createTheme();
   const [checked, setChecked] = useState(false);
 
@@ -50,8 +52,11 @@ const SignupPage = (): ReactNode => {
     //! axios에서는 withCredentials: true로 쿠키를 전달할 수 있음
     await axios
       .post("http://localhost:9000/auth/signup", data, { withCredentials: true })
-      .then((res: any) => {
-        alert("회원가입이 완료되었습니다.");
+      .then((res: { status: number }) => {
+        console.log("res:", res);
+        if (res.status === 201) {
+          router.push("/");
+        }
       })
       .catch((err: any) => {
         setError(err.response.data.message);

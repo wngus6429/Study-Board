@@ -13,13 +13,8 @@ const LoginPage = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       // 로그인 API 요청
-      console.log("확인", {
-        user_email: email,
-        password,
-      });
       const response = await axios.post(
         "http://localhost:9000/auth/signin",
         {

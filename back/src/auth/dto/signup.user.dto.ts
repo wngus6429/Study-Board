@@ -1,11 +1,15 @@
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
-import { Entity } from 'typeorm';
+import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class SignupUserDto {
+  @PrimaryGeneratedColumn('uuid')
+  @Column({ type: 'char', length: 36 })
+  id: string;
+
   @IsNotEmpty()
   @MinLength(4)
-  @MaxLength(20)
+  @MaxLength(30)
   @Matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, {
     message: '이메일 형식이 아님, Email Address Damn ass',
   })
@@ -13,7 +17,7 @@ export class SignupUserDto {
 
   @IsNotEmpty()
   @MinLength(2)
-  @MaxLength(15)
+  @MaxLength(20)
   nickname: string;
 
   @IsNotEmpty()

@@ -10,6 +10,7 @@ import { SignupUserDto } from './dto/signup.user.dto';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { SigninUserDto } from './dto/signin.user.dto';
+import { v4 as uuid } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -29,11 +30,13 @@ export class AuthService {
     }
     const salt = await bcrypt.genSalt();
     const hashedPassword = await bcrypt.hash(password, salt);
+    // UUID 직접 생성하여 사용자 ID에 할당
     const user = this.userRepository.create({
       user_email,
       password: hashedPassword,
       nickname,
     });
+    console.log('user:', user);
     try {
       await this.userRepository.save(user);
     } catch (error) {

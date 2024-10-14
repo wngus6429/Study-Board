@@ -16,7 +16,6 @@ export class AuthController {
 
   @Post('signin')
   async signin(
-    // @Body(ValidationPipe) userData: AuthUserDto,
     @Body(ValidationPipe) userData: SigninUserDto,
     @Res() res: Response,
   ): Promise<void> {

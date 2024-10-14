@@ -1,9 +1,12 @@
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 import { Entity } from 'typeorm';
 
+// 로그인 데이터 체크
 @Entity()
 export class SigninUserDto {
   @IsNotEmpty()
+  @MinLength(4)
+  @MaxLength(30)
   @Matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, {
     message: '이메일 형식이 아님, Email Address Damn ass',
   })

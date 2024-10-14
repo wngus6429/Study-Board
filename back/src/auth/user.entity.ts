@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 
 @Entity()
-@Unique(['user_email']) // 이메일은 당연 유니크
+@Unique(['user_email', 'nickname'])
 export class User extends BaseEntity {
   @PrimaryGeneratedColumn()
   id: number;

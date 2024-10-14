@@ -4,10 +4,10 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
+import { getCookie } from "cookies-next";
 
 export default function StoryWrite() {
   const Router = useRouter();
-  const [writer, setWriter] = useState<string>("");
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
 
@@ -15,11 +15,19 @@ export default function StoryWrite() {
   const mutation = useMutation({
     mutationFn: async (e: FormEvent) => {
       e.preventDefault();
-      return axios.post("http://localhost:9000/story/create", {
-        creator: writer,
-        title,
-        content,
-      });
+      const token = getCookie("access_token"); // 쿠키에서 토큰을 가져옴
+      console.log("token:", token); // 토큰을 콘솔에 출력하여 확인
+      console.log("token:", token);
+      return axios.post(
+        "http://localhost:9000/story/create",
+        {
+          title,
+          content,
+        },
+        {
+          withCredentials: true, // 쿠키 전송을 허용
+        }
+      );
     },
     onSuccess: (data) => {
       console.log("Response Data:", data);
@@ -27,7 +35,7 @@ export default function StoryWrite() {
     },
     onError: (error) => {
       // 요청 실패 시 처리 로직
-      alert("글 작성에 실패했습니다.");
+      alert("프론트 글 작성에 실패했습니다.");
       console.error(error);
     },
   });
@@ -46,16 +54,6 @@ export default function StoryWrite() {
         noValidate
         autoComplete="off"
       >
-        {" "}
-        <TextField
-          required
-          id="filled-required"
-          label="작성자"
-          defaultValue=""
-          variant="filled"
-          fullWidth
-          onChange={(e) => setWriter(e.target.value)}
-        />
         <TextField
           required
           id="filled-required"

@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Story } from './Story.entity';
 import { CreateStoryDto } from './dto/create-story.dto';
+import { User } from 'src/auth/user.entity';
 
 @Injectable()
 export class StoryService {
@@ -28,9 +29,16 @@ export class StoryService {
     // });
   }
 
-  async create(createStoryDto: CreateStoryDto): Promise<Story> {
-    console.log('데이터 생성', createStoryDto);
-    return this.storyRepository.save(createStoryDto);
+  async create(createStoryDto: CreateStoryDto, userData: User): Promise<Story> {
+    // console.log('데이터 생성', createStoryDto, userData);
+    const { title, content } = createStoryDto;
+    const { nickname } = userData;
+    const insertData = this.storyRepository.create({
+      title,
+      content,
+      creator: nickname,
+    });
+    return this.storyRepository.save(insertData);
   }
 
   // 상세 페이지에 필요한 전체 데이터 가져오기

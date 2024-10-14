@@ -12,9 +12,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     @InjectRepository(User) private userRepository: Repository<User>,
   ) {
     super({
-      //   secretOrKey: process.env.JWT_SECRET || config.get('jwt.secret'),
-      secretOrKey: 'park',
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req: any) => {
+          console.log('어', req.cookies?.access_token);
+          return req.cookies?.access_token; // 쿠키에서 토큰 추출
+        },
+      ]),
+      secretOrKey: 'park', // JWT 시크릿 키
     });
   }
 
@@ -22,6 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // DB에 있는 유저인지 확인후 유저 객체를 리턴
   // return 값은 @UseGuards(AuthGuard())를 이용한 모든 요청의 Request 객체에 들어감.
   async validate(payload) {
+    console.log('페이로드', payload);
     const { user_email } = payload;
     const user: User = await this.userRepository.findOne({
       where: { user_email },

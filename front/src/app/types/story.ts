@@ -3,7 +3,8 @@ export type Story = {
   title: string;
   content: string;
   creator: string;
-  createdAt: Date;
+  createdAt: string;
   readCount: number;
   likeCount: number;
+  comment: string;
 };

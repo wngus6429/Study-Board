@@ -19,11 +19,11 @@ export default function CustomSnackBar({ open, setOpen, message, severity = "suc
   return (
     <Snackbar
       open={open}
-      autoHideDuration={4000}
+      autoHideDuration={2000}
       onClose={handleClose}
       anchorOrigin={{ vertical: "top", horizontal: "center" }}
     >
-      <Alert onClose={handleClose} severity={severity} style={{ backgroundColor: "#FFEB3B", color: "#000" }}>
+      <Alert onClose={handleClose} severity={severity}>
         {message}
       </Alert>
     </Snackbar>

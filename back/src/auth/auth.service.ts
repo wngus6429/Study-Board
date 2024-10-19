@@ -19,7 +19,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async signUp(userData: SignupUserDto): Promise<void> {
+  async signUp(userData: SignupUserDto): Promise<{ accessToken: string }> {
     const { user_email, password, nickname } = userData;
     // ToDo 유저가 있는지 확인해야함
     const existUser = await this.userRepository.findOne({
@@ -39,6 +39,8 @@ export class AuthService {
     console.log('user:', user);
     try {
       await this.userRepository.save(user);
+      const { accessToken } = await this.signIn({ user_email, password });
+      return { accessToken };
     } catch (error) {
       console.log(error.code);
       if (error.code === '23505') {

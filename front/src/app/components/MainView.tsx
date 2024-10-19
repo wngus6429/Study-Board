@@ -1,16 +1,20 @@
 /** @jsxImportSource @emotion/react */
 "use client";
-import React, { ReactNode } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Button, CircularProgress } from "@mui/material";
+import { Alert, Box, Button, CircularProgress, Snackbar } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { css } from "@emotion/react";
 import HtmlTable from "./HtmlTable";
+import useStore from "../store";
+import CustomSnackBar from "./common/customSnackBar";
 
 const MainView = (): ReactNode => {
   const Router = useRouter();
+  const { loginState } = useStore((state) => state);
+  const [loginSuccess, setLoginSuccess] = useState(false);
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
@@ -21,6 +25,10 @@ const MainView = (): ReactNode => {
   const moveWrite = () => {
     Router.push("/write");
   };
+
+  useEffect(() => {
+    setLoginSuccess(true);
+  }, [loginState]);
 
   if (isLoading)
     return (
@@ -38,16 +46,20 @@ const MainView = (): ReactNode => {
 
   return (
     <>
-      {/* {signupFlag && (
-        <Alert variant="outlined" severity="success">
-          This is an outlined success Alert.
-        </Alert>
-      )} */}
-      <Button variant="outlined" onClick={moveWrite}>
+      {loginState && (
+        <CustomSnackBar open={loginSuccess} setOpen={setLoginSuccess} message="로그인 성공" severity="success" />
+      )}
+      <Button variant="outlined" onClick={moveWrite} color="success">
         글쓰기
       </Button>
+      <Button variant="outlined" onClick={() => Router.push("/login")} color="error">
+        로그인
+      </Button>
+      <Button variant="outlined" onClick={() => Router.push("/signup")}>
+        회원가입
+      </Button>
       <CustomizedTables tableData={data} />
-      <HtmlTable tableData={data} />
+      {/* <HtmlTable tableData={data} /> */}
     </>
   );
 };

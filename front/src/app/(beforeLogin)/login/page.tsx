@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, TextField, Typography, Box, Container, Alert } from "@mui/material";
 import axios from "axios";
+import useStore from "@/app/store";
 
 // 로그인 화면
 const LoginPage = () => {
@@ -10,6 +11,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const { login } = useStore((state) => state);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,6 +31,7 @@ const LoginPage = () => {
         // 성공 시 리다이렉트
         router.push("/");
       }
+      login();
     } catch (error) {
       setError("유효하지 않은 요청입니다.");
     }

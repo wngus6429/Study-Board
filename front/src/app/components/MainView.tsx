@@ -9,7 +9,8 @@ import { useRouter } from "next/navigation";
 import { css } from "@emotion/react";
 import HtmlTable from "./HtmlTable";
 import useStore from "../store";
-import CustomSnackBar from "./common/customSnackBar";
+import CustomSnackBar from "./common/CustomSnackBar";
+import Image from "next/image";
 
 const MainView = (): ReactNode => {
   const Router = useRouter();
@@ -58,7 +59,14 @@ const MainView = (): ReactNode => {
       <Button variant="outlined" onClick={() => Router.push("/signup")}>
         회원가입
       </Button>
-      <CustomizedTables tableData={data} />
+      <div style={{ display: "flex" }}>
+        <div style={{ width: "80%" }}>
+          <CustomizedTables tableData={data} />
+        </div>
+        <div style={{ width: "20%" }}>
+          <Image src="/assets/right.jpeg" alt="Description of image" width={500} height={300} />
+        </div>
+      </div>
       {/* <HtmlTable tableData={data} /> */}
     </>
   );

@@ -9,6 +9,13 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { Story } from "../types/story";
+import { Button } from "@mui/material";
+import axios from "axios";
+import dayjs from "dayjs";
+//! 몇분전 글이 쓰여졌다 등등 활용, 옛날에는 모먼트를 많이썻다함
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime);
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
@@ -30,26 +37,31 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-function createData(name: string, calories: number, fat: number, carbs: number, protein: number) {
-  return { name, calories, fat, carbs, protein };
-}
-
 interface CustomizedTablesProps {
   tableData: any;
 }
 
-export default function CustomizedTables({ tableData }: CustomizedTablesProps) {
+const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
+  const deleteStory = async (storyId: number) => {
+    await axios.delete(`http://localhost:9000/story/${storyId}`, {}).then((res) => {
+      if (res.status === 200) {
+        alert("삭제되었습니다.");
+      }
+    });
+  };
+
   return (
     <TableContainer component={Paper}>
       <Table sx={{ width: "100%" }} aria-label="customized table">
         <TableHead>
           <TableRow>
-            <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>게시글 번호</StyledTableCell>
-            <StyledTableCell sx={{ width: "500px" }}>제목</StyledTableCell>
-            <StyledTableCell sx={{ width: "80px" }}>작성자</StyledTableCell>
-            <StyledTableCell sx={{ width: "220px" }}>등록일</StyledTableCell>
-            <StyledTableCell>조회수</StyledTableCell>
-            <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>추천</StyledTableCell>
+            <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>번호</StyledTableCell>
+            <StyledTableCell sx={{ width: "400px" }}>제목</StyledTableCell>
+            <StyledTableCell sx={{ width: "150px" }}>작성자</StyledTableCell>
+            <StyledTableCell sx={{ width: "180px" }}>등록일</StyledTableCell>
+            <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>조회수</StyledTableCell>
+            <StyledTableCell sx={{ width: "75px", textAlign: "center" }}>추천</StyledTableCell>
+            <StyledTableCell sx={{ width: "160px", textAlign: "center" }}>기타</StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -58,15 +70,60 @@ export default function CustomizedTables({ tableData }: CustomizedTablesProps) {
               <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
                 {row.id}
               </StyledTableCell>
-              <StyledTableCell>{row.title}</StyledTableCell>
-              <StyledTableCell>{row.creator}</StyledTableCell>
-              <StyledTableCell>{row.createdAt.toLocaleString()}</StyledTableCell>
+              <StyledTableCell
+                sx={{
+                  display: "flex", // Flexbox 사용
+                  alignItems: "center", // 수직 가운데 정렬
+                }}
+              >
+                {row.title}
+              </StyledTableCell>
+              <StyledTableCell>
+                {row.creator.length > 6 ? `${row.creator.slice(0, 6)}...` : row.creator}
+              </StyledTableCell>
+              <StyledTableCell
+                sx={{
+                  display: "flex", // Flexbox 사용
+                  alignItems: "center", // 수직 가운데 정렬
+                }}
+              >
+                {dayjs(row.createdAt).format("YYYY.MM.DD HH:mm")}
+              </StyledTableCell>
               <StyledTableCell>{row.readCount}</StyledTableCell>
               <StyledTableCell sx={{ textAlign: "center" }}>{row.likeCount}</StyledTableCell>
+              {/* TODO 추천하기 버튼, 로그인 해서 내꺼면 삭제 혹은 수정 버튼 */}
+              <StyledTableCell
+                sx={{
+                  display: "flex", // Flexbox 사용
+                  alignItems: "center", // 수직 가운데 정렬
+                  justifyContent: "space-between", // 좌우 정렬
+                }}
+              >
+                <Button
+                  sx={{ float: "right", padding: "0px" }}
+                  size="small"
+                  variant="outlined"
+                  onClick={() => deleteStory(row.id)}
+                  color="warning"
+                >
+                  수정하기
+                </Button>
+                <Button
+                  sx={{ float: "right", padding: "0px" }}
+                  size="small"
+                  variant="outlined"
+                  onClick={() => deleteStory(row.id)}
+                  color="error"
+                >
+                  삭제
+                </Button>
+              </StyledTableCell>
             </StyledTableRow>
           ))}
         </TableBody>
       </Table>
     </TableContainer>
   );
-}
+};
+
+export default CustomizedTables;

@@ -48,4 +48,8 @@ export class StoryService {
   // 상세 페이지에서 comments 가져올 때
   // const storyDetail = await storyService.findOne(1);
   // const commentsArray = JSON.parse(storyDetail.comments);
+
+  async deleteStory(storyId: number): Promise<void> {
+    await this.storyRepository.delete(storyId);
+  }
 }

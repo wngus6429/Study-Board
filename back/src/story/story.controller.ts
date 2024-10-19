@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Post,
   UseGuards,
@@ -35,5 +36,10 @@ export class StoryController {
     //   `User ${userData.nickname}가 새글 작성. Payload: ${JSON.stringify(userData)}`,
     // );
     return this.storyService.create(createStoryDto, userData);
+  }
+
+  @Delete('/delete')
+  async deleteStory(@Body() storyId: number) {
+    return this.storyService.deleteStory(storyId);
   }
 }

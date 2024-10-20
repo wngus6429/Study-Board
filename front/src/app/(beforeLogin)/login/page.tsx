@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, TextField, Typography, Box, Container, Alert } from "@mui/material";
 import axios from "axios";
-import useStore from "@/app/store";
+import { useLogin } from "@/app/store";
 
 // 로그인 화면
 const LoginPage = () => {
@@ -11,14 +11,14 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const { login } = useStore((state) => state);
+  const { login } = useLogin((state) => state);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       // 로그인 API 요청
       const response = await axios.post(
-        "http://localhost:9000/auth/signin",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/signin`,
         {
           user_email: email,
           password,

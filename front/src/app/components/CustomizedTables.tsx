@@ -14,6 +14,8 @@ import axios from "axios";
 import dayjs from "dayjs";
 //! 몇분전 글이 쓰여졌다 등등 활용, 옛날에는 모먼트를 많이썻다함
 import relativeTime from "dayjs/plugin/relativeTime";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMessage } from "../store";
 
 dayjs.extend(relativeTime);
 
@@ -42,13 +44,18 @@ interface CustomizedTablesProps {
 }
 
 const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
-  const deleteStory = async (storyId: number) => {
-    await axios.delete(`http://localhost:9000/story/${storyId}`, {}).then((res) => {
-      if (res.status === 200) {
-        alert("삭제되었습니다.");
-      }
-    });
-  };
+  const queryClient = useQueryClient();
+  const { showMessage } = useMessage((state) => state);
+
+  const deleteData = useMutation({
+    mutationFn: async (storyId: number) => {
+      return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/story/${storyId}`, { withCredentials: true });
+    },
+    onSuccess() {
+      queryClient.invalidateQueries({ queryKey: ["stories"] });
+      showMessage("삭제 성공", "success");
+    },
+  });
 
   return (
     <TableContainer component={Paper}>
@@ -103,7 +110,10 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   sx={{ float: "right", padding: "0px" }}
                   size="small"
                   variant="outlined"
-                  onClick={() => deleteStory(row.id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    deleteData.mutate(row.id);
+                  }}
                   color="warning"
                 >
                   수정하기
@@ -112,7 +122,10 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   sx={{ float: "right", padding: "0px" }}
                   size="small"
                   variant="outlined"
-                  onClick={() => deleteStory(row.id)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    deleteData.mutate(row.id);
+                  }}
                   color="error"
                 >
                   삭제

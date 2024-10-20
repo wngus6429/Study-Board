@@ -1,28 +1,30 @@
 /** @jsxImportSource @emotion/react */
 "use client";
-import React, { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { Alert, Box, Button, CircularProgress, Snackbar } from "@mui/material";
+import { Button } from "@mui/material";
 import { useRouter } from "next/navigation";
 import { css } from "@emotion/react";
 import HtmlTable from "./HtmlTable";
-import useStore from "../store";
+import { useLogin } from "../store";
 import CustomSnackBar from "./common/CustomSnackBar";
 import Image from "next/image";
+import Loading from "./common/Loading";
 
 const MainView = (): ReactNode => {
   const Router = useRouter();
-  const { loginState } = useStore((state) => state);
+  const { loginState } = useLogin((state) => state);
   const [loginSuccess, setLoginSuccess] = useState(false);
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
-      return await axios.get("http://localhost:9000/story/getall").then((res) => res.data);
+      return await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/story/getall`).then((res) => res.data);
     },
   });
 
+  console.log("화", `${process.env.NEXT_PUBLIC_BASE_URL}/story/getall`);
   const moveWrite = () => {
     Router.push("/write");
   };
@@ -31,18 +33,7 @@ const MainView = (): ReactNode => {
     setLoginSuccess(true);
   }, [loginState]);
 
-  if (isLoading)
-    return (
-      <div
-        css={css`
-          display: "flex";
-          justify-content: "center";
-          height: "100vh";
-        `}
-      >
-        <CircularProgress />
-      </div>
-    );
+  if (isLoading) return <Loading />;
   if (error) return <div>Error: {(error as Error).message}</div>;
 
   return (
@@ -60,11 +51,22 @@ const MainView = (): ReactNode => {
         회원가입
       </Button>
       <div style={{ display: "flex" }}>
-        <div style={{ width: "80%" }}>
+        <div style={{ width: "85%" }}>
           <CustomizedTables tableData={data} />
         </div>
-        <div style={{ width: "20%" }}>
-          <Image src="/assets/right.jpeg" alt="Description of image" width={500} height={300} />
+        <div style={{ width: "15%" }}>
+          <Image
+            src="/assets/right.png"
+            alt="Right Icon"
+            width={190} // 원하는 너비로 설정
+            height={300} // 원하는 높이로 설정
+          />
+          <Image
+            src="/assets/right2.png"
+            alt="Right Icon"
+            width={190} // 원하는 너비로 설정
+            height={280} // 원하는 높이로 설정
+          />
         </div>
       </div>
       {/* <HtmlTable tableData={data} /> */}

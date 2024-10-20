@@ -3,6 +3,8 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
+  ParseIntPipe,
   Post,
   UseGuards,
   UsePipes,
@@ -38,8 +40,10 @@ export class StoryController {
     return this.storyService.create(createStoryDto, userData);
   }
 
-  @Delete('/delete')
-  async deleteStory(@Body() storyId: number) {
+  @Delete('/:id')
+  @UseGuards(AuthGuard())
+  async deleteStory(@Param('id') storyId: number): Promise<any> {
+    console.log('storyId:', storyId);
     return this.storyService.deleteStory(storyId);
   }
 }

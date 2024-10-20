@@ -17,9 +17,8 @@ export default function StoryWrite() {
       e.preventDefault();
       const token = getCookie("access_token"); // 쿠키에서 토큰을 가져옴
       console.log("token:", token); // 토큰을 콘솔에 출력하여 확인
-      console.log("token:", token);
       return axios.post(
-        "http://localhost:9000/story/create",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/story/create`,
         {
           title,
           content,
@@ -35,7 +34,7 @@ export default function StoryWrite() {
     },
     onError: (error) => {
       // 요청 실패 시 처리 로직
-      alert("프론트 글 작성에 실패했습니다.");
+      alert("글 작성에 실패했습니다.");
       console.error(error);
     },
   });

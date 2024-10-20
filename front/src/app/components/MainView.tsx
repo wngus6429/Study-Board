@@ -65,14 +65,18 @@ const MainView = (): ReactNode => {
           <Image
             src="/assets/right.png"
             alt="Right Icon"
-            width={190} // 원하는 너비로 설정
-            height={300} // 원하는 높이로 설정
+            width={0}
+            height={0}
+            sizes="100vw"
+            style={{ width: '100%', height: 'auto' }}
           />
           <Image
             src="/assets/right2.png"
             alt="Right Icon"
-            width={190} // 원하는 너비로 설정
-            height={280} // 원하는 높이로 설정
+            width={0}
+            height={0}
+            sizes="100vw"
+            style={{ width: '100%', height: 'auto' }}
           />
         </div>
       </div>

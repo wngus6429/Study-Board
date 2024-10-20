@@ -1,8 +1,17 @@
-import { Body, Controller, Post, Res, ValidationPipe } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupUserDto } from './dto/signup.user.dto';
 import { Response } from 'express'; // Express Response 객체를 import
 import { SigninUserDto } from './dto/signin.user.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @Controller('auth')
 export class AuthController {
@@ -42,6 +51,19 @@ export class AuthController {
     });
 
     // 응답 전송
+    res.sendStatus(200);
+  }
+
+  @Post('logout')
+  @UseGuards(AuthGuard())
+  async logout(@Res() res: Response): Promise<void> {
+    // JWT가 저장된 쿠키를 클리어
+    res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+    // 로그아웃 성공 응답 전송
     res.sendStatus(200);
   }
 }

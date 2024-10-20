@@ -31,7 +31,6 @@ interface MessageState {
   messageStyle: "success" | "info" | "warning" | "error";
   showMessage: (content: string, style?: "success" | "info" | "warning" | "error") => void;
   hideMessage: () => void;
-  setMessageStyle: (style: "success" | "info" | "warning" | "error") => void;
 }
 
 export const useMessage = create<MessageState>((set) => ({
@@ -46,10 +45,6 @@ export const useMessage = create<MessageState>((set) => ({
       messageContent: content,
       messageStyle: style,
     }),
-
-  // 메시지를 숨기는 함수
+  // 메시지 숨기고, 내용을 초기화하는 함수
   hideMessage: () => set({ messageState: false, messageContent: "" }),
-
-  // 메시지 스타일을 설정하는 함수
-  setMessageStyle: (style) => set({ messageStyle: style }),
 }));

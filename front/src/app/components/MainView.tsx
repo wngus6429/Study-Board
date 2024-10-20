@@ -29,6 +29,13 @@ const MainView = (): ReactNode => {
     Router.push("/write");
   };
 
+  const logout = () => {
+    axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/logout`, {}, { withCredentials: true }).then((res) => {
+      console.log("logout res:", res);
+      refetch();
+    });
+  };
+
   useEffect(() => {
     setLoginSuccess(true);
   }, [loginState]);
@@ -46,6 +53,9 @@ const MainView = (): ReactNode => {
       </Button>
       <Button variant="outlined" onClick={() => Router.push("/login")} color="error">
         로그인
+      </Button>
+      <Button variant="outlined" onClick={() => logout()}>
+        로그아웃
       </Button>
       <Button variant="outlined" onClick={() => Router.push("/signup")}>
         회원가입

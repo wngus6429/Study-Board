@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, TextField, Typography, Box, Container, Alert } from "@mui/material";
 import axios from "axios";
-import { useLogin } from "@/app/store";
+import { useLogin, useMessage } from "@/app/store";
 
 // 로그인 화면
 const LoginPage = () => {
@@ -11,6 +11,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const { showMessage } = useMessage((state) => state);
   const { login } = useLogin((state) => state);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -29,6 +30,7 @@ const LoginPage = () => {
       console.log("Login Response:", response);
       if (response.status === 200) {
         // 성공 시 리다이렉트
+        showMessage("로그인 성공", "success");
         router.push("/");
       }
       login();

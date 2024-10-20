@@ -5,9 +5,12 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import { getCookie } from "cookies-next";
+import { useMessage } from "@/app/store";
 
 export default function StoryWrite() {
   const Router = useRouter();
+  const { showMessage } = useMessage((state) => state);
+
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
 
@@ -15,8 +18,6 @@ export default function StoryWrite() {
   const mutation = useMutation({
     mutationFn: async (e: FormEvent) => {
       e.preventDefault();
-      const token = getCookie("access_token"); // 쿠키에서 토큰을 가져옴
-      console.log("token:", token); // 토큰을 콘솔에 출력하여 확인
       return axios.post(
         `${process.env.NEXT_PUBLIC_BASE_URL}/story/create`,
         {
@@ -30,6 +31,7 @@ export default function StoryWrite() {
     },
     onSuccess: (data) => {
       console.log("Response Data:", data);
+      showMessage("글쓰기 완료", "error");
       Router.push("/");
     },
     onError: (error) => {

@@ -53,7 +53,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
-      showMessage("삭제 성공", "success");
+      showMessage("삭제 성공", "error");
     },
   });
 

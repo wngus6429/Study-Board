@@ -16,7 +16,7 @@ import Loading from "./common/Loading";
 const MainView = (): ReactNode => {
   const Router = useRouter();
   const { loginState } = useLogin((state) => state);
-  const [loginSuccess, setLoginSuccess] = useState(false);
+  // const [loginSuccess, setLoginSuccess] = useState(false);
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
@@ -36,18 +36,15 @@ const MainView = (): ReactNode => {
     });
   };
 
-  useEffect(() => {
-    setLoginSuccess(true);
-  }, [loginState]);
+  // useEffect(() => {
+  //   setLoginSuccess(true);
+  // }, [loginState]);
 
   if (isLoading) return <Loading />;
   if (error) return <div>Error: {(error as Error).message}</div>;
 
   return (
     <>
-      {loginState && (
-        <CustomSnackBar open={loginSuccess} setOpen={setLoginSuccess} message="로그인 성공" severity="success" />
-      )}
       <Button variant="outlined" onClick={moveWrite} color="success">
         글쓰기
       </Button>

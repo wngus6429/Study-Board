@@ -10,7 +10,7 @@ export default function page() {
   const [detail, setDetail] = useState<Story | null>(null);
 
   const getDetail = async () => {
-    const response = await axios.get(`http://localhost:9000/detail/${id}`);
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/detail/${id}`);
     setDetail(response.data);
   };
 

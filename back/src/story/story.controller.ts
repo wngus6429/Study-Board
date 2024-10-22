@@ -16,7 +16,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/auth/get-user.decorator';
 import { User } from 'src/auth/user.entity';
 
-@Controller('story')
+@Controller('api/story')
 export class StoryController {
   logger: any;
   constructor(private readonly storyService: StoryService) {}

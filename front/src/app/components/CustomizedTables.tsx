@@ -79,7 +79,6 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
               </StyledTableCell>
               <StyledTableCell
                 sx={{
-                  display: "flex", // Flexbox 사용
                   alignItems: "center", // 수직 가운데 정렬
                 }}
               >
@@ -90,7 +89,6 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
               </StyledTableCell>
               <StyledTableCell
                 sx={{
-                  display: "flex", // Flexbox 사용
                   alignItems: "center", // 수직 가운데 정렬
                 }}
               >
@@ -99,15 +97,9 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
               <StyledTableCell>{row.readCount}</StyledTableCell>
               <StyledTableCell sx={{ textAlign: "center" }}>{row.likeCount}</StyledTableCell>
               {/* TODO 추천하기 버튼, 로그인 해서 내꺼면 삭제 혹은 수정 버튼 */}
-              <StyledTableCell
-                sx={{
-                  display: "flex", // Flexbox 사용
-                  alignItems: "center", // 수직 가운데 정렬
-                  justifyContent: "space-between", // 좌우 정렬
-                }}
-              >
+              <StyledTableCell sx={{ textAlign: "center" }}>
                 <Button
-                  sx={{ float: "right", padding: "0px" }}
+                  sx={{ padding: "0px" }}
                   size="small"
                   variant="outlined"
                   onClick={(e) => {
@@ -119,7 +111,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   수정하기
                 </Button>
                 <Button
-                  sx={{ float: "right", padding: "0px" }}
+                  sx={{ padding: "0px" }}
                   size="small"
                   variant="outlined"
                   onClick={(e) => {

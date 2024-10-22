@@ -19,7 +19,7 @@ export default function StoryWrite() {
     mutationFn: async (e: FormEvent) => {
       e.preventDefault();
       return axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/story/create`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`,
         {
           title,
           content,

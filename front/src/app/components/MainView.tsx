@@ -20,17 +20,16 @@ const MainView = (): ReactNode => {
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
-      return await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/story/getall`).then((res) => res.data);
+      return await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/getall`).then((res) => res.data);
     },
   });
 
-  console.log("화", `${process.env.NEXT_PUBLIC_BASE_URL}/story/getall`);
   const moveWrite = () => {
     Router.push("/write");
   };
 
   const logout = () => {
-    axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/logout`, {}, { withCredentials: true }).then((res) => {
+    axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {}, { withCredentials: true }).then((res) => {
       console.log("logout res:", res);
       refetch();
     });
@@ -68,7 +67,7 @@ const MainView = (): ReactNode => {
             width={0}
             height={0}
             sizes="100vw"
-            style={{ width: '100%', height: 'auto' }}
+            style={{ width: "100%", height: "auto" }}
           />
           <Image
             src="/assets/right2.png"
@@ -76,7 +75,7 @@ const MainView = (): ReactNode => {
             width={0}
             height={0}
             sizes="100vw"
-            style={{ width: '100%', height: 'auto' }}
+            style={{ width: "100%", height: "auto" }}
           />
         </div>
       </div>

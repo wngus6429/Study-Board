@@ -19,7 +19,7 @@ const LoginPage = () => {
     try {
       // 로그인 API 요청
       const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/signin`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
         {
           user_email: email,
           password,

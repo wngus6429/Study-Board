@@ -51,7 +51,7 @@ const SignupPage = (): ReactNode => {
     //! fetch에서는 credentials: 'include'로 쿠키를 전달할 수 있음
     //! axios에서는 withCredentials: true로 쿠키를 전달할 수 있음
     await axios
-      .post("http://localhost:9000/auth/signup", data, { withCredentials: true })
+      .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signup`, data, { withCredentials: true })
       .then((res: { status: number }) => {
         console.log("res:", res);
         if (res.status === 201) {

@@ -3,6 +3,7 @@ import { User } from './user.entity';
 
 export const GetUser = createParamDecorator(
   (data, ctx: ExecutionContext): User => {
+    console.log('시발아');
     const req = ctx.switchToHttp().getRequest();
     return req.user;
   },

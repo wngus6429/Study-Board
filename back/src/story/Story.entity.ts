@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, Unique } from 'typeorm';
 
 @Entity()
 export class Story {
@@ -10,6 +10,9 @@ export class Story {
 
   @Column({ type: 'text', nullable: false })
   content: string;
+
+  @Column({ type: 'text', nullable: false })
+  nickname: string;
 
   @Column({ nullable: false })
   creator: string;

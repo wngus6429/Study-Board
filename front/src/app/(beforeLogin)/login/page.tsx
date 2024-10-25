@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Button, TextField, Typography, Box, Container, Alert } from "@mui/material";
 import axios from "axios";
 import { useLogin, useMessage } from "@/app/store";
+import { signIn } from "next-auth/react";
 
 // 로그인 화면
 const LoginPage = () => {
@@ -12,28 +13,23 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const router = useRouter();
   const { showMessage } = useMessage((state) => state);
-  const { login } = useLogin((state) => state);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       // 로그인 API 요청
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
-        {
-          user_email: email,
-          password,
-        },
-        { withCredentials: true }
-      ); // 쿠키를 포함하여 요청
-      // alert("Login Response:", response);
-      console.log("Login Response:", response);
-      if (response.status === 200) {
-        // 성공 시 리다이렉트
+      console.log("로그인 요청:", email, password);
+      const response = await signIn("credentials", {
+        user_email: email,
+        password,
+        redirect: false,
+      });
+      if (response?.status === 200) {
         showMessage("로그인 성공", "success");
         router.push("/");
+      } else if (response?.status === 401) {
+        setError("아이디 또는 비밀번호가 일치하지 않습니다.");
       }
-      login();
     } catch (error) {
       setError("유효하지 않은 요청입니다.");
     }
@@ -99,3 +95,12 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
+
+// const response = await axios.post(
+//   `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
+//   {
+//     user_email: email,
+//     password,
+//   },
+//   { withCredentials: true }
+// ); // 쿠키를 포함하여 요청

@@ -9,13 +9,10 @@ import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   imports: [
-    // @UseGuards(AuthGuard())를 사용할 수 있음 아니면 @UseGuards(AuthGuard('jwt'))로 사용해야함
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: 'park',
-      signOptions: {
-        expiresIn: 3600, // 1시간 토큰 유용하게
-      },
+      signOptions: { expiresIn: 3600 },
     }),
     TypeOrmModule.forFeature([User]),
   ],

@@ -17,6 +17,7 @@ import Grid from "@mui/material/Grid2";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useMessage } from "@/app/store";
 
 // 회원가입 화면
 const SignupPage = (): ReactNode => {
@@ -24,6 +25,7 @@ const SignupPage = (): ReactNode => {
   const theme = createTheme();
   const [checked, setChecked] = useState(false);
 
+  const { showMessage } = useMessage((state) => state);
   // 동의 체크
   const handleAgree = (e: any): void => {
     setChecked(!checked);
@@ -55,6 +57,7 @@ const SignupPage = (): ReactNode => {
       .then((res: { status: number }) => {
         console.log("res:", res);
         if (res.status === 201) {
+          showMessage("회원가입 성공", "success");
           router.push("/");
         }
       })

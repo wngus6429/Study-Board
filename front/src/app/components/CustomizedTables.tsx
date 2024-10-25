@@ -50,7 +50,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
   const deleteData = useMutation({
     mutationFn: async (storyId: number) => {
       alert(`${process.env.NEXT_PUBLIC_BASE_URL}/story/${storyId}`);
-      return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/story/${storyId}`, { withCredentials: true });
+      return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/${storyId}`, { withCredentials: true });
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["stories"] });

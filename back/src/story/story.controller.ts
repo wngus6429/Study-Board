@@ -33,7 +33,7 @@ export class StoryController {
     @Body() createStoryDto: CreateStoryDto,
     @GetUser() userData: User,
   ) {
-    console.log('createStoryDto:', createStoryDto, 'userData:', userData);
+    console.log('글 작성 정보:', createStoryDto, '사용자정보', userData);
     return this.storyService.create(createStoryDto, userData);
   }
 
@@ -43,7 +43,7 @@ export class StoryController {
     @Param('id') storyId: number,
     @GetUser() userData: User,
   ): Promise<void> {
-    console.log('삭제할 아이디:', storyId, '사용자:', userData.user_email);
+    console.log('삭제할 글 ID:', storyId, '사용자정보', userData.user_email);
     return this.storyService.deleteStory(storyId, userData);
   }
 }

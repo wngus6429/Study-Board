@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import RQProvider from "./components/RQProvider";
 import NavBar from "@/app/components/NavBar";
 import TopBar from "./components/TopBar";
-import { SessionProvider } from "next-auth/react";
 
 const inter = Inter({ subsets: ["latin"] });
 

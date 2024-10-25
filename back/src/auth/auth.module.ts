@@ -18,7 +18,6 @@ import { JwtStrategy } from './jwt.strategy';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
-  // JwtStrategy, PassportModule를 다른곳에서 사용할 수 있게 해줌
   exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}

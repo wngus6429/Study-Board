@@ -59,6 +59,22 @@ export class AuthController {
     res.status(200).json({ user, accessToken });
   }
 
+  @Post('signinBack')
+  async signinBack(
+    @Body(ValidationPipe) userData: SigninUserDto,
+    @Res() res: Response,
+  ): Promise<void> {
+    const user = await this.authUserService.signIn(userData);
+    if (!user) {
+      res
+        .status(401)
+        .json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
+      return;
+    }
+    // 로그인 성공 시 사용자 정보와 함께 응답
+    res.status(200).json(user);
+  }
+
   @Post('logout')
   @UseGuards(AuthGuard('local'))
   async logout(@Res() res: Response): Promise<void> {

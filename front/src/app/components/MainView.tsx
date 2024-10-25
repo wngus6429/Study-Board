@@ -19,6 +19,7 @@ const MainView = (): ReactNode => {
   const { loginState } = useLogin((state) => state);
   const { data: session, status } = useSession();
 
+  console.log("로그인 성공:", session);
   if (status === "authenticated") {
     console.log("로그인 성공:", session.user);
   } else {

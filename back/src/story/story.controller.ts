@@ -27,16 +27,13 @@ export class StoryController {
   }
 
   @Post('/create')
-  @UsePipes(ValidationPipe)
   @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
   async createStory(
     @Body() createStoryDto: CreateStoryDto,
     @GetUser() userData: User,
   ) {
     console.log('createStoryDto:', createStoryDto, 'userData:', userData);
-    // this.logger.verbose(
-    //   `User ${userData.nickname}가 새글 작성. Payload: ${JSON.stringify(userData)}`,
-    // );
     return this.storyService.create(createStoryDto, userData);
   }
 

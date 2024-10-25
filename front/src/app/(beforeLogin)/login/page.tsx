@@ -17,17 +17,23 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      // 로그인 API 요청
-      console.log("로그인 요청:", email, password);
-      const response = await signIn("credentials", {
+      const response1 = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
+        {
+          user_email: email,
+          password,
+        },
+        { withCredentials: true }
+      ); // 쿠키를 포함하여 요청
+      const response2 = await signIn("credentials", {
         user_email: email,
         password,
         redirect: false,
       });
-      if (response?.status === 200) {
+      if (response1?.status === 200 && response2?.status === 200) {
         showMessage("로그인 성공", "success");
         router.push("/");
-      } else if (response?.status === 401) {
+      } else if (response1?.status === 401 || response2?.status === 401) {
         setError("아이디 또는 비밀번호가 일치하지 않습니다.");
       }
     } catch (error) {

@@ -17,7 +17,7 @@ export class StoryService {
   ) {}
 
   // 목록 페이지에 필요한 데이터만 가져오기
-  async findAll(): Promise<Partial<Story>[]> {
+  async findStoryAll(): Promise<Partial<Story>[]> {
     // console.log('모든 데이터 취득');
     return this.storyRepository.find();
     // return this.storyRepository.find({
@@ -31,6 +31,10 @@ export class StoryService {
     //     'likeCount',
     //   ],
     // });
+  }
+
+  async findStoryOne(id: number): Promise<any> {
+    return this.storyRepository.findOne({ where: { id } });
   }
 
   async create(createStoryDto: CreateStoryDto, userData: User): Promise<Story> {

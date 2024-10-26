@@ -1,10 +1,10 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, TextField, Typography, Box, Container, Alert } from "@mui/material";
 import axios from "axios";
-import { useLogin, useMessage } from "@/app/store";
-import { signIn } from "next-auth/react";
+import { useMessage } from "@/app/store";
+import { signIn, useSession } from "next-auth/react";
 
 // 로그인 화면
 const LoginPage = () => {
@@ -13,33 +13,59 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const router = useRouter();
   const { showMessage } = useMessage((state) => state);
+  const { data: session, update, status } = useSession();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response1 = await axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
-        {
+      const [response1, response2] = await Promise.all([
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
+          {
+            user_email: email,
+            password,
+          },
+          { withCredentials: true }
+        ),
+        await signIn("credentials", {
           user_email: email,
           password,
-        },
-        { withCredentials: true }
-      ); // 쿠키를 포함하여 요청
-      const response2 = await signIn("credentials", {
-        user_email: email,
-        password,
-        redirect: false,
-      });
-      if (response1?.status === 200 && response2?.status === 200) {
+          redirect: false,
+        }),
+      ]);
+
+      console.log("response1", response1, "response2", response2);
+      if (response1?.status === 200 && response2?.ok) {
         showMessage("로그인 성공", "success");
-        router.push("/");
+
+        // 세션 업데이트 강제
+        await update();
+        // router.refresh();
+        // router.push("/");
+        // // 로그인 요청이 모두 성공한 경우
+        // if (response1?.status === 200 && response2?.status === 200) {
+        //   showMessage("로그인 성공", "success");
+        //   // 세션 정보를 강제로 새로 고침
+
+        //   await update();
+        //   // // router.replace("/"); // 새 페이지로 교체
       } else if (response1?.status === 401 || response2?.status === 401) {
         setError("아이디 또는 비밀번호가 일치하지 않습니다.");
       }
     } catch (error) {
+      console.log("error", error);
       setError("유효하지 않은 요청입니다.");
     }
   };
+
+  useEffect(() => {
+    console.log("session", session);
+    if (session != null) {
+      console.log("session들어옴");
+      router.refresh();
+      router.push("/");
+    }
+  }, [session]);
 
   return (
     <Container component="main" maxWidth="xs">

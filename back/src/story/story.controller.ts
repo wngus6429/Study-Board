@@ -23,7 +23,15 @@ export class StoryController {
 
   @Get('/getall')
   async getAllStory(): Promise<any> {
-    return this.storyService.findAll();
+    return this.storyService.findStoryAll();
+  }
+
+  @Get('/detail/:id')
+  async getStory(id: number): Promise<any> {
+    const data = await this.storyService.findStoryOne(id);
+    // 구조 분해 할당을 통해 id와 creator를 제외
+    const { id: _, creator, ...rest } = data;
+    return rest;
   }
 
   @Post('/create')

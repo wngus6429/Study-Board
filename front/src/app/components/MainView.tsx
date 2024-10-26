@@ -1,14 +1,12 @@
 /** @jsxImportSource @emotion/react */
 "use client";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@mui/material";
-import { css } from "@emotion/react";
-import HtmlTable from "./HtmlTable";
+// import HtmlTable from "./HtmlTable";
 import { useLogin } from "../store";
-import CustomSnackBar from "./common/CustomSnackBar";
 import Image from "next/image";
 import Loading from "./common/Loading";
 import { useRouter } from "next/navigation";
@@ -16,7 +14,7 @@ import { useSession } from "next-auth/react";
 
 const MainView = (): ReactNode => {
   const Router = useRouter();
-  const { loginState } = useLogin((state) => state);
+  // const { loginState } = useLogin((state) => state);
   const { data: session, status } = useSession();
 
   console.log("로그인 성공:", session);

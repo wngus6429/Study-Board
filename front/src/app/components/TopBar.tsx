@@ -1,12 +1,8 @@
 "use client";
 import React from "react";
-import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
-import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
-import MenuIcon from "@mui/icons-material/Menu";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import Search from "@mui/icons-material/Search";
 import InputBase from "@mui/material/InputBase";
 import { styled, alpha } from "@mui/material/styles";
 import { Button, Link } from "@mui/material";
@@ -14,44 +10,60 @@ import { Button, Link } from "@mui/material";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import styles from "./style/TopBar.module.css";
-// import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
-const SearchBox = styled("div")(({ theme }) => ({
-  position: "relative",
-  borderRadius: theme.shape.borderRadius,
-  background: `linear-gradient(45deg, ${alpha(theme.palette.common.white, 0.15)}, ${alpha(theme.palette.common.white, 0.25)})`,
-  "&:hover": {
-    background: `linear-gradient(45deg, ${alpha(theme.palette.common.white, 0.25)}, ${alpha(theme.palette.common.white, 0.35)})`,
-  },
-  marginLeft: 0,
-  width: "100%",
-  [theme.breakpoints.up("sm")]: {
-    marginLeft: theme.spacing(1),
-    width: "auto",
-  },
-}));
+// const SearchBox = styled("div")(({ theme }) => ({
+//   position: "relative",
+//   borderRadius: theme.shape.borderRadius,
+//   background: `linear-gradient(45deg, ${alpha(theme.palette.common.white, 0.15)}, ${alpha(theme.palette.common.white, 0.25)})`,
+//   "&:hover": {
+//     background: `linear-gradient(45deg, ${alpha(theme.palette.common.white, 0.25)}, ${alpha(theme.palette.common.white, 0.35)})`,
+//   },
+//   marginLeft: 0,
+//   width: "100%",
+//   [theme.breakpoints.up("sm")]: {
+//     marginLeft: theme.spacing(1),
+//     width: "auto",
+//   },
+// }));
 
-const StyledInputBase = styled(InputBase)(({ theme }) => ({
-  color: "inherit",
-  "& .MuiInputBase-input": {
-    padding: theme.spacing(1, 1, 1, 0),
-    paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-    transition: theme.transitions.create("width"),
-    width: "100%",
-    [theme.breakpoints.up("md")]: {
-      width: "20ch",
-    },
-  },
-}));
+// const StyledInputBase = styled(InputBase)(({ theme }) => ({
+//   color: "inherit",
+//   "& .MuiInputBase-input": {
+//     padding: theme.spacing(1, 1, 1, 0),
+//     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
+//     transition: theme.transitions.create("width"),
+//     width: "100%",
+//     [theme.breakpoints.up("md")]: {
+//       width: "20ch",
+//     },
+//   },
+// }));
 
 export default function MenuBar() {
-  const Router = useRouter();
+  const router = useRouter();
+  const { data: user } = useSession();
 
-  const logout = () => {
-    axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {}, { withCredentials: true }).then((res) => {
-      console.log("logout res:", res);
-      Router.push("/");
-    });
+  const logout = async () => {
+    // TODO 둘다 성공해야 로그아웃 성공되게끔. Promise.all 사용
+
+    try {
+      // Promise.all을 사용하여 로그아웃 요청과 Next-Auth signOut을 병렬로 수행
+      const [logoutResponse] = await Promise.all([
+        axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {}, { withCredentials: true }),
+        signOut(),
+      ]);
+
+      if (logoutResponse.status === 200) {
+        alert("로그아웃 Next-Auth 실행");
+        // 로그아웃 후 페이지를 새로고침하고 메인 페이지로 이동
+        router.refresh();
+        router.replace("/");
+      }
+    } catch (error) {
+      // 에러 처리
+      console.error("로그아웃 실패:", error);
+    }
   };
   return (
     <div className={styles.container}>
@@ -59,15 +71,19 @@ export default function MenuBar() {
         <h1 className={styles.title}>Live Board</h1>
       </Link>
       <nav className={styles.nav}>
-        <Button variant="contained" onClick={() => Router.push("/login")} color="info">
-          로그인
-        </Button>
+        {!user && (
+          <Button variant="contained" onClick={() => router.push("/login")} color="info">
+            로그인
+          </Button>
+        )}
         <Button variant="contained" onClick={logout} color="error">
           로그아웃
         </Button>
-        <Button variant="contained" onClick={() => Router.push("/signup")} color="inherit">
-          회원가입
-        </Button>
+        {!user && (
+          <Button variant="contained" onClick={() => router.push("/signup")} color="inherit">
+            회원가입
+          </Button>
+        )}
         {/* 오른쪽 메뉴: 프로필 관련 */}
         <Box sx={{ flexGrow: 1 }} />
         <IconButton size="large" edge="end" aria-label="account of current user" aria-haspopup="true" color="inherit">

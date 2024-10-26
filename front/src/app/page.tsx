@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import CustomSnackBar from "./components/common/CustomSnackBar";
 import Loading from "./components/common/Loading";
 import MainView from "./components/MainView";

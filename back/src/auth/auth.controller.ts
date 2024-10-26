@@ -13,6 +13,7 @@ import { Response } from 'express'; // Express Response 객체를 import
 import { SigninUserDto } from './dto/signin.user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
+import { LoggedInGuard } from './logged-in-guard';
 
 @Controller('api/auth')
 export class AuthController {
@@ -76,15 +77,14 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard('local'))
-  async logout(@Res() res: Response): Promise<void> {
-    // JWT가 저장된 쿠키를 클리어
+  @UseGuards(AuthGuard())
+  async logout(@Req() req: Request, @Res() res: Response) {
+    console.log('로그아웃 요청');
     res.clearCookie('access_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
     });
-    // 로그아웃 성공 응답 전송
     res.sendStatus(200);
   }
 }

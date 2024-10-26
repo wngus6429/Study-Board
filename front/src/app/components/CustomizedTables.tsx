@@ -16,6 +16,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMessage } from "../store";
+import { useRouter } from "next/navigation";
 
 dayjs.extend(relativeTime);
 
@@ -45,16 +46,19 @@ interface CustomizedTablesProps {
 
 const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { showMessage } = useMessage((state) => state);
 
   const deleteData = useMutation({
     mutationFn: async (storyId: number) => {
-      alert(`${process.env.NEXT_PUBLIC_BASE_URL}/story/${storyId}`);
       return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/${storyId}`, { withCredentials: true });
     },
     onSuccess() {
       queryClient.invalidateQueries({ queryKey: ["stories"] });
       showMessage("삭제 성공", "error");
+    },
+    onError() {
+      showMessage("삭제 실패", "error");
     },
   });
 
@@ -74,7 +78,12 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
         </TableHead>
         <TableBody>
           {tableData.map((row: Story) => (
-            <StyledTableRow key={row.id}>
+            <StyledTableRow
+              key={row.id}
+              onClick={() => {
+                router.push(`/detail/${row.id}`);
+              }}
+            >
               <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
                 {row.id}
               </StyledTableCell>
@@ -86,7 +95,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                 {row.title}
               </StyledTableCell>
               <StyledTableCell>
-                {row.creator.length > 6 ? `${row.creator.slice(0, 6)}...` : row.creator}
+                {row.nickname.length > 6 ? `${row.nickname.slice(0, 6)}...` : row.nickname}
               </StyledTableCell>
               <StyledTableCell
                 sx={{

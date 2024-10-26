@@ -4,7 +4,6 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
-import { getCookie } from "cookies-next";
 import { useMessage } from "@/app/store";
 
 export default function StoryWrite() {
@@ -30,13 +29,11 @@ export default function StoryWrite() {
       );
     },
     onSuccess: (data) => {
-      console.log("Response Data:", data);
-      showMessage("글쓰기 완료", "error");
+      showMessage("글쓰기 완료", "info");
       Router.push("/");
     },
     onError: (error) => {
-      // 요청 실패 시 처리 로직
-      alert("글 작성에 실패했습니다.");
+      showMessage("글쓰기 실패", "error");
       console.error(error);
     },
   });

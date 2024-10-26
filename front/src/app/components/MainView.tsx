@@ -15,16 +15,6 @@ import { useSession } from "next-auth/react";
 const MainView = (): ReactNode => {
   const Router = useRouter();
   // const { loginState } = useLogin((state) => state);
-  const { data: session, status } = useSession();
-
-  console.log("로그인 성공:", session);
-  if (status === "authenticated") {
-    console.log("로그인 성공:", session.user);
-  } else {
-    console.log("로그인 실패");
-  }
-
-  // const [loginSuccess, setLoginSuccess] = useState(false);
   const { data, error, isLoading, refetch } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {

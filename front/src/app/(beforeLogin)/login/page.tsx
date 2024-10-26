@@ -33,22 +33,12 @@ const LoginPage = () => {
           redirect: false,
         }),
       ]);
-
-      console.log("response1", response1, "response2", response2);
-      if (response1?.status === 200 && response2?.ok) {
+      if (response1?.status === 200 && response2?.status === 200) {
         showMessage("로그인 성공", "success");
-
         // 세션 업데이트 강제
         await update();
-        // router.refresh();
-        // router.push("/");
-        // // 로그인 요청이 모두 성공한 경우
-        // if (response1?.status === 200 && response2?.status === 200) {
-        //   showMessage("로그인 성공", "success");
-        //   // 세션 정보를 강제로 새로 고침
-
-        //   await update();
-        //   // // router.replace("/"); // 새 페이지로 교체
+        router.refresh();
+        router.push("/");
       } else if (response1?.status === 401 || response2?.status === 401) {
         setError("아이디 또는 비밀번호가 일치하지 않습니다.");
       }
@@ -57,15 +47,6 @@ const LoginPage = () => {
       setError("유효하지 않은 요청입니다.");
     }
   };
-
-  useEffect(() => {
-    console.log("session", session);
-    if (session != null) {
-      console.log("session들어옴");
-      router.refresh();
-      router.push("/");
-    }
-  }, [session]);
 
   return (
     <Container component="main" maxWidth="xs">

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -42,7 +42,13 @@ import { signOut, useSession } from "next-auth/react";
 
 export default function MenuBar() {
   const router = useRouter();
-  const { data: user } = useSession();
+  const { data: user, status } = useSession();
+
+  if (status === "authenticated") {
+    console.log("로그인 성공:", user.user);
+  } else {
+    console.log("로그인 실패");
+  }
 
   const logout = async () => {
     // TODO 둘다 성공해야 로그아웃 성공되게끔. Promise.all 사용
@@ -65,13 +71,14 @@ export default function MenuBar() {
       console.error("로그아웃 실패:", error);
     }
   };
+
   return (
     <div className={styles.container}>
       <Link href="/" aria-label="Home">
         <h1 className={styles.title}>Live Board</h1>
       </Link>
       <nav className={styles.nav}>
-        {!user && (
+        {!user?.user && (
           <Button variant="contained" onClick={() => router.push("/login")} color="info">
             로그인
           </Button>
@@ -79,7 +86,7 @@ export default function MenuBar() {
         <Button variant="contained" onClick={logout} color="error">
           로그아웃
         </Button>
-        {!user && (
+        {!user?.user && (
           <Button variant="contained" onClick={() => router.push("/signup")} color="inherit">
             회원가입
           </Button>

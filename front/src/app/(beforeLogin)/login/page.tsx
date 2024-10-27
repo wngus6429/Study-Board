@@ -108,12 +108,3 @@ const LoginPage = () => {
 };
 
 export default LoginPage;
-
-// const response = await axios.post(
-//   `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
-//   {
-//     user_email: email,
-//     password,
-//   },
-//   { withCredentials: true }
-// ); // 쿠키를 포함하여 요청

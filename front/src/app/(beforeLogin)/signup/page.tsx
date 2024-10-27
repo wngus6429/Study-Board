@@ -41,11 +41,11 @@ const SignupPage = (): ReactNode => {
   const handleSubmit = async (e: any): Promise<void> => {
     e.preventDefault();
     if (password !== rePassword) {
-      alert("비밀번호가 일치하지 않습니다.");
+      showMessage("비밀번호가 일치하지 않습니다.", "error");
       return;
     }
     if (!checked) {
-      alert("약관에 동의해주세요.");
+      showMessage("약관에 동의해주세요.", "info");
       return;
     }
     const data = { user_email: email, password, nickname };

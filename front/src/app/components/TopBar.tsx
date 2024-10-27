@@ -5,12 +5,13 @@ import IconButton from "@mui/material/IconButton";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import InputBase from "@mui/material/InputBase";
 import { styled, alpha } from "@mui/material/styles";
-import { Button, Link } from "@mui/material";
+import { Alert, Button, Link } from "@mui/material";
 
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import styles from "./style/TopBar.module.css";
 import { signOut, useSession } from "next-auth/react";
+import { useMessage } from "../store";
 
 // const SearchBox = styled("div")(({ theme }) => ({
 //   position: "relative",
@@ -43,12 +44,7 @@ import { signOut, useSession } from "next-auth/react";
 export default function MenuBar() {
   const router = useRouter();
   const { data: user, status } = useSession();
-
-  if (status === "authenticated") {
-    console.log("로그인 성공:", user.user);
-  } else {
-    console.log("로그인 실패");
-  }
+  const { showMessage } = useMessage((state) => state);
 
   const logout = async () => {
     // TODO 둘다 성공해야 로그아웃 성공되게끔. Promise.all 사용
@@ -59,10 +55,9 @@ export default function MenuBar() {
         axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {}, { withCredentials: true }),
         signOut(),
       ]);
-
       if (logoutResponse.status === 200) {
-        alert("로그아웃 Next-Auth 실행");
         // 로그아웃 후 페이지를 새로고침하고 메인 페이지로 이동
+        showMessage("로그아웃 성공", "warning");
         router.refresh();
         router.replace("/");
       }

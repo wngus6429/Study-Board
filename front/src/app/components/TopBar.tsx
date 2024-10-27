@@ -56,10 +56,9 @@ export default function MenuBar() {
         signOut(),
       ]);
       if (logoutResponse.status === 200) {
-        // 로그아웃 후 페이지를 새로고침하고 메인 페이지로 이동
         showMessage("로그아웃 성공", "warning");
+        // 로그아웃 후 페이지를 새로고침하고 메인 페이지로 이동
         router.refresh();
-        router.replace("/");
       }
     } catch (error) {
       // 에러 처리

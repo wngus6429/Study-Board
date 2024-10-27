@@ -27,10 +27,11 @@ export class StoryController {
   }
 
   @Get('/detail/:id')
-  async getStory(id: number): Promise<any> {
+  async getStory(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    console.log('상세 페이지 글 ID:', id);
     const data = await this.storyService.findStoryOne(id);
     // 구조 분해 할당을 통해 id와 creator를 제외
-    const { id: _, creator, ...rest } = data;
+    const { creator, ...rest } = data;
     return rest;
   }
 

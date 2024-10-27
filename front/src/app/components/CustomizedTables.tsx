@@ -57,8 +57,14 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
       queryClient.invalidateQueries({ queryKey: ["stories"] });
       showMessage("삭제 성공", "error");
     },
-    onError() {
-      showMessage("삭제 실패", "error");
+    onError: (error: any) => {
+      if (error.response && error.response.data.statusCode === 401) {
+        showMessage(`${error.response.data.message}`, "error");
+      } else if (error.response && error.response.data.statusCode === 404) {
+        showMessage(`${error.response.data.message}`, "error");
+      } else {
+        showMessage("삭제 중 오류가 발생했습니다.", "error");
+      }
     },
   });
 
@@ -81,6 +87,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
             <StyledTableRow
               key={row.id}
               onClick={() => {
+                console.log("row.id:", row.id);
                 router.push(`/detail/${row.id}`);
               }}
             >
@@ -113,6 +120,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   size="small"
                   variant="outlined"
                   onClick={(e) => {
+                    e.stopPropagation(); // 이벤트 버블링 방지
                     e.preventDefault();
                     deleteData.mutate(row.id);
                   }}
@@ -125,6 +133,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   size="small"
                   variant="outlined"
                   onClick={(e) => {
+                    e.stopPropagation(); // 이벤트 버블링 방지
                     e.preventDefault();
                     deleteData.mutate(row.id);
                   }}

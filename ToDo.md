@@ -1,11 +1,13 @@
 1. 회원가입시 쿠키주고 바로 로그인 완료시키고, 홈 화면으로 이동 (완료)
 2. 로그인, 회원가입 버튼 추가 (완료)
-3. 삭제 기능 구현
+3. 삭제 기능 구현 (완료)
 4. 삭제시 내가 쓴 글만 가능하게 추가
 5. 회원 가입, 로그인 후 Alert 화면 표시
 6. 로그아웃 구현하기
 7. 맨 오른쪽에 추천하기 버튼, 로그인 해서 내꺼면 삭제 혹은 수정 버튼
 8. 삭제 시 로딩표시
-9. Next-Auth 해야함
+9. Next-Auth 해야함 (완료)
 10. refresh-token 이게 뭐임
     https://www.inflearn.com/community/questions/1291603/%EC%84%9C%EB%B2%84-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%A9%EC%8B%9D%EA%B3%BC-%EA%B2%B0%ED%95%A9?srsltid=AfmBOorFPvfwaxD9Y-oRMTKVZikGZpp-_O5SuxRnwsYEZcGedTIVKUer
+11. 유저 클릭시. 다양한 버튼 표시는 popover
+12. 삭제 하시겠습니까? 이거 modal

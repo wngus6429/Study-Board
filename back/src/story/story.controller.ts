@@ -13,7 +13,7 @@ import {
 import { CreateStoryDto } from './dto/create-story.dto';
 import { StoryService } from './story.service';
 import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from 'src/auth/get-user.decorator';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/auth/user.entity';
 
 @Controller('api/story')

@@ -12,8 +12,12 @@
 11. 유저 클릭시. 다양한 버튼 표시는 popover
 12. 삭제 하시겠습니까? 이거 modal
 13. 질문 삭제 못하게 막기
+14. 글 작성할때, select로 잡단, 한탄, 질문, 스크린샷 등등 탭 만들기
 
--- 기능 구현(NextJS, NestJS(TypeORM), MySQL, Mui)
+-- 기능 구현()
+프론트 - NextJS, Mui, 상태관리(Zustand)
+백엔드 - NestJS(TypeORM),
+DB - MySQL,
 
 1. 회원가입 기능
 2. 로그인 기능

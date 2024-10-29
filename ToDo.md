@@ -11,7 +11,7 @@
     https://www.inflearn.com/community/questions/1291603/%EC%84%9C%EB%B2%84-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%A9%EC%8B%9D%EA%B3%BC-%EA%B2%B0%ED%95%A9?srsltid=AfmBOorFPvfwaxD9Y-oRMTKVZikGZpp-_O5SuxRnwsYEZcGedTIVKUer
 11. 유저 클릭시. 다양한 버튼 표시는 popover
 12. 삭제 하시겠습니까? 이거 modal
-13. 질문 삭제 Flag
+13. 질문 삭제 못하게 막기
 
 -- 기능 구현(NextJS, NestJS(TypeORM), MySQL, Mui)
 

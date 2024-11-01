@@ -28,3 +28,7 @@ DB - MySQL,
 7. 상세 화면 기능 만듬, 그러나 개선중 (ToDo)
 8. 삭제 기능
 9. 게시글 표시기능
+
+class-validator로 엔티티 설정하기
+https://github.com/typestack/class-validator
+아주 좋은게 많다. 꼭 보기 UUID 부터해서 싹다 있다.

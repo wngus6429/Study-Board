@@ -18,11 +18,13 @@ import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { useMessage } from "@/app/store";
+import { signIn, useSession } from "next-auth/react";
 
 // 회원가입 화면
 const SignupPage = (): ReactNode => {
   const router = useRouter();
   const theme = createTheme();
+  const { update } = useSession();
   const [checked, setChecked] = useState(false);
 
   const { showMessage } = useMessage((state) => state);
@@ -54,11 +56,35 @@ const SignupPage = (): ReactNode => {
     //! axios에서는 withCredentials: true로 쿠키를 전달할 수 있음
     await axios
       .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signup`, data, { withCredentials: true })
-      .then((res: { status: number }) => {
-        console.log("res:", res);
+      .then(async (res: { status: number }) => {
         if (res.status === 201) {
-          showMessage("회원가입 성공", "success");
-          router.push("/");
+          try {
+            const [response1, response2] = await Promise.all([
+              await axios.post(
+                `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
+                {
+                  user_email: email,
+                  password,
+                },
+                { withCredentials: true }
+              ),
+              await signIn("credentials", {
+                user_email: email,
+                password,
+                redirect: false,
+              }),
+            ]);
+            if (response1?.status === 200 && response2?.status === 200) {
+              showMessage("회원가입, 로그인 성공", "success");
+              // 세션 업데이트 강제
+              await update();
+              router.refresh();
+              router.push("/");
+            }
+          } catch (error) {
+            console.log("error", error);
+            setError("유효하지 않은 요청입니다.");
+          }
         }
       })
       .catch((err: any) => {

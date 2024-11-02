@@ -33,6 +33,7 @@ export class AuthController {
     res.sendStatus(201);
   }
 
+  // 로그인처리
   @Post('signin')
   async signin(
     @Body(ValidationPipe) userData: SigninUserDto,
@@ -55,7 +56,6 @@ export class AuthController {
       secure: process.env.NODE_ENV === 'production', // 프로덕션 환경에서는 true
       sameSite: 'strict',
     });
-
     // 로그인 성공 시 사용자 정보와 함께 응답
     res.status(200).json({ user, accessToken });
   }

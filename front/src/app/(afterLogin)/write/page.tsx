@@ -7,6 +7,7 @@ import React, { FormEvent, useState } from "react";
 import { useMessage } from "@/app/store";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import { WRITE_SELECT_OPTIONS } from "@/app/const/writeconsts";
+import InputFileUpload from "@/app/components/common/uploadButton";
 
 export default function StoryWrite() {
   const Router = useRouter();
@@ -81,6 +82,7 @@ export default function StoryWrite() {
           fullWidth
           onChange={(e) => setContent(e.target.value)}
         />
+        <InputFileUpload />
         <Button
           variant="contained"
           color="success"

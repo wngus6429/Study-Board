@@ -21,27 +21,28 @@ const CustomSelect = ({ selectArray, defaultValue }: CustomeSelectProps): ReactN
   };
 
   return (
-    <div>
-      <FormControl sx={{ m: 1, minWidth: 120, margin: 0, marginBottom: 3 }}>
-        <InputLabel id="demo-controlled-open-select-label">종류</InputLabel>
-        <Select
-          labelId="demo-controlled-open-select-label"
-          id="demo-controlled-open-select"
-          open={open}
-          onClose={() => setOpen(false)}
-          onOpen={() => setOpen(true)}
-          value={selectedValue}
-          label="글 종류"
-          onChange={handleChange}
-        >
-          {selectArray.map((select, index) => (
-            <MenuItem key={index} value={select.value}>
-              {select.name}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-    </div>
+    <FormControl sx={{ m: 1, width: "100%", margin: 0, marginBottom: 3 }}>
+      <InputLabel id="demo-controlled-open-select-label">종류</InputLabel>
+      <Select
+        labelId="demo-controlled-open-select-label"
+        id="demo-controlled-open-select"
+        open={open}
+        onClose={() => setOpen(false)}
+        onOpen={() => setOpen(true)}
+        value={selectedValue}
+        label="글 종류"
+        onChange={handleChange}
+        MenuProps={{
+          disableScrollLock: true,
+        }}
+      >
+        {selectArray.map((select, index) => (
+          <MenuItem key={index} value={select.value}>
+            {select.name}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 };
 

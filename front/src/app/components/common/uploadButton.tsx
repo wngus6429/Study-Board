@@ -60,7 +60,7 @@ export default function InputFileUpload() {
       </Button>
       {preview.length > 0 && (
         <>
-          <div style={{ display: "flex" }}>
+          <div style={{ display: "flex", flexWrap: "wrap" }}>
             {preview.map(
               (v, index) =>
                 v && (

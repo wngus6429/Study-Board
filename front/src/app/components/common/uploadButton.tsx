@@ -30,21 +30,27 @@ export default function InputFileUpload() {
   const onUpload: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     e.preventDefault();
     if (e.target.files) {
-      Array.from(e.target.files).forEach((file, index) => {
+      const newPreviews = Array.from(e.target.files).map((file) => {
         const reader = new FileReader();
-        reader.onloadend = () => {
-          setPreview((prevPreview) => {
-            const prev = [...prevPreview];
-            prev[index] = {
+        return new Promise<{ dataUrl: string; file: File }>((resolve) => {
+          reader.onloadend = () => {
+            resolve({
               dataUrl: reader.result as string,
               file,
-            };
-            return prev;
-          });
-        };
-        reader.readAsDataURL(file);
+            });
+          };
+          reader.readAsDataURL(file);
+        });
+      });
+
+      Promise.all(newPreviews).then((newFiles) => {
+        setPreview((prevPreview) => [...prevPreview, ...newFiles]);
       });
     }
+  };
+
+  const onRemoveImageAll = () => {
+    setPreview([]);
   };
   return (
     <>
@@ -53,24 +59,32 @@ export default function InputFileUpload() {
         <VisuallyHiddenInput type="file" onChange={onUpload} multiple />
       </Button>
       {preview.length > 0 && (
-        <div style={{ display: "flex" }}>
-          {preview.map(
-            (v, index) =>
-              v && (
-                <div key={index} style={{ flex: 1 }} onClick={onRemoveImage(index)}>
-                  <img
-                    src={v.dataUrl}
-                    alt="미리보기"
-                    style={{
-                      width: "100%",
-                      objectFit: "contain",
-                      maxHeight: 100,
-                    }}
-                  />
-                </div>
-              )
-          )}
-        </div>
+        <>
+          <div style={{ display: "flex" }}>
+            {preview.map(
+              (v, index) =>
+                v && (
+                  <div key={index} style={{ flex: 1, textAlign: "center" }}>
+                    <img
+                      src={v.dataUrl}
+                      alt="미리보기"
+                      style={{
+                        width: "100%",
+                        objectFit: "contain",
+                        maxHeight: 100,
+                      }}
+                    />
+                    <Button variant="outlined" onClick={onRemoveImage(index)} sx={{ width: "100%" }} color="error">
+                      삭제
+                    </Button>
+                  </div>
+                )
+            )}
+          </div>
+          <Button variant="outlined" onClick={onRemoveImageAll} sx={{ width: "100%", marginTop: -3 }} color="error">
+            전체삭제
+          </Button>
+        </>
       )}
     </>
   );

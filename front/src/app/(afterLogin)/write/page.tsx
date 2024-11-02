@@ -50,7 +50,7 @@ export default function StoryWrite() {
   });
   return (
     <Paper elevation={3} sx={{ p: 4, width: "600px", margin: "auto", mt: 5 }}>
-      <Typography variant="h5" gutterBottom>
+      <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
         글 작성하기
       </Typography>
       <CustomSelect selectArray={WRITE_SELECT_OPTIONS} defaultValue={WRITE_SELECT_OPTIONS[0]["name"]} />
@@ -67,7 +67,7 @@ export default function StoryWrite() {
         <TextField
           required
           id="filled-required"
-          label="제목"
+          label="제목, 3글자 이상"
           defaultValue=""
           variant="filled"
           fullWidth
@@ -75,7 +75,7 @@ export default function StoryWrite() {
         />
         <TextField
           id="filled-multiline-flexible"
-          label="내용"
+          label="내용, 3글자 이상"
           multiline
           rows={6}
           variant="filled"

@@ -5,9 +5,9 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Story } from './Story.entity';
 import { CreateStoryDto } from './dto/create-story.dto';
-import { User } from 'src/auth/user.entity';
+import { User } from 'src/entities/user.entity';
+import { Story } from 'src/entities/Story.entity';
 
 @Injectable()
 export class StoryService {

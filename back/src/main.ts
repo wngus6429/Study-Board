@@ -27,3 +27,12 @@ async function bootstrap() {
   await app.listen(9999);
 }
 bootstrap();
+
+// # Lint and autofix with eslint
+// npm run lint
+
+// # Format with prettier
+// npm run format
+
+// For quickly creating a CRUD controller with the validation built-in,
+// you may use the CLI's CRUD generator: nest g resource [name].

@@ -14,7 +14,7 @@ import { CreateStoryDto } from './dto/create-story.dto';
 import { StoryService } from './story.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { User } from 'src/auth/user.entity';
+import { User } from 'src/entities/user.entity';
 
 @Controller('api/story')
 export class StoryController {
@@ -23,6 +23,7 @@ export class StoryController {
 
   @Get('/getall')
   async getAllStory(): Promise<any> {
+    console.log('모든 글 가져오기');
     return this.storyService.findStoryAll();
   }
 

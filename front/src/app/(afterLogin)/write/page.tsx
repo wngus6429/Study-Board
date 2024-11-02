@@ -1,32 +1,42 @@
 "use client";
-import { TextField, Box, Typography, Paper, Button } from "@mui/material";
+import { TextField, Box, Typography, Paper, Button, CircularProgress } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import { useMessage } from "@/app/store";
+import CustomSelect from "@/app/components/common/CustomSelect";
+import { WRITE_SELECT_OPTIONS } from "@/app/const/writeconsts";
 
 export default function StoryWrite() {
   const Router = useRouter();
   const { showMessage } = useMessage((state) => state);
 
+  const [loading, setLoading] = useState<boolean>(false);
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
 
   // useMutation 훅 사용
   const mutation = useMutation({
     mutationFn: async (e: FormEvent) => {
-      e.preventDefault();
-      return axios.post(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`,
-        {
-          title,
-          content,
-        },
-        {
-          withCredentials: true, // 쿠키 전송을 허용
-        }
-      );
+      if (title.length > 2 && content.length > 2) {
+        setLoading(true);
+        e.preventDefault();
+        return axios
+          .post(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`,
+            {
+              title,
+              content,
+            },
+            {
+              withCredentials: true, // 쿠키 전송을 허용
+            }
+          )
+          .finally(() => setLoading(false));
+      } else {
+        showMessage("제목과 내용을 3글자 이상 입력해주세요", "error");
+      }
     },
     onSuccess: (data) => {
       showMessage("글쓰기 완료", "info");
@@ -42,6 +52,7 @@ export default function StoryWrite() {
       <Typography variant="h5" gutterBottom>
         글 작성하기
       </Typography>
+      <CustomSelect selectArray={WRITE_SELECT_OPTIONS} defaultValue={WRITE_SELECT_OPTIONS[0]["name"]} />
       <Box
         component="form"
         sx={{
@@ -70,8 +81,13 @@ export default function StoryWrite() {
           fullWidth
           onChange={(e) => setContent(e.target.value)}
         />
-        <Button variant="contained" color="success" onClick={mutation.mutate}>
-          등록
+        <Button
+          variant="contained"
+          color="success"
+          onClick={mutation.mutate}
+          disabled={title.length < 3 || content.length < 3}
+        >
+          {loading ? <CircularProgress size={24} color="inherit" /> : "등록"}
         </Button>
       </Box>
     </Paper>

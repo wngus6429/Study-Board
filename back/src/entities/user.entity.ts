@@ -1,4 +1,3 @@
-// import { Board } from 'src/boards/board.entity';
 import {
   BaseEntity,
   Column,

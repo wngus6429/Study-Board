@@ -49,7 +49,7 @@ export default function StoryWrite() {
     },
   });
   return (
-    <Paper elevation={3} sx={{ p: 4, width: "600px", margin: "auto", mt: 5 }}>
+    <Paper elevation={3} sx={{ p: 4, width: "60%", margin: "auto", mt: 5 }}>
       <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
         글 작성하기
       </Typography>

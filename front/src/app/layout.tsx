@@ -5,6 +5,7 @@ import NavMenuBar from "./components/NavMenuBar";
 import RQProvider from "./components/RQProvider";
 import TopBar from "./components/TopBar";
 import AuthSession from "./components/common/AuthSessionCom";
+import Advertisement from "./components/common/Advertisement";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -23,13 +24,19 @@ export default function RootLayout({
       <body className={inter.className}>
         <RQProvider>
           <AuthSession>
-            {/* 전체 레이아웃을 가로로 배치 */}
-            <TopBar />
-            <div style={{ display: "flex", height: "100vh" }}>
-              {/* 왼쪽 네비게이션 */}
-              <NavMenuBar />
-              {/* 메인 콘텐츠: 오른쪽에 배치 */}
-              <div style={{ flexGrow: 1, paddingLeft: "3px" }}>{children}</div>
+            <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px" }}>
+              {/* 상단 바 */}
+              {/* TopBar의 높이와 동일하게 설정 */}
+              <TopBar />
+              <div style={{ display: "flex", height: "100vh" }}>
+                {/* 왼쪽 네비게이션 */}
+                <NavMenuBar />
+                {/* 메인 콘텐츠: 중앙 정렬 */}
+                <div style={{ flexGrow: 1, paddingLeft: "3px" }}>{children}</div>
+                <div style={{ width: 200 }}>
+                  <Advertisement />
+                </div>
+              </div>
             </div>
           </AuthSession>
         </RQProvider>

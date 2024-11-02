@@ -7,7 +7,6 @@ import { useQuery } from "@tanstack/react-query";
 import { Box, Button, Tab, Tabs } from "@mui/material";
 // import HtmlTable from "./HtmlTable";
 import { useLogin } from "../store";
-import Image from "next/image";
 import Loading from "./common/Loading";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -44,8 +43,8 @@ const MainView = (): ReactNode => {
   return (
     <>
       <div style={{ display: "flex" }}>
-        <div style={{ width: "85%" }}>
-          <Box sx={{ width: "100%" }}>
+        <div style={{ width: "100%" }}>
+          <Box>
             <Tabs
               value={value}
               onChange={handleChange}
@@ -70,25 +69,6 @@ const MainView = (): ReactNode => {
               </Button>
             </div>
           )}
-        </div>
-        <div style={{ width: "15%" }}>
-          <Image
-            src="/assets/right.png"
-            alt="Right Icon"
-            width={0}
-            height={0}
-            sizes="100vw"
-            style={{ width: "100%", height: "auto" }}
-          />
-          광고가 올자리
-          <Image
-            src="/assets/right2.png"
-            alt="Right Icon"
-            width={0}
-            height={0}
-            sizes="100vw"
-            style={{ width: "100%", height: "auto" }}
-          />
         </div>
       </div>
       {/* <HtmlTable tableData={data} /> */}

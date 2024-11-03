@@ -7,6 +7,8 @@ export const WRITE_SELECT_OPTIONS = [
   { name: "기타", value: "etc" },
 ];
 
+export const DEFAULT_SELECT_OPTION = WRITE_SELECT_OPTIONS[0]["name"];
+
 export type WRITE_SELECT_OPTION_TYPE = (typeof WRITE_SELECT_OPTIONS)[number]["value"];
 
 export const TAB_SELECT_OPTIONS = [

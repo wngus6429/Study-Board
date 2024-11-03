@@ -26,7 +26,7 @@ export default function CustomizedTables({ tableData }: CustomizedTablesProps) {
             <tr key={row.id} className={index % 2 === 0 ? style.trEven : style.trOdd}>
               <td className={`${style.td} ${style.tdCenter}`}>{row.id}</td>
               <td className={style.td}>{row.title}</td>
-              <td className={style.td}>{row.creator}</td>
+              <td className={style.td}>{row.content}</td>
               <td className={style.td}>{row.createdAt.toLocaleString()}</td>
               <td className={style.td}>{row.readCount}</td>
               <td className={`${style.td} ${style.tdCenter}`}>{row.likeCount}</td>

@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { StoryModule } from './story/story.module';
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import path, { join } from 'path';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 //어플리케이션의 루트 모듈이 있는 파일
 @Module({
@@ -19,6 +23,23 @@ import { StoryModule } from './story/story.module';
       // 서버가 꺼져도 DB연결을 유지해줌
       keepConnectionAlive: true, // 자꾸 저장하면 서버 재시작하는데 DB 끊기니까 이걸로 연결 유지
       charset: 'utf8mb4_general_ci', // 이모티콘까지 가능
+    }),
+    // 아무래도 유저 이미지를 저장할 디렉토리
+    MulterModule.register({
+      storage: diskStorage({
+        destination: './UserPicture',
+        filename(req, file, done) {
+          const ext = path.extname(file.originalname);
+          done(null, path.basename(file.originalname, ext) + Date.now() + ext);
+        },
+      }),
+      limits: {
+        fileSize: 50 * 1024 * 1024, // 50MB로 파일 크기 제한 설정
+      },
+    }),
+    ServeStaticModule.forRoot({
+      serveRoot: '/upload',
+      rootPath: join(__dirname, '..', 'upload'),
     }),
     StoryModule,
     AuthModule,

@@ -77,9 +77,11 @@ export default function MenuBar() {
             로그인
           </Button>
         )}
-        <Button variant="contained" onClick={logout} color="error">
-          로그아웃
-        </Button>
+        {user?.user && (
+          <Button variant="contained" onClick={logout} color="error">
+            로그아웃
+          </Button>
+        )}
         {!user?.user && (
           <Button variant="contained" onClick={() => router.push("/signup")} color="inherit">
             회원가입

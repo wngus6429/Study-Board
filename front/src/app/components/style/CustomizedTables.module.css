@@ -1,0 +1,42 @@
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 0;
+  margin: 20px 0;
+  list-style: none;
+}
+
+.pagination li {
+  display: inline-block;
+  margin: 0 5px;
+}
+
+.pagination li a {
+  display: block;
+  padding: 8px 12px;
+  text-decoration: none;
+  border-radius: 5px;
+  background-color: #f0f0f0;
+  color: #333;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.pagination li a:hover {
+  background-color: #ddd;
+}
+
+.pagination .active a {
+  background-color: #1976d2; /* MUI 기본 색상 */
+  color: white;
+  border: 1px solid #1976d2;
+}
+
+.pagination .disabled a {
+  color: #ccc;
+  cursor: not-allowed;
+  border: 1px solid #ccc;
+  background-color: #f9f9f9;
+}

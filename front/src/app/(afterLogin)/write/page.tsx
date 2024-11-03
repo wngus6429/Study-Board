@@ -6,16 +6,21 @@ import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import { useMessage } from "@/app/store";
 import CustomSelect from "@/app/components/common/CustomSelect";
-import { WRITE_SELECT_OPTIONS } from "@/app/const/writeconsts";
+import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/writeconsts";
 import InputFileUpload from "@/app/components/common/uploadButton";
 
 export default function StoryWrite() {
   const Router = useRouter();
   const { showMessage } = useMessage((state) => state);
-
+  // 로딩
   const [loading, setLoading] = useState<boolean>(false);
+  // 타이틀과 내용
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
+  // 카테고리 변수
+  const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
+  // 이미지 변수
+  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
 
   // useMutation 훅 사용
   const mutation = useMutation({
@@ -23,17 +28,29 @@ export default function StoryWrite() {
       if (title.length > 2 && content.length > 2) {
         setLoading(true);
         e.preventDefault();
+
+        // FormData 객체 생성
+        const formData = new FormData();
+        formData.append("category", selectedCategory);
+        formData.append("title", title);
+        formData.append("content", content);
+
+        // preview의 각 파일을 'images' 키로 추가
+        preview.forEach((item, index) => {
+          if (item?.file) {
+            formData.append("images", item.file); // 'images'는 서버의 FilesInterceptor와 일치해야 합니다.
+          }
+        });
+
+        console.log(formData); // 디버깅을 위해 FormData 내용을 확인할 수 있습니다.
+
         return axios
-          .post(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`,
-            {
-              title,
-              content,
+          .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`, formData, {
+            withCredentials: true,
+            headers: {
+              "Content-Type": "multipart/form-data",
             },
-            {
-              withCredentials: true, // 쿠키 전송을 허용
-            }
-          )
+          })
           .finally(() => setLoading(false));
       } else {
         showMessage("제목과 내용을 3글자 이상 입력해주세요", "error");
@@ -48,12 +65,17 @@ export default function StoryWrite() {
       console.error(error);
     },
   });
+
   return (
     <Paper elevation={3} sx={{ p: 4, width: "60%", margin: "auto", mt: 5 }}>
       <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
         글 작성하기
       </Typography>
-      <CustomSelect selectArray={WRITE_SELECT_OPTIONS} defaultValue={WRITE_SELECT_OPTIONS[0]["name"]} />
+      <CustomSelect
+        selectArray={WRITE_SELECT_OPTIONS}
+        defaultValue={DEFAULT_SELECT_OPTION}
+        setSelectedCategory={setSelectedCategory}
+      />
       <Box
         component="form"
         sx={{
@@ -82,7 +104,7 @@ export default function StoryWrite() {
           fullWidth
           onChange={(e) => setContent(e.target.value)}
         />
-        <InputFileUpload />
+        <InputFileUpload onPreviewUpdate={setPreview} />
         <Button
           variant="contained"
           color="success"

@@ -9,15 +9,17 @@ import { WRITE_SELECT_OPTION_TYPE } from "@/app/const/writeconsts";
 interface CustomeSelectProps {
   selectArray: { name: string; value: string }[];
   defaultValue?: WRITE_SELECT_OPTION_TYPE;
+  setSelectedCategory: (value: string) => void;
 }
 
-const CustomSelect = ({ selectArray, defaultValue }: CustomeSelectProps): ReactNode => {
+const CustomSelect = ({ selectArray, defaultValue, setSelectedCategory }: CustomeSelectProps): ReactNode => {
   const defaultItem = selectArray.find((item) => item.name === defaultValue);
   const [selectedValue, setSelectedValue] = useState<string>(defaultItem?.value || "");
   const [open, setOpen] = useState(false);
 
   const handleChange = (event: SelectChangeEvent<typeof selectedValue>) => {
     setSelectedValue(event.target.value);
+    setSelectedCategory(event.target.value);
   };
 
   return (

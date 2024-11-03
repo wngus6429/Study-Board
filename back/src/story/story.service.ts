@@ -8,12 +8,15 @@ import { Repository } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { User } from 'src/entities/user.entity';
 import { Story } from 'src/entities/Story.entity';
+import { Image } from 'src/entities/Image.entity';
 
 @Injectable()
 export class StoryService {
   constructor(
     @InjectRepository(Story)
     private storyRepository: Repository<Story>,
+    @InjectRepository(Image)
+    private readonly imageRepository: Repository<Image>,
   ) {}
 
   // 목록 페이지에 필요한 데이터만 가져오기
@@ -25,7 +28,7 @@ export class StoryService {
     //     'id',
     //     'title',
     //     'content',
-    //     'creator',
+    //     'creator_email',
     //     'createdAt',
     //     'readCount',
     //     'likeCount',
@@ -34,20 +37,53 @@ export class StoryService {
   }
 
   async findStoryOne(id: number): Promise<any> {
-    return this.storyRepository.findOne({ where: { id } });
+    return this.storyRepository.findOne({
+      where: { id: id },
+      relations: ['Images'],
+    });
   }
 
-  async create(createStoryDto: CreateStoryDto, userData: User): Promise<Story> {
-    // console.log('데이터 생성', createStoryDto, userData);
-    const { title, content } = createStoryDto;
+  async create(
+    createStoryDto: CreateStoryDto,
+    userData: User,
+    files: Express.Multer.File[],
+  ): Promise<Story> {
+    console.log(
+      'createStoryDto:',
+      createStoryDto,
+      'userData:',
+      userData,
+      'files:',
+      files,
+    );
+    const { title, content, category } = createStoryDto;
     const { user_email } = userData;
-    const insertData = this.storyRepository.create({
+
+    // Story 엔티티 생성
+    const story = this.storyRepository.create({
+      category,
       title,
       content,
       nickname: userData.nickname,
-      creator: user_email,
+      creator_email: user_email,
     });
-    return this.storyRepository.save(insertData);
+
+    const savedStory = await this.storyRepository.save(story);
+
+    // 이미지 파일을 ImageEntity로 변환 후 저장
+    const imageEntities = files.map((file) => {
+      const image = new Image();
+      image.image_name = file.filename;
+      image.link = `/upload/${file.filename}`; // 저장 경로 설정
+      image.user_id = String(userData.id);
+      image.story_id = savedStory.id;
+      image.Story = savedStory;
+      return image;
+    });
+
+    await this.imageRepository.save(imageEntities);
+
+    return savedStory;
   }
 
   // 상세 페이지에 필요한 전체 데이터 가져오기
@@ -70,7 +106,7 @@ export class StoryService {
     }
 
     // 글 작성자와 요청한 사용자의 이메일이 일치하지 않으면 에러 발생
-    if (story.creator !== userData.user_email) {
+    if (story.creator_email !== userData.user_email) {
       throw new UnauthorizedException('본인의 글만 삭제할 수 있습니다.');
     }
 

@@ -16,13 +16,19 @@ const VisuallyHiddenInput = styled("input")({
   width: 1,
 });
 
-export default function InputFileUpload() {
+interface InputFileUploadProps {
+  onPreviewUpdate: (previews: Array<{ dataUrl: string; file: File } | null>) => void;
+}
+
+export default function InputFileUpload({ onPreviewUpdate }: InputFileUploadProps) {
   const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
 
   const onRemoveImage = (index: number) => () => {
     setPreview((prevPreview) => {
       const prev = [...prevPreview];
       prev[index] = null;
+      const updatedPreviews = prev.filter(Boolean); // null 값을 제거
+      onPreviewUpdate(updatedPreviews); // 상위 컴포넌트에 업데이트된 preview 전달
       return prev;
     });
   };
@@ -44,14 +50,20 @@ export default function InputFileUpload() {
       });
 
       Promise.all(newPreviews).then((newFiles) => {
-        setPreview((prevPreview) => [...prevPreview, ...newFiles]);
+        setPreview((prevPreview) => {
+          const updatedPreviews = [...prevPreview, ...newFiles];
+          onPreviewUpdate(updatedPreviews); // 상위 컴포넌트에 preview 데이터 전달
+          return updatedPreviews;
+        });
       });
     }
   };
 
   const onRemoveImageAll = () => {
     setPreview([]);
+    onPreviewUpdate([]); // 상위 컴포넌트에 빈 배열 전달
   };
+
   return (
     <>
       <Button component="label" role={undefined} variant="contained" tabIndex={-1} startIcon={<CloudUploadIcon />}>

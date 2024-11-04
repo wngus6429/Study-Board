@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import { useMessage } from "@/app/store";
 import CustomSelect from "@/app/components/common/CustomSelect";
-import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/writeconsts";
+import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import InputFileUpload from "@/app/components/common/uploadButton";
 
 export default function StoryWrite() {

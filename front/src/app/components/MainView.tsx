@@ -11,7 +11,7 @@ import Loading from "./common/Loading";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
-import { TAB_SELECT_OPTIONS } from "../const/writeconsts";
+import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 
 const MainView = (): ReactNode => {
   const Router = useRouter();

@@ -4,15 +4,15 @@ import MenuItem from "@mui/material/MenuItem";
 import FormControl from "@mui/material/FormControl";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import { ReactNode, useState } from "react";
-import { WRITE_SELECT_OPTION_TYPE } from "@/app/const/writeconsts";
+import { WRITE_SELECT_OPTION_TYPE } from "@/app/const/WRITE_CONST";
 
-interface CustomeSelectProps {
+interface CustomSelectProps {
   selectArray: { name: string; value: string }[];
   defaultValue?: WRITE_SELECT_OPTION_TYPE;
   setSelectedCategory: (value: string) => void;
 }
 
-const CustomSelect = ({ selectArray, defaultValue, setSelectedCategory }: CustomeSelectProps): ReactNode => {
+const CustomSelect = ({ selectArray, defaultValue, setSelectedCategory }: CustomSelectProps): ReactNode => {
   const defaultItem = selectArray.find((item) => item.name === defaultValue);
   const [selectedValue, setSelectedValue] = useState<string>(defaultItem?.value || "");
   const [open, setOpen] = useState(false);

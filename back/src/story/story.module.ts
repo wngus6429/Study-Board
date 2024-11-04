@@ -8,6 +8,8 @@ import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { Image } from 'src/entities/Image.entity';
+import { Today } from 'src/common/helper/today';
+import { UserImage } from 'src/entities/UserImage.entity';
 
 @Module({
   imports: [
@@ -18,12 +20,12 @@ import { Image } from 'src/entities/Image.entity';
           const ext = path.extname(file.originalname);
           done(
             null,
-            path.basename(file.originalname.toString(), ext) + Date.now() + ext,
+            `${path.basename(file.originalname, ext)}_${Today()}${ext}`,
           );
         },
       }),
     }),
-    TypeOrmModule.forFeature([Story, Image]),
+    TypeOrmModule.forFeature([Story, Image, UserImage]),
     AuthModule,
   ],
   controllers: [StoryController],

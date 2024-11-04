@@ -8,7 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { Story } from "../types/story";
+import { StoryType } from "../types/types";
 import { Box, Button, TablePagination, TextField } from "@mui/material";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -75,7 +75,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
     },
   });
 
-  const [data, setData] = useState<Story[]>([]);
+  const [data, setData] = useState<StoryType[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [pageCount, setPageCount] = useState(0);
   const rowsPerPage = 20;
@@ -115,7 +115,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
             </TableRow>
           </TableHead>
           <TableBody>
-            {tableData.map((row: Story) => (
+            {tableData.map((row: StoryType) => (
               <StyledTableRow
                 key={row.id}
                 onClick={() => {

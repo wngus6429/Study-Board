@@ -1,6 +1,6 @@
 "use client";
 import { useMessage } from "@/app/store";
-import { Story } from "@/app/types/story";
+import { ImageType, StoryType } from "@/app/types/types";
 import { Button, Select } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -12,7 +12,7 @@ export default function page(): ReactNode {
   const { showMessage } = useMessage((state) => state);
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [detail, setDetail] = useState<Story | null>(null);
+  const [detail, setDetail] = useState<StoryType | null>(null);
 
   const {
     data: getDetail,
@@ -30,7 +30,8 @@ export default function page(): ReactNode {
 
   useEffect(() => {
     if (getDetail) {
-      setDetail(getDetail);
+      console.log("getDetail", getDetail);
+      setDetail(getDetail as StoryType);
     }
   }, [getDetail]);
 
@@ -67,8 +68,8 @@ export default function page(): ReactNode {
           <div>{detail.title}</div>
           <div>{detail.content}</div>
           <div>{detail.nickname}</div>
-          <div>{detail.createdAt}</div>
-          <div>{detail.readCount}</div>
+          <div>{detail.created_at}</div>
+          <div>{detail.read_count}</div>
           <Button
             sx={{ padding: "0px" }}
             size="small"
@@ -94,6 +95,17 @@ export default function page(): ReactNode {
           >
             삭제
           </Button>
+          {detail.Image && detail.Image.length > 0 && (
+            <div>
+              <h2>첨부된 이미지:</h2>
+              {/* src에 localhost:백엔드 안 적는 이유는 proxy 설정해서 그럼. next.config.js */}
+              {detail.Image.map((img: ImageType, index: number) => (
+                <div key={img.imageId}>
+                  <img src={img.link} alt={`첨부 이미지 ${index + 1}`} style={{ maxWidth: "100%", height: "auto" }} />
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
     </>

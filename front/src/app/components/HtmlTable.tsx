@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { Story } from "../types/story";
+import { StoryType } from "../types/types";
 import style from "./HtmlTable.module.css";
 
 interface CustomizedTablesProps {
@@ -22,14 +22,14 @@ export default function CustomizedTables({ tableData }: CustomizedTablesProps) {
           </tr>
         </thead>
         <tbody>
-          {tableData.map((row: Story, index: number) => (
+          {tableData.map((row: StoryType, index: number) => (
             <tr key={row.id} className={index % 2 === 0 ? style.trEven : style.trOdd}>
               <td className={`${style.td} ${style.tdCenter}`}>{row.id}</td>
               <td className={style.td}>{row.title}</td>
               <td className={style.td}>{row.content}</td>
-              <td className={style.td}>{row.createdAt.toLocaleString()}</td>
-              <td className={style.td}>{row.readCount}</td>
-              <td className={`${style.td} ${style.tdCenter}`}>{row.likeCount}</td>
+              <td className={style.td}>{row.created_at.toLocaleString()}</td>
+              <td className={style.td}>{row.read_count}</td>
+              <td className={`${style.td} ${style.tdCenter}`}>{row.like_count}</td>
             </tr>
           ))}
         </tbody>

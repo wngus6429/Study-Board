@@ -8,7 +8,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Story } from './Story.entity';
-import { User } from './user.entity';
+import { User } from './User.entity';
 
 @Entity()
 export class Image {
@@ -16,7 +16,7 @@ export class Image {
     description: '아이디',
   })
   @PrimaryGeneratedColumn()
-  imageId: number;
+  id: number;
 
   @ApiProperty({
     description: '이미지 이름',
@@ -49,15 +49,9 @@ export class Image {
   deleted_at: Date;
 
   @ApiProperty({
-    description: '게시글 아이디',
-  })
-  @Column()
-  story_id: number;
-
-  @ApiProperty({
     description: '게시글',
   })
-  @ManyToOne(() => Story, (story) => story.images, {
+  @ManyToOne(() => Story, (story) => story.Image, {
     onDelete: 'CASCADE',
   })
   Story: Story;

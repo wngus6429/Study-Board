@@ -6,6 +6,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import path, { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { Today } from './common/helper/today';
 
 //어플리케이션의 루트 모듈이 있는 파일
 @Module({
@@ -30,7 +31,10 @@ import { ServeStaticModule } from '@nestjs/serve-static';
         destination: './UserPicture',
         filename(req, file, done) {
           const ext = path.extname(file.originalname);
-          done(null, path.basename(file.originalname, ext) + Date.now() + ext);
+          done(
+            null,
+            `${path.basename(file.originalname, ext)}_${Today()}${ext}`,
+          );
         },
       }),
       limits: {

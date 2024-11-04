@@ -16,7 +16,7 @@ import { CreateStoryDto } from './dto/create-story.dto';
 import { StoryService } from './story.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { User } from 'src/entities/user.entity';
+import { User } from 'src/entities/User.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('api/story')

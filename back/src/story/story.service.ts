@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
-import { User } from 'src/entities/user.entity';
+import { User } from 'src/entities/User.entity';
 import { Story } from 'src/entities/Story.entity';
 import { Image } from 'src/entities/Image.entity';
 
@@ -37,9 +37,9 @@ export class StoryService {
   }
 
   async findStoryOne(id: number): Promise<any> {
-    return this.storyRepository.findOne({
-      where: { id: id },
-      relations: ['Images'],
+    return await this.storyRepository.findOne({
+      where: { id },
+      relations: ['Image'], // 'Image'로 수정 (필드 이름과 일치시킴)
     });
   }
 
@@ -76,7 +76,6 @@ export class StoryService {
       image.image_name = file.filename;
       image.link = `/upload/${file.filename}`; // 저장 경로 설정
       image.user_id = String(userData.id);
-      image.story_id = savedStory.id;
       image.Story = savedStory;
       return image;
     });

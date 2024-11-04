@@ -3,11 +3,14 @@ import {
   Column,
   CreateDateColumn,
   Entity,
+  JoinColumn,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   Unique,
   UpdateDateColumn,
 } from 'typeorm';
+import { UserImage } from './UserImage.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -24,8 +27,8 @@ export class User extends BaseEntity {
   @Column()
   password: string;
 
-  @Column({ nullable: true })
-  image: string;
+  @OneToOne(() => UserImage, (userImage) => userImage.user, { cascade: true })
+  image: UserImage;
 
   @CreateDateColumn()
   created_at: Date;
@@ -35,9 +38,4 @@ export class User extends BaseEntity {
 
   @CreateDateColumn()
   deleted_at: Date;
-
-  //   // 아래는 board.entity 에서 user 필드와 매핑,
-  //   // eager: true 로 설정하여 user 정보를 함께 가져옴
-  //   @OneToMany((type) => Board, (board) => board.user, { eager: true })
-  //   boards: Board[];
 }

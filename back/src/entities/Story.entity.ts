@@ -72,7 +72,7 @@ export class Story {
   @OneToMany(() => Image, (image) => image.Story, {
     cascade: true, // Story 저장 시 관련 Image도 저장 가능
   })
-  images: Image[];
+  Image: Image[];
 
   @ApiProperty({
     description: '작성일',

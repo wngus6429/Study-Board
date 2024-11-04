@@ -141,10 +141,10 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                     alignItems: "center", // 수직 가운데 정렬
                   }}
                 >
-                  {dayjs(row.createdAt).format("YYYY.MM.DD HH:mm")}
+                  {dayjs(row.created_at).format("YYYY.MM.DD HH:mm")}
                 </StyledTableCell>
-                <StyledTableCell>{row.readCount}</StyledTableCell>
-                <StyledTableCell sx={{ textAlign: "center" }}>{row.likeCount}</StyledTableCell>
+                <StyledTableCell>{row.read_count}</StyledTableCell>
+                <StyledTableCell sx={{ textAlign: "center" }}>{row.like_count}</StyledTableCell>
                 {/* TODO 추천하기 버튼, 로그인 해서 내꺼면 삭제 혹은 수정 버튼 */}
                 <StyledTableCell sx={{ textAlign: "center" }}>
                   <Button

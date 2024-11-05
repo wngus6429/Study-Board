@@ -24,7 +24,7 @@ export class User extends BaseEntity {
   @Column()
   nickname: string;
 
-  @Column()
+  @Column('varchar', { name: 'password', length: 100 })
   password: string;
 
   @OneToOne(() => UserImage, (userImage) => userImage.user, { cascade: true })

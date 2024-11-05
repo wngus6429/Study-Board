@@ -43,8 +43,9 @@ const LoginPage = () => {
         setError("아이디 또는 비밀번호가 일치하지 않습니다.");
       }
     } catch (error) {
-      console.log("error", error);
-      setError("유효하지 않은 요청입니다.");
+      if (axios.isAxiosError(error) && error.response) {
+        setError(error.response.data.data);
+      }
     }
   };
 

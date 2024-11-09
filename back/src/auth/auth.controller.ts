@@ -28,7 +28,6 @@ export class AuthController {
     @Body(ValidationPipe) userData: SignupUserDto,
     @Res() res: Response,
   ): Promise<void> {
-    console.log('회원가입 데이터', userData);
     await this.authUserService.signUp(userData);
     res.sendStatus(201);
   }
@@ -41,15 +40,8 @@ export class AuthController {
   ): Promise<void> {
     console.log('로그인 데이터', userData);
     const user = await this.authUserService.signIn(userData);
-    if (!user) {
-      res
-        .status(401)
-        .json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
-      return;
-    }
     // JWT 생성 로직
-    const payload = { user_email: user.user_email, sub: user.id };
-    const accessToken = this.jwtService.sign(payload);
+    const accessToken = this.jwtService.sign(user);
     // 쿠키에 JWT 토큰 설정
     res.cookie('access_token', accessToken, {
       httpOnly: true,
@@ -66,13 +58,6 @@ export class AuthController {
     @Res() res: Response,
   ): Promise<void> {
     const user = await this.authUserService.signIn(userData);
-    if (!user) {
-      res
-        .status(401)
-        .json({ message: '이메일 또는 비밀번호가 올바르지 않습니다.' });
-      return;
-    }
-    // 로그인 성공 시 사용자 정보와 함께 응답
     res.status(200).json(user);
   }
 

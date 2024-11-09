@@ -8,15 +8,15 @@ export class SigninUserDto {
   @MinLength(4)
   @MaxLength(30)
   @Matches(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/, {
-    message: '이메일 형식이 아님, Email Address Damn ass',
+    message: '이메일 형식으로 입력해주세요.',
   })
   user_email: string;
 
   @IsNotEmpty()
   @MinLength(4)
   @MaxLength(20)
-  @Matches(/^[A-Za-z0-9]*$/, {
-    message: '영숫자, Password can only contain letters and numbers',
+  @Matches(/^[A-Za-z0-9!@#$%^&*]*$/, {
+    message: '사용 할수 없는 비밀번호 형식입니다.',
   })
   password: string;
 }

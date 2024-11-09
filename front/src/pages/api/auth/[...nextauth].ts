@@ -13,14 +13,13 @@ export default NextAuth({
       async authorize(credentials) {
         try {
           // DB에 로그인 요청
-          const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signinBack`, {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signinSession`, {
             method: "POST",
             body: JSON.stringify(credentials),
             headers: { "Content-Type": "application/json" },
           });
-          const user = await res.json();
-          if (user) {
-            return user;
+          if (res.ok) {
+            return res.json();
           }
           return null;
         } catch (error) {

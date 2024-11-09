@@ -49,16 +49,20 @@ export class AuthController {
       sameSite: 'strict',
     });
     // 로그인 성공 시 사용자 정보와 함께 응답
-    res.status(200).json({ user, accessToken });
+    res.status(200).json({ accessToken });
   }
 
-  @Post('signinBack')
-  async signinBack(
+  @Post('signinSession')
+  async signinSession(
     @Body(ValidationPipe) userData: SigninUserDto,
     @Res() res: Response,
   ): Promise<void> {
     const user = await this.authUserService.signIn(userData);
     res.status(200).json(user);
+    //! 아래는 일부러 에러 내는 코드
+    // return res
+    //   .status(401)
+    //   .json({ message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
   }
 
   @Post('logout')

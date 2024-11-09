@@ -33,10 +33,6 @@ const MainView = (): ReactNode => {
     Router.push("/write");
   };
 
-  // useEffect(() => {
-  //   setLoginSuccess(true);
-  // }, [loginState]);
-
   if (isLoading) return <Loading />;
   if (error) return <div>Error: {(error as Error).message}</div>;
 

@@ -18,33 +18,43 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const [response1, response2] = await Promise.all([
-        await axios.post(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
-          {
-            user_email: email,
-            password,
-          },
-          { withCredentials: true }
-        ),
-        await signIn("credentials", {
+      // API 토큰 요청
+      const response1 = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signin`,
+        {
           user_email: email,
           password,
-          redirect: false,
-        }),
-      ]);
-      if (response1?.status === 200 && response2?.status === 200) {
-        showMessage("로그인 성공", "success");
-        // 세션 업데이트 강제
-        await update();
-        router.refresh();
-        router.push("/");
-      } else if (response1?.status === 401 || response2?.status === 401) {
-        setError("아이디 또는 비밀번호가 일치하지 않습니다.");
+        },
+        { withCredentials: true }
+      );
+      if (response1.status !== 200) {
+        setError("로그인 중 오류가 발생했습니다.");
       }
+
+      // 두 번째 요청: NextAuth의 signIn 호출
+      const response2 = await signIn("credentials", {
+        user_email: email,
+        password,
+        redirect: false,
+      });
+
+      if (response2?.status !== 200) {
+        // 두 번째 요청 실패 시 첫 번째 요청 롤백 (쿠키 제거)
+        await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {}, { withCredentials: true });
+        setError("로그인 중 오류가 발생했습니다.");
+        return;
+      }
+      // 로그인 성공 메시지
+      showMessage("로그인 성공", "success");
+      // 세션 업데이트 및 페이지 이동
+      await update();
+      router.refresh();
+      router.push("/");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         setError(error.response.data.data);
+      } else {
+        setError("로그인 중 오류가 발생했습니다.");
       }
     }
   };

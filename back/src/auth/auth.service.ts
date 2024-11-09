@@ -53,7 +53,7 @@ export class AuthService {
   // 로그인 처리
   async signIn(
     userData: SigninUserDto,
-  ): Promise<{ id: number; user_email: string; nickname: string } | null> {
+  ): Promise<{ id: string; user_email: string; nickname: string } | null> {
     const { user_email, password } = userData;
     // 이메일로 사용자 조회
     const user = await this.userRepository.findOne({ where: { user_email } });
@@ -69,6 +69,15 @@ export class AuthService {
       user_email: user.user_email,
       nickname: user.nickname,
     };
+  }
+
+  async userGet(id: string): Promise<User> {
+    console.log('씨발', id);
+    const user = await this.userRepository.findOne({
+      where: { id },
+    });
+    console.log('dkdk', user);
+    return user;
   }
 
   // async signUp(userData: SignupUserDto): Promise<void> {

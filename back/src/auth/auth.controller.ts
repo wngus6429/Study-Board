@@ -1,7 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
+  HttpStatus,
+  Param,
+  ParseIntPipe,
   Post,
+  Redirect,
   Req,
   Res,
   UseGuards,
@@ -14,6 +19,8 @@ import { SigninUserDto } from './dto/signin.user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { LoggedInGuard } from './logged-in-guard';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { User } from 'src/entities/User.entity';
 
 @Controller('api/auth')
 export class AuthController {
@@ -75,6 +82,13 @@ export class AuthController {
       sameSite: 'strict',
     });
     res.sendStatus(200);
+  }
+
+  @Get('/:id')
+  @UseGuards(AuthGuard())
+  async userGet(@Param('id') id: string): Promise<any> {
+    console.log('오오', id);
+    return await this.authUserService.userGet(id);
   }
 }
 

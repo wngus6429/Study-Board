@@ -18,6 +18,7 @@ export default NextAuth({
             body: JSON.stringify(credentials),
             headers: { "Content-Type": "application/json" },
           });
+          console.log("로그인 요청", res);
           if (res.ok) {
             return res.json();
           }
@@ -32,7 +33,7 @@ export default NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.user = user;
+        token.user = user; // 로그인 성공 시 반환된 사용자 데이터를 토큰에 저장
       }
       return token;
     },

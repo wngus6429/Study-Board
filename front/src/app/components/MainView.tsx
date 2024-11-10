@@ -6,7 +6,6 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { Box, Button, Tab, Tabs } from "@mui/material";
 // import HtmlTable from "./HtmlTable";
-import { useLogin } from "../store";
 import Loading from "./common/Loading";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
@@ -15,14 +14,13 @@ import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 
 const MainView = (): ReactNode => {
   const Router = useRouter();
-  // const { loginState } = useLogin((state) => state);
   const [value, setValue] = useState("all");
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
   };
-  const { data: user, status } = useSession();
-  const { data, error, isLoading, refetch } = useQuery({
+  const { data: user } = useSession();
+  const { data, error, isLoading } = useQuery({
     queryKey: ["stories"],
     queryFn: async () => {
       return await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/getall`).then((res) => res.data);

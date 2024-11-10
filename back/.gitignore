@@ -3,6 +3,7 @@
 /node_modules
 /build
 /upload
+/userUpload
 
 # Logs
 logs

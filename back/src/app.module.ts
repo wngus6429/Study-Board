@@ -26,24 +26,28 @@ import { Today } from './common/helper/today';
       charset: 'utf8mb4_general_ci', // 이모티콘까지 가능
     }),
     // 아무래도 유저 이미지를 저장할 디렉토리
-    MulterModule.register({
-      storage: diskStorage({
-        destination: './UserPicture',
-        filename(req, file, done) {
-          const ext = path.extname(file.originalname);
-          done(
-            null,
-            `${path.basename(file.originalname, ext)}_${Today()}${ext}`,
-          );
-        },
-      }),
-      limits: {
-        fileSize: 50 * 1024 * 1024, // 50MB로 파일 크기 제한 설정
-      },
-    }),
+    // MulterModule.register({
+    //   storage: diskStorage({
+    //     destination: './upload',
+    //     filename(req, file, done) {
+    //       const ext = path.extname(file.originalname);
+    //       done(
+    //         null,
+    //         `${path.basename(file.originalname, ext)}_${Today()}${ext}`,
+    //       );
+    //     },
+    //   }),
+    //   limits: {
+    //     fileSize: 50 * 1024 * 1024, // 50MB로 파일 크기 제한 설정
+    //   },
+    // }),
     ServeStaticModule.forRoot({
       serveRoot: '/upload',
       rootPath: join(__dirname, '..', 'upload'),
+    }),
+    ServeStaticModule.forRoot({
+      serveRoot: '/userUpload',
+      rootPath: join(__dirname, '..', 'userUpload'),
     }),
     StoryModule,
     AuthModule,

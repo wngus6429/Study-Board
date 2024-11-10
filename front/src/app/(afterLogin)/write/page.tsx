@@ -44,7 +44,7 @@ export default function StoryWrite() {
 
         console.log(formData); // 디버깅을 위해 FormData 내용을 확인할 수 있습니다.
 
-        return axios
+        return await axios
           .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`, formData, {
             withCredentials: true,
             headers: {

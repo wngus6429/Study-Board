@@ -21,7 +21,7 @@ export class UserImage {
 
   @OneToOne(() => User, (user) => user.image, { onDelete: 'CASCADE' })
   @JoinColumn() // 외래 키가 있는 쪽에 `@JoinColumn`을 사용하여 관계를 명시적으로 설정
-  user: User;
+  User: User;
 
   @CreateDateColumn()
   created_at: Date;

@@ -1,11 +1,9 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import InputBase from "@mui/material/InputBase";
-import { styled, alpha } from "@mui/material/styles";
-import { Alert, Button, Link } from "@mui/material";
+import { Button, Link } from "@mui/material";
 
 import { useRouter } from "next/navigation";
 import axios from "axios";
@@ -43,7 +41,7 @@ import { useMessage } from "../store";
 
 export default function MenuBar() {
   const router = useRouter();
-  const { data: user, status } = useSession();
+  const { data: user } = useSession();
   const { showMessage } = useMessage((state) => state);
 
   const logout = async () => {
@@ -85,6 +83,17 @@ export default function MenuBar() {
         {!user?.user && (
           <Button variant="contained" onClick={() => router.push("/signup")} color="inherit">
             회원가입
+          </Button>
+        )}
+        {user?.user && (
+          <Button
+            variant="contained"
+            onClick={() => {
+              router.push(`/setting/profile`);
+            }}
+            color="error"
+          >
+            프로필
           </Button>
         )}
         {/* 오른쪽 메뉴: 프로필 관련 */}

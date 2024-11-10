@@ -9,7 +9,9 @@ import {
   Redirect,
   Req,
   Res,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -21,6 +23,7 @@ import { JwtService } from '@nestjs/jwt';
 import { LoggedInGuard } from './logged-in-guard';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/entities/User.entity';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('api/auth')
 export class AuthController {
@@ -84,11 +87,28 @@ export class AuthController {
     res.sendStatus(200);
   }
 
+  // 유저 프로필 정보 가져오기
   @Get('/:id')
   @UseGuards(AuthGuard())
   async userGet(@Param('id') id: string): Promise<any> {
-    console.log('오오', id);
+    console.log('프로필 정보 아이디', id);
     return await this.authUserService.userGet(id);
+  }
+
+  @Post('update')
+  @UseGuards(AuthGuard())
+  @UseInterceptors(FileInterceptor('profileImage')) // 'profileImage'는 프론트엔드의 FormData 필드 이름
+  async userUpdate(
+    @Body() userData: any,
+    @UploadedFile() profileImage: Express.Multer.File,
+    @GetUser() useData: any,
+  ): Promise<any> {
+    console.log('업데이트 데이터:', userData, '업로드된 파일:', profileImage);
+    const result = await this.authUserService.userUpdate(
+      userData,
+      profileImage,
+    );
+    console.log('result', result);
   }
 }
 

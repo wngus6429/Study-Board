@@ -11,11 +11,14 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { SigninUserDto } from './dto/signin.user.dto';
 import { v4 as uuid } from 'uuid';
+import { UserImage } from 'src/entities/UserImage.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(UserImage)
+    private readonly userImageRepository: Repository<UserImage>,
     private jwtService: JwtService,
   ) {}
 
@@ -72,11 +75,49 @@ export class AuthService {
   }
 
   async userGet(id: string): Promise<User> {
-    console.log('씨발', id);
     const user = await this.userRepository.findOne({
       where: { id },
+      relations: ['image'],
     });
-    console.log('dkdk', user);
+    return user;
+  }
+
+  async userUpdate(
+    userData: User,
+    profileImage: Express.Multer.File | null, // profileImage를 선택적으로 받아서 없을 경우를 처리
+  ): Promise<User> {
+    console.log('업데이트', userData);
+    const { id, nickname } = userData;
+
+    // 사용자 찾기
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['image'], // 기존에 User와 UserImage 관계를 불러오기 위해 relations 사용
+    });
+
+    // 새로운 프로필 이미지가 존재하고 파일 이름이 정의되어 있는 경우에만 업데이트
+    if (profileImage && profileImage.filename) {
+      if (user.image) {
+        // 기존 이미지가 존재할 경우 삭제
+        await this.userImageRepository.remove(user.image); // 기존 이미지 삭제
+      }
+
+      // 새로운 UserImage 생성 및 업데이트
+      const newUserImage = new UserImage();
+      newUserImage.image_name = profileImage.filename; // 파일 이름이 확실히 할당됨
+      newUserImage.link = `/userUpload/${profileImage.filename}`;
+      newUserImage.User = user; // 관계 설정
+
+      // 새로운 이미지 할당
+      console.log('newUserImage:', newUserImage);
+      user.image = newUserImage;
+      await this.userImageRepository.save(newUserImage);
+    }
+    user.nickname = nickname;
+    // 사용자 정보 업데이트
+    await this.userRepository.save(user);
+
+    // 사용자 정보 및 관계된 이미지 저장
     return user;
   }
 

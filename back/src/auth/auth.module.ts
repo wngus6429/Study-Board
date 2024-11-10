@@ -6,6 +6,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../entities/User.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
+import { UserImage } from 'src/entities/UserImage.entity';
+import { MulterModule } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import { Today } from 'src/common/helper/today';
 
 @Module({
   imports: [
@@ -14,7 +19,19 @@ import { JwtStrategy } from './jwt.strategy';
       secret: 'park',
       signOptions: { expiresIn: 3600 },
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, UserImage]),
+    MulterModule.register({
+      storage: diskStorage({
+        destination: './userUpload',
+        filename(req, file, done) {
+          const ext = path.extname(file.originalname);
+          done(
+            null,
+            `${path.basename(file.originalname, ext)}_${Today()}${ext}`,
+          );
+        },
+      }),
+    }),
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

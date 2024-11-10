@@ -1,15 +1,17 @@
 "use client";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress } from "@mui/material";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { User } from "next-auth";
+import { useMessage } from "@/app/store";
+import Loading from "@/app/components/common/Loading";
 
 function UserProfileEdit() {
   const [nickname, setNickname] = useState("");
   const [profileImage, setProfileImage] = useState(null);
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState<any>(null);
+  const { showMessage, messageState } = useMessage((state) => state);
 
   const { data: session, status } = useSession();
   // 세션이 인증된 상태에서만 요청을 수행합니다.
@@ -29,11 +31,17 @@ function UserProfileEdit() {
         return response.data;
       }
     },
+    // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
+    // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
+    enabled: status === "authenticated",
   });
 
   useEffect(() => {
     if (userDetail) {
-      console.log("userDetail", userDetail);
+      const profileImageUrl = userDetail?.image?.link
+        ? `${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.image.link}`
+        : null;
+      setPreviewImage(profileImageUrl);
       setNickname(userDetail.nickname);
     }
   }, [userDetail]);
@@ -48,32 +56,31 @@ function UserProfileEdit() {
     setPreviewImage(URL.createObjectURL(file));
   };
 
-  const handleSubmit = async (event: any) => {
-    event.preventDefault();
+  const mutation = useMutation({
+    mutationFn: async (e: FormEvent) => {
+      e.preventDefault();
+      // FormData 객체에 닉네임과 프로필 이미지 추가
+      const formData = new FormData();
+      formData.append("nickname", nickname);
+      if (profileImage) formData.append("profileImage", profileImage);
 
-    // FormData 객체에 닉네임과 프로필 이미지 추가
-    const formData = new FormData();
-    formData.append("nickname", nickname);
-    if (profileImage) formData.append("profileImage", profileImage);
+      return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/update`, formData, {
+        withCredentials: true,
+      });
+    },
+    onSuccess: (response) => {
+      if (response.status === 200 || response.status === 201) {
+        showMessage("프로필 변경 완료", "success");
+      }
+    },
+    onError: (error: any) => {
+      if (error.response && error.response.data.statusCode === 401) {
+        showMessage(`${error.response.data.message}`, "error");
+      }
+    },
+  });
 
-    // 서버에 전송 (예: /api/user/update 엔드포인트)
-    const response = await fetch("/api/user/update", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (response.ok) {
-      // 성공 시 처리 로직
-      console.log("Profile updated successfully");
-    } else {
-      // 실패 시 처리 로직
-      console.error("Failed to update profile");
-    }
-  };
-
-  if (isLoading) {
-    return <CircularProgress size={24} color="inherit" />;
-  }
+  if (isLoading) return <Loading />;
 
   return (
     <Container component="main" maxWidth="xs" sx={{ mt: 10 }}>
@@ -88,6 +95,9 @@ function UserProfileEdit() {
           사진 업로드
           <input type="file" hidden onChange={handleImageChange} />
         </Button>
+        <Button variant="contained" color="error">
+          사진 삭제
+        </Button>
 
         <TextField
           label="닉네임"
@@ -97,7 +107,7 @@ function UserProfileEdit() {
           sx={{ mt: 2, mb: 2, width: "100%" }}
         />
 
-        <Button variant="contained" color="primary" onClick={handleSubmit}>
+        <Button variant="contained" color="primary" onClick={mutation.mutate}>
           저장하기
         </Button>
       </Box>

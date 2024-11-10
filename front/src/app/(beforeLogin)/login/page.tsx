@@ -12,7 +12,7 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const { showMessage } = useMessage((state) => state);
+  const { showMessage, hideMessage } = useMessage((state) => state);
   const { data: session, update, status } = useSession();
 
   const handleLogin = async (e: React.FormEvent) => {

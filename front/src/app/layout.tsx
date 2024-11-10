@@ -6,6 +6,7 @@ import RQProvider from "./components/RQProvider";
 import TopBar from "./components/TopBar";
 import AuthSession from "./components/common/AuthSessionCom";
 import Advertisement from "./components/common/Advertisement";
+import MessageView from "./components/common/MessageView";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,6 +37,8 @@ export default function RootLayout({
                 <div style={{ width: 200 }}>
                   <Advertisement />
                 </div>
+                {/* 전역 메세지 표시 설정 */}
+                <MessageView />
               </div>
             </div>
           </AuthSession>

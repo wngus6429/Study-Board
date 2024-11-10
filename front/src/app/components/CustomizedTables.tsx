@@ -9,7 +9,7 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { StoryType } from "../types/types";
-import { Box, Button, TablePagination, TextField } from "@mui/material";
+import { Button } from "@mui/material";
 import axios from "axios";
 import dayjs from "dayjs";
 //! 몇분전 글이 쓰여졌다 등등 활용, 옛날에는 모먼트를 많이썻다함
@@ -19,7 +19,6 @@ import { useMessage } from "../store";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ReactPaginate from "react-paginate";
-import style from "./CustomizedTables.module.css";
 
 dayjs.extend(relativeTime);
 

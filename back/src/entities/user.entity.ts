@@ -27,7 +27,7 @@ export class User extends BaseEntity {
   @Column('varchar', { name: 'password', length: 100 })
   password: string;
 
-  @OneToOne(() => UserImage, (userImage) => userImage.user, { cascade: true })
+  @OneToOne(() => UserImage, (userImage) => userImage.User, { cascade: true })
   image: UserImage;
 
   @CreateDateColumn()

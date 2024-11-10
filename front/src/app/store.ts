@@ -1,3 +1,4 @@
+// zustand를 사용하여 상태관리를 하는 파일
 import { create } from "zustand";
 
 interface LoginState {

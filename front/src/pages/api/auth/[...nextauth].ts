@@ -1,4 +1,4 @@
-// pages/api/auth/[...nextauth].ts
+// Next-Auth 설정
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 

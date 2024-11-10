@@ -2,11 +2,8 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Param,
-  ParseIntPipe,
   Post,
-  Redirect,
   Req,
   Res,
   UploadedFile,
@@ -20,10 +17,9 @@ import { Response } from 'express'; // Express Response 객체를 import
 import { SigninUserDto } from './dto/signin.user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
-import { LoggedInGuard } from './logged-in-guard';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/entities/User.entity';
-import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('api/auth')
 export class AuthController {
@@ -101,7 +97,6 @@ export class AuthController {
   async userUpdate(
     @Body() userData: any,
     @UploadedFile() profileImage: Express.Multer.File,
-    @GetUser() useData: any,
   ): Promise<any> {
     console.log('업데이트 데이터:', userData, '업로드된 파일:', profileImage);
     const result = await this.authUserService.userUpdate(

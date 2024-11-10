@@ -1,3 +1,4 @@
+// 기본 페이지 컴포넌트
 "use client";
 import Loading from "./components/common/Loading";
 import MainView from "./components/MainView";

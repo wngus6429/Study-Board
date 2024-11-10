@@ -1,3 +1,4 @@
+// 전체 레이아웃을 정의 및 공통부분 처리
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";

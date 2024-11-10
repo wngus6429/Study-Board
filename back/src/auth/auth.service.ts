@@ -63,10 +63,9 @@ export class AuthService {
     if (!user) {
       throw new ConflictException('이메일이 존재하지 않습니다.');
     }
-    console.log('비밀번호 확인', password, user.password);
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) throw new ConflictException('비밀번호가 일치하지 않습니다.');
-    // 사용자 정보 반환 (민감한 정보 제외)
+    // 사용자 정보 반환 (민감한 정보인 패스워드 제외)
     return {
       id: user.id,
       user_email: user.user_email,
@@ -74,6 +73,7 @@ export class AuthService {
     };
   }
 
+  // 유저 프로필 정보 가져오기
   async userGet(id: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id },
@@ -82,18 +82,19 @@ export class AuthService {
     return user;
   }
 
+  // 유저 정보 업데이트
   async userUpdate(
     userData: User,
     profileImage: Express.Multer.File | null, // profileImage를 선택적으로 받아서 없을 경우를 처리
   ): Promise<User> {
-    console.log('업데이트', userData);
     const { id, nickname } = userData;
-
     // 사용자 찾기
-    const user = await this.userRepository.findOne({
+    const user: User = await this.userRepository.findOne({
       where: { id },
       relations: ['image'], // 기존에 User와 UserImage 관계를 불러오기 위해 relations 사용
     });
+
+    console.log('유저', user);
 
     // 새로운 프로필 이미지가 존재하고 파일 이름이 정의되어 있는 경우에만 업데이트
     if (profileImage && profileImage.filename) {

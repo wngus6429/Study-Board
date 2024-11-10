@@ -1,3 +1,4 @@
+// 미들웨어, 사용자 인증하여, 로그인 안되어 있을경우 로그인 페이지로 리다이렉트
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";

@@ -1,3 +1,4 @@
+// 테이블 컴포넌트
 "use client";
 import * as React from "react";
 import { styled } from "@mui/material/styles";

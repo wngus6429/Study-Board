@@ -58,18 +58,21 @@ function UserProfileEdit() {
 
   const mutation = useMutation({
     mutationFn: async (e: FormEvent) => {
-      e.preventDefault();
-      // FormData 객체에 닉네임과 프로필 이미지 추가
-      const formData = new FormData();
-      formData.append("nickname", nickname);
-      if (profileImage) formData.append("profileImage", profileImage);
-
-      return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/update`, formData, {
-        withCredentials: true,
-      });
+      if (session != null) {
+        e.preventDefault();
+        // FormData 객체에 닉네임과 프로필 이미지 추가
+        const formData = new FormData();
+        formData.append("nickname", nickname);
+        formData.append("id", session.user.id);
+        if (profileImage) formData.append("profileImage", profileImage);
+        console.log("formData", formData);
+        return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/update`, formData, {
+          withCredentials: true,
+        });
+      }
     },
     onSuccess: (response) => {
-      if (response.status === 200 || response.status === 201) {
+      if (response?.status === 200 || response?.status === 201) {
         showMessage("프로필 변경 완료", "success");
       }
     },

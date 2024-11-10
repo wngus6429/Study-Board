@@ -33,18 +33,18 @@ export default NextAuth({
     //! 맨아래 로그 참조
     async jwt({ token, user }) {
       if (user) {
-        console.log("토큰", token);
-        console.log("유저", user);
+        // console.log("토큰", token);
+        // console.log("유저", user);
         // 로그인 성공 시 사용자 데이터를 토큰에 저장
         token.user = user;
       }
       return token;
     },
     async session({ session, token }) {
-      console.log("토큰", token);
+      // console.log("토큰", token);
       //! sub, iat, exp, jti는 세션 객체에 포함되지 않아도됨.
       session.user = token.user as typeof session.user;
-      console.log("session", session);
+      // console.log("session", session);
       return session;
     },
   },

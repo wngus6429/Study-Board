@@ -4,9 +4,12 @@ import CredentialsProvider from "next-auth/providers/credentials";
 
 export default NextAuth({
   providers: [
+    // 일반 DB접속 로그인 할려면 CredentialsProvider 써야함
     CredentialsProvider({
       name: "Credentials",
       credentials: {
+        // 입력한 데이터를 서버에 전달하기 위한 값들을 정의하는 부분,
+        // body: JSON.stringify(credentials), 여기 credentials에 user_email, password가 들어감
         user_email: { label: "Email", type: "text" },
         password: { label: "Password", type: "password" },
       },
@@ -19,6 +22,7 @@ export default NextAuth({
             headers: { "Content-Type": "application/json" },
           });
           if (res.ok) {
+            // 성공 시 사용자 데이터를 json으로 반환
             return res.json();
           }
           return null;

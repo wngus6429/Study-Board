@@ -101,12 +101,11 @@ export class StoryService {
 
     // 글이 존재하지 않으면 에러 발생
     if (!story) {
-      throw new NotFoundException(`스토리 ID ${storyId}를 찾을 수 없습니다.`);
+      throw new NotFoundException('삭제된 글입니다.');
     }
 
     // 글 작성자와 요청한 사용자의 이메일이 일치하지 않으면 에러 발생
     if (story.creator_user_id !== userData.id) {
-      console.log('여기요');
       throw new UnauthorizedException('본인의 글만 삭제할 수 있습니다.');
     }
 

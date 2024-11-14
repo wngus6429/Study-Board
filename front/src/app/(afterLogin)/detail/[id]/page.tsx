@@ -1,4 +1,5 @@
 "use client";
+import Loading from "@/app/components/common/Loading";
 import { useMessage } from "@/app/store";
 import { ImageType, StoryType } from "@/app/types/types";
 import { Button, Select } from "@mui/material";
@@ -14,12 +15,7 @@ export default function page(): ReactNode {
   const queryClient = useQueryClient();
   const [detail, setDetail] = useState<StoryType | null>(null);
 
-  const {
-    data: getDetail,
-    error,
-    isLoading,
-    refetch,
-  } = useQuery({
+  const { data: getDetail, isLoading } = useQuery({
     queryKey: ["story", "detail", params?.id],
     queryFn: async () => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`);
@@ -47,16 +43,21 @@ export default function page(): ReactNode {
         queryClient.removeQueries({ queryKey: ["story", "detail", String(params.id)] }); // 쿼리 키를 명확하게 지정하여 삭제
       }
       showMessage("삭제 성공", "error");
-      router.push("/"); // 삭제 후 홈 또는 목록 페이지로 이동
+      router.push("/");
     },
     onError: (error: any) => {
-      if (error.response && error.response.data.code === 401) {
+      if (error.response && error.response.data.code === 404) {
+        // 404 에러 처리
+        showMessage(`${error.response.data.data}`, "error"); // 서버에서 전달한 메시지 표시
+      } else if (error.response && error.response.data.code === 401) {
         showMessage(`${error.response.data.data}`, "error");
       } else {
         showMessage("삭제 중 오류가 발생했습니다.", "error");
       }
     },
   });
+
+  if (isLoading) return <Loading />;
 
   // TODO : comments 테이블 만들어서 엮기
   return (

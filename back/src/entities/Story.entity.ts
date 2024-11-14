@@ -45,7 +45,7 @@ export class Story {
     description: '작성자 이메일',
   })
   @Column({ nullable: false })
-  creator_email: string;
+  creator_user_id: string;
 
   @ApiProperty({
     description: '조회수',

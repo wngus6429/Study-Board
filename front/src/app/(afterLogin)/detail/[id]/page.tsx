@@ -50,10 +50,8 @@ export default function page(): ReactNode {
       router.push("/"); // 삭제 후 홈 또는 목록 페이지로 이동
     },
     onError: (error: any) => {
-      if (error.response && error.response.data.statusCode === 401) {
-        showMessage(`${error.response.data.message}`, "error");
-      } else if (error.response && error.response.data.statusCode === 404) {
-        showMessage(`${error.response.data.message}`, "error");
+      if (error.response && error.response.data.code === 401) {
+        showMessage(`${error.response.data.data}`, "error");
       } else {
         showMessage("삭제 중 오류가 발생했습니다.", "error");
       }
@@ -96,15 +94,15 @@ export default function page(): ReactNode {
             삭제
           </Button>
           {detail.Image && detail.Image.length > 0 && (
-            <div>
+            <>
               <h2>첨부된 이미지:</h2>
               {/* src에 localhost:백엔드 안 적는 이유는 proxy 설정해서 그럼. next.config.js */}
               {detail.Image.map((img: ImageType, index: number) => (
-                <div key={img.imageId}>
+                <div key={`${img.imageId}-${index}`}>
                   <img src={img.link} alt={`첨부 이미지 ${index + 1}`} style={{ maxWidth: "100%", height: "auto" }} />
                 </div>
               ))}
-            </div>
+            </>
           )}
         </>
       )}

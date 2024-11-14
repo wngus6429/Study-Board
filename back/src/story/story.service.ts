@@ -57,15 +57,15 @@ export class StoryService {
       files,
     );
     const { title, content, category } = createStoryDto;
-    const { user_email } = userData;
+    const { id, nickname } = userData;
 
     // Story 엔티티 생성
     const story = this.storyRepository.create({
       category,
       title,
       content,
-      nickname: userData.nickname,
-      creator_email: user_email,
+      nickname: nickname,
+      creator_user_id: id,
     });
 
     const savedStory = await this.storyRepository.save(story);
@@ -105,7 +105,8 @@ export class StoryService {
     }
 
     // 글 작성자와 요청한 사용자의 이메일이 일치하지 않으면 에러 발생
-    if (story.creator_email !== userData.user_email) {
+    if (story.creator_user_id !== userData.id) {
+      console.log('여기요');
       throw new UnauthorizedException('본인의 글만 삭제할 수 있습니다.');
     }
 

@@ -10,7 +10,6 @@ import { SignupUserDto } from './dto/signup.user.dto';
 import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { SigninUserDto } from './dto/signin.user.dto';
-import { v4 as uuid } from 'uuid';
 import { UserImage } from 'src/entities/UserImage.entity';
 
 @Injectable()
@@ -94,8 +93,6 @@ export class AuthService {
       relations: ['image'], // 기존에 User와 UserImage 관계를 불러오기 위해 relations 사용
     });
 
-    console.log('유저', user);
-
     // 새로운 프로필 이미지가 존재하고 파일 이름이 정의되어 있는 경우에만 업데이트
     if (profileImage && profileImage.filename) {
       if (user.image) {
@@ -121,53 +118,4 @@ export class AuthService {
     // 사용자 정보 및 관계된 이미지 저장
     return user;
   }
-
-  // async signUp(userData: SignupUserDto): Promise<void> {
-  //   const { user_email, password, nickname } = userData;
-  //   // ToDo 유저가 있는지 확인해야함
-  //   const existUser = await this.userRepository.findOne({
-  //     where: { user_email },
-  //   });
-  //   if (existUser) {
-  //     throw new ConflictException('Username already exists');
-  //   }
-  //   const salt = await bcrypt.genSalt();
-  //   const hashedPassword = await bcrypt.hash(password, salt);
-  //   // UUID 직접 생성하여 사용자 ID에 할당
-  //   const user = this.userRepository.create({
-  //     user_email,
-  //     password: hashedPassword,
-  //     nickname,
-  //   });
-  //   console.log('user:', user);
-  //   try {
-  //     await this.userRepository.save(user);
-  //     await this.signIn(user);
-  //     // const { accessToken } = await this.signIn({ user_email, password });
-  //     // return { accessToken };
-  //   } catch (error) {
-  //     console.log(error.code);
-  //     if (error.code === '23505') {
-  //       throw new ConflictException('Username already exists');
-  //     } else {
-  //       throw new InternalServerErrorException();
-  //     }
-  //   }
-  // }
-
-  // async signIn(userData: SigninUserDto): Promise<{ accessToken: string }> {
-  //   const { user_email, password } = userData;
-  //   const user = await this.userRepository.findOne({ where: { user_email } });
-  //   if (!user) {
-  //     throw new ConflictException('이메일이 존재하지 않습니다.');
-  //   }
-  //   const isMatch = await bcrypt.compare(password, user.password);
-  //   if (!isMatch) {
-  //     throw new ConflictException('비밀번호가 일치하지 않습니다.');
-  //   }
-  //   const payload = { user_email };
-  //   const accessToken = this.jwtService.sign(payload);
-  //   console.log('accessToken:', accessToken);
-  //   return { accessToken };
-  // }
 }

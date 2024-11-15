@@ -71,22 +71,23 @@ export default function MenuBar() {
       </Link>
       <nav className={styles.nav}>
         {!user?.user && (
-          <Button variant="contained" onClick={() => router.push("/login")} color="info">
+          <Button size="medium" variant="contained" onClick={() => router.push("/login")} color="info">
             로그인
           </Button>
         )}
         {user?.user && (
-          <Button variant="contained" onClick={logout} color="error">
+          <Button size="medium" variant="contained" onClick={logout} color="error">
             로그아웃
           </Button>
         )}
         {!user?.user && (
-          <Button variant="contained" onClick={() => router.push("/signup")} color="inherit">
+          <Button size="medium" variant="contained" onClick={() => router.push("/signup")} color="inherit">
             회원가입
           </Button>
         )}
         {user?.user && (
           <Button
+            size="medium"
             variant="contained"
             onClick={() => {
               router.push(`/setting/profile`);

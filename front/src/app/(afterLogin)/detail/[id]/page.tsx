@@ -8,6 +8,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { useParams, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 
 export default function page(): ReactNode {
   const params = useParams(); // URL 파라미터에서 id를 가져옴
@@ -77,7 +78,7 @@ export default function page(): ReactNode {
                   color="warning"
                   onClick={(e) => {
                     e.preventDefault();
-                    deleteData.mutate(detail.id);
+                    router.push(`/edit/${detail.id}`);
                   }}
                 >
                   수정하기
@@ -96,6 +97,10 @@ export default function page(): ReactNode {
                 </Button>
               </Box>
             </Box>
+            <Typography variant="subtitle2" color="text.secondary" sx={{ marginBottom: 2 }}>
+              <LocalOfferIcon fontSize="small" sx={{ marginRight: 0.5 }} />
+              종류: {detail.category}
+            </Typography>
             <Box display="flex" justifyContent="space-between" marginBottom={2}>
               <Typography variant="subtitle2" color="text.secondary">
                 작성자: {detail.nickname}

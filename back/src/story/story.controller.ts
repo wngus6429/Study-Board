@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Put,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -18,6 +19,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/entities/User.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
+import { UpdateStoryDto } from './dto/update-story.dto';
+import { Story } from 'src/entities/Story.entity';
 
 @Controller('api/story')
 export class StoryController {
@@ -57,6 +60,30 @@ export class StoryController {
       files,
     );
     return this.storyService.create(createStoryDto, userData, files);
+  }
+
+  @Post('/update/:id') // 수정 작업을 POST 요청으로 처리
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  @UseInterceptors(FilesInterceptor('images'))
+  async updateStory(
+    @Param('id') storyId: number,
+    @Body() updateStoryDto: UpdateStoryDto,
+    @GetUser() user: User,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<Story> {
+    console.log(
+      '수정할 글 ID:',
+      storyId,
+      '업데이트 데이터:',
+      updateStoryDto,
+      '사용자정보:',
+      user,
+      '이미지에요',
+      files,
+    );
+
+    return this.storyService.updateStory(storyId, updateStoryDto, user, files);
   }
 
   @Delete('/:id')

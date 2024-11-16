@@ -7,7 +7,7 @@ import React, { FormEvent, useState } from "react";
 import { useMessage } from "@/app/store";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
-import InputFileUpload from "@/app/components/common/uploadButton";
+import InputFileUpload from "@/app/components/common/InputFileUpload";
 
 export default function StoryWrite() {
   const Router = useRouter();
@@ -36,13 +36,13 @@ export default function StoryWrite() {
         formData.append("content", content);
 
         // preview의 각 파일을 'images' 키로 추가
-        preview.forEach((item, index) => {
+        preview.forEach((item) => {
           if (item?.file) {
             formData.append("images", item.file); // 'images'는 서버의 FilesInterceptor와 일치해야 합니다.
           }
         });
 
-        console.log(formData); // 디버깅을 위해 FormData 내용을 확인할 수 있습니다.
+        console.log("글쓰기", preview);
 
         return await axios
           .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`, formData, {

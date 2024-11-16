@@ -2,7 +2,7 @@ import * as React from "react";
 import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -18,10 +18,11 @@ const VisuallyHiddenInput = styled("input")({
 
 interface InputFileUploadProps {
   onPreviewUpdate: (previews: Array<{ dataUrl: string; file: File } | null>) => void;
+  editPreview?: Array<{ dataUrl: string; file: File } | null>;
 }
 
-export default function InputFileUpload({ onPreviewUpdate }: InputFileUploadProps) {
-  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
+export default function InputFileUpload({ onPreviewUpdate, editPreview }: InputFileUploadProps) {
+  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>(editPreview || []);
 
   const onRemoveImage = (index: number) => () => {
     setPreview((prevPreview) => {
@@ -66,7 +67,14 @@ export default function InputFileUpload({ onPreviewUpdate }: InputFileUploadProp
 
   return (
     <>
-      <Button component="label" role={undefined} variant="contained" tabIndex={-1} startIcon={<CloudUploadIcon />}>
+      <Button
+        component="label"
+        role={undefined}
+        variant="contained"
+        tabIndex={-1}
+        startIcon={<CloudUploadIcon />}
+        sx={{ width: "100%" }} // 너비 100% 설정
+      >
         업로드
         <VisuallyHiddenInput type="file" onChange={onUpload} multiple />
       </Button>
@@ -93,7 +101,7 @@ export default function InputFileUpload({ onPreviewUpdate }: InputFileUploadProp
                 )
             )}
           </div>
-          <Button variant="outlined" onClick={onRemoveImageAll} sx={{ width: "100%", marginTop: -3 }} color="error">
+          <Button variant="outlined" onClick={onRemoveImageAll} sx={{ width: "100%" }} color="error">
             전체삭제
           </Button>
         </>

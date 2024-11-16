@@ -4,7 +4,7 @@ import { User } from '../../entities/User.entity';
 // @GetUser() 데코레이터를 사용하면 req.user를 가져올 수 있음
 export const GetUser = createParamDecorator(
   (data, ctx: ExecutionContext): User => {
-    console.log('시발아');
+    console.log('GetUser데이터', ctx.switchToHttp().getRequest().user);
     const req = ctx.switchToHttp().getRequest();
     return req.user;
   },

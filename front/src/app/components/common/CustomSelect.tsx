@@ -10,9 +10,10 @@ interface CustomSelectProps {
   selectArray: { name: string; value: string }[];
   defaultValue?: WRITE_SELECT_OPTION_TYPE;
   setSelectedCategory: (value: string) => void;
+  value?: string; // 외부에서 상태를 제어하기 위한 value 추가
 }
 
-const CustomSelect = ({ selectArray, defaultValue, setSelectedCategory }: CustomSelectProps): ReactNode => {
+const CustomSelect = ({ selectArray, defaultValue, setSelectedCategory, value }: CustomSelectProps): ReactNode => {
   const defaultItem = selectArray.find((item) => item.name === defaultValue);
   const [selectedValue, setSelectedValue] = useState<string>(defaultItem?.value || "");
   const [open, setOpen] = useState(false);
@@ -31,7 +32,7 @@ const CustomSelect = ({ selectArray, defaultValue, setSelectedCategory }: Custom
         open={open}
         onClose={() => setOpen(false)}
         onOpen={() => setOpen(true)}
-        value={selectedValue}
+        value={value || selectedValue}
         label="글 종류"
         onChange={handleChange}
         MenuProps={{

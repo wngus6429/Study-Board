@@ -18,10 +18,11 @@ import { UserImage } from 'src/entities/UserImage.entity';
         destination: './upload',
         filename(req, file, done) {
           const ext = path.extname(file.originalname);
-          done(
-            null,
-            `${path.basename(file.originalname, ext)}_${Today()}${ext}`,
-          );
+          const baseName = Buffer.from(
+            path.basename(file.originalname, ext),
+            'latin1',
+          ).toString('utf8'); // 한글 파일명을 UTF-8로 변환
+          done(null, `${baseName}_${Today()}${ext}`);
         },
       }),
     }),

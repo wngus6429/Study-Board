@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { User } from 'src/entities/User.entity';
 import { Story } from 'src/entities/Story.entity';
@@ -51,14 +51,6 @@ export class StoryService {
     userData: User,
     files: Express.Multer.File[],
   ): Promise<Story> {
-    console.log(
-      'createStoryDto:',
-      createStoryDto,
-      'userData:',
-      userData,
-      'files:',
-      files,
-    );
     const { title, content, category } = createStoryDto;
     const { id, nickname } = userData;
 
@@ -73,6 +65,8 @@ export class StoryService {
 
     const savedStory = await this.storyRepository.save(story);
 
+    console.log('글 작성 이미지', files);
+
     // 이미지 파일을 ImageEntity로 변환 후 저장
     const imageEntities = files.map((file) => {
       const image = new Image();
@@ -83,6 +77,7 @@ export class StoryService {
       return image;
     });
 
+    console.log('글작성 저장 전 이미지 엔티티:', imageEntities);
     await this.imageRepository.save(imageEntities);
 
     return savedStory;
@@ -99,44 +94,79 @@ export class StoryService {
   async updateStory(
     storyId: number,
     updateStoryDto: UpdateStoryDto,
-    user: User,
+    userData: User,
     newImages: Express.Multer.File[],
   ): Promise<Story> {
     const story = await this.storyRepository.findOne({
       where: { id: storyId },
-      relations: ['Image'], // 기존 이미지 데이터 가져오기
+      relations: ['Image'],
     });
 
     if (!story) {
       throw new NotFoundException('수정할 글을 찾을 수 없습니다.');
     }
 
-    if (story.creator_user_id !== user.id) {
+    if (story.creator_user_id !== userData.id) {
       throw new UnauthorizedException('본인의 글만 수정할 수 있습니다.');
     }
 
-    // 삭제된 이미지 처리
-    const { deletedImages = [] } = updateStoryDto;
-    for (const imageId of deletedImages) {
-      const image = await this.imageRepository.findOne({
-        where: { id: imageId },
+    // 현재 글에 등록된 이미지 목록 가져오기
+    const existingImages = await this.imageRepository.find({
+      where: { Story: { id: storyId } },
+    });
+
+    // 기존 이미지 목록 중에 삭제할 이미지 목록 추출
+    const normalizedExistImages = updateStoryDto?.existImages.map((url) =>
+      decodeURIComponent(new URL(url).pathname),
+    );
+
+    // 삭제할 이미지 목록 추출
+    const imagesToDelete = existingImages.filter(
+      (img) => !normalizedExistImages.includes(decodeURIComponent(img.link)),
+    );
+
+    console.log('삭제할 이미지:', imagesToDelete);
+
+    if (imagesToDelete.length > 0) {
+      const imagesWithRelations = await this.imageRepository.find({
+        where: { id: In(imagesToDelete.map((img) => img.id)) },
+        relations: ['Story'],
       });
-      if (image) {
-        await this.imageRepository.delete(image.id); // DB에서만 삭제
+
+      for (const image of imagesWithRelations) {
+        console.log(`삭제 중인 이미지 ID: ${image.id}`);
+        await this.imageRepository.remove(image); // 관계 포함 삭제
       }
+
+      // Story의 Image 관계에서 삭제된 이미지를 제거
+      story.Image = story.Image.filter(
+        (img) => !imagesToDelete.some((delImg) => delImg.id === img.id),
+      );
+      await this.storyRepository.save(story); // 관계 동기화
     }
 
-    // 새로 업로드된 이미지 저장
-    const newImageEntities = newImages.map((file) => {
-      const image = new Image();
-      image.image_name = file.filename;
-      image.link = `/upload/${file.filename}`;
-      image.Story = story;
-      return image;
-    });
-    await this.imageRepository.save(newImageEntities);
+    // 새 이미지 추가
+    if (newImages.length > 0) {
+      const imageEntities = newImages.map((file) => {
+        const image = new Image();
+        image.image_name = file.filename;
+        image.link = `/upload/${file.filename}`;
+        image.user_id = String(userData.id);
+        image.Story = story; // 관계 명확히 설정
+        return image;
+      });
 
-    // 스토리 업데이트
+      console.log('저장 전 이미지 엔티티:', imageEntities);
+      await this.imageRepository.save(imageEntities);
+
+      // 관계 업데이트
+      const updatedImages = await this.imageRepository.find({
+        where: { Story: { id: storyId } },
+      });
+      story.Image = updatedImages;
+      await this.storyRepository.save(story); // 관계 동기화
+    }
+
     Object.assign(story, {
       title: updateStoryDto.title,
       content: updateStoryDto.content,

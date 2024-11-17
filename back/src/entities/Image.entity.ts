@@ -43,12 +43,6 @@ export class Image {
   created_at: Date;
 
   @ApiProperty({
-    description: '삭제일',
-  })
-  @DeleteDateColumn({ nullable: true })
-  deleted_at: Date;
-
-  @ApiProperty({
     description: '게시글',
   })
   @ManyToOne(() => Story, (story) => story.Image, {

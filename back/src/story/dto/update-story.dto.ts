@@ -22,10 +22,5 @@ export class UpdateStoryDto {
   @IsArray()
   @IsOptional()
   @IsNumber({}, { each: true }) // 배열 내 요소가 숫자인지 검증
-  existingImages?: number[]; // 유지할 기존 이미지 ID 배열
-
-  @IsArray()
-  @IsOptional()
-  @IsNumber({}, { each: true }) // 배열 내 요소가 숫자인지 검증
-  deletedImages?: number[]; // 삭제할 이미지 ID 배열
+  existImages?: string[]; // 유지할 기존 이미지 ID 배열
 }

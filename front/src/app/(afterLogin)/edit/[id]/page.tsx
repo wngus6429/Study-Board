@@ -83,15 +83,17 @@ export default function EditPage() {
     formData.append("content", content);
     formData.append("category", selectedCategory);
 
+    // 이미지 파일 보낼 데이터 분기 처리
     preview.forEach((item) => {
-      if (item?.file) {
-        formData.append("images", item.file); // 반드시 'images'로 추가
+      if (item?.file != null) {
+        // 새로운 이미지 파일
+        formData.append("images", item.file);
+      } else if (item?.dataUrl) {
+        // 기존 이미지에서 변경이 있는 경우를 감지하기 위해
+        formData.append("existImages", item.dataUrl);
       }
     });
-
-    console.log("preview이미지", preview);
-
-    updateStory.mutate(formData); // FormData를 전달
+    updateStory.mutate(formData);
   };
 
   if (isLoading) return <Loading />;

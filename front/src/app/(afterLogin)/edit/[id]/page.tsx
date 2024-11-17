@@ -2,7 +2,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useMessage } from "@/app/store";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Box, Button, CircularProgress, TextField, Typography } from "@mui/material";
 import Loading from "@/app/components/common/Loading";
@@ -29,7 +29,11 @@ export default function EditPage() {
   // 로딩
   const [loading, setLoading] = useState<boolean>(false);
 
-  const { data: storyDetail, isLoading } = useQuery({
+  const {
+    data: storyDetail,
+    isLoading,
+    refetch,
+  } = useQuery({
     queryKey: ["story", "edit", id],
     queryFn: async () => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${id}`);
@@ -53,7 +57,7 @@ export default function EditPage() {
       setPreview(formattedImages);
     }
   }, [storyDetail]);
-
+  const queryClient = useQueryClient();
   // 수정 요청
   const updateStory = useMutation<void, Error, FormData>({
     mutationFn: async (formData) => {
@@ -69,6 +73,10 @@ export default function EditPage() {
     },
     onSuccess: () => {
       showMessage("수정 성공", "success");
+
+      queryClient.invalidateQueries({ queryKey: ["story", "edit", id] });
+      // queryClient.invalidateQueries({ queryKey: ["story", "detail", id] });
+
       router.push(`/detail/${id}`);
     },
     onError: (error) => {

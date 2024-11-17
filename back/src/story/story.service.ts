@@ -110,18 +110,17 @@ export class StoryService {
       throw new UnauthorizedException('본인의 글만 수정할 수 있습니다.');
     }
 
-    // 현재 글에 등록된 이미지 목록 가져오기
-    const existingImages = await this.imageRepository.find({
-      where: { Story: { id: storyId } },
-    });
-
     // 기존 이미지 목록 중에 삭제할 이미지 목록 추출
-    const normalizedExistImages = updateStoryDto?.existImages.map((url) =>
+    const existImages = Array.isArray(updateStoryDto.existImages)
+      ? updateStoryDto.existImages
+      : [updateStoryDto.existImages];
+
+    const normalizedExistImages = existImages.map((url) =>
       decodeURIComponent(new URL(url).pathname),
     );
 
     // 삭제할 이미지 목록 추출
-    const imagesToDelete = existingImages.filter(
+    const imagesToDelete = story.Image.filter(
       (img) => !normalizedExistImages.includes(decodeURIComponent(img.link)),
     );
 

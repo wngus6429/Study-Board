@@ -102,6 +102,8 @@ export class StoryService {
       relations: ['Image'],
     });
 
+    console.log('수정할 글:', story);
+
     if (!story) {
       throw new NotFoundException('수정할 글을 찾을 수 없습니다.');
     }
@@ -113,18 +115,21 @@ export class StoryService {
     // 기존 이미지 목록 중에 삭제할 이미지 목록 추출
     const existImages = Array.isArray(updateStoryDto.existImages)
       ? updateStoryDto.existImages
-      : [updateStoryDto.existImages];
+      : updateStoryDto.existImages
+        ? [updateStoryDto.existImages]
+        : []; // undefined인 경우 빈 배열로 초기화
 
-    const normalizedExistImages = existImages.map((url) =>
-      decodeURIComponent(new URL(url).pathname),
-    );
+    let normalizedExistImages: string[] = [];
+    if (existImages.length > 0) {
+      normalizedExistImages = existImages.map((url) =>
+        decodeURIComponent(new URL(url).pathname),
+      );
+    }
 
     // 삭제할 이미지 목록 추출
     const imagesToDelete = story.Image.filter(
       (img) => !normalizedExistImages.includes(decodeURIComponent(img.link)),
     );
-
-    console.log('삭제할 이미지:', imagesToDelete);
 
     if (imagesToDelete.length > 0) {
       const imagesWithRelations = await this.imageRepository.find({
@@ -133,7 +138,6 @@ export class StoryService {
       });
 
       for (const image of imagesWithRelations) {
-        console.log(`삭제 중인 이미지 ID: ${image.id}`);
         await this.imageRepository.remove(image); // 관계 포함 삭제
       }
 

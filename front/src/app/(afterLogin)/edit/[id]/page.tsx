@@ -14,8 +14,10 @@ export default function EditPage() {
   const params = useParams();
   const id = params?.id as string | undefined;
 
+  const queryClient = useQueryClient();
   const router = useRouter();
   const { showMessage } = useMessage((state) => state);
+
   // 제목 변수
   const [title, setTitle] = useState<string>("");
   // 내용 변수
@@ -24,8 +26,6 @@ export default function EditPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
   // 이미지 변수
   const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
-  // 받아온 이미지 변수
-  const [editPreview, setEditPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
   // 로딩
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -53,15 +53,13 @@ export default function EditPage() {
         dataUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${image.link}`, // 전체 URL로 변환
         file: null, // 기존 이미지는 파일이 없으므로 null
       }));
-      setEditPreview(formattedImages);
       setPreview(formattedImages);
     }
   }, [storyDetail]);
-  const queryClient = useQueryClient();
+
   // 수정 요청
   const updateStory = useMutation<void, Error, FormData>({
     mutationFn: async (formData) => {
-      setLoading(true);
       await axios
         .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/update/${id}`, formData, {
           withCredentials: true,
@@ -73,19 +71,21 @@ export default function EditPage() {
     },
     onSuccess: () => {
       showMessage("수정 성공", "success");
-
       queryClient.invalidateQueries({ queryKey: ["story", "edit", id] });
-      // queryClient.invalidateQueries({ queryKey: ["story", "detail", id] });
-
       router.push(`/detail/${id}`);
     },
     onError: (error) => {
       showMessage(`수정 중 오류가 발생했습니다.`, "error");
-      setLoading(false);
     },
   });
 
-  const handleUpdate = () => {
+  const handlePreviewUpdate = (updatedPreview: Array<{ dataUrl: string; file: File } | null>) => {
+    setPreview(updatedPreview);
+  };
+
+  const handleUpdate = (e: FormEvent) => {
+    setLoading(true);
+    e.preventDefault();
     const formData = new FormData();
     formData.append("title", title);
     formData.append("content", content);
@@ -137,15 +137,11 @@ export default function EditPage() {
         setSelectedCategory={setSelectedCategory}
         value={selectedCategory} // 선택된 카테고리 값
       />
-      {editPreview.length > 0 && <InputFileUpload onPreviewUpdate={setPreview} editPreview={editPreview} />}
+      <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
       <Button variant="contained" color="error" onClick={() => router.push(`/detail/${id}`)}>
         취소
       </Button>
-      <Button
-        variant="contained"
-        color="success"
-        onClick={handleUpdate} // 수정: 함수 호출 추가
-      >
+      <Button variant="contained" color="success" onClick={handleUpdate}>
         {loading ? <CircularProgress size={24} color="inherit" /> : "수정"}
       </Button>
     </Box>

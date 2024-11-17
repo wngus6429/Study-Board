@@ -12,15 +12,17 @@ import InputFileUpload from "@/app/components/common/InputFileUpload";
 export default function StoryWrite() {
   const Router = useRouter();
   const { showMessage } = useMessage((state) => state);
-  // 로딩
-  const [loading, setLoading] = useState<boolean>(false);
-  // 타이틀과 내용
+
+  // 제목 변수
   const [title, setTitle] = useState<string>("");
+  // 내용 변수
   const [content, setContent] = useState<string>("");
   // 카테고리 변수
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
   // 이미지 변수
   const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
+  // 로딩
+  const [loading, setLoading] = useState<boolean>(false);
 
   // useMutation 훅 사용
   const mutation = useMutation({
@@ -41,8 +43,6 @@ export default function StoryWrite() {
             formData.append("images", item.file); // 'images'는 서버의 FilesInterceptor와 일치해야 합니다.
           }
         });
-
-        console.log("글쓰기", preview);
 
         return await axios
           .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`, formData, {
@@ -65,6 +65,10 @@ export default function StoryWrite() {
       console.error(error);
     },
   });
+
+  const handlePreviewUpdate = (updatedPreview: Array<{ dataUrl: string; file: File } | null>) => {
+    setPreview(updatedPreview);
+  };
 
   return (
     <Paper elevation={3} sx={{ p: 4, width: "60%", margin: "auto", mt: 5 }}>
@@ -104,7 +108,7 @@ export default function StoryWrite() {
           fullWidth
           onChange={(e) => setContent(e.target.value)}
         />
-        <InputFileUpload onPreviewUpdate={setPreview} />
+        <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
         <Button
           variant="contained"
           color="success"

@@ -34,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     console.log('유효성 검사 후 사용', user);
 
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('로그인 만료, 다시 로그인해주세요.');
     }
 
     return user; // 리턴된 값은 Request 객체에 추가됨

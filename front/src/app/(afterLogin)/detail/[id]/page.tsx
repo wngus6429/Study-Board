@@ -67,7 +67,7 @@ export default function page(): ReactNode {
       display="flex"
       justifyContent="center"
       alignItems="center"
-      sx={{ width: 1250, padding: 2, overflow: "hidden" }}
+      sx={{ width: 1240, padding: 2, overflow: "hidden" }}
     >
       {detail && (
         <Card sx={{ width: 1250, boxShadow: 3, padding: 2 }}>

@@ -36,7 +36,7 @@ const MainView = (): ReactNode => {
 
   return (
     <>
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex", width: 1250 }}>
         <div style={{ width: "100%" }}>
           <Box>
             <Tabs

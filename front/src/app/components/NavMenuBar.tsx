@@ -15,7 +15,7 @@ const menuItems: MenuItem[] = [
 
 const NavMenuBar: FC = () => {
   return (
-    <nav style={{ padding: "1rem", borderRight: "1px solid #ccc", width: 150 }}>
+    <nav style={{ padding: 10, borderRight: "1px solid #ccc", width: 100 }}>
       <ul>
         {menuItems.map((item) => (
           <ol key={item.path} style={{ marginBottom: "1rem" }}>

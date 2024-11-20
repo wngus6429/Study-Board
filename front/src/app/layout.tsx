@@ -26,15 +26,17 @@ export default function RootLayout({
       <body className={inter.className}>
         <RQProvider>
           <AuthSession>
-            <div style={{ maxWidth: 1400, margin: "0 auto", padding: "0 20px" }}>
+            <div style={{ width: 1600, margin: "0 auto", padding: "0 20px" }}>
               {/* 상단 바 */}
               {/* TopBar의 높이와 동일하게 설정 */}
               <TopBar />
-              <div style={{ display: "flex", height: "100vh" }}>
+              {/* 아래걸로 하면 전체스크롤 */}
+              {/* <div style={{ display: "flex", overflow: "hidden" }}> */}
+              <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}>
                 {/* 왼쪽 네비게이션 */}
                 <NavMenuBar />
                 {/* 메인 콘텐츠: 중앙 정렬 */}
-                <div style={{ flexGrow: 1, paddingLeft: "3px" }}>{children}</div>
+                <div style={{ flexGrow: 1, paddingLeft: "3px", width: 1250, overflowY: "auto" }}>{children}</div>
                 <div style={{ width: 200 }}>
                   <Advertisement />
                 </div>

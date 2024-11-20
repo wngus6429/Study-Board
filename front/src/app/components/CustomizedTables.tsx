@@ -105,13 +105,13 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
         <Table sx={{ width: "100%" }} aria-label="customized table">
           <TableHead>
             <TableRow>
-              <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>번호</StyledTableCell>
+              <StyledTableCell sx={{ width: "110px", textAlign: "center" }}>번호</StyledTableCell>
               <StyledTableCell sx={{ width: "400px" }}>제목</StyledTableCell>
               <StyledTableCell sx={{ width: "150px" }}>작성자</StyledTableCell>
               <StyledTableCell sx={{ width: "180px" }}>등록일</StyledTableCell>
               <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>조회수</StyledTableCell>
               <StyledTableCell sx={{ width: "75px", textAlign: "center" }}>추천</StyledTableCell>
-              <StyledTableCell sx={{ width: "160px", textAlign: "center" }}>기타</StyledTableCell>
+              <StyledTableCell sx={{ width: "130px", textAlign: "center" }}>기타</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -143,7 +143,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                 >
                   {dayjs(row.created_at).format("YYYY.MM.DD HH:mm")}
                 </StyledTableCell>
-                <StyledTableCell>{row.read_count}</StyledTableCell>
+                <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
                 <StyledTableCell sx={{ textAlign: "center" }}>{row.like_count}</StyledTableCell>
                 {/* TODO 추천하기 버튼, 로그인 해서 내꺼면 삭제 혹은 수정 버튼 */}
                 <StyledTableCell sx={{ textAlign: "center" }}>

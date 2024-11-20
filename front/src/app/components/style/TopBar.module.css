@@ -10,6 +10,7 @@
 .title {
   font-size: 1.875rem; /* 3xl */
   font-weight: bold;
+  color: red;
 }
 
 .nav {

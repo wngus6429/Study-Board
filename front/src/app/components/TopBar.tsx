@@ -3,13 +3,14 @@ import React from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import { Button, Link } from "@mui/material";
+import { Button } from "@mui/material";
 
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import styles from "./style/TopBar.module.css";
 import { signOut, useSession } from "next-auth/react";
 import { useMessage } from "../store";
+import Link from "next/link";
 
 // const SearchBox = styled("div")(({ theme }) => ({
 //   position: "relative",
@@ -66,8 +67,8 @@ export default function MenuBar() {
 
   return (
     <div className={styles.container}>
-      <Link href="/" aria-label="Home">
-        <h1 className={styles.title}>Live Board</h1>
+      <Link href="/" aria-label="Home" className={styles.title}>
+        Live Board
       </Link>
       <nav className={styles.nav}>
         {!user?.user && (

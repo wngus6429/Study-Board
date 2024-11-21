@@ -63,14 +63,9 @@ export default function page(): ReactNode {
 
   // TODO : comments 테이블 만들어서 엮기
   return (
-    <Box
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
-      sx={{ width: 1240, padding: 2, overflow: "hidden" }}
-    >
+    <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 2, overflow: "hidden" }}>
       {detail && (
-        <Card sx={{ width: 1250, boxShadow: 3, padding: 2 }}>
+        <Card sx={{ width: "100%", boxShadow: 3, padding: 2 }}>
           <CardContent>
             <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
               <Typography variant="h4" component="div">
@@ -109,6 +104,17 @@ export default function page(): ReactNode {
             <Box display="flex" justifyContent="space-between" marginBottom={2}>
               <Typography variant="subtitle2" color="text.secondary">
                 작성자: {detail.nickname}
+                <div>
+                  <Button
+                    onClick={() => router.push("/")}
+                    size="medium"
+                    variant="contained"
+                    color="error"
+                    sx={{ marginTop: "10px" }}
+                  >
+                    뒤로가기
+                  </Button>
+                </div>
               </Typography>
               <Box textAlign="right">
                 <Typography variant="subtitle2" color="text.secondary">
@@ -119,7 +125,6 @@ export default function page(): ReactNode {
                 </Typography>
               </Box>
             </Box>
-            <Button onClick={() => router.push("/")}>뒤로가기</Button>
             <Typography variant="body1" color="text.secondary" marginBottom={2}>
               {detail.content}
             </Typography>

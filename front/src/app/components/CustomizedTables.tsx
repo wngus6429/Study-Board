@@ -102,7 +102,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
   return (
     <>
       <TableContainer component={Paper}>
-        <Table sx={{ width: "100%" }} aria-label="customized table">
+        <Table aria-label="customized table">
           <TableHead>
             <TableRow>
               <StyledTableCell sx={{ width: "110px", textAlign: "center" }}>번호</StyledTableCell>

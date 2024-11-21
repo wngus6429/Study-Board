@@ -16,6 +16,10 @@ body {
   overflow-x: hidden;
 }
 
+.alwaysScroll {
+  overflow-y: scroll;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);

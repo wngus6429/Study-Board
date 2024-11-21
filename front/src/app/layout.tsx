@@ -22,7 +22,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    // 이거 alwaysScroll이라는 클래스를 만들어서 스크롤이 항상 보이게 설정, 아니면 스크롤 생기면 왼쪽으로 밀려나는 현상 발생
+    <html lang="en" className="alwaysScroll">
       <body className={inter.className}>
         <RQProvider>
           <AuthSession>
@@ -31,12 +32,14 @@ export default function RootLayout({
               {/* TopBar의 높이와 동일하게 설정 */}
               <TopBar />
               {/* 아래걸로 하면 전체스크롤 */}
-              {/* <div style={{ display: "flex", overflow: "hidden" }}> */}
-              <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}>
+              <div style={{ display: "flex", overflow: "hidden" }}>
+                {/* <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}> */}
                 {/* 왼쪽 네비게이션 */}
                 <NavMenuBar />
                 {/* 메인 콘텐츠: 중앙 정렬 */}
-                <div style={{ flexGrow: 1, paddingLeft: "3px", width: 1250, overflowY: "auto" }}>{children}</div>
+                <div style={{ flexGrow: 1, paddingLeft: "3px", paddingRight: "3px", width: 1300, overflowY: "auto" }}>
+                  {children}
+                </div>
                 <div style={{ width: 200 }}>
                   <Advertisement />
                 </div>

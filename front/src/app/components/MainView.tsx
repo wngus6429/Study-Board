@@ -36,35 +36,31 @@ const MainView = (): ReactNode => {
 
   return (
     <>
-      <div style={{ display: "flex", width: 1250 }}>
-        <div style={{ width: "100%" }}>
-          <Box>
-            <Tabs
-              value={value}
-              onChange={handleChange}
-              textColor="secondary"
-              indicatorColor="secondary"
-              aria-label="secondary tabs example"
-              variant="scrollable"
-              scrollButtons="auto"
-              sx={{ flexGrow: 1 }} // 부모의 너비를 채우도록 설정
-            >
-              {TAB_SELECT_OPTIONS.map((tab) => (
-                <Tab key={tab.value} value={tab.value} label={tab.name} />
-              ))}
-            </Tabs>
-          </Box>
-          <CustomizedTables tableData={data} />
-          {user?.user && (
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <Button variant="outlined" onClick={moveWrite} color="success">
-                <CreateIcon />
-                글쓰기
-              </Button>
-            </div>
-          )}
+      <Box sx={{ width: "100%" }}>
+        <Tabs
+          value={value}
+          onChange={handleChange}
+          textColor="secondary"
+          indicatorColor="secondary"
+          aria-label="secondary tabs example"
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{ flexGrow: 1 }} // 부모의 너비를 채우도록 설정
+        >
+          {TAB_SELECT_OPTIONS.map((tab) => (
+            <Tab key={tab.value} value={tab.value} label={tab.name} />
+          ))}
+        </Tabs>
+      </Box>
+      <CustomizedTables tableData={data} />
+      {user?.user && (
+        <div style={{ display: "flex", justifyContent: "flex-end" }}>
+          <Button variant="outlined" onClick={moveWrite} color="success">
+            <CreateIcon />
+            글쓰기
+          </Button>
         </div>
-      </div>
+      )}
       {/* <HtmlTable tableData={data} /> */}
     </>
   );

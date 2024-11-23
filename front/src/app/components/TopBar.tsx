@@ -57,7 +57,7 @@ export default function MenuBar() {
     queryKey: ["userTopImage", user?.user.id],
     queryFn: async () => {
       if (user?.user != null) {
-        console.log("확인중");
+        console.log("프로필 탑 부른다");
         const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${user.user.id}`, {
           withCredentials: true,
         });

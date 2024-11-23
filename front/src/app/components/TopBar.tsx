@@ -51,21 +51,17 @@ export default function MenuBar() {
   const {
     data: userImage,
     error,
-    isLoading,
     refetch,
   } = useQuery({
     queryKey: ["userTopImage", user?.user.id],
     queryFn: async () => {
       if (user?.user != null) {
-        console.log("프로필 탑 부른다");
         const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${user.user.id}`, {
           withCredentials: true,
         });
-        console.log("탑", response.data);
-        return response.data.image.link;
-        // if (response.status === 201) {
-        //   return response.data;
-        // }
+        if (response.data.image.link != null) {
+          return response.data.image.link;
+        }
       }
     },
     // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
@@ -84,7 +80,6 @@ export default function MenuBar() {
       ]);
       if (logoutResponse.status === 200) {
         showMessage("로그아웃 성공", "warning");
-        // 로그아웃 후 페이지를 새로고침하고 메인 페이지로 이동
         router.refresh();
       }
     } catch (error) {
@@ -98,7 +93,15 @@ export default function MenuBar() {
       <Link href="/" aria-label="Home" className={styles.title}>
         Live Board
       </Link>
-      {userImage && <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImage}`} />}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center", // 수평 중앙 정렬
+          alignItems: "center", // 수직 중앙 정렬
+        }}
+      >
+        {userImage && <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImage}`} sx={{ width: 56, height: 56 }} />}
+      </Box>
       <nav className={styles.nav}>
         {!user?.user && (
           <Button size="medium" variant="contained" onClick={() => router.push("/login")} color="info">

@@ -80,21 +80,21 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
   const [pageCount, setPageCount] = useState(0);
   const rowsPerPage = 20;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const offset = currentPage * rowsPerPage;
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/stories?offset=${offset}&limit=${rowsPerPage}`
-        );
-        setData(response.data.rows);
-      } catch (error) {
-        console.error("데이터를 가져오는 중 오류가 발생했습니다:", error);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     try {
+  //       const offset = currentPage * rowsPerPage;
+  //       const response = await axios.get(
+  //         `${process.env.NEXT_PUBLIC_BASE_URL}/api/stories?offset=${offset}&limit=${rowsPerPage}`
+  //       );
+  //       setData(response.data.rows);
+  //     } catch (error) {
+  //       console.error("데이터를 가져오는 중 오류가 발생했습니다:", error);
+  //     }
+  //   };
 
-    fetchData();
-  }, [currentPage]);
+  //   fetchData();
+  // }, [currentPage]);
 
   const handlePageClick = (selectedItem: { selected: number }) => {
     setCurrentPage(selectedItem.selected);

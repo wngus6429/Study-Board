@@ -40,10 +40,15 @@ export class StoryService {
   }
 
   async findStoryOne(id: number): Promise<any> {
-    return await this.storyRepository.findOne({
+    const findData = await this.storyRepository.findOne({
       where: { id },
       relations: ['Image'], // 'Image'로 수정 (필드 이름과 일치시킴)
     });
+    if (!findData) {
+      // 데이터가 없을 경우 404 에러 던지기
+      throw new NotFoundException(`Story with ID ${id} not found`);
+    }
+    return findData;
   }
 
   async create(
@@ -102,8 +107,6 @@ export class StoryService {
       relations: ['Image'],
     });
 
-    console.log('수정할 글:', story);
-
     if (!story) {
       throw new NotFoundException('수정할 글을 찾을 수 없습니다.');
     }
@@ -159,7 +162,6 @@ export class StoryService {
         return image;
       });
 
-      console.log('저장 전 이미지 엔티티:', imageEntities);
       await this.imageRepository.save(imageEntities);
 
       // 관계 업데이트
@@ -176,7 +178,7 @@ export class StoryService {
       category: updateStoryDto.category,
     });
 
-    return this.storyRepository.save(story);
+    return await this.storyRepository.save(story);
   }
 
   async deleteStory(storyId: number, userData: User): Promise<void> {
@@ -185,8 +187,6 @@ export class StoryService {
       where: { id: storyId },
       relations: ['Image'], // 이미지 관계도 함께 가져오기
     });
-
-    console.log('삭제중:', story);
 
     // 글이 존재하지 않으면 에러 발생
     if (!story) {

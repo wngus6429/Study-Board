@@ -29,6 +29,7 @@ export class AuthService {
       where: { user_email },
     });
     if (existUser) {
+      console.log('여기요', existUser);
       throw new ConflictException('이메일이 이미 존재합니다.');
     }
     // bcrypt 비밀번호 해쉬처리
@@ -73,13 +74,14 @@ export class AuthService {
   }
 
   // 유저 프로필 정보 가져오기
-  async userGet(id: string): Promise<User> {
+  async userGet(id: string): Promise<{ image: UserImage; nickname: string }> {
     const user = await this.userRepository.findOne({
       where: { id },
       relations: ['image'],
     });
     // TODO 비밀번호 안 빠져나가게 해야함
-    return user;
+    console.log('user:', user);
+    return { image: user.image, nickname: user.nickname };
   }
 
   // 유저 정보 업데이트

@@ -20,6 +20,7 @@ import { JwtService } from '@nestjs/jwt';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/entities/User.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { UserImage } from 'src/entities/UserImage.entity';
 
 @Controller('api/auth')
 export class AuthController {
@@ -86,7 +87,9 @@ export class AuthController {
   // 유저 프로필 정보 가져오기
   @Get('/:id')
   @UseGuards(AuthGuard())
-  async userGet(@Param('id') id: string): Promise<any> {
+  async userGet(
+    @Param('id') id: string,
+  ): Promise<{ image: UserImage; nickname: string }> {
     console.log('프로필 정보 아이디', id);
     return await this.authUserService.userGet(id);
   }
@@ -99,11 +102,8 @@ export class AuthController {
     @UploadedFile() profileImage: Express.Multer.File,
   ): Promise<any> {
     console.log('업데이트 데이터:', userData, '업로드된 파일:', profileImage);
-    const result = await this.authUserService.userUpdate(
-      userData,
-      profileImage,
-    );
-    console.log('result', result);
+    await this.authUserService.userUpdate(userData, profileImage);
+    // Post가 성공적으로 완료되면 201 상태코드를 반환
   }
 }
 

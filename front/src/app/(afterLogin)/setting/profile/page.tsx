@@ -33,7 +33,7 @@ function UserProfileEdit() {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${session.user.id}`, {
           withCredentials: true,
         });
-        console.log("res", response);
+        console.log("플로필", response);
         return response.data;
       }
     },
@@ -80,7 +80,8 @@ function UserProfileEdit() {
       }
     },
     onSuccess: (response) => {
-      if (response?.status === 200 || response?.status === 201) {
+      console.log("성공", response);
+      if (response?.status === 201) {
         // 기존에 있던 이미지 캐쉬파일 삭제해서, 다시 프로필 페이지 왔을때 원래 있던 사진이 잠시 보이는걸 방지함
         queryClient.invalidateQueries({ queryKey: ["userInfo", session?.user.id] });
         queryClient.refetchQueries({ queryKey: ["userTopImage", session?.user.id] });

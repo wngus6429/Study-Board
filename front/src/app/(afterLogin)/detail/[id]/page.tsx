@@ -15,16 +15,32 @@ export default function page(): ReactNode {
   const { showMessage } = useMessage((state) => state);
   const router = useRouter();
   const queryClient = useQueryClient();
+  const [isDeleted, setIsDeleted] = useState(false); // 삭제 상태 추가
   const [detail, setDetail] = useState<StoryType | null>(null);
 
-  const { data: getDetail, isLoading } = useQuery({
+  const {
+    data: getDetail,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
     queryKey: ["story", "detail", params?.id],
     queryFn: async () => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`);
-      return response.data; // 데이터를 반환하여 `data`에 할당
+      return response.data;
     },
-    enabled: !!params?.id, // params.id가 있을 때만 쿼리를 실행
+    enabled: !!params?.id && !isDeleted, // 삭제 후 쿼리 비활성화
   });
+
+  useEffect(() => {
+    if (isError && !isDeleted) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
+        router.replace("/not-found"); // 404 페이지로 이동
+      } else {
+        showMessage("오류가 발생했습니다. 다시 시도해주세요.", "error");
+      }
+    }
+  }, [isError, error, router, isDeleted]);
 
   useEffect(() => {
     if (getDetail) {
@@ -39,12 +55,10 @@ export default function page(): ReactNode {
     },
     onSuccess() {
       console.log("확인용", ["story", "detail", params?.id]);
-      if (params?.id) {
-        console.log("실행");
-        queryClient.removeQueries({ queryKey: ["story", "detail", String(params.id)] }); // 쿼리 키를 명확하게 지정하여 삭제
-      }
-      showMessage("삭제 성공", "error");
-      router.push("/");
+      queryClient.removeQueries({ queryKey: ["story", "detail", params?.id] });
+      setIsDeleted(true); // 삭제 상태 업데이트
+      showMessage("삭제 성공", "success");
+      router.push("/"); // 홈으로 이동
     },
     onError: (error: any) => {
       if (error.response && error.response.data.code === 404) {

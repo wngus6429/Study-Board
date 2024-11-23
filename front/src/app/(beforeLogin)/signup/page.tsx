@@ -88,17 +88,13 @@ const SignupPage = (): ReactNode => {
         }
       })
       .catch((err: any) => {
-        setError(err.response.data.message);
+        console.log("어라", err.response.data.data);
+        setError(err.response.data.data);
       });
   };
 
   return (
     <>
-      {error && (
-        <Alert variant="outlined" severity="error">
-          에러가 발생 했습니다.
-        </Alert>
-      )}
       <ThemeProvider theme={theme}>
         <Container component="main" maxWidth="xs">
           <CssBaseline />
@@ -177,6 +173,7 @@ const SignupPage = (): ReactNode => {
                     />
                   </Grid>
                 </Grid>
+                {error && <Alert severity="error">{error}</Alert>}
                 <Button
                   type="submit"
                   fullWidth

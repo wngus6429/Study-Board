@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import { useParams, useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import { useSession } from "next-auth/react";
 
 export default function page(): ReactNode {
   const params = useParams(); // URL 파라미터에서 id를 가져옴
@@ -17,6 +18,7 @@ export default function page(): ReactNode {
   const queryClient = useQueryClient();
   const [isDeleted, setIsDeleted] = useState(false); // 삭제 상태 추가
   const [detail, setDetail] = useState<StoryType | null>(null);
+  const { data: session } = useSession();
 
   const {
     data: getDetail,
@@ -84,31 +86,33 @@ export default function page(): ReactNode {
               <Typography variant="h4" component="div">
                 {detail.title}
               </Typography>
-              <Box>
-                <Button
-                  size="medium"
-                  variant="contained"
-                  color="warning"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    router.push(`/edit/${detail.id}`);
-                  }}
-                >
-                  수정하기
-                </Button>
-                <Button
-                  size="medium"
-                  variant="contained"
-                  color="error"
-                  sx={{ marginLeft: 1 }}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    deleteData.mutate(detail.id);
-                  }}
-                >
-                  삭제
-                </Button>
-              </Box>
+              {detail.creator_user_id === session?.user.id && (
+                <Box>
+                  <Button
+                    size="medium"
+                    variant="contained"
+                    color="warning"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      router.push(`/edit/${detail.id}`);
+                    }}
+                  >
+                    수정하기
+                  </Button>
+                  <Button
+                    size="medium"
+                    variant="contained"
+                    color="error"
+                    sx={{ marginLeft: 1 }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      deleteData.mutate(detail.id);
+                    }}
+                  >
+                    삭제
+                  </Button>
+                </Box>
+              )}
             </Box>
             <Typography variant="subtitle2" color="text.secondary" sx={{ marginBottom: 2 }}>
               <LocalOfferIcon fontSize="small" sx={{ marginRight: 0.5 }} />

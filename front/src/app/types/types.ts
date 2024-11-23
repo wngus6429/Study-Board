@@ -14,7 +14,7 @@ export interface StoryType {
   title: string;
   content: string;
   nickname: string;
-  creator_email: string;
+  creator_user_id: string;
   read_count: number;
   like_count: number;
   comments: string | null;

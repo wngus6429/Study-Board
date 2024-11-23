@@ -1,11 +1,13 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
 import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress } from "@mui/material";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store";
 import Loading from "@/app/components/common/Loading";
+import { Router } from "next/router";
+import { useRouter } from "next/navigation";
 
 function UserProfileEdit() {
   const [nickname, setNickname] = useState("");
@@ -13,7 +15,11 @@ function UserProfileEdit() {
   const [previewImage, setPreviewImage] = useState<any>(null);
   const { showMessage, messageState } = useMessage((state) => state);
 
+  const router = useRouter();
+  const queryClient = useQueryClient();
+
   const { data: session, status } = useSession();
+
   // 세션이 인증된 상태에서만 요청을 수행합니다.
   const {
     data: userDetail,
@@ -21,7 +27,7 @@ function UserProfileEdit() {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["user"],
+    queryKey: ["userInfo", session?.user.id],
     queryFn: async () => {
       if (session != null) {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${session.user.id}`, {
@@ -34,6 +40,7 @@ function UserProfileEdit() {
     // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
     // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
     enabled: status === "authenticated",
+    staleTime: 0,
   });
 
   useEffect(() => {
@@ -64,8 +71,9 @@ function UserProfileEdit() {
         const formData = new FormData();
         formData.append("nickname", nickname);
         formData.append("id", session.user.id);
+
         if (profileImage) formData.append("profileImage", profileImage);
-        console.log("formData", formData);
+
         return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/update`, formData, {
           withCredentials: true,
         });
@@ -73,7 +81,11 @@ function UserProfileEdit() {
     },
     onSuccess: (response) => {
       if (response?.status === 200 || response?.status === 201) {
+        // 기존에 있던 이미지 캐쉬파일 삭제해서, 다시 프로필 페이지 왔을때 원래 있던 사진이 잠시 보이는걸 방지함
+        queryClient.invalidateQueries({ queryKey: ["userInfo", session?.user.id] });
+        queryClient.invalidateQueries({ queryKey: ["userImage", session?.user.id] });
         showMessage("프로필 변경 완료", "success");
+        router.push("/");
       }
     },
     onError: (error: any) => {

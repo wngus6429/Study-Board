@@ -106,12 +106,11 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
           <TableHead>
             <TableRow>
               <StyledTableCell sx={{ width: "110px", textAlign: "center" }}>번호</StyledTableCell>
-              <StyledTableCell sx={{ width: "400px" }}>제목</StyledTableCell>
-              <StyledTableCell sx={{ width: "150px" }}>작성자</StyledTableCell>
+              <StyledTableCell sx={{ width: "500px" }}>제목</StyledTableCell>
+              <StyledTableCell sx={{ width: "160px" }}>작성자</StyledTableCell>
               <StyledTableCell sx={{ width: "180px" }}>등록일</StyledTableCell>
-              <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>조회수</StyledTableCell>
+              <StyledTableCell sx={{ width: "100px", textAlign: "center" }}>조회수</StyledTableCell>
               <StyledTableCell sx={{ width: "75px", textAlign: "center" }}>추천</StyledTableCell>
-              <StyledTableCell sx={{ width: "130px", textAlign: "center" }}>기타</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -145,35 +144,6 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                 </StyledTableCell>
                 <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
                 <StyledTableCell sx={{ textAlign: "center" }}>{row.like_count}</StyledTableCell>
-                {/* TODO 추천하기 버튼, 로그인 해서 내꺼면 삭제 혹은 수정 버튼 */}
-                <StyledTableCell sx={{ textAlign: "center" }}>
-                  <Button
-                    sx={{ padding: "0px" }}
-                    size="small"
-                    variant="outlined"
-                    onClick={(e) => {
-                      e.stopPropagation(); // 이벤트 버블링 방지
-                      e.preventDefault();
-                      deleteData.mutate(row.id);
-                    }}
-                    color="warning"
-                  >
-                    수정하기
-                  </Button>
-                  <Button
-                    sx={{ padding: "0px" }}
-                    size="small"
-                    variant="outlined"
-                    onClick={(e) => {
-                      e.stopPropagation(); // 이벤트 버블링 방지
-                      e.preventDefault();
-                      deleteData.mutate(row.id);
-                    }}
-                    color="error"
-                  >
-                    삭제
-                  </Button>
-                </StyledTableCell>
               </StyledTableRow>
             ))}
           </TableBody>

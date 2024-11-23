@@ -27,10 +27,10 @@ export default function RootLayout({
       <body className={inter.className}>
         <RQProvider>
           <AuthSession>
-            <div style={{ width: 1600, margin: "0 auto", padding: "0 20px" }}>
+            <TopBar />
+            <div style={{ width: "80%", margin: "0 auto" }}>
               {/* 상단 바 */}
               {/* TopBar의 높이와 동일하게 설정 */}
-              <TopBar />
               {/* 아래걸로 하면 전체스크롤 */}
               <div style={{ display: "flex", overflow: "hidden" }}>
                 {/* <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}> */}

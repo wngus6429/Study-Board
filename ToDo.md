@@ -20,8 +20,13 @@
 19. 로그인 DB 요청 2개 날리는데. 하나라도 실패하면?
 20. 회원이미지 TopBar에 표시하기
 21. 회원가입시 이미 가입된 Email주소입니다. 표시하기
-22. 수정 기능 완료 했는데. edit 버튼 누르면 지운 데이터가 아직 표시됨. 아마 캐싱 때문인거 같은데
+22. 수정 기능 완료 했는데. edit 버튼 누르면 지운 데이터가 아직 표시됨. 아마 캐싱 때문인거 같은데 (완료)
 23. 좌우 width 이거, 길이 자동측정해서 하면 안되나? cal(100vh - 90px) 같이
+
+해야할거
+
+24. Topbar 전용 api 만들기
+25. API 돌아올때 password 돌아오는지 확인
 
 -- 기능 구현()
 프론트 - NextJS, Mui, 상태관리(Zustand)
@@ -44,3 +49,5 @@ DB - MySQL,
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator
 아주 좋은게 많다. 꼭 보기 UUID 부터해서 싹다 있다.
+
+완료

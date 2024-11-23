@@ -39,7 +39,6 @@ export default function page(): ReactNode {
     },
     onSuccess() {
       console.log("확인용", ["story", "detail", params?.id]);
-      // queryClient.removeQueries({ queryKey: ["story", "detail", params?.id] }); // 쿼리 완전히 삭제
       if (params?.id) {
         console.log("실행");
         queryClient.removeQueries({ queryKey: ["story", "detail", String(params.id)] }); // 쿼리 키를 명확하게 지정하여 삭제

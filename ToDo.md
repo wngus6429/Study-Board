@@ -25,7 +25,7 @@
 
 해야할거
 
-24. Topbar 전용 api 만들기
+24. Topbar 전용 api 만들기 React Query로 refetch 호출
 25. API 돌아올때 password 돌아오는지 확인
 
 -- 기능 구현()

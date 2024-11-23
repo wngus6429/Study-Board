@@ -83,7 +83,7 @@ function UserProfileEdit() {
       if (response?.status === 200 || response?.status === 201) {
         // 기존에 있던 이미지 캐쉬파일 삭제해서, 다시 프로필 페이지 왔을때 원래 있던 사진이 잠시 보이는걸 방지함
         queryClient.invalidateQueries({ queryKey: ["userInfo", session?.user.id] });
-        queryClient.invalidateQueries({ queryKey: ["userImage", session?.user.id] });
+        queryClient.refetchQueries({ queryKey: ["userTopImage", session?.user.id] });
         showMessage("프로필 변경 완료", "success");
         router.push("/");
       }

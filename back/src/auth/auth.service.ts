@@ -78,6 +78,7 @@ export class AuthService {
       where: { id },
       relations: ['image'],
     });
+    // TODO 비밀번호 안 빠져나가게 해야함
     return user;
   }
 

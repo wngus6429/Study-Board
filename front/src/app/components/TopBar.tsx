@@ -48,32 +48,30 @@ export default function MenuBar() {
 
   console.log("세션", user);
 
-  // const {
-  //   data: userImage,
-  //   error,
-  //   isLoading,
-  //   refetch,
-  // } = useQuery({
-  //   queryKey: ["userImage", user?.user.id],
-  //   queryFn: async () => {
-  //     if (user?.user != null) {
-  //       console.log("확인중");
-  //       const response = await axios.post(
-  //         `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${user.user.id}`,
-  //         { image: true },
-  //         {
-  //           withCredentials: true,
-  //         }
-  //       );
-  //       if (response.status === 201) {
-  //         return response.data;
-  //       }
-  //     }
-  //   },
-  //   // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
-  //   // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
-  //   enabled: status === "authenticated",
-  // });
+  const {
+    data: userImage,
+    error,
+    isLoading,
+    refetch,
+  } = useQuery({
+    queryKey: ["userTopImage", user?.user.id],
+    queryFn: async () => {
+      if (user?.user != null) {
+        console.log("확인중");
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${user.user.id}`, {
+          withCredentials: true,
+        });
+        console.log("탑", response.data);
+        return response.data.image.link;
+        // if (response.status === 201) {
+        //   return response.data;
+        // }
+      }
+    },
+    // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
+    // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
+    enabled: status === "authenticated",
+  });
 
   const logout = async () => {
     // TODO 둘다 성공해야 로그아웃 성공되게끔. Promise.all 사용
@@ -100,7 +98,7 @@ export default function MenuBar() {
       <Link href="/" aria-label="Home" className={styles.title}>
         Live Board
       </Link>
-      {/* {userImage && <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImage}`} />} */}
+      {userImage && <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImage}`} />}
       <nav className={styles.nav}>
         {!user?.user && (
           <Button size="medium" variant="contained" onClick={() => router.push("/login")} color="info">

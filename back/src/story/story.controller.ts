@@ -68,7 +68,7 @@ export class StoryController {
   @UseInterceptors(FilesInterceptor('images'))
   async updateStory(
     @Param('id') storyId: number,
-    @Body() updateStoryDto: any,
+    @Body() updateStoryDto: UpdateStoryDto,
     @GetUser() user: User,
     @UploadedFiles() files: Express.Multer.File[],
   ): Promise<Story> {

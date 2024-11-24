@@ -57,3 +57,11 @@ export const useMessage = create<MessageState>((set) => ({
   // 메시지 숨기고, 내용을 초기화하는 함수
   hideMessage: () => set({ messageState: false, messageContent: "" }),
 }));
+
+// 댓글 관리
+export const useCommentUIStore = create((set) => ({
+  isCommentOpen: false, // 댓글 창 보임 여부
+  selectedStoryId: null, // 현재 선택된 Story ID
+  openComments: (storyId: string) => set({ isCommentOpen: true, selectedStoryId: storyId }),
+  closeComments: () => set({ isCommentOpen: false, selectedStoryId: null }),
+}));

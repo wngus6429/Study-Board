@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export default function Advertisement() {
   return (
-    <div style={{ width: 200 }}>
+    <div style={{ width: "100%" }}>
       <Image
         src="/assets/right.png"
         alt="Right Icon"

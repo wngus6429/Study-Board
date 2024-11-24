@@ -8,6 +8,7 @@ import TopBar from "./components/TopBar";
 import AuthSession from "./components/common/AuthSessionCom";
 import Advertisement from "./components/common/Advertisement";
 import MessageView from "./components/common/MessageView";
+import CommentsView from "./components/common/CommentsView";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -28,7 +29,7 @@ export default function RootLayout({
         <RQProvider>
           <AuthSession>
             <TopBar />
-            <div style={{ width: "80%", margin: "0 auto" }}>
+            <div style={{ width: "100%", margin: "0 auto" }}>
               {/* 상단 바 */}
               {/* TopBar의 높이와 동일하게 설정 */}
               {/* 아래걸로 하면 전체스크롤 */}
@@ -40,8 +41,9 @@ export default function RootLayout({
                 <div style={{ flexGrow: 1, paddingLeft: "3px", paddingRight: "3px", width: 1300, overflowY: "auto" }}>
                   {children}
                 </div>
-                <div style={{ width: 200 }}>
+                <div style={{ width: "35%" }}>
                   <Advertisement />
+                  <CommentsView />
                 </div>
                 {/* 전역 메세지 표시 설정 */}
                 <MessageView />

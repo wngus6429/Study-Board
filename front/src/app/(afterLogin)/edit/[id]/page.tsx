@@ -9,6 +9,7 @@ import Loading from "@/app/components/common/Loading";
 import InputFileUpload from "@/app/components/common/InputFileUpload";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import CustomSelect from "@/app/components/common/CustomSelect";
+import { useSession } from "next-auth/react";
 
 export default function EditPage() {
   const params = useParams();
@@ -16,8 +17,10 @@ export default function EditPage() {
 
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { showMessage } = useMessage((state) => state);
+  const { status } = useSession();
 
+  // zustand 메시지
+  const { showMessage } = useMessage((state) => state);
   // 제목 변수
   const [title, setTitle] = useState<string>("");
   // 내용 변수
@@ -29,6 +32,14 @@ export default function EditPage() {
   // 로딩
   const [loading, setLoading] = useState<boolean>(false);
 
+  // 수정 중 로그아웃 하면 홈으로 페이지 이동
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/");
+    }
+  }, [status, router]);
+
+  // 수정할 글 데이터 가져오기
   const {
     data: storyDetail,
     isLoading,
@@ -42,6 +53,7 @@ export default function EditPage() {
     enabled: !!id,
   });
 
+  // 글 데이터를 제목, 내용, 카테고리, 이미지 데이터로 초기화
   useEffect(() => {
     if (storyDetail) {
       setTitle(storyDetail.title || "");

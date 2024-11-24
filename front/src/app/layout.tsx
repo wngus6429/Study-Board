@@ -29,7 +29,7 @@ export default function RootLayout({
         <RQProvider>
           <AuthSession>
             <TopBar />
-            <div style={{ width: "100%", margin: "0 auto" }}>
+            <div style={{ width: "70%", maxWidth: "1600px", margin: "0 auto" }}>
               {/* 상단 바 */}
               {/* TopBar의 높이와 동일하게 설정 */}
               {/* 아래걸로 하면 전체스크롤 */}

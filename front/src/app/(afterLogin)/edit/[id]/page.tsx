@@ -11,10 +11,7 @@ import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_C
 import CustomSelect from "@/app/components/common/CustomSelect";
 import { useSession } from "next-auth/react";
 
-export default function EditPage() {
-  const params = useParams();
-  const id = params?.id as string | undefined;
-
+export default function EditPage({ params }: { params: { id: string } }) {
   const queryClient = useQueryClient();
   const router = useRouter();
   const { status } = useSession();
@@ -45,12 +42,12 @@ export default function EditPage() {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["story", "edit", id],
+    queryKey: ["story", "edit", params.id],
     queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${id}`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params.id}`);
       return response.data;
     },
-    enabled: !!id,
+    enabled: !!params.id,
   });
 
   // 글 데이터를 제목, 내용, 카테고리, 이미지 데이터로 초기화
@@ -73,7 +70,7 @@ export default function EditPage() {
   const updateStory = useMutation<void, Error, FormData>({
     mutationFn: async (formData) => {
       await axios
-        .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/update/${id}`, formData, {
+        .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/update/${params.id}`, formData, {
           withCredentials: true,
           headers: {
             "Content-Type": "multipart/form-data",
@@ -83,8 +80,8 @@ export default function EditPage() {
     },
     onSuccess: () => {
       showMessage("수정 성공", "success");
-      queryClient.invalidateQueries({ queryKey: ["story", "edit", id] });
-      router.push(`/detail/${id}`);
+      queryClient.invalidateQueries({ queryKey: ["story", "edit", params.id] });
+      router.push(`/detail/${params.id}`);
     },
     onError: (error) => {
       showMessage(`수정 중 오류가 발생했습니다.`, "error");
@@ -150,7 +147,7 @@ export default function EditPage() {
         value={selectedCategory} // 선택된 카테고리 값
       />
       <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
-      <Button variant="contained" color="error" onClick={() => router.push(`/detail/${id}`)}>
+      <Button variant="contained" color="error" onClick={() => router.push(`/detail/${params.id}`)}>
         취소
       </Button>
       <Button variant="contained" color="success" onClick={handleUpdate}>

@@ -13,15 +13,14 @@ import { useSession } from "next-auth/react";
 import CommentsModal from "@/app/components/common/CommentsView";
 import CommentsView from "@/app/components/common/CommentsView";
 
-export default function page(): ReactNode {
-  const params = useParams(); // URL 파라미터에서 id를 가져옴
+export default function page({ params }: { params: { id: string } }): ReactNode {
+  // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
   const { showMessage } = useMessage((state) => state);
   const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
-  const [commentModalOpen, setCommentModalOpen] = useState<boolean>(false);
   const [detail, setDetail] = useState<StoryType | null>(null);
 
   const {

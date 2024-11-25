@@ -12,6 +12,7 @@ const NotFoundPage = () => {
   return (
     <Box
       sx={{
+        width: "100%",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",

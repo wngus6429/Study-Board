@@ -31,16 +31,21 @@ export class StoryController {
   @Get('/getall')
   async getAllStory(): Promise<any> {
     console.log('모든 글 가져오기');
-    return this.storyService.findStoryAll();
+    const all = await this.storyService.findStoryAll();
+    console.log('모든 글:', all);
+    return all;
   }
 
   @Get('/detail/:id')
   async getStoryDetail(@Param('id', ParseIntPipe) id: number): Promise<any> {
     console.log('상세 페이지 글 ID:', id);
     const data = await this.storyService.findStoryOne(id);
-    // 구조 분해 할당을 통해 id와 creator를 제외
-    const { creator_email, ...rest } = data;
-    return rest;
+
+    // User의 필요한 필드만 남김
+    const { User, ...rest } = data;
+    const filteredUser = { id: User.id, nickname: User.nickname };
+
+    return { ...rest, User: filteredUser };
   }
 
   @Post('/create')

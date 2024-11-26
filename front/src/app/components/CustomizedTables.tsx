@@ -56,25 +56,6 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
   const router = useRouter();
   const { showMessage } = useMessage((state) => state);
 
-  const deleteData = useMutation({
-    mutationFn: async (storyId: number) => {
-      return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/${storyId}`, { withCredentials: true });
-    },
-    onSuccess() {
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
-      showMessage("삭제 성공", "error");
-    },
-    onError: (error: any) => {
-      if (error.response && error.response.data.statusCode === 401) {
-        showMessage(`${error.response.data.message}`, "error");
-      } else if (error.response && error.response.data.statusCode === 404) {
-        showMessage(`${error.response.data.message}`, "error");
-      } else {
-        showMessage("삭제 중 오류가 발생했습니다.", "error");
-      }
-    },
-  });
-
   const [data, setData] = useState<StoryType[]>([]);
   const [currentPage, setCurrentPage] = useState(0);
   const [pageCount, setPageCount] = useState(0);
@@ -133,7 +114,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   {row.title}
                 </StyledTableCell>
                 <StyledTableCell>
-                  {row.nickname.length > 6 ? `${row.nickname.slice(0, 6)}...` : row.nickname}
+                  {row.User.nickname.length > 6 ? `${row.User.nickname.slice(0, 6)}...` : row.User.nickname}
                 </StyledTableCell>
                 <StyledTableCell
                   sx={{

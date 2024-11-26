@@ -25,7 +25,7 @@ export class StoryService {
   // 목록 페이지에 필요한 데이터만 가져오기
   async findStoryAll(): Promise<Partial<Story>[]> {
     // console.log('모든 데이터 취득');
-    return this.storyRepository.find();
+    return this.storyRepository.find({ relations: ['User'] });
     // return this.storyRepository.find({
     //   select: [
     //     'id',
@@ -42,7 +42,7 @@ export class StoryService {
   async findStoryOne(id: number): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['Image'], // 'Image'로 수정 (필드 이름과 일치시킴)
+      relations: ['Image', 'User'], // 'Image'로 수정 (필드 이름과 일치시킴)
     });
     if (!findData) {
       // 데이터가 없을 경우 404 에러 던지기
@@ -57,15 +57,13 @@ export class StoryService {
     files: Express.Multer.File[],
   ): Promise<Story> {
     const { title, content, category } = createStoryDto;
-    const { id, nickname } = userData;
 
     // Story 엔티티 생성
     const story = this.storyRepository.create({
       category,
       title,
       content,
-      nickname: nickname,
-      creator_user_id: id,
+      User: userData, // 유저데이터를 통으로 넣음
     });
 
     const savedStory = await this.storyRepository.save(story);
@@ -77,7 +75,6 @@ export class StoryService {
       const image = new Image();
       image.image_name = file.filename;
       image.link = `/upload/${file.filename}`; // 저장 경로 설정
-      image.user_id = String(userData.id);
       image.Story = savedStory;
       return image;
     });
@@ -87,14 +84,6 @@ export class StoryService {
 
     return savedStory;
   }
-
-  // 상세 페이지에 필요한 전체 데이터 가져오기
-  async findOne(id: number): Promise<Story> {
-    return this.storyRepository.findOne({ where: { id } });
-  }
-  // 상세 페이지에서 comments 가져올 때
-  // const storyDetail = await storyService.findOne(1);
-  // const commentsArray = JSON.parse(storyDetail.comments);
 
   async updateStory(
     storyId: number,
@@ -111,9 +100,9 @@ export class StoryService {
       throw new NotFoundException('수정할 글을 찾을 수 없습니다.');
     }
 
-    if (story.creator_user_id !== userData.id) {
-      throw new UnauthorizedException('본인의 글만 수정할 수 있습니다.');
-    }
+    // if (story.creator_user_id !== userData.id) {
+    //   throw new UnauthorizedException('본인의 글만 수정할 수 있습니다.');
+    // }
 
     // 기존 이미지 목록 중에 삭제할 이미지 목록 추출
     const existImages = Array.isArray(updateStoryDto.existImages)
@@ -157,7 +146,7 @@ export class StoryService {
         const image = new Image();
         image.image_name = file.filename;
         image.link = `/upload/${file.filename}`;
-        image.user_id = String(userData.id);
+        // image.user_id = String(userData.id);
         image.Story = story; // 관계 명확히 설정
         return image;
       });
@@ -194,9 +183,9 @@ export class StoryService {
     }
 
     // 글 작성자와 요청한 사용자의 이메일이 일치하지 않으면 에러 발생
-    if (story.creator_user_id !== userData.id) {
-      throw new UnauthorizedException('본인의 글만 삭제할 수 있습니다.');
-    }
+    // if (story.creator_user_id !== userData.id) {
+    //   throw new UnauthorizedException('본인의 글만 삭제할 수 있습니다.');
+    // }
 
     // 이미지 파일 삭제
     if (story.Image && story.Image.length > 0) {

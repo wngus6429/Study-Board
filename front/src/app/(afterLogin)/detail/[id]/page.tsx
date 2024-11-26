@@ -89,7 +89,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               <Typography variant="h4" component="div">
                 {detail.title}
               </Typography>
-              {detail.creator_user_id === session?.user.id && (
+              {detail.User.id === session?.user.id && (
                 <Box>
                   <Button
                     size="medium"
@@ -123,7 +123,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
             </Typography>
             <Box display="flex" justifyContent="space-between" marginBottom={2}>
               <Typography variant="subtitle2" color="text.secondary">
-                작성자: {detail.nickname}
+                작성자: {detail.User.nickname}
                 <div>
                   <Button
                     onClick={() => router.push("/")}

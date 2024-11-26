@@ -11,6 +11,7 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 import { UserImage } from './UserImage.entity';
+import { Story } from './Story.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -29,6 +30,9 @@ export class User extends BaseEntity {
 
   @OneToOne(() => UserImage, (userImage) => userImage.User, { cascade: true })
   image: UserImage;
+
+  @OneToMany(() => Story, (story) => story.User)
+  Story: Story[];
 
   @CreateDateColumn()
   created_at: Date;

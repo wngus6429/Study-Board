@@ -31,12 +31,6 @@ export class Image {
   link: string;
 
   @ApiProperty({
-    description: '작성자 아이디',
-  })
-  @Column({ nullable: false })
-  user_id: string;
-
-  @ApiProperty({
     description: '작성일',
   })
   @CreateDateColumn()

@@ -2,12 +2,13 @@ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
-  Unique,
   OneToMany,
+  ManyToOne,
 } from 'typeorm';
 import { Image } from './Image.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Comments } from './Comments.entity';
+import { User } from './User.entity';
 
 @Entity()
 export class Story {
@@ -35,17 +36,10 @@ export class Story {
   @Column({ type: 'text', nullable: false })
   content: string;
 
-  @ApiProperty({
-    description: '작성자 닉네임',
+  @ManyToOne(() => User, (user) => user.Story, {
+    nullable: false,
   })
-  @Column({ type: 'text', nullable: false })
-  nickname: string;
-
-  @ApiProperty({
-    description: '작성자 이메일',
-  })
-  @Column({ nullable: false })
-  creator_user_id: string;
+  User: User;
 
   @ApiProperty({
     description: '조회수',

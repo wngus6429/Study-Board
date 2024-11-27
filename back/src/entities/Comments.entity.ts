@@ -1,4 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  CreateDateColumn,
+  UpdateDateColumn,
+} from 'typeorm';
 import { Story } from './Story.entity';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -25,8 +32,14 @@ export class Comments {
   @ApiProperty({
     description: '댓글 작성일',
   })
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @CreateDateColumn()
   created_at: Date;
+
+  @ApiProperty({
+    description: '갱신일',
+  })
+  @UpdateDateColumn()
+  updated_at: Date;
 
   @ManyToOne(() => Story, (story) => story.comments, {
     onDelete: 'CASCADE',

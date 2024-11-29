@@ -58,8 +58,8 @@ export class Story {
   @ApiProperty({
     description: '댓글',
   })
-  @Column({ type: 'text', nullable: true }) // comments를 JSON 문자열로 저장
-  comments: Comments[];
+  @OneToMany(() => Comments, (comment) => comment.Story)
+  Comments: Comments;
 
   @ApiProperty({
     description: '이미지 배열',

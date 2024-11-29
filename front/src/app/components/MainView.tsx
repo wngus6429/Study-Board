@@ -1,6 +1,6 @@
 /** @jsxImportSource @emotion/react */
 "use client";
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
@@ -11,10 +11,12 @@ import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
 import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
+import { useComment } from "../store";
 
 const MainView = (): ReactNode => {
   const Router = useRouter();
   const [value, setValue] = useState("all");
+  const { openCloseComments } = useComment();
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
@@ -30,6 +32,10 @@ const MainView = (): ReactNode => {
   const moveWrite = () => {
     Router.push("/write");
   };
+
+  useEffect(() => {
+    openCloseComments(false, "");
+  }, [data]);
 
   if (isLoading) return <Loading />;
   if (error) return <div>Error: {(error as Error).message}</div>;

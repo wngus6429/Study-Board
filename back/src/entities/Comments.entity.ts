@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   ManyToOne,
+  OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
@@ -41,8 +42,23 @@ export class Comments {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToOne(() => Story, (story) => story.comments, {
+  @ApiProperty({
+    description: '댓글의 부모 댓글 ID (없으면 null)',
+  })
+  @ManyToOne(() => Comments, (comment) => comment.children, {
+    nullable: true,
     onDelete: 'CASCADE',
   })
-  story: Story;
+  parent: Comments | null;
+
+  @ApiProperty({
+    description: '댓글의 자식 댓글들',
+  })
+  @OneToMany(() => Comments, (comment) => comment.parent)
+  children: Comments[];
+
+  @ManyToOne(() => Story, (story) => story.Comments, {
+    onDelete: 'CASCADE',
+  })
+  Story: Story;
 }

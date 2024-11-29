@@ -1,8 +1,9 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Box, TextField, Button, Typography, Avatar } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useComment } from "@/app/store";
 
 interface Comment {
   id: number;
@@ -43,7 +44,7 @@ const postComment = async ({
   return response.data;
 };
 
-const CommentsView: React.FC<CommentsProps> = ({ storyId = 1 }) => {
+const CommentsView = ({ commentsData }: any) => {
   const queryClient = useQueryClient();
 
   const defaultComments: Comment[] = [
@@ -76,11 +77,6 @@ const CommentsView: React.FC<CommentsProps> = ({ storyId = 1 }) => {
       ],
     },
   ];
-  const { data: comments, isLoading } = useQuery({
-    queryKey: ["comments", storyId],
-    queryFn: () => fetchComments(storyId),
-    initialData: defaultComments,
-  });
 
   const mutation = useMutation({
     mutationFn: postComment,
@@ -93,6 +89,8 @@ const CommentsView: React.FC<CommentsProps> = ({ storyId = 1 }) => {
   const [author, setAuthor] = useState("미래");
   const [replyContent, setReplyContent] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null); // 현재 열려 있는 답글 대상 ID 관리
+
+  const [comments, setComments] = useState<Comment[]>(commentsData || defaultComments);
 
   const handleSubmit = () => {
     if (content.trim()) {
@@ -168,13 +166,14 @@ const CommentsView: React.FC<CommentsProps> = ({ storyId = 1 }) => {
       </Box>
     ));
 
-  if (isLoading) return <Typography>로딩 댓글...</Typography>;
+  // if (isLoading) return <Typography>로딩 댓글...</Typography>;
 
   return (
     <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2 }}>
       <Typography variant="h6" gutterBottom>
         댓글
       </Typography>
+      {comments && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
       {renderComments(comments || [])}
       <Box
         sx={{

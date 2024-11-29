@@ -58,10 +58,14 @@ export const useMessage = create<MessageState>((set) => ({
   hideMessage: () => set({ messageState: false, messageContent: "" }),
 }));
 
-// 댓글 관리
-export const useCommentUIStore = create((set) => ({
-  isCommentOpen: false, // 댓글 창 보임 여부
-  selectedStoryId: null, // 현재 선택된 Story ID
-  openComments: (storyId: string) => set({ isCommentOpen: true, selectedStoryId: storyId }),
-  closeComments: () => set({ isCommentOpen: false, selectedStoryId: null }),
+interface CommentStore {
+  isCommentOpen: boolean;
+  commentsData: any; // 데이터 타입을 구체적으로 정의
+  openCloseComments: (isOpen: boolean, data: any) => void;
+}
+
+export const useComment = create<CommentStore>((set) => ({
+  isCommentOpen: false,
+  commentsData: null,
+  openCloseComments: (isOpen, data) => set({ isCommentOpen: isOpen, commentsData: data }),
 }));

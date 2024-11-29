@@ -42,7 +42,7 @@ export class StoryService {
   async findStoryOne(id: number): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['Image', 'User'], // 'Image'로 수정 (필드 이름과 일치시킴)
+      relations: ['Image', 'User', 'Comments'], // 'Image'로 수정 (필드 이름과 일치시킴)
     });
     if (!findData) {
       // 데이터가 없을 경우 404 에러 던지기

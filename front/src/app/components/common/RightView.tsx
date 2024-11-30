@@ -5,6 +5,6 @@ import Advertisement from "./Advertisement";
 
 export default function RightView() {
   const { isCommentOpen } = useComment();
-
+  console.log(isCommentOpen);
   return <>{isCommentOpen ? <CommentsView /> : <Advertisement />}</>;
 }

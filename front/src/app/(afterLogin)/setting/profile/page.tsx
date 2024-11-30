@@ -4,7 +4,7 @@ import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { useMessage } from "@/app/store";
+import { useMessage, useUserImage } from "@/app/store";
 import Loading from "@/app/components/common/Loading";
 import { Router } from "next/router";
 import { useRouter } from "next/navigation";
@@ -19,6 +19,7 @@ function UserProfileEdit() {
   const queryClient = useQueryClient();
 
   const { data: session, status } = useSession();
+  const { setTopBarImageDelete, setUserImageUrl } = useUserImage();
 
   // 세션이 인증된 상태에서만 요청을 수행합니다.
   const {
@@ -33,7 +34,6 @@ function UserProfileEdit() {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${session.user.id}`, {
           withCredentials: true,
         });
-        console.log("플로필", response);
         return response.data;
       }
     },
@@ -61,6 +61,24 @@ function UserProfileEdit() {
     const file = event.target.files[0];
     setProfileImage(file);
     setPreviewImage(URL.createObjectURL(file));
+  };
+
+  const pictureDelete = async () => {
+    if (session?.user.id) {
+      await axios
+        .delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/delete`, {
+          data: { id: session.user.id },
+          withCredentials: true,
+        })
+        .then((res) => {
+          if (res.status === 200) {
+            setPreviewImage(null);
+            queryClient.removeQueries({ queryKey: ["userTopImage", session?.user.id] });
+            setTopBarImageDelete();
+            setUserImageUrl("");
+          }
+        });
+    }
   };
 
   const mutation = useMutation({
@@ -111,7 +129,7 @@ function UserProfileEdit() {
           사진 업로드
           <input type="file" hidden onChange={handleImageChange} />
         </Button>
-        <Button variant="contained" color="error">
+        <Button variant="contained" color="error" onClick={pictureDelete}>
           사진 삭제
         </Button>
 

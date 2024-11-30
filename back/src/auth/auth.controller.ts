@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Post,
@@ -94,6 +95,7 @@ export class AuthController {
     return await this.authUserService.userGet(id);
   }
 
+  // 프로필 업데이트
   @Post('update')
   @UseGuards(AuthGuard())
   @UseInterceptors(FileInterceptor('profileImage')) // 'profileImage'는 프론트엔드의 FormData 필드 이름
@@ -104,6 +106,13 @@ export class AuthController {
     console.log('업데이트 데이터:', userData, '업로드된 파일:', profileImage);
     await this.authUserService.userUpdate(userData, profileImage);
     // Post가 성공적으로 완료되면 201 상태코드를 반환
+  }
+
+  @Delete('delete')
+  @UseGuards(AuthGuard())
+  async deleteProfilePicture(@Body() userData: any): Promise<void> {
+    console.log('프로필 이미지 삭제 요청', userData);
+    await this.authUserService.deleteProfilePicture(userData.id);
   }
 }
 

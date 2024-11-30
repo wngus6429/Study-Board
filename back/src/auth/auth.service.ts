@@ -121,4 +121,18 @@ export class AuthService {
     // 사용자 정보 및 관계된 이미지 저장
     return user;
   }
+
+  async deleteProfilePicture(id: string): Promise<void> {
+    await this.userImageRepository.delete({ User: { id } });
+    // 사용자 찾기
+    // const user: User = await this.userRepository.findOne({
+    //   where: { id },
+    //   relations: ['image'],
+    // });
+
+    // // 이미지가 존재할 경우 삭제
+    // if (user.image) {
+    //   await this.userImageRepository.remove(user.image);
+    // }
+  }
 }

@@ -45,7 +45,7 @@ export default function MenuBar() {
   const router = useRouter();
   const { data: user, status } = useSession();
   const { showMessage } = useMessage((state) => state);
-  const { setUserImageUrl } = useUserImage();
+  const { setUserImageUrl, TopBarImageDelete } = useUserImage();
 
   // console.log("세션", user);
 
@@ -69,6 +69,14 @@ export default function MenuBar() {
     // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
     enabled: status === "authenticated",
   });
+
+  // 프로필 사진 삭제 시 refetch를 트리거하는 이벤트를 전달받을 수 있도록 설정
+  useEffect(() => {
+    // 예를 들어, 전역 상태나 props를 통해 refetch를 호출
+    if (TopBarImageDelete) {
+      refetch();
+    }
+  }, [TopBarImageDelete]);
 
   const logout = async () => {
     // TODO 둘다 성공해야 로그아웃 성공되게끔. Promise.all 사용

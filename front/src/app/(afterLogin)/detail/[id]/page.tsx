@@ -2,11 +2,11 @@
 import Loading from "@/app/components/common/Loading";
 import { useComment, useMessage } from "@/app/store";
 import { ImageType, StoryType } from "@/app/types/types";
-import { Box, Button, Card, CardActions, CardContent, CardMedia, Typography } from "@mui/material";
+import { Box, Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
@@ -17,11 +17,12 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
-  const { isCommentOpen, commentsData, openCloseComments } = useComment(); // 댓글 관리
+  const { openCloseComments } = useComment(); // 댓글 관리
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
   const [detail, setDetail] = useState<StoryType | null>(null);
 
+  //! 상세 데이터 가져오기
   const {
     data: getDetail,
     isLoading,
@@ -36,6 +37,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     enabled: !!params?.id && !isDeleted, // 삭제 후 쿼리 비활성화
   });
 
+  //! 데이터 없으면 not-found 위치로 이동
   useEffect(() => {
     if (isError && !isDeleted) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -46,27 +48,22 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     }
   }, [isError, error, router, isDeleted]);
 
-  // useEffect(() => {
-  //   if (getDetail) {
-  //     console.log("getDetail", getDetail);
-  //     setDetail(getDetail as StoryType);
-  //     console.log("getDetail.Comments", getDetail.Comments);
-  //     openCloseComments(true, getDetail.Comments);
-  //   }
-  // }, [getDetail]);
-
+  //! 데이터 받아오고, 댓글 상태 업데이트
   useEffect(() => {
     if (getDetail) {
       console.log("getDetail", getDetail);
       setDetail(getDetail as StoryType);
-
       if (getDetail.Comments) {
-        console.log("getDetail.Comments", getDetail.Comments);
         openCloseComments(true, getDetail.Comments); // 상태 업데이트 호출
       } else {
-        console.log("Comments 데이터가 없습니다.");
+        showMessage("Comments 데이터가 없습니다.", "error");
       }
     }
+    return () => {
+      openCloseComments(false, "");
+    };
+    // 컴포넌트 언마운트 또는 useEffect의 의존성이 변경되기 전에 실행되는
+    // "정리 작업(cleanup)"을 정의한 부분으로, 댓글 창 상태를 초기화하거나 닫는 역할을 합니다.
   }, [getDetail]);
 
   const deleteData = useMutation({
@@ -74,15 +71,13 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/${storyId}`, { withCredentials: true });
     },
     onSuccess() {
-      console.log("확인용", ["story", "detail", params?.id]);
       queryClient.removeQueries({ queryKey: ["story", "detail", params?.id] });
       setIsDeleted(true); // 삭제 상태 업데이트
       showMessage("삭제 성공", "success");
-      router.push("/"); // 홈으로 이동
+      router.push("/");
     },
     onError: (error: any) => {
       if (error.response && error.response.data.code === 404) {
-        // 404 에러 처리
         showMessage(`${error.response.data.data}`, "error"); // 서버에서 전달한 메시지 표시
       } else if (error.response && error.response.data.code === 401) {
         showMessage(`${error.response.data.data}`, "error");

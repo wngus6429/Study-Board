@@ -104,7 +104,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               <Typography variant="h4" component="div">
                 {detail.title}
               </Typography>
-              {detail.User.id === session?.user.id && (
+              {detail.User.id === session?.user.id && detail.category !== "question" && (
                 <Box>
                   <Button
                     size="medium"

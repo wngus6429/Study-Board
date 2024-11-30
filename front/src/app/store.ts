@@ -69,3 +69,13 @@ export const useComment = create<CommentStore>((set) => ({
   commentsData: null,
   openCloseComments: (isOpen, data) => set({ isCommentOpen: isOpen, commentsData: data }),
 }));
+
+interface UserImageState {
+  userImageUrl: string;
+  setUserImageUrl: (url: string) => void;
+}
+
+export const useUserImage = create<UserImageState>((set) => ({
+  userImageUrl: "",
+  setUserImageUrl: (url) => set({ userImageUrl: url }),
+}));

@@ -3,7 +3,8 @@ import React, { useEffect, useState } from "react";
 import { Box, TextField, Button, Typography, Avatar } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useComment } from "@/app/store";
+import { useComment, useUserImage } from "@/app/store";
+import { useSession } from "next-auth/react";
 
 interface Comment {
   id: number;
@@ -44,8 +45,9 @@ const postComment = async ({
   return response.data;
 };
 
-const CommentsView = ({ commentsData }: any) => {
+const CommentsView = () => {
   const queryClient = useQueryClient();
+  const { data: session } = useSession();
 
   const defaultComments: Comment[] = [
     {
@@ -85,8 +87,10 @@ const CommentsView = ({ commentsData }: any) => {
     },
   });
 
+  const { commentsData } = useComment();
+  const { userImageUrl } = useUserImage();
   const [content, setContent] = useState("");
-  const [author, setAuthor] = useState("미래");
+  const [author, setAuthor] = useState(session?.user.nickname);
   const [replyContent, setReplyContent] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null); // 현재 열려 있는 답글 대상 ID 관리
 
@@ -166,7 +170,7 @@ const CommentsView = ({ commentsData }: any) => {
       </Box>
     ));
 
-  // if (isLoading) return <Typography>로딩 댓글...</Typography>;
+  if (!commentsData) return <Typography>로딩 댓글...</Typography>;
 
   return (
     <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2 }}>
@@ -186,7 +190,10 @@ const CommentsView = ({ commentsData }: any) => {
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
-          <Avatar src="https://via.placeholder.com/40" sx={{ width: 40, height: 40, marginRight: 1 }} />
+          <Avatar
+            src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImageUrl}`}
+            sx={{ width: 40, height: 40, marginRight: 1 }}
+          />
           <Typography variant="body1" sx={{ fontWeight: "bold" }}>
             {author}
           </Typography>

@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import AccountCircle from "@mui/icons-material/AccountCircle";
@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import styles from "./style/TopBar.module.css";
 import { signOut, useSession } from "next-auth/react";
-import { useMessage } from "../store";
+import { useMessage, useUserImage } from "../store";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 
@@ -45,8 +45,9 @@ export default function MenuBar() {
   const router = useRouter();
   const { data: user, status } = useSession();
   const { showMessage } = useMessage((state) => state);
+  const { setUserImageUrl } = useUserImage();
 
-  console.log("세션", user);
+  // console.log("세션", user);
 
   const {
     data: userImage,
@@ -87,6 +88,12 @@ export default function MenuBar() {
       console.error("로그아웃 실패:", error);
     }
   };
+
+  useEffect(() => {
+    if (userImage) {
+      setUserImageUrl(userImage);
+    }
+  }, [userImage]);
 
   return (
     <div className={styles.container}>

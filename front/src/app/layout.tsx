@@ -7,7 +7,7 @@ import RQProvider from "./components/RQProvider";
 import TopBar from "./components/TopBar";
 import AuthSession from "./components/common/AuthSessionCom";
 import MessageView from "./components/common/MessageView";
-import RightView from "./components/common/rightView";
+import RightView from "./components/common/RightView";
 
 const inter = Inter({ subsets: ["latin"] });
 

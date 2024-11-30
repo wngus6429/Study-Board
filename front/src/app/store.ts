@@ -62,12 +62,16 @@ interface CommentStore {
   isCommentOpen: boolean;
   commentsData: any; // 데이터 타입을 구체적으로 정의
   openCloseComments: (isOpen: boolean, data: any) => void;
+  loginCommentInfo: { nickname: string; userImageUrl: string };
+  setLoginCommentInfo: (nickname: string, userImageUrl: string) => void;
 }
 
 export const useComment = create<CommentStore>((set) => ({
   isCommentOpen: false,
   commentsData: null,
   openCloseComments: (isOpen, data) => set({ isCommentOpen: isOpen, commentsData: data }),
+  loginCommentInfo: { nickname: "", userImageUrl: "" },
+  setLoginCommentInfo: (nickname, userImageUrl) => set({ loginCommentInfo: { nickname, userImageUrl } }),
 }));
 
 interface UserImageState {

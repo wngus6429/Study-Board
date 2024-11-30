@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
+import { get } from "http";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -17,7 +18,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
-  const { openCloseComments } = useComment(); // 댓글 관리
+  const { openCloseComments, setLoginCommentInfo } = useComment(); // 댓글 관리
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
   const [detail, setDetail] = useState<StoryType | null>(null);
@@ -31,7 +32,9 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   } = useQuery({
     queryKey: ["story", "detail", params?.id],
     queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`, {
+        userId: session?.user.id,
+      });
       return response.data;
     },
     enabled: !!params?.id && !isDeleted, // 삭제 후 쿼리 비활성화
@@ -53,6 +56,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     if (getDetail) {
       console.log("getDetail", getDetail);
       setDetail(getDetail as StoryType);
+      setLoginCommentInfo(getDetail.loginUser.nickname, getDetail.loginUser.image); // 댓글 작성자 정보 설정
       if (getDetail.Comments) {
         openCloseComments(true, getDetail.Comments); // 상태 업데이트 호출
       } else {

@@ -87,8 +87,9 @@ const CommentsView = () => {
     },
   });
 
-  const { commentsData } = useComment();
-  const { userImageUrl } = useUserImage();
+  console.log("session", session?.user);
+
+  const { commentsData, loginCommentInfo } = useComment();
   const [content, setContent] = useState("");
   const [author, setAuthor] = useState(session?.user.nickname);
   const [replyContent, setReplyContent] = useState("");
@@ -114,6 +115,8 @@ const CommentsView = () => {
   const toggleReply = (commentId: number) => {
     setReplyTo((prev) => (prev === commentId ? null : commentId)); // 같은 ID를 클릭하면 닫히도록
   };
+
+  console.log("loginCommentInfo", loginCommentInfo);
 
   const renderComments = (comments: Comment[]) =>
     comments.map((comment) => (
@@ -179,54 +182,58 @@ const CommentsView = () => {
       </Typography>
       {comments && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
       {renderComments(comments || [])}
-      <Box
-        sx={{
-          width: "100%",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          padding: 2,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
-          <Avatar
-            src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImageUrl}`}
-            sx={{ width: 40, height: 40, marginRight: 1 }}
+      {loginCommentInfo != null && (
+        <Box
+          sx={{
+            width: "100%",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            padding: 2,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
+            {loginCommentInfo.userImageUrl && (
+              <Avatar
+                src={`${process.env.NEXT_PUBLIC_BASE_URL}${loginCommentInfo.userImageUrl}`}
+                sx={{ width: 40, height: 40, marginRight: 1 }}
+              />
+            )}
+            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+              {loginCommentInfo?.nickname}
+            </Typography>
+          </Box>
+          <TextField
+            fullWidth
+            multiline
+            minRows={2}
+            maxRows={4}
+            placeholder="댓글을 입력하세요..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            sx={{ marginBottom: 1 }}
           />
-          <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-            {author}
-          </Typography>
+          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+            <Typography variant="body2" sx={{ color: "gray", marginBottom: 2 }}>
+              내 마음에 안들면 댓글 삭제 할 거임
+            </Typography>
+            <button
+              onClick={handleSubmit}
+              style={{
+                backgroundColor: "#007BFF",
+                color: "white",
+                padding: "8px 16px",
+                borderRadius: "4px",
+                border: "none",
+                cursor: "pointer",
+              }}
+            >
+              댓글 작성
+            </button>
+          </Box>
         </Box>
-        <TextField
-          fullWidth
-          multiline
-          minRows={2}
-          maxRows={4}
-          placeholder="댓글을 입력하세요..."
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          sx={{ marginBottom: 1 }}
-        />
-        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Typography variant="body2" sx={{ color: "gray", marginBottom: 2 }}>
-            내 마음에 안들면 댓글 삭제 할 거임
-          </Typography>
-          <button
-            onClick={handleSubmit}
-            style={{
-              backgroundColor: "#007BFF",
-              color: "white",
-              padding: "8px 16px",
-              borderRadius: "4px",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            댓글 작성
-          </button>
-        </Box>
-      </Box>
+      )}
     </Box>
   );
 };

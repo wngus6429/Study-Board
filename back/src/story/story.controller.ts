@@ -36,16 +36,22 @@ export class StoryController {
     return all;
   }
 
-  @Get('/detail/:id')
-  async getStoryDetail(@Param('id', ParseIntPipe) id: number): Promise<any> {
-    console.log('상세 페이지 글 ID:', id);
-    const data = await this.storyService.findStoryOne(id);
-
+  @Post('/detail/:id')
+  async getStoryDetail(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() userData?: any,
+  ): Promise<any> {
+    console.log('상세 페이지 글 ID:', id, '사용자정보:', userData);
+    const data = await this.storyService.findStoryOne(id, userData?.userId);
+    console.log('상세 페이지 글 데이터', data);
     // User의 필요한 필드만 남김
-    const { User, ...rest } = data;
-    const filteredUser = { id: User.id, nickname: User.nickname };
-
-    return { ...rest, User: filteredUser };
+    const { User, loginUser, ...rest } = data;
+    const filteredUser = { nickname: User.nickname };
+    const filteredLoginUser = {
+      nickname: loginUser?.nickname || null,
+      image: loginUser?.image?.link || null,
+    };
+    return { ...rest, User: filteredUser, loginUser: filteredLoginUser };
   }
 
   @Post('/create')

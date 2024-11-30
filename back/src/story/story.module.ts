@@ -10,6 +10,7 @@ import * as path from 'path';
 import { Image } from 'src/entities/Image.entity';
 import { Today } from 'src/common/helper/today';
 import { UserImage } from 'src/entities/UserImage.entity';
+import { User } from 'src/entities/User.entity';
 
 @Module({
   imports: [
@@ -26,7 +27,7 @@ import { UserImage } from 'src/entities/UserImage.entity';
         },
       }),
     }),
-    TypeOrmModule.forFeature([Story, Image, UserImage]),
+    TypeOrmModule.forFeature([Story, Image, UserImage, User]),
     AuthModule,
   ],
   controllers: [StoryController],

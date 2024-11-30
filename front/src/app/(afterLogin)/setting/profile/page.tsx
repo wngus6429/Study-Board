@@ -3,7 +3,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import { useMessage, useUserImage } from "@/app/store";
 import Loading from "@/app/components/common/Loading";
 import { Router } from "next/router";
@@ -18,7 +18,7 @@ function UserProfileEdit() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const { setTopBarImageDelete, setUserImageUrl } = useUserImage();
 
   // 세션이 인증된 상태에서만 요청을 수행합니다.
@@ -45,6 +45,7 @@ function UserProfileEdit() {
 
   useEffect(() => {
     if (userDetail) {
+      console.log("유저 디테일", userDetail);
       const profileImageUrl = userDetail?.image?.link
         ? `${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.image.link}`
         : null;
@@ -97,7 +98,7 @@ function UserProfileEdit() {
         });
       }
     },
-    onSuccess: (response) => {
+    onSuccess: async (response) => {
       console.log("성공", response);
       if (response?.status === 201) {
         // 기존에 있던 이미지 캐쉬파일 삭제해서, 다시 프로필 페이지 왔을때 원래 있던 사진이 잠시 보이는걸 방지함

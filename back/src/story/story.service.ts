@@ -20,6 +20,7 @@ export class StoryService {
     private storyRepository: Repository<Story>,
     @InjectRepository(Image)
     private readonly imageRepository: Repository<Image>,
+    @InjectRepository(User) private userRepository: Repository<User>,
   ) {}
 
   // 목록 페이지에 필요한 데이터만 가져오기
@@ -39,7 +40,7 @@ export class StoryService {
     // });
   }
 
-  async findStoryOne(id: number): Promise<any> {
+  async findStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
       relations: ['Image', 'User', 'Comments'], // 'Image'로 수정 (필드 이름과 일치시킴)
@@ -48,7 +49,19 @@ export class StoryService {
       // 데이터가 없을 경우 404 에러 던지기
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
-    return findData;
+
+    let loginUser;
+    if (userId != null) {
+      try {
+        loginUser = await this.userRepository.findOne({
+          where: { id: userId },
+          relations: ['image'],
+        });
+      } catch (error) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+    }
+    return { ...findData, loginUser };
   }
 
   async create(

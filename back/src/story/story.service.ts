@@ -60,6 +60,8 @@ export class StoryService {
       } catch (error) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
+    } else {
+      loginUser = null;
     }
     return { ...findData, loginUser };
   }

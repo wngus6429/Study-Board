@@ -182,7 +182,7 @@ const CommentsView = () => {
       </Typography>
       {comments && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
       {renderComments(comments || [])}
-      {loginCommentInfo != null && (
+      {loginCommentInfo.nickname != null && loginCommentInfo.userImageUrl != null && (
         <Box
           sx={{
             width: "100%",

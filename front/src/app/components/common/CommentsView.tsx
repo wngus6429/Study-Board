@@ -176,13 +176,13 @@ const CommentsView = () => {
   if (!commentsData) return <Typography>로딩 댓글...</Typography>;
 
   return (
-    <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2 }}>
+    <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>
       <Typography variant="h6" gutterBottom>
         댓글
       </Typography>
       {comments && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
       {renderComments(comments || [])}
-      {loginCommentInfo.nickname != null && loginCommentInfo.userImageUrl != null && (
+      {loginCommentInfo.nickname != null && (
         <Box
           sx={{
             width: "100%",

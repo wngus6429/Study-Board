@@ -54,9 +54,9 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   //! 데이터 받아오고, 댓글 상태 업데이트
   useEffect(() => {
     if (getDetail) {
-      console.log("getDetail", getDetail);
+      console.log("상세페이지 데이터", getDetail);
       setDetail(getDetail as StoryType);
-      setLoginCommentInfo(getDetail.loginUser.nickname, getDetail.loginUser.image); // 댓글 작성자 정보 설정
+      setLoginCommentInfo(getDetail.loginUser?.nickname, getDetail.loginUser?.image); // 댓글 작성자 정보 설정
       if (getDetail.Comments) {
         openCloseComments(true, getDetail.Comments); // 상태 업데이트 호출
       } else {
@@ -103,7 +103,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               <Typography variant="h4" component="div">
                 {detail.title}
               </Typography>
-              {detail.User.id === session?.user.id && detail.category !== "question" && (
+              {detail.category !== "question" && detail.User.id === session?.user.id && (
                 <Box>
                   <Button
                     size="medium"

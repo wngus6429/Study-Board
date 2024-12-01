@@ -46,11 +46,16 @@ export class StoryController {
     console.log('상세 페이지 글 데이터', data);
     // User의 필요한 필드만 남김
     const { User, loginUser, ...rest } = data;
-    const filteredUser = { nickname: User.nickname };
-    const filteredLoginUser = {
-      nickname: loginUser?.nickname || null,
-      image: loginUser?.image?.link || null,
-    };
+    const filteredUser = { nickname: User.nickname, id: User.id };
+    let filteredLoginUser;
+    if (loginUser != null) {
+      filteredLoginUser = {
+        nickname: loginUser?.nickname || null,
+        image: loginUser?.image?.link || null,
+      };
+    } else {
+      filteredLoginUser = null;
+    }
     return { ...rest, User: filteredUser, loginUser: filteredLoginUser };
   }
 

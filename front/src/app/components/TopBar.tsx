@@ -47,8 +47,6 @@ export default function MenuBar() {
   const { showMessage } = useMessage((state) => state);
   const { setUserImageUrl, TopBarImageDelete } = useUserImage();
 
-  // console.log("세션", user);
-
   const {
     data: userImage,
     error,
@@ -80,12 +78,11 @@ export default function MenuBar() {
 
   const logout = async () => {
     // TODO 둘다 성공해야 로그아웃 성공되게끔. Promise.all 사용
-
     try {
       // Promise.all을 사용하여 로그아웃 요청과 Next-Auth signOut을 병렬로 수행
       const [logoutResponse] = await Promise.all([
-        axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {}, { withCredentials: true }),
-        signOut(),
+        await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {}, { withCredentials: true }),
+        await signOut(),
       ]);
       if (logoutResponse.status === 200) {
         showMessage("로그아웃 성공", "warning");
@@ -154,27 +151,3 @@ export default function MenuBar() {
     </div>
   );
 }
-
-// <ul className="flex gap-4 items-center p-4">
-//         {menu.map((item) => (
-//             <li key={item.href}>
-//               <Link href={item.href} aria-label={item.title}>
-//                 {pathName === item.href ? item.clickedIcon : item.icon}
-//               </Link>
-//             </li>
-//           ))}
-//           {user && (
-//             <li>
-//               <Link href={`/user/${user.username}`}>
-//                 <Avatar image={user.image} size="small" highlight />
-//               </Link>
-//             </li>
-//           )}
-//           <li>
-//             {session ? (
-//               <ColorButton text="Sign out" onClick={() => signOut()} />
-//             ) : (
-//               <ColorButton text="Sign in" onClick={() => signIn()} />
-//             )}
-//           </li>
-//  </ul>

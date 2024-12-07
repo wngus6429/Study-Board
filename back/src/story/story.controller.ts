@@ -41,7 +41,7 @@ export class StoryController {
     @Param('id', ParseIntPipe) id: number,
     @Body() userData?: any,
   ): Promise<any> {
-    const data = await this.storyService.findStoryOne(id, userData?.userId);
+    const data = await this.storyService.findEditStoryOne(id, userData?.userId);
     return data;
   }
 
@@ -65,6 +65,7 @@ export class StoryController {
     } else {
       filteredLoginUser = null;
     }
+    // User는 글 작성자임
     return { ...rest, User: filteredUser, loginUser: filteredLoginUser };
   }
 
@@ -125,11 +126,10 @@ export class StoryController {
   @Post('/comment/:id')
   @UseGuards(AuthGuard())
   async createComment(
-    @Param('id', ParseIntPipe) storyId: number,
+    // @Param('id', ParseIntPipe) storyId: number,
     @Body() commentData: any,
-    @GetUser() userData: User,
   ) {
-    console.log('댓글 작성:', storyId, commentData, userData);
-    // return this.storyService.createComment(storyId, commentData, userData);
+    console.log('댓글 작성:', commentData);
+    return this.storyService.createComment(commentData);
   }
 }

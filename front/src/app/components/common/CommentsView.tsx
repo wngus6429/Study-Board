@@ -6,6 +6,7 @@ import axios from "axios";
 import { useComment, useUserImage } from "@/app/store";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
+import dayjs from "dayjs";
 
 interface Comment {
   id: number;
@@ -33,7 +34,7 @@ const postComment = async ({
   nickname: string;
 }) => {
   const response = await axios.post("/api/comments", {
-    storyId,
+    // storyId,
     content,
     parentId,
     nickname,
@@ -43,7 +44,6 @@ const postComment = async ({
 
 const CommentsView = () => {
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
-  console.log("storyId", storyId);
   const queryClient = useQueryClient();
   const { data: session } = useSession();
 
@@ -106,12 +106,26 @@ const CommentsView = () => {
         throw new Error("Failed to post comment");
       }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["comments", storyId] });
+    onSuccess: (createdComment) => {
+      // 새 댓글을 로컬 상태에 추가
+      setComments((prevComments): any => [
+        ...prevComments,
+        {
+          id: createdComment.id,
+          content: createdComment.content,
+          created_at: createdComment.created_at,
+          updated_at: createdComment.updated_at,
+          nickname: createdComment.nickname,
+          avatarUrl: createdComment.avatarUrl,
+          parentId: createdComment.parentId,
+          children: [],
+        },
+      ]);
+      setContent(""); // 입력 필드 초기화
+      // 캐시 갱신 안하면 뒤로가기 했다가 다시 들어오면 방금 적은 댓글이 안보임
+      queryClient.invalidateQueries({ queryKey: ["story", "detail", storyId] });
     },
   });
-
-  console.log("session", session?.user);
 
   const { commentsData, loginCommentInfo } = useComment();
   const [content, setContent] = useState("");
@@ -141,8 +155,6 @@ const CommentsView = () => {
     setReplyTo((prev) => (prev === commentId ? null : commentId)); // 같은 ID를 클릭하면 닫히도록
   };
 
-  console.log("loginCommentInfo", loginCommentInfo);
-
   // 댓글 컴포넌트 최적화
   const CommentItem = React.memo(
     ({ comment, toggleReply, handleReplySubmit, replyTo, replyContent, setReplyContent }: any) => {
@@ -166,7 +178,7 @@ const CommentsView = () => {
               {comment.nickname}
             </Typography>
             <Typography variant="caption" sx={{ ml: 1, color: "gray" }}>
-              {new Date(comment.createdAt).toLocaleString()}
+              {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
             </Typography>
           </Box>
           <Typography variant="body1">{comment.content}</Typography>

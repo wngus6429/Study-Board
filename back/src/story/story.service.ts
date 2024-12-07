@@ -25,47 +25,34 @@ export class StoryService {
     @InjectRepository(Comments) private commentRepository: Repository<Comments>,
   ) {}
 
-  // 목록 페이지에 필요한 데이터만 가져오기
+  // 목록 페이지
   async findStoryAll(): Promise<Partial<Story>[]> {
-    // console.log('모든 데이터 취득');
     return this.storyRepository.find({ relations: ['User'] });
-    // return this.storyRepository.find({
-    //   select: [
-    //     'id',
-    //     'title',
-    //     'content',
-    //     'creator_email',
-    //     'createdAt',
-    //     'readCount',
-    //     'likeCount',
-    //   ],
-    // });
   }
 
+  // 수정 페이지
   async findEditStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['StoryImage'], // 'StoryImage'로 수정 (필드 이름과 일치시킴)
+      relations: ['StoryImage'],
     });
     if (!findData) {
-      // 데이터가 없을 경우 404 에러 던지기
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
 
     return findData;
   }
 
+  // 상세 페이지
   async findStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['StoryImage', 'User', 'Comments'], // 'StoryImage'로 수정 (필드 이름과 일치시킴)
+      relations: ['StoryImage', 'User', 'Comments', 'Comments.User'],
     });
     if (!findData) {
       // 데이터가 없을 경우 404 에러 던지기
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
-
-    console.log('찾은 데이터', findData);
 
     let loginUser;
     if (userId != null) {
@@ -80,9 +67,21 @@ export class StoryService {
     } else {
       loginUser = null;
     }
-    return { ...findData, loginUser };
+
+    // Comments 필드가 배열인지 확인 후 처리
+    const processedComments = Array.isArray(findData.Comments)
+      ? findData.Comments.map((comment) => ({
+          id: comment.id,
+          content: comment.content,
+          updated_at: comment.updated_at,
+          nickname: comment.User.nickname, // User 객체에서 nickname만 남김
+        }))
+      : []; // 배열이 아니면 빈 배열로 처리
+
+    return { ...findData, Comments: processedComments, loginUser };
   }
 
+  // 글 작성
   async create(
     createStoryDto: CreateStoryDto,
     userData: User,
@@ -117,6 +116,7 @@ export class StoryService {
     return savedStory;
   }
 
+  // 글 수정
   async updateStory(
     storyId: number,
     updateStoryDto: UpdateStoryDto,
@@ -203,6 +203,7 @@ export class StoryService {
     return await this.storyRepository.save(story);
   }
 
+  // 글 삭제
   async deleteStory(storyId: number, userData: User): Promise<void> {
     // 스토리 데이터 가져오기
     const story: Story = await this.storyRepository.findOne({
@@ -234,44 +235,52 @@ export class StoryService {
     await this.storyRepository.delete(storyId);
   }
 
-  // async createComment(
-  //   storyId: number,
-  //   commentData: { content: string; parentId?: number | null },
-  //   userData: User,
-  // ): Promise<Comments> {
-  //   const { content, parentId } = commentData;
+  async createComment(commentData: {
+    storyId: string;
+    content: string;
+    parentId?: number | null;
+    userId: string;
+  }): Promise<Comments> {
+    const { storyId, content, parentId, userId } = commentData;
 
-  //   // 글 확인
-  //   const story = await this.storyRepository.findOne({
-  //     where: { id: storyId },
-  //   });
+    // 글 확인
+    const story = await this.storyRepository.findOne({
+      where: { id: Number(storyId) },
+    });
 
-  //   if (!story) {
-  //     throw new NotFoundException('댓글을 작성할 글을 찾을 수 없습니다.');
-  //   }
+    if (!story) {
+      throw new NotFoundException('댓글을 작성할 글을 찾을 수 없습니다.');
+    }
 
-  //   // 부모 댓글 확인 (대댓글인 경우)
-  //   let parentComment: Comments | null = null;
-  //   if (parentId) {
-  //     parentComment = await this.commentRepository.findOne({
-  //       where: { id: parentId },
-  //     });
+    const UserData = await this.userRepository.findOne({
+      where: { id: userId },
+    });
 
-  //     if (!parentComment) {
-  //       throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
-  //     }
-  //   }
+    if (!UserData) {
+      throw new NotFoundException('댓글을 작성할 사용자를 찾을 수 없습니다.');
+    }
 
-  //   // 댓글 생성
-  //   // const comment = this.commentRepository.create({
-  //   //   content,
-  //   //   parent: parentComment || null,
-  //   //   nickname: userData.nickname, // 유저 닉네임
-  //   //   Story: story,
-  //   //   User: userData, // 댓글 작성자 정보
-  //   // });
+    // 부모 댓글 확인 (대댓글인 경우)
+    let parentComment: Comments | null = null;
+    if (parentId) {
+      parentComment = await this.commentRepository.findOne({
+        where: { id: parentId },
+      });
 
-  //   // // 댓글 저장
-  //   // return await this.commentRepository.save(comment);
-  // }
+      if (!parentComment) {
+        throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
+      }
+    }
+
+    // 댓글 생성
+    const comment = this.commentRepository.create({
+      content,
+      parent: parentComment || null,
+      Story: story,
+      User: UserData,
+    });
+
+    // 댓글 저장
+    return await this.commentRepository.save(comment);
+  }
 }

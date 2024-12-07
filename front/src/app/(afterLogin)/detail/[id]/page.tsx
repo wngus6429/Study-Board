@@ -38,7 +38,8 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       return response.data;
     },
     // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
-    enabled: !!params?.id && !isDeleted, // 삭제 후 쿼리 비활성화
+    enabled: !!params?.id && !isDeleted && !!session?.user?.id,
+    staleTime: 1000 * 60 * 5, // 5분간 캐시된 데이터 사용
   });
 
   //! 데이터 없으면 not-found 위치로 이동

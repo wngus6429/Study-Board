@@ -7,6 +7,7 @@ import { useComment, useUserImage } from "@/app/store";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import dayjs from "dayjs";
+import Loading from "./Loading";
 
 interface Comment {
   id: number;
@@ -78,6 +79,8 @@ const CommentsView = () => {
     },
   ];
 
+  console.log("session", session?.user);
+
   const mutation = useMutation({
     mutationFn: async ({
       storyId,
@@ -91,6 +94,7 @@ const CommentsView = () => {
       authorId: string;
     }) => {
       try {
+        console.log("댓글 작성 요청", { storyId, content, parentId, authorId });
         const response = await axios.post(
           `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${storyId}`,
           {
@@ -106,19 +110,18 @@ const CommentsView = () => {
         throw new Error("Failed to post comment");
       }
     },
-    onSuccess: (createdComment) => {
+    onSuccess: () => {
       // 새 댓글을 로컬 상태에 추가
       setComments((prevComments): any => [
         ...prevComments,
         {
-          id: createdComment.id,
-          content: createdComment.content,
-          created_at: createdComment.created_at,
-          updated_at: createdComment.updated_at,
-          nickname: createdComment.nickname,
-          avatarUrl: createdComment.avatarUrl,
-          parentId: createdComment.parentId,
-          children: [],
+          content: content,
+          created_at: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+          updated_at: dayjs().format("YYYY-MM-DD HH:mm:ss"),
+          nickname: session?.user.nickname,
+          link: `${loginCommentInfo.userImageUrl}`,
+          // parentId: createdComment.parentId,
+          // children: [],
         },
       ]);
       setContent(""); // 입력 필드 초기화
@@ -173,12 +176,13 @@ const CommentsView = () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <Avatar src={comment.avatarUrl} sx={{ width: 32, height: 32, mr: 1 }} />
+            <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`} sx={{ width: 32, height: 32, mr: 1 }} />
             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
               {comment.nickname}
             </Typography>
             <Typography variant="caption" sx={{ ml: "auto", color: "gray" }}>
-              {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
+              <Box>{dayjs(comment.created_at).format("YYYY-MM-DD HH:mm:ss")}</Box>
+              <Box>({dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")})</Box>
             </Typography>
           </Box>
           <Typography variant="body1">{comment.content}</Typography>
@@ -232,68 +236,70 @@ const CommentsView = () => {
     ));
   }, [comments, replyTo, replyContent]);
 
-  if (!commentsData) return <Typography>로딩 댓글...</Typography>;
+  if (!commentsData) return <Loading />;
 
   return (
-    <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        댓글
-      </Typography>
-      {comments && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
-      {memoizedComments}
-      {loginCommentInfo.nickname != null && (
-        <Box
-          sx={{
-            width: "100%",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            padding: 2,
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
-            {loginCommentInfo.userImageUrl && (
-              <Avatar
-                src={`${process.env.NEXT_PUBLIC_BASE_URL}${loginCommentInfo.userImageUrl}`}
-                sx={{ width: 40, height: 40, marginRight: 1 }}
-              />
-            )}
-            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-              {loginCommentInfo?.nickname}
-            </Typography>
+    <>
+      <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>
+        <Typography variant="h6" gutterBottom>
+          댓글
+        </Typography>
+        {comments && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
+        {memoizedComments}
+        {loginCommentInfo.nickname != null && (
+          <Box
+            sx={{
+              width: "100%",
+              border: "1px solid #ddd",
+              borderRadius: "4px",
+              padding: 2,
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
+              {loginCommentInfo.userImageUrl && (
+                <Avatar
+                  src={`${process.env.NEXT_PUBLIC_BASE_URL}${loginCommentInfo.userImageUrl}`}
+                  sx={{ width: 40, height: 40, marginRight: 1 }}
+                />
+              )}
+              <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+                {loginCommentInfo?.nickname}
+              </Typography>
+            </Box>
+            <TextField
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              placeholder="댓글을 입력하세요..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              sx={{ marginBottom: 1 }}
+            />
+            <Box sx={{ display: "flex", justifyContent: "space-between" }}>
+              <Typography variant="body2" sx={{ color: "gray", marginBottom: 2 }}>
+                내 마음에 안들면 댓글 삭제 할 거임
+              </Typography>
+              <button
+                onClick={handleSubmit}
+                style={{
+                  backgroundColor: "#007BFF",
+                  color: "white",
+                  padding: "8px 16px",
+                  borderRadius: "4px",
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                댓글 작성
+              </button>
+            </Box>
           </Box>
-          <TextField
-            fullWidth
-            multiline
-            minRows={2}
-            maxRows={4}
-            placeholder="댓글을 입력하세요..."
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            sx={{ marginBottom: 1 }}
-          />
-          <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Typography variant="body2" sx={{ color: "gray", marginBottom: 2 }}>
-              내 마음에 안들면 댓글 삭제 할 거임
-            </Typography>
-            <button
-              onClick={handleSubmit}
-              style={{
-                backgroundColor: "#007BFF",
-                color: "white",
-                padding: "8px 16px",
-                borderRadius: "4px",
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              댓글 작성
-            </button>
-          </Box>
-        </Box>
-      )}
-    </Box>
+        )}
+      </Box>
+    </>
   );
 };
 

@@ -128,8 +128,7 @@ export class StoryController {
   async createComment(
     // @Param('id', ParseIntPipe) storyId: number,
     @Body() commentData: any,
-  ) {
-    console.log('댓글 작성:', commentData);
-    return this.storyService.createComment(commentData);
+  ): Promise<void> {
+    await this.storyService.createComment(commentData);
   }
 }

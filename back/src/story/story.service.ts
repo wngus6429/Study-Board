@@ -47,7 +47,7 @@ export class StoryService {
   async findStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['StoryImage', 'User', 'Comments', 'Comments.User'],
+      relations: ['StoryImage', 'User', 'Comments', 'Comments.User.UserImage'],
     });
     if (!findData) {
       // 데이터가 없을 경우 404 에러 던지기
@@ -68,6 +68,8 @@ export class StoryService {
       loginUser = null;
     }
 
+    console.log('상세페이지 데이터:', findData);
+
     // Comments 필드가 배열인지 확인 후 처리
     const processedComments = Array.isArray(findData.Comments)
       ? findData.Comments.map((comment) => ({
@@ -75,6 +77,7 @@ export class StoryService {
           content: comment.content,
           updated_at: comment.updated_at,
           nickname: comment.User.nickname, // User 객체에서 nickname만 남김
+          link: comment.User.UserImage?.link || null, // UserImage 객체에서 link만 남김
         }))
       : []; // 배열이 아니면 빈 배열로 처리
 
@@ -239,9 +242,10 @@ export class StoryService {
     storyId: string;
     content: string;
     parentId?: number | null;
-    userId: string;
-  }): Promise<Comments> {
-    const { storyId, content, parentId, userId } = commentData;
+    authorId: string;
+  }): Promise<void> {
+    console.log('응userId', commentData);
+    const { storyId, content, parentId, authorId } = commentData;
 
     // 글 확인
     const story = await this.storyRepository.findOne({
@@ -253,7 +257,7 @@ export class StoryService {
     }
 
     const UserData = await this.userRepository.findOne({
-      where: { id: userId },
+      where: { id: authorId },
     });
 
     if (!UserData) {
@@ -271,6 +275,7 @@ export class StoryService {
         throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
       }
     }
+    console.log('유저', UserData);
 
     // 댓글 생성
     const comment = this.commentRepository.create({
@@ -281,6 +286,6 @@ export class StoryService {
     });
 
     // 댓글 저장
-    return await this.commentRepository.save(comment);
+    await this.commentRepository.save(comment);
   }
 }

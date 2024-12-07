@@ -8,19 +8,21 @@ import { In, Repository } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { User } from 'src/entities/User.entity';
 import { Story } from 'src/entities/Story.entity';
-import { Image } from 'src/entities/Image.entity';
+import { StoryImage } from 'src/entities/StoryImage.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 import { UpdateStoryDto } from './dto/update-story.dto';
+import { Comments } from 'src/entities/Comments.entity';
 
 @Injectable()
 export class StoryService {
   constructor(
     @InjectRepository(Story)
     private storyRepository: Repository<Story>,
-    @InjectRepository(Image)
-    private readonly imageRepository: Repository<Image>,
+    @InjectRepository(StoryImage)
+    private readonly imageRepository: Repository<StoryImage>,
     @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(Comments) private commentRepository: Repository<Comments>,
   ) {}
 
   // 목록 페이지에 필요한 데이터만 가져오기
@@ -40,22 +42,37 @@ export class StoryService {
     // });
   }
 
-  async findStoryOne(id: number, userId?: string): Promise<any> {
+  async findEditStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['Image', 'User', 'Comments'], // 'Image'로 수정 (필드 이름과 일치시킴)
+      relations: ['StoryImage'], // 'StoryImage'로 수정 (필드 이름과 일치시킴)
     });
     if (!findData) {
       // 데이터가 없을 경우 404 에러 던지기
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
 
+    return findData;
+  }
+
+  async findStoryOne(id: number, userId?: string): Promise<any> {
+    const findData = await this.storyRepository.findOne({
+      where: { id },
+      relations: ['StoryImage', 'User', 'Comments'], // 'StoryImage'로 수정 (필드 이름과 일치시킴)
+    });
+    if (!findData) {
+      // 데이터가 없을 경우 404 에러 던지기
+      throw new NotFoundException(`Story with ID ${id} not found`);
+    }
+
+    console.log('찾은 데이터', findData);
+
     let loginUser;
     if (userId != null) {
       try {
         loginUser = await this.userRepository.findOne({
           where: { id: userId },
-          relations: ['image'],
+          relations: ['UserImage'],
         });
       } catch (error) {
         throw new NotFoundException(`User with ID ${userId} not found`);
@@ -87,7 +104,7 @@ export class StoryService {
 
     // 이미지 파일을 ImageEntity로 변환 후 저장
     const imageEntities = files.map((file) => {
-      const image = new Image();
+      const image = new StoryImage();
       image.image_name = file.filename;
       image.link = `/upload/${file.filename}`; // 저장 경로 설정
       image.Story = savedStory;
@@ -108,14 +125,14 @@ export class StoryService {
   ): Promise<Story> {
     const story = await this.storyRepository.findOne({
       where: { id: storyId },
-      relations: ['Image'],
+      relations: ['StoryImage'],
     });
 
     if (!story) {
       throw new NotFoundException('수정할 글을 찾을 수 없습니다.');
     }
 
-    // if (story.creator_user_id !== userData.id) {
+    // if (story.User !== userData) {
     //   throw new UnauthorizedException('본인의 글만 수정할 수 있습니다.');
     // }
 
@@ -134,7 +151,7 @@ export class StoryService {
     }
 
     // 삭제할 이미지 목록 추출
-    const imagesToDelete = story.Image.filter(
+    const imagesToDelete = story.StoryImage.filter(
       (img) => !normalizedExistImages.includes(decodeURIComponent(img.link)),
     );
 
@@ -148,8 +165,8 @@ export class StoryService {
         await this.imageRepository.remove(image); // 관계 포함 삭제
       }
 
-      // Story의 Image 관계에서 삭제된 이미지를 제거
-      story.Image = story.Image.filter(
+      // Story의 StoryImage 관계에서 삭제된 이미지를 제거
+      story.StoryImage = story.StoryImage.filter(
         (img) => !imagesToDelete.some((delImg) => delImg.id === img.id),
       );
       await this.storyRepository.save(story); // 관계 동기화
@@ -158,7 +175,7 @@ export class StoryService {
     // 새 이미지 추가
     if (newImages.length > 0) {
       const imageEntities = newImages.map((file) => {
-        const image = new Image();
+        const image = new StoryImage();
         image.image_name = file.filename;
         image.link = `/upload/${file.filename}`;
         // image.user_id = String(userData.id);
@@ -172,7 +189,7 @@ export class StoryService {
       const updatedImages = await this.imageRepository.find({
         where: { Story: { id: storyId } },
       });
-      story.Image = updatedImages;
+      story.StoryImage = updatedImages;
       await this.storyRepository.save(story); // 관계 동기화
     }
 
@@ -189,7 +206,7 @@ export class StoryService {
     // 스토리 데이터 가져오기
     const story: Story = await this.storyRepository.findOne({
       where: { id: storyId },
-      relations: ['Image'], // 이미지 관계도 함께 가져오기
+      relations: ['StoryImage'], // 이미지 관계도 함께 가져오기
     });
 
     // 글이 존재하지 않으면 에러 발생
@@ -203,8 +220,8 @@ export class StoryService {
     // }
 
     // 이미지 파일 삭제
-    if (story.Image && story.Image.length > 0) {
-      story.Image.forEach((image) => {
+    if (story.StoryImage && story.StoryImage.length > 0) {
+      story.StoryImage.forEach((image) => {
         const filePath = path.join(__dirname, '../../upload', image.image_name);
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath); // 파일 삭제
@@ -215,4 +232,45 @@ export class StoryService {
     // 삭제 권한이 있을 경우, 글 삭제 진행
     await this.storyRepository.delete(storyId);
   }
+
+  // async createComment(
+  //   storyId: number,
+  //   commentData: { content: string; parentId?: number | null },
+  //   userData: User,
+  // ): Promise<Comments> {
+  //   const { content, parentId } = commentData;
+
+  //   // 글 확인
+  //   const story = await this.storyRepository.findOne({
+  //     where: { id: storyId },
+  //   });
+
+  //   if (!story) {
+  //     throw new NotFoundException('댓글을 작성할 글을 찾을 수 없습니다.');
+  //   }
+
+  //   // 부모 댓글 확인 (대댓글인 경우)
+  //   let parentComment: Comments | null = null;
+  //   if (parentId) {
+  //     parentComment = await this.commentRepository.findOne({
+  //       where: { id: parentId },
+  //     });
+
+  //     if (!parentComment) {
+  //       throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
+  //     }
+  //   }
+
+  //   // 댓글 생성
+  //   // const comment = this.commentRepository.create({
+  //   //   content,
+  //   //   parent: parentComment || null,
+  //   //   nickname: userData.nickname, // 유저 닉네임
+  //   //   Story: story,
+  //   //   User: userData, // 댓글 작성자 정보
+  //   // });
+
+  //   // // 댓글 저장
+  //   // return await this.commentRepository.save(comment);
+  // }
 }

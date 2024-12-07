@@ -7,7 +7,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { Image } from './Image.entity';
+import { StoryImage } from './StoryImage.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Comments } from './Comments.entity';
 import { User } from './User.entity';
@@ -65,10 +65,10 @@ export class Story {
     description: '이미지 배열',
     isArray: true,
   })
-  @OneToMany(() => Image, (image) => image.Story, {
+  @OneToMany(() => StoryImage, (image) => image.Story, {
     cascade: true, // Story 저장 시 관련 Image도 저장 가능
   })
-  Image: Image[];
+  StoryImage: StoryImage[];
 
   @ApiProperty({
     description: '작성일',

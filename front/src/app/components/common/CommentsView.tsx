@@ -1,16 +1,17 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Box, TextField, Button, Typography, Avatar } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useComment, useUserImage } from "@/app/store";
 import { useSession } from "next-auth/react";
+import { useParams } from "next/navigation";
 
 interface Comment {
   id: number;
   content: string;
-  author: string; // 작성자 닉네임
-  avatarUrl?: string; // 작성자 프로필 이미지 URL
+  nickname: string;
+  avatarUrl?: string;
   parentId: number | null;
   createdAt: string;
   children: Comment[];
@@ -20,32 +21,29 @@ interface CommentsProps {
   storyId?: number;
 }
 
-const fetchComments = async (storyId: number) => {
-  const response = await axios.get(`/api/comments?storyId=${storyId}`);
-  return response.data;
-};
-
 const postComment = async ({
   storyId,
   content,
   parentId,
-  author,
+  nickname,
 }: {
   storyId: number;
   content: string;
   parentId: number | null;
-  author: string;
+  nickname: string;
 }) => {
   const response = await axios.post("/api/comments", {
     storyId,
     content,
     parentId,
-    author,
+    nickname,
   });
   return response.data;
 };
 
 const CommentsView = () => {
+  const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
+  console.log("storyId", storyId);
   const queryClient = useQueryClient();
   const { data: session } = useSession();
 
@@ -53,7 +51,7 @@ const CommentsView = () => {
     {
       id: 1,
       content: "ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ",
-      author: "메롱",
+      nickname: "메롱",
       avatarUrl: "https://via.placeholder.com/40", // 기본 이미지 URL
       parentId: null,
       createdAt: "2024-11-24T16:23:59",
@@ -61,7 +59,7 @@ const CommentsView = () => {
         {
           id: 2,
           content: "😂 아울베어 그림 추가",
-          author: "아울베어",
+          nickname: "아울베어",
           avatarUrl: "https://via.placeholder.com/40",
           parentId: 1,
           createdAt: "2024-11-24T16:25:59",
@@ -70,7 +68,7 @@ const CommentsView = () => {
         {
           id: 3,
           content: "😂 아울베어 그림 추가",
-          author: "아울베어",
+          nickname: "아울베어",
           avatarUrl: "https://via.placeholder.com/40",
           parentId: 1,
           createdAt: "2024-11-24T16:25:59",
@@ -81,7 +79,33 @@ const CommentsView = () => {
   ];
 
   const mutation = useMutation({
-    mutationFn: postComment,
+    mutationFn: async ({
+      storyId,
+      content,
+      parentId,
+      authorId,
+    }: {
+      storyId: string;
+      content: string;
+      parentId: number | null;
+      authorId: string;
+    }) => {
+      try {
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${storyId}`,
+          {
+            storyId,
+            content,
+            parentId,
+            authorId,
+          },
+          { withCredentials: true }
+        );
+        return response.data;
+      } catch (error) {
+        throw new Error("Failed to post comment");
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", storyId] });
     },
@@ -91,22 +115,23 @@ const CommentsView = () => {
 
   const { commentsData, loginCommentInfo } = useComment();
   const [content, setContent] = useState("");
-  const [author, setAuthor] = useState(session?.user.nickname);
+  const [authorId, setAuthor] = useState(session?.user.id);
   const [replyContent, setReplyContent] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null); // 현재 열려 있는 답글 대상 ID 관리
 
-  const [comments, setComments] = useState<Comment[]>(commentsData || defaultComments);
+  const [comments, setComments] = useState<Comment[]>(commentsData);
 
   const handleSubmit = () => {
     if (content.trim()) {
-      mutation.mutate({ storyId, content, parentId: null, author });
+      console.log({ storyId, content, parentId: null, authorId: authorId as string });
+      mutation.mutate({ storyId, content, parentId: null, authorId: authorId as string });
       setContent("");
     }
   };
 
   const handleReplySubmit = (parentId: number) => {
     if (replyContent.trim()) {
-      mutation.mutate({ storyId, content: replyContent, parentId, author });
+      mutation.mutate({ storyId, content: replyContent, parentId, authorId: authorId as string });
       setReplyContent("");
       setReplyTo(null);
     }
@@ -118,60 +143,82 @@ const CommentsView = () => {
 
   console.log("loginCommentInfo", loginCommentInfo);
 
-  const renderComments = (comments: Comment[]) =>
-    comments.map((comment) => (
-      <Box
-        key={comment.id}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          padding: 2,
-          mt: 2,
-          ml: comment.parentId ? 4 : 0,
-          backgroundColor: comment.parentId ? "#f9f9f9" : "#fff",
-        }}
-      >
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Avatar src={comment.avatarUrl} sx={{ width: 32, height: 32, mr: 1 }} />
-          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-            {comment.author}
-          </Typography>
-          <Typography variant="caption" sx={{ ml: 1, color: "gray" }}>
-            {new Date(comment.createdAt).toLocaleString()}
-          </Typography>
-        </Box>
-        <Typography variant="body1">{comment.content}</Typography>
-        <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-          <Button
-            size="small"
-            onClick={() => toggleReply(comment.id)} // 답글 토글
-            sx={{ textTransform: "none" }}
-          >
-            답글
-          </Button>
-          <Button size="small" sx={{ textTransform: "none", color: "red" }}>
-            신고
-          </Button>
-        </Box>
-        {replyTo === comment.id && (
-          <Box sx={{ mt: 1 }}>
-            <TextField
-              fullWidth
-              value={replyContent}
-              onChange={(e) => setReplyContent(e.target.value)}
-              placeholder="답글을 입력하세요..."
-              size="small"
-            />
-            <Button onClick={() => handleReplySubmit(comment.id)} variant="contained" size="small" sx={{ mt: 1 }}>
-              댓글 작성
+  // 댓글 컴포넌트 최적화
+  const CommentItem = React.memo(
+    ({ comment, toggleReply, handleReplySubmit, replyTo, replyContent, setReplyContent }: any) => {
+      return (
+        <Box
+          key={comment.id}
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            border: "1px solid #ddd",
+            borderRadius: "4px",
+            padding: 2,
+            mt: 2,
+            ml: comment.parentId ? 4 : 0,
+            backgroundColor: comment.parentId ? "#f9f9f9" : "#fff",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+            <Avatar src={comment.avatarUrl} sx={{ width: 32, height: 32, mr: 1 }} />
+            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+              {comment.nickname}
+            </Typography>
+            <Typography variant="caption" sx={{ ml: 1, color: "gray" }}>
+              {new Date(comment.createdAt).toLocaleString()}
+            </Typography>
+          </Box>
+          <Typography variant="body1">{comment.content}</Typography>
+          <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+            <Button size="small" onClick={() => toggleReply(comment.id)} sx={{ textTransform: "none" }}>
+              답글
             </Button>
           </Box>
-        )}
-        {comment.children && renderComments(comment.children)}
-      </Box>
+          {replyTo === comment.id && (
+            <Box sx={{ mt: 1 }}>
+              <TextField
+                fullWidth
+                value={replyContent}
+                onChange={(e) => setReplyContent(e.target.value)}
+                placeholder="답글을 입력하세요..."
+                size="small"
+              />
+              <Button onClick={() => handleReplySubmit(comment.id)} variant="contained" size="small" sx={{ mt: 1 }}>
+                댓글 작성
+              </Button>
+            </Box>
+          )}
+          {comment.children &&
+            comment.children.map((child: any) => (
+              <CommentItem
+                key={child.id}
+                comment={child}
+                toggleReply={toggleReply}
+                handleReplySubmit={handleReplySubmit}
+                replyTo={replyTo}
+                replyContent={replyContent}
+                setReplyContent={setReplyContent}
+              />
+            ))}
+        </Box>
+      );
+    }
+  );
+
+  const memoizedComments = useMemo(() => {
+    return comments.map((comment) => (
+      <CommentItem
+        key={comment.id}
+        comment={comment}
+        toggleReply={toggleReply}
+        handleReplySubmit={() => {}}
+        replyTo={replyTo}
+        replyContent={replyContent}
+        setReplyContent={setReplyContent}
+      />
     ));
+  }, [comments, replyTo, replyContent]);
 
   if (!commentsData) return <Typography>로딩 댓글...</Typography>;
 
@@ -181,7 +228,7 @@ const CommentsView = () => {
         댓글
       </Typography>
       {comments && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
-      {renderComments(comments || [])}
+      {memoizedComments}
       {loginCommentInfo.nickname != null && (
         <Box
           sx={{

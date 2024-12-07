@@ -12,6 +12,7 @@ import {
 } from 'typeorm';
 import { UserImage } from './UserImage.entity';
 import { Story } from './Story.entity';
+import { Comments } from './Comments.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -29,10 +30,13 @@ export class User extends BaseEntity {
   password: string;
 
   @OneToOne(() => UserImage, (userImage) => userImage.User, { cascade: true })
-  image: UserImage;
+  UserImage: UserImage;
 
   @OneToMany(() => Story, (story) => story.User)
   Story: Story[];
+
+  @OneToMany(() => Comments, (comment) => comment.User)
+  Comments: Comments[];
 
   @CreateDateColumn()
   created_at: Date;

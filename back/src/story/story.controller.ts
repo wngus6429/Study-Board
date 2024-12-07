@@ -36,6 +36,15 @@ export class StoryController {
     return all;
   }
 
+  @Get('/detail/edit/:id')
+  async getStoryEditStory(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() userData?: any,
+  ): Promise<any> {
+    const data = await this.storyService.findStoryOne(id, userData?.userId);
+    return data;
+  }
+
   @Post('/detail/:id')
   async getStoryDetail(
     @Param('id', ParseIntPipe) id: number,
@@ -111,5 +120,16 @@ export class StoryController {
   ): Promise<void> {
     console.log('삭제할 글 ID:', storyId, '사용자정보', userData.user_email);
     return this.storyService.deleteStory(storyId, userData);
+  }
+
+  @Post('/comment/:id')
+  @UseGuards(AuthGuard())
+  async createComment(
+    @Param('id', ParseIntPipe) storyId: number,
+    @Body() commentData: any,
+    @GetUser() userData: User,
+  ) {
+    console.log('댓글 작성:', storyId, commentData, userData);
+    // return this.storyService.createComment(storyId, commentData, userData);
   }
 }

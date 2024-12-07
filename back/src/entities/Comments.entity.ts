@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { Story } from './Story.entity';
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from './User.entity';
 
 @Entity()
 export class Comments {
@@ -23,12 +24,6 @@ export class Comments {
   })
   @Column({ type: 'text', nullable: false })
   content: string;
-
-  @ApiProperty({
-    description: '댓글 작성자 닉네임',
-  })
-  @Column({ type: 'text', nullable: false })
-  nickname: string;
 
   @ApiProperty({
     description: '댓글 작성일',
@@ -61,4 +56,11 @@ export class Comments {
     onDelete: 'CASCADE',
   })
   Story: Story;
+
+  // 닉네임 대신 User 관계 추가
+  @ManyToOne(() => User, (user) => user.Comments, {
+    onDelete: 'CASCADE',
+    nullable: false,
+  })
+  User: User;
 }

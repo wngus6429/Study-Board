@@ -9,7 +9,7 @@ export interface UserType {
   deleted_at?: string | null;
 }
 
-export interface ImageType {
+export interface StoryImageType {
   imageId: number;
   image_name: string;
   link: string;
@@ -31,6 +31,6 @@ export interface StoryType {
   comments: string | null;
   created_at: string;
   updated_at: string;
-  Image: ImageType[]; // ImageType 배열로 설정
+  StoryImage: StoryImageType[]; // ImageType 배열로 설정
   User: UserType;
 }

@@ -19,7 +19,7 @@ export class UserImage {
   @Column({ nullable: false })
   link: string;
 
-  @OneToOne(() => User, (user) => user.image, { onDelete: 'CASCADE' })
+  @OneToOne(() => User, (user) => user.UserImage, { onDelete: 'CASCADE' })
   @JoinColumn() // 외래 키를 여기 Entity에 설정, 관계를 명시적으로 설정
   User: User;
 

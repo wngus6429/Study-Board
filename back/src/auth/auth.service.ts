@@ -76,11 +76,11 @@ export class AuthService {
   async userGet(id: string): Promise<{ image: UserImage; nickname: string }> {
     const user = await this.userRepository.findOne({
       where: { id },
-      relations: ['image'],
+      relations: ['UserImage'],
     });
     // TODO 비밀번호 안 빠져나가게 해야함
     console.log('user:', user);
-    return { image: user.image, nickname: user.nickname };
+    return { image: user.UserImage, nickname: user.nickname };
   }
 
   // 유저 정보 업데이트
@@ -92,14 +92,14 @@ export class AuthService {
     // 사용자 찾기
     const user: User = await this.userRepository.findOne({
       where: { id },
-      relations: ['image'], // 기존에 User와 UserImage 관계를 불러오기 위해 relations 사용
+      relations: ['UserImage'], // 기존에 User와 UserImage 관계를 불러오기 위해 relations 사용
     });
 
     // 새로운 프로필 이미지가 존재하고 파일 이름이 정의되어 있는 경우에만 업데이트
     if (profileImage && profileImage.filename) {
-      if (user.image) {
+      if (user.UserImage) {
         // 기존 이미지가 존재할 경우 삭제
-        await this.userImageRepository.remove(user.image); // 기존 이미지 삭제
+        await this.userImageRepository.remove(user.UserImage); // 기존 이미지 삭제
       }
 
       // 새로운 UserImage 생성 및 업데이트
@@ -110,7 +110,7 @@ export class AuthService {
 
       // 새로운 이미지 할당
       console.log('newUserImage:', newUserImage);
-      user.image = newUserImage;
+      user.UserImage = newUserImage;
       await this.userImageRepository.save(newUserImage);
     }
     user.nickname = nickname;

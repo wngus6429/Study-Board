@@ -10,7 +10,6 @@ import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
-import { get } from "http";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -32,13 +31,14 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   } = useQuery({
     queryKey: ["story", "detail", params?.id],
     queryFn: async () => {
+      console.log("상세페이지 데이터 요청");
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`, {
         userId: session?.user.id,
       });
       return response.data;
     },
     // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
-    enabled: !!params?.id && !isDeleted && !!session?.user.id, // 삭제 후 쿼리 비활성화
+    enabled: !!params?.id && !isDeleted, // 삭제 후 쿼리 비활성화
   });
 
   //! 데이터 없으면 not-found 위치로 이동
@@ -164,7 +164,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               {detail.content}
             </Typography>
           </CardContent>
-          {detail.Image && detail.Image.length > 0 && (
+          {detail.StoryImage && detail.StoryImage.length > 0 && (
             <Box>
               <Typography variant="h6" gutterBottom>
                 첨부된 이미지:
@@ -177,9 +177,9 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   gap: 1, // 이미지 간 간격
                 }}
               >
-                {detail.Image.map((img: ImageType, index: number) => {
+                {detail.StoryImage.map((img: ImageType, index: number) => {
                   // 마지막 이미지를 조건으로 처리
-                  const isLastOddImage = index === detail.Image.length - 1 && detail.Image.length % 2 !== 0;
+                  const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
 
                   return (
                     <CardMedia

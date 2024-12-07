@@ -7,10 +7,11 @@ import { AuthModule } from 'src/auth/auth.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
-import { Image } from 'src/entities/Image.entity';
+import { StoryImage } from 'src/entities/StoryImage.entity';
 import { Today } from 'src/common/helper/today';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { User } from 'src/entities/User.entity';
+import { Comments } from 'src/entities/Comments.entity';
 
 @Module({
   imports: [
@@ -27,7 +28,7 @@ import { User } from 'src/entities/User.entity';
         },
       }),
     }),
-    TypeOrmModule.forFeature([Story, Image, UserImage, User]),
+    TypeOrmModule.forFeature([Story, StoryImage, UserImage, User, Comments]),
     AuthModule,
   ],
   controllers: [StoryController],

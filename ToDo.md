@@ -1,7 +1,6 @@
 5. 회원 가입, 로그인 후 Alert 화면 표시
 6. 로그아웃 구현하기
 7. 맨 오른쪽에 추천하기 버튼, 로그인 해서 내꺼면 삭제 혹은 수정 버튼
-
 8. refresh-token 이게 뭐임
    https://www.inflearn.com/community/questions/1291603/%EC%84%9C%EB%B2%84-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%A9%EC%8B%9D%EA%B3%BC-%EA%B2%B0%ED%95%A9?srsltid=AfmBOorFPvfwaxD9Y-oRMTKVZikGZpp-_O5SuxRnwsYEZcGedTIVKUer
 9. 유저 클릭시. 다양한 버튼 표시는 popover
@@ -12,7 +11,7 @@
 14. 회원가입시 이미 가입된 Email주소입니다. 표시하기 (완료)
 15. 좌우 width 이거, 길이 자동측정해서 하면 안되나? cal(100vh - 90px) 같이
 
-해야할거
+해야할거 추천기능
 
 -- 기능 구현()
 프론트 - NextJS, Mui, 상태관리(Zustand)

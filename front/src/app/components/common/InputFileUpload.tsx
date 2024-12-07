@@ -21,11 +21,12 @@ interface InputFileUploadProps {
 }
 
 export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileUploadProps) {
+  // 이미지 삭제
   const onRemoveImage = (index: number) => {
     const updatedPreview = preview.filter((_, i) => i !== index);
     onPreviewUpdate(updatedPreview); // 부모 컴포넌트로 상태 전달
   };
-
+  // 이미지 업로드
   const onUpload: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     if (e.target.files) {
       const newPreviews = Array.from(e.target.files).map((file) => {
@@ -47,7 +48,7 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
       });
     }
   };
-
+  // 모든 이미지 제거
   const onRemoveImageAll = () => {
     onPreviewUpdate([]); // 모든 이미지 제거
   };

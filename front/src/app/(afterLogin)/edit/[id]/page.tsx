@@ -44,7 +44,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
   } = useQuery({
     queryKey: ["story", "edit", params.id],
     queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params.id}`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/edit/${params.id}`);
       return response.data;
     },
     enabled: !!params.id,
@@ -58,7 +58,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
       setSelectedCategory(storyDetail.category || DEFAULT_SELECT_OPTION);
 
       // 기존 이미지 데이터를 preview 형식으로 변환
-      const formattedImages = (storyDetail.Image || []).map((image: any) => ({
+      const formattedImages = (storyDetail.StoryImage || []).map((image: any) => ({
         dataUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${image.link}`, // 전체 URL로 변환
         file: null, // 기존 이미지는 파일이 없으므로 null
       }));

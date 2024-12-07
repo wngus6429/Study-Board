@@ -11,7 +11,7 @@ import { Story } from './Story.entity';
 import { User } from './User.entity';
 
 @Entity()
-export class Image {
+export class StoryImage {
   @ApiProperty({
     description: '아이디',
   })
@@ -39,7 +39,7 @@ export class Image {
   @ApiProperty({
     description: '게시글',
   })
-  @ManyToOne(() => Story, (story) => story.Image, {
+  @ManyToOne(() => Story, (story) => story.StoryImage, {
     onDelete: 'CASCADE',
   })
   Story: Story;

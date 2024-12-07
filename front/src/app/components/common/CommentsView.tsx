@@ -177,7 +177,7 @@ const CommentsView = () => {
             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
               {comment.nickname}
             </Typography>
-            <Typography variant="caption" sx={{ ml: 1, color: "gray" }}>
+            <Typography variant="caption" sx={{ ml: "auto", color: "gray" }}>
               {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
             </Typography>
           </Box>

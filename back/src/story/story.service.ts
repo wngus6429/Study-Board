@@ -132,6 +132,7 @@ export class StoryService {
       throw new NotFoundException('수정할 글을 찾을 수 없습니다.');
     }
 
+    // 이거 에러 나던데 확인 해봐야 할듯
     // if (story.User !== userData) {
     //   throw new UnauthorizedException('본인의 글만 수정할 수 있습니다.');
     // }

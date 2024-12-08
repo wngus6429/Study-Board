@@ -36,9 +36,11 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       return response.data;
     },
     // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
-    enabled: !!params?.id && !isDeleted, // 삭제 후 쿼리 비활성화
-    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
+    enabled: !!params?.id && !isDeleted && !!session?.user?.id,
+    staleTime: 1000 * 60 * 5, // 5분 동안 데이터 신선 상태 유지
   });
+
+  console.log("가져온데이터", detail);
 
   //! 데이터 없으면 not-found 위치로 이동
   useEffect(() => {
@@ -57,13 +59,13 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     },
     onSuccess() {
       queryClient.removeQueries({ queryKey: ["story", "detail", params?.id] });
-      setIsDeleted(true); // 삭제 상태 업데이트
+      setIsDeleted(true); // 삭제 상태 업데이트, 다시 API 요청 방지
       showMessage("삭제 성공", "success");
       router.push("/");
     },
     onError: (error: any) => {
       if (error.response && error.response.data.code === 404) {
-        showMessage(`${error.response.data.data}`, "error"); // 서버에서 전달한 메시지 표시
+        showMessage(`${error.response.data.data}`, "error");
       } else if (error.response && error.response.data.code === 401) {
         showMessage(`${error.response.data.data}`, "error");
       } else {
@@ -84,7 +86,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               <Typography variant="h4" component="div">
                 {detail.title}
               </Typography>
-              {detail?.category !== "question" && detail?.User?.id === session?.user?.id && (
+              {detail?.category !== "question" && detail.User?.id === session?.user?.id && (
                 <Box>
                   <Button
                     size="medium"
@@ -158,19 +160,20 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 }}
               >
                 {detail.StoryImage.map((img: ImageType, index: number) => {
-                  // 마지막 이미지를 조건으로 처리
                   const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
 
                   return (
                     <CardMedia
                       key={`${img.imageId}-${index}`}
                       component="img"
-                      image={img.link}
+                      image={`${img.link}?timestamp=${new Date().getTime()}`}
                       alt={`첨부 이미지 ${index + 1}`}
                       sx={{
-                        width: isLastOddImage ? "70%" : "calc(50% - 8px)", // 홀수 마지막 이미지는 70%
+                        flexBasis: isLastOddImage ? "100%" : "calc(50% - 8px)", // 마지막 홀수 이미지는 100% 너비
+                        maxWidth: isLastOddImage ? "100%" : "calc(50% - 8px)", // 최대 50% 너비
                         margin: isLastOddImage ? "0 auto" : undefined, // 홀수 마지막 이미지를 가운데 정렬
                         borderRadius: 1,
+                        objectFit: "contain", // 이미지 비율 유지
                       }}
                     />
                   );

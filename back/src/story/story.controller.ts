@@ -50,9 +50,8 @@ export class StoryController {
     @Param('id', ParseIntPipe) id: number,
     @Body() userData?: any,
   ): Promise<any> {
-    console.log('상세 페이지 글 ID:', id, '사용자정보:', userData);
+    console.log('상세페이지부름');
     const data = await this.storyService.findStoryOne(id, userData?.userId);
-    console.log('상세 페이지 글 데이터', data);
     // User의 필요한 필드만 남김
     const { User, loginUser, ...rest } = data;
     const filteredUser = { nickname: User.nickname, id: User.id };
@@ -128,8 +127,7 @@ export class StoryController {
   async createComment(
     // @Param('id', ParseIntPipe) storyId: number,
     @Body() commentData: any,
-  ) {
-    console.log('댓글 작성:', commentData);
-    return this.storyService.createComment(commentData);
+  ): Promise<void> {
+    await this.storyService.createComment(commentData);
   }
 }

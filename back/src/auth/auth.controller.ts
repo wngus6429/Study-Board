@@ -74,7 +74,6 @@ export class AuthController {
   }
 
   @Post('logout')
-  @UseGuards(AuthGuard())
   async logout(@Req() req: Request, @Res() res: Response) {
     console.log('로그아웃 요청');
     res.clearCookie('access_token', {

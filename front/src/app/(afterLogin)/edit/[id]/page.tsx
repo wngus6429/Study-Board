@@ -42,7 +42,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
     isLoading,
     refetch,
   } = useQuery({
-    queryKey: ["story", "edit", params.id],
+    queryKey: ["story", "edit", params?.id],
     queryFn: async () => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/edit/${params.id}`);
       return response.data;
@@ -80,7 +80,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
     },
     onSuccess: () => {
       showMessage("수정 성공", "success");
-      queryClient.invalidateQueries({ queryKey: ["story", "edit", params.id] });
+      queryClient.invalidateQueries({ queryKey: ["story", "detail", params.id] });
       router.push(`/detail/${params.id}`);
     },
     onError: (error) => {

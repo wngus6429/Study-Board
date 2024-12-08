@@ -1,6 +1,6 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { useComment, useMessage } from "@/app/store";
+import { useMessage } from "@/app/store";
 import { ImageType, StoryType } from "@/app/types/types";
 import { Box, Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -17,18 +17,16 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
-  const { openCloseComments, setLoginCommentInfo } = useComment(); // 댓글 관리
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
-  const [detail, setDetail] = useState<StoryType | null>(null);
 
   //! 상세 데이터 가져오기
   const {
-    data: getDetail,
+    data: detail,
     isLoading,
     isError,
     error,
-  } = useQuery({
+  } = useQuery<StoryType>({
     queryKey: ["story", "detail", params?.id],
     queryFn: async () => {
       console.log("상세페이지 데이터 요청");
@@ -39,6 +37,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     },
     // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
     enabled: !!params?.id && !isDeleted, // 삭제 후 쿼리 비활성화
+    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
   });
 
   //! 데이터 없으면 not-found 위치로 이동
@@ -51,25 +50,6 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       }
     }
   }, [isError, error, router, isDeleted]);
-
-  //! 데이터 받아오고, 댓글 상태 업데이트
-  useEffect(() => {
-    if (getDetail) {
-      console.log("상세페이지 데이터", getDetail);
-      setDetail(getDetail as StoryType);
-      setLoginCommentInfo(getDetail.loginUser?.nickname, getDetail.loginUser?.image); // 댓글 작성자 정보 설정
-      if (getDetail.Comments) {
-        openCloseComments(true, getDetail.Comments); // 상태 업데이트 호출
-      } else {
-        showMessage("Comments 데이터가 없습니다.", "error");
-      }
-    }
-    return () => {
-      openCloseComments(false, "");
-    };
-    // 컴포넌트 언마운트 또는 useEffect의 의존성이 변경되기 전에 실행되는
-    // "정리 작업(cleanup)"을 정의한 부분으로, 댓글 창 상태를 초기화하거나 닫는 역할을 합니다.
-  }, [getDetail]);
 
   const deleteData = useMutation({
     mutationFn: async (storyId: number) => {
@@ -104,7 +84,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               <Typography variant="h4" component="div">
                 {detail.title}
               </Typography>
-              {detail.category !== "question" && detail.User.id === session?.user.id && (
+              {detail?.category !== "question" && detail?.User?.id === session?.user?.id && (
                 <Box>
                   <Button
                     size="medium"

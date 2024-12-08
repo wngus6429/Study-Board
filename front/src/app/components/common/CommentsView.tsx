@@ -42,41 +42,76 @@ const postComment = async ({
   return response.data;
 };
 
+const defaultComments: Comment[] = [
+  {
+    id: 1,
+    content: "ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ",
+    nickname: "메롱",
+    avatarUrl: "https://via.placeholder.com/40", // 기본 이미지 URL
+    parentId: null,
+    createdAt: "2024-11-24T16:23:59",
+    children: [
+      {
+        id: 2,
+        content: "😂 아울베어 그림 추가",
+        nickname: "아울베어",
+        avatarUrl: "https://via.placeholder.com/40",
+        parentId: 1,
+        createdAt: "2024-11-24T16:25:59",
+        children: [],
+      },
+      {
+        id: 3,
+        content: "😂 아울베어 그림 추가",
+        nickname: "아울베어",
+        avatarUrl: "https://via.placeholder.com/40",
+        parentId: 1,
+        createdAt: "2024-11-24T16:25:59",
+        children: [],
+      },
+    ],
+  },
+];
+
 const CommentsView = () => {
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
   const queryClient = useQueryClient();
   const { data: session } = useSession();
 
-  const defaultComments: Comment[] = [
-    {
-      id: 1,
-      content: "ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ",
-      nickname: "메롱",
-      avatarUrl: "https://via.placeholder.com/40", // 기본 이미지 URL
-      parentId: null,
-      createdAt: "2024-11-24T16:23:59",
-      children: [
-        {
-          id: 2,
-          content: "😂 아울베어 그림 추가",
-          nickname: "아울베어",
-          avatarUrl: "https://via.placeholder.com/40",
-          parentId: 1,
-          createdAt: "2024-11-24T16:25:59",
-          children: [],
-        },
-        {
-          id: 3,
-          content: "😂 아울베어 그림 추가",
-          nickname: "아울베어",
-          avatarUrl: "https://via.placeholder.com/40",
-          parentId: 1,
-          createdAt: "2024-11-24T16:25:59",
-          children: [],
-        },
-      ],
+  const { openCloseComments } = useComment();
+  const [content, setContent] = useState("");
+  const [authorId, setAuthor] = useState(session?.user.id);
+  const [replyContent, setReplyContent] = useState("");
+  const [replyTo, setReplyTo] = useState<number | null>(null); // 현재 열려 있는 답글 대상 ID 관리
+
+  const [comments, setComments] = useState<Comment[]>([]);
+
+  //! 댓글 데이터 가져오기
+  const {
+    data: CommentData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["story", "detail", "comments", storyId],
+    queryFn: async () => {
+      console.log("댓글 데이터 요청");
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`, {
+        userId: session?.user.id,
+      });
+      return response.data;
     },
-  ];
+    // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
+    enabled: !!storyId && !isDeleted, // 삭제 후 쿼리 비활성화
+  });
+
+  useEffect(() => {
+    return () => {
+      openCloseComments(false);
+    };
+    // 컴포넌트 언마운트 또는 useEffect의 의존성이 변경되기 전에 실행되는
+    // "정리 작업(cleanup)"을 정의한 부분으로, 댓글 창 상태를 초기화하거나 닫는 역할을 합니다.
+  }, [storyId]);
 
   const mutation = useMutation({
     mutationFn: async ({
@@ -126,14 +161,6 @@ const CommentsView = () => {
       queryClient.invalidateQueries({ queryKey: ["story", "detail", storyId] });
     },
   });
-
-  const { commentsData, loginCommentInfo } = useComment();
-  const [content, setContent] = useState("");
-  const [authorId, setAuthor] = useState(session?.user.id);
-  const [replyContent, setReplyContent] = useState("");
-  const [replyTo, setReplyTo] = useState<number | null>(null); // 현재 열려 있는 답글 대상 ID 관리
-
-  const [comments, setComments] = useState<Comment[]>(commentsData);
 
   const handleSubmit = () => {
     if (content.trim()) {

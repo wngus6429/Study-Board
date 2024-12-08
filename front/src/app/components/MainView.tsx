@@ -34,7 +34,7 @@ const MainView = (): ReactNode => {
   };
 
   useEffect(() => {
-    openCloseComments(false, "");
+    openCloseComments(false);
   }, [data]);
 
   if (isLoading) return <Loading />;

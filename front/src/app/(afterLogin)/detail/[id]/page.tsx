@@ -45,6 +45,9 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     if (detail != null) {
       openCloseComments(true);
     }
+    return () => {
+      openCloseComments(false);
+    };
   }, [detail]);
 
   //! 데이터 없으면 not-found 위치로 이동

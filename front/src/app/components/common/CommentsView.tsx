@@ -112,12 +112,21 @@ const CommentsView = () => {
 
   console.log("확인좀", isCommentOpen);
 
-  useEffect(() => {
-    return () => {
-      console.log("도랏나");
-      openCloseComments(false); // 컴포넌트 언마운트 시 실행
-    };
-  }, []); // 초기 렌더링에 영향을 주지 않음
+  // useEffect(() => {
+  //   return () => {
+  //     console.log("도랏나");
+  //     openCloseComments(false); // 컴포넌트 언마운트 시 실행
+  //   };
+  // }, []);
+
+  //! 데이터 받아오고, 댓글 상태 업데이트
+  // useEffect(() => {
+  //   return () => {
+  //     openCloseComments(false);
+  //   };
+  //   // 컴포넌트 언마운트 또는 useEffect의 의존성이 변경되기 전에 실행되는
+  //   // "정리 작업(cleanup)"을 정의한 부분으로, 댓글 창 상태를 초기화하거나 닫는 역할을 합니다.
+  // }, [CommentData]);
 
   useEffect(() => {
     if (CommentData?.processedComments) {

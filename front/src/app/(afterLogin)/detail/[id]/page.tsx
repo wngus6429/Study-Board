@@ -36,7 +36,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     },
     // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
     enabled: !!params?.id && !isDeleted,
-    staleTime: 1000 * 60 * 5, // 5분 동안 데이터 신선 상태 유지
+    staleTime: 1000 * 60 * 10, // 5분 동안 데이터 신선 상태 유지
   });
 
   const { openCloseComments } = useComment();

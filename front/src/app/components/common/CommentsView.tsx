@@ -1,12 +1,13 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { Box, TextField, Button, Typography, Avatar } from "@mui/material";
+import { Box, TextField, Button, Typography, Avatar, Alert } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useComment, useUserImage } from "@/app/store";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import dayjs from "dayjs";
+import Loading from "./Loading";
 
 interface Comment {
   id: number;
@@ -22,68 +23,17 @@ interface CommentsProps {
   storyId?: number;
 }
 
-const postComment = async ({
-  storyId,
-  content,
-  parentId,
-  nickname,
-}: {
-  storyId: number;
-  content: string;
-  parentId: number | null;
-  nickname: string;
-}) => {
-  const response = await axios.post("/api/comments", {
-    // storyId,
-    content,
-    parentId,
-    nickname,
-  });
-  return response.data;
-};
-
-const defaultComments: Comment[] = [
-  {
-    id: 1,
-    content: "ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ",
-    nickname: "메롱",
-    avatarUrl: "https://via.placeholder.com/40", // 기본 이미지 URL
-    parentId: null,
-    createdAt: "2024-11-24T16:23:59",
-    children: [
-      {
-        id: 2,
-        content: "😂 아울베어 그림 추가",
-        nickname: "아울베어",
-        avatarUrl: "https://via.placeholder.com/40",
-        parentId: 1,
-        createdAt: "2024-11-24T16:25:59",
-        children: [],
-      },
-      {
-        id: 3,
-        content: "😂 아울베어 그림 추가",
-        nickname: "아울베어",
-        avatarUrl: "https://via.placeholder.com/40",
-        parentId: 1,
-        createdAt: "2024-11-24T16:25:59",
-        children: [],
-      },
-    ],
-  },
-];
-
 const CommentsView = () => {
+  // URL 파라미터에서 스토리 ID 가져오기
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
-  const queryClient = useQueryClient();
+  // 세션 데이터
   const { data: session, status } = useSession();
-
-  const { isCommentOpen, openCloseComments } = useComment();
+  // 댓글 작성 내용
   const [content, setContent] = useState("");
-  const [authorId, setAuthor] = useState(session?.user.id);
+  // 답글 작성 내용
   const [replyContent, setReplyContent] = useState("");
-  const [replyTo, setReplyTo] = useState<number | null>(null); // 현재 열려 있는 답글 대상 ID 관리
-
+  // 현재 열려 있는 답글 대상 ID 관리
+  const [replyTo, setReplyTo] = useState<number | null>(null);
   // 댓글 데이터 상태
   const [comments, setComments] = useState<Comment[]>([]);
   // 유저 데이터 상태
@@ -94,7 +44,7 @@ const CommentsView = () => {
     data: CommentData,
     isLoading,
     isError,
-    error,
+    refetch,
   } = useQuery({
     queryKey: ["story", "detail", "comments", storyId],
     queryFn: async () => {
@@ -106,27 +56,8 @@ const CommentsView = () => {
     },
     // status === "authenticated"는 단순 세션이 검증 끝났다는거
     enabled: !!storyId && status === "authenticated", // storyId만 있으면 쿼리 활성화
+    staleTime: 1000 * 60 * 5,
   });
-
-  console.log("댓글 데이터", CommentData);
-
-  console.log("확인좀", isCommentOpen);
-
-  // useEffect(() => {
-  //   return () => {
-  //     console.log("도랏나");
-  //     openCloseComments(false); // 컴포넌트 언마운트 시 실행
-  //   };
-  // }, []);
-
-  //! 데이터 받아오고, 댓글 상태 업데이트
-  // useEffect(() => {
-  //   return () => {
-  //     openCloseComments(false);
-  //   };
-  //   // 컴포넌트 언마운트 또는 useEffect의 의존성이 변경되기 전에 실행되는
-  //   // "정리 작업(cleanup)"을 정의한 부분으로, 댓글 창 상태를 초기화하거나 닫는 역할을 합니다.
-  // }, [CommentData]);
 
   useEffect(() => {
     if (CommentData?.processedComments) {
@@ -163,38 +94,22 @@ const CommentsView = () => {
         throw new Error("Failed to post comment");
       }
     },
-    onSuccess: (createdComment) => {
-      // 새 댓글을 로컬 상태에 추가
-      setComments((prevComments): any => [
-        ...prevComments,
-        {
-          id: createdComment.id,
-          content: createdComment.content,
-          created_at: createdComment.created_at,
-          updated_at: createdComment.updated_at,
-          nickname: createdComment.nickname,
-          avatarUrl: createdComment.avatarUrl,
-          parentId: createdComment.parentId,
-          children: [],
-        },
-      ]);
-      setContent(""); // 입력 필드 초기화
-      // 캐시 갱신 안하면 뒤로가기 했다가 다시 들어오면 방금 적은 댓글이 안보임
-      queryClient.invalidateQueries({ queryKey: ["story", "detail", storyId] });
+    onSuccess: () => {
+      setContent("");
+      refetch();
     },
   });
 
   const handleSubmit = () => {
     if (content.trim()) {
-      console.log({ storyId, content, parentId: null, authorId: authorId as string });
-      mutation.mutate({ storyId, content, parentId: null, authorId: authorId as string });
+      mutation.mutate({ storyId, content, parentId: null, authorId: session?.user.id as string });
       setContent("");
     }
   };
 
   const handleReplySubmit = (parentId: number) => {
     if (replyContent.trim()) {
-      mutation.mutate({ storyId, content: replyContent, parentId, authorId: authorId as string });
+      mutation.mutate({ storyId, content: replyContent, parentId, authorId: session?.user.id as string });
       setReplyContent("");
       setReplyTo(null);
     }
@@ -206,10 +121,10 @@ const CommentsView = () => {
 
   // 댓글 컴포넌트 최적화
   const CommentItem = React.memo(
-    ({ comment, toggleReply, handleReplySubmit, replyTo, replyContent, setReplyContent }: any) => {
+    ({ comment, index, toggleReply, handleReplySubmit, replyTo, replyContent, setReplyContent }: any) => {
       return (
         <Box
-          key={comment.id}
+          key={`key-${comment.id}-${index}`}
           sx={{
             display: "flex",
             flexDirection: "column",
@@ -222,7 +137,7 @@ const CommentsView = () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <Avatar src={comment.avatarUrl} sx={{ width: 32, height: 32, mr: 1 }} />
+            <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`} sx={{ width: 32, height: 32, mr: 1 }} />
             <Typography variant="body2" sx={{ fontWeight: "bold" }}>
               {comment.nickname}
             </Typography>
@@ -241,7 +156,10 @@ const CommentsView = () => {
               <TextField
                 fullWidth
                 value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
+                onChange={(e) => {
+                  e.preventDefault();
+                  setReplyContent(e.target.value);
+                }}
                 placeholder="답글을 입력하세요..."
                 size="small"
               />
@@ -268,9 +186,10 @@ const CommentsView = () => {
   );
 
   const memoizedComments = useMemo(() => {
-    return comments.map((comment: any) => (
+    return comments.map((comment: any, index) => (
       <CommentItem
         key={comment.id}
+        index={index}
         comment={comment}
         toggleReply={toggleReply}
         handleReplySubmit={() => {}}
@@ -280,6 +199,16 @@ const CommentsView = () => {
       />
     ));
   }, [comments, replyTo, replyContent]);
+
+  if (isLoading) return <Loading />;
+
+  if (isError) {
+    return (
+      <Box sx={{ width: "100%", padding: 2, mt: 2 }}>
+        <Alert severity="error">댓글을 불러오는 중 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</Alert>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>

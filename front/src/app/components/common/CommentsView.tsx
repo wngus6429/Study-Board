@@ -30,8 +30,6 @@ const CommentsView = () => {
   const { data: session, status } = useSession();
   // 댓글 작성 내용
   const [content, setContent] = useState("");
-  // 답글 작성 내용
-  const [replyContent, setReplyContent] = useState("");
   // 현재 열려 있는 답글 대상 ID 관리
   const [replyTo, setReplyTo] = useState<number | null>(null);
   // 댓글 데이터 상태
@@ -107,10 +105,9 @@ const CommentsView = () => {
     }
   };
 
-  const handleReplySubmit = (parentId: number) => {
-    if (replyContent.trim()) {
-      mutation.mutate({ storyId, content: replyContent, parentId, authorId: session?.user.id as string });
-      setReplyContent("");
+  const handleReplySubmit = (parentId: number, content: string) => {
+    if (content.trim()) {
+      mutation.mutate({ storyId, content: content, parentId, authorId: session?.user.id as string });
       setReplyTo(null);
     }
   };
@@ -120,85 +117,84 @@ const CommentsView = () => {
   };
 
   // 댓글 컴포넌트 최적화
-  const CommentItem = React.memo(
-    ({ comment, index, toggleReply, handleReplySubmit, replyTo, replyContent, setReplyContent }: any) => {
-      return (
-        <Box
-          key={`key-${comment.id}-${index}`}
-          sx={{
-            display: "flex",
-            flexDirection: "column",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
-            padding: 2,
-            mt: 2,
-            ml: comment.parentId ? 4 : 0,
-            backgroundColor: comment.parentId ? "#f9f9f9" : "#fff",
-          }}
-        >
-          <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-            <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`} sx={{ width: 32, height: 32, mr: 1 }} />
-            <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-              {comment.nickname}
-            </Typography>
-            <Typography variant="caption" sx={{ ml: "auto", color: "gray" }}>
-              {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
-            </Typography>
-          </Box>
-          <Typography variant="body1">{comment.content}</Typography>
-          <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-            <Button size="small" onClick={() => toggleReply(comment.id)} sx={{ textTransform: "none" }}>
-              답글
+  const CommentItem = React.memo(({ comment, toggleReply, handleReplySubmit, replyTo }: any) => {
+    const [localReplyContent, setLocalReplyContent] = useState("");
+
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          border: "1px solid #ddd",
+          borderRadius: "4px",
+          padding: 2,
+          mt: 2,
+          ml: comment.parentId ? 4 : 0,
+          backgroundColor: comment.parentId ? "#f9f9f9" : "#fff",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
+          <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`} sx={{ width: 32, height: 32, mr: 1 }} />
+          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+            {comment.nickname}
+          </Typography>
+          <Typography variant="caption" sx={{ ml: "auto", color: "gray" }}>
+            {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
+          </Typography>
+        </Box>
+        <Typography variant="body1">{comment.content}</Typography>
+        <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+          <Button size="small" onClick={() => toggleReply(comment.id)} sx={{ textTransform: "none" }}>
+            답글
+          </Button>
+        </Box>
+        {replyTo === comment.id && (
+          <Box sx={{ mt: 1 }}>
+            <TextField
+              fullWidth
+              value={localReplyContent}
+              onChange={(e) => setLocalReplyContent(e.target.value)}
+              placeholder="답글을 입력하세요..."
+              size="small"
+            />
+            <Button
+              onClick={() => {
+                handleReplySubmit(comment.id, localReplyContent);
+                setLocalReplyContent("");
+              }}
+              variant="contained"
+              size="small"
+              sx={{ mt: 1 }}
+            >
+              댓글 작성
             </Button>
           </Box>
-          {replyTo === comment.id && (
-            <Box sx={{ mt: 1 }}>
-              <TextField
-                fullWidth
-                value={replyContent}
-                onChange={(e) => {
-                  e.preventDefault();
-                  setReplyContent(e.target.value);
-                }}
-                placeholder="답글을 입력하세요..."
-                size="small"
-              />
-              <Button onClick={() => handleReplySubmit(comment.id)} variant="contained" size="small" sx={{ mt: 1 }}>
-                댓글 작성
-              </Button>
-            </Box>
-          )}
-          {comment.children &&
-            comment.children.map((child: any) => (
-              <CommentItem
-                key={child.id}
-                comment={child}
-                toggleReply={toggleReply}
-                handleReplySubmit={handleReplySubmit}
-                replyTo={replyTo}
-                replyContent={replyContent}
-                setReplyContent={setReplyContent}
-              />
-            ))}
-        </Box>
-      );
-    }
-  );
+        )}
+        {comment.children &&
+          comment.children.map((child: any) => (
+            <CommentItem
+              key={child.id}
+              comment={child}
+              toggleReply={toggleReply}
+              handleReplySubmit={handleReplySubmit}
+              replyTo={replyTo}
+            />
+          ))}
+      </Box>
+    );
+  });
 
   const memoizedComments = useMemo(() => {
     return comments.map((comment: any, index) => (
       <CommentItem
         key={comment.id}
-        index={index}
         comment={comment}
         toggleReply={toggleReply}
-        handleReplySubmit={() => {}}
+        handleReplySubmit={handleReplySubmit}
         replyTo={replyTo}
-        replyContent={replyContent}
-        setReplyContent={setReplyContent}
       />
     ));
-  }, [comments, replyTo, replyContent]);
+  }, [comments, replyTo]);
 
   if (isLoading) return <Loading />;
 

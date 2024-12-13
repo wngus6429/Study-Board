@@ -33,9 +33,9 @@ const MainView = (): ReactNode => {
     Router.push("/write");
   };
 
-  useEffect(() => {
-    openCloseComments(false);
-  }, [data]);
+  // useEffect(() => {
+  //   openCloseComments(false);
+  // }, [data]);
 
   if (isLoading) return <Loading />;
   if (error) return <div>Error: {(error as Error).message}</div>;

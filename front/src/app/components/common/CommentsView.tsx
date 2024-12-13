@@ -76,15 +76,18 @@ const defaultComments: Comment[] = [
 const CommentsView = () => {
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
   const queryClient = useQueryClient();
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
 
-  const { openCloseComments } = useComment();
+  const { isCommentOpen, openCloseComments } = useComment();
   const [content, setContent] = useState("");
   const [authorId, setAuthor] = useState(session?.user.id);
   const [replyContent, setReplyContent] = useState("");
   const [replyTo, setReplyTo] = useState<number | null>(null); // 현재 열려 있는 답글 대상 ID 관리
 
+  // 댓글 데이터 상태
   const [comments, setComments] = useState<Comment[]>([]);
+  // 유저 데이터 상태
+  const [userData, setUserData] = useState<any>(null);
 
   //! 댓글 데이터 가져오기
   const {
@@ -95,23 +98,33 @@ const CommentsView = () => {
   } = useQuery({
     queryKey: ["story", "detail", "comments", storyId],
     queryFn: async () => {
-      console.log("댓글 데이터 요청");
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`, {
-        userId: session?.user.id,
+      console.log("댓글 데이터 요청", storyId);
+      const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/comment/${storyId}`, {
+        userId: session?.user?.id, // 로그인 안 한 경우 null 전달
       });
       return response.data;
     },
-    // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
-    enabled: !!storyId && !isDeleted, // 삭제 후 쿼리 비활성화
+    // status === "authenticated"는 단순 세션이 검증 끝났다는거
+    enabled: !!storyId && status === "authenticated", // storyId만 있으면 쿼리 활성화
   });
+
+  console.log("댓글 데이터", CommentData);
+
+  console.log("확인좀", isCommentOpen);
 
   useEffect(() => {
     return () => {
-      openCloseComments(false);
+      console.log("도랏나");
+      openCloseComments(false); // 컴포넌트 언마운트 시 실행
     };
-    // 컴포넌트 언마운트 또는 useEffect의 의존성이 변경되기 전에 실행되는
-    // "정리 작업(cleanup)"을 정의한 부분으로, 댓글 창 상태를 초기화하거나 닫는 역할을 합니다.
-  }, [storyId]);
+  }, []); // 초기 렌더링에 영향을 주지 않음
+
+  useEffect(() => {
+    if (CommentData?.processedComments) {
+      setComments(CommentData.processedComments);
+      setUserData(CommentData.loginUser);
+    }
+  }, [CommentData]);
 
   const mutation = useMutation({
     mutationFn: async ({
@@ -246,7 +259,7 @@ const CommentsView = () => {
   );
 
   const memoizedComments = useMemo(() => {
-    return comments.map((comment) => (
+    return comments.map((comment: any) => (
       <CommentItem
         key={comment.id}
         comment={comment}
@@ -259,16 +272,14 @@ const CommentsView = () => {
     ));
   }, [comments, replyTo, replyContent]);
 
-  if (!commentsData) return <Typography>로딩 댓글...</Typography>;
-
   return (
     <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>
       <Typography variant="h6" gutterBottom>
         댓글
       </Typography>
-      {comments && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
+      {CommentData && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
       {memoizedComments}
-      {loginCommentInfo.nickname != null && (
+      {userData?.nickname != null && (
         <Box
           sx={{
             width: "100%",
@@ -280,14 +291,14 @@ const CommentsView = () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
-            {loginCommentInfo.userImageUrl && (
+            {userData.image && (
               <Avatar
-                src={`${process.env.NEXT_PUBLIC_BASE_URL}${loginCommentInfo.userImageUrl}`}
+                src={`${process.env.NEXT_PUBLIC_BASE_URL}${userData?.image}`}
                 sx={{ width: 40, height: 40, marginRight: 1 }}
               />
             )}
             <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-              {loginCommentInfo?.nickname}
+              {userData.nickname}
             </Typography>
           </Box>
           <TextField

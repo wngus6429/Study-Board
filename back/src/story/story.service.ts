@@ -47,13 +47,51 @@ export class StoryService {
   async findStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['StoryImage', 'User', 'Comments', 'Comments.User.UserImage'],
+      relations: ['StoryImage', 'User', 'User.UserImage'],
     });
     if (!findData) {
       // 데이터가 없을 경우 404 에러 던지기
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
 
+    // let loginUser;
+    // if (userId != null) {
+    //   try {
+    //     loginUser = await this.userRepository.findOne({
+    //       where: { id: userId },
+    //       relations: ['UserImage'],
+    //     });
+    //   } catch (error) {
+    //     throw new NotFoundException(`User with ID ${userId} not found`);
+    //   }
+    // } else {
+    //   loginUser = null;
+    // }
+
+    // // Comments 필드가 배열인지 확인 후 처리
+    // const processedComments = Array.isArray(findData.Comments)
+    //   ? findData.Comments.map((comment) => ({
+    //       id: comment.id,
+    //       content: comment.content,
+    //       updated_at: comment.updated_at,
+    //       nickname: comment.User.nickname, // User 객체에서 nickname만 남김
+    //       link: comment.User.UserImage?.link || null, // UserImage 객체에서 link만 남김
+    //     }))
+    //   : []; // 배열이 아니면 빈 배열로 처리
+
+    return findData;
+  }
+
+  // 상세 페이지, 댓글 데이터 Get
+  async findStoryOneComment(id: number, userData?: any): Promise<any> {
+    const findData = await this.storyRepository.findOne({
+      where: { id },
+      relations: ['Comments', 'Comments.User', 'Comments.User.UserImage'],
+    });
+    if (!findData) {
+      throw new NotFoundException(`${id}의 댓글 데이터가 없음 `);
+    }
+    const { userId } = userData;
     let loginUser;
     if (userId != null) {
       try {
@@ -62,13 +100,11 @@ export class StoryService {
           relations: ['UserImage'],
         });
       } catch (error) {
-        throw new NotFoundException(`User with ID ${userId} not found`);
+        throw new NotFoundException(`로그인한 유저의 정보를 못 찾음`);
       }
     } else {
       loginUser = null;
     }
-
-    console.log('상세페이지 데이터:', findData);
 
     // Comments 필드가 배열인지 확인 후 처리
     const processedComments = Array.isArray(findData.Comments)
@@ -81,7 +117,7 @@ export class StoryService {
         }))
       : []; // 배열이 아니면 빈 배열로 처리
 
-    return { ...findData, Comments: processedComments, loginUser };
+    return { processedComments, loginUser };
   }
 
   // 글 작성

@@ -1,8 +1,8 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { useMessage } from "@/app/store";
+import { useComment, useMessage } from "@/app/store";
 import { ImageType, StoryType } from "@/app/types/types";
-import { Box, Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
+import { Avatar, Box, Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -30,18 +30,22 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   } = useQuery<StoryType>({
     queryKey: ["story", "detail", params?.id],
     queryFn: async () => {
-      console.log("상세페이지 데이터 요청");
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`, {
-        userId: session?.user.id,
-      });
+      console.log("상세페이지 데이터호출");
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`);
       return response.data;
     },
     // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
-    enabled: !!params?.id && !isDeleted && !!session?.user?.id,
+    enabled: !!params?.id && !isDeleted,
     staleTime: 1000 * 60 * 5, // 5분 동안 데이터 신선 상태 유지
   });
 
-  console.log("가져온데이터", detail);
+  const { openCloseComments } = useComment();
+
+  useEffect(() => {
+    if (detail != null) {
+      openCloseComments(true);
+    }
+  }, [detail]);
 
   //! 데이터 없으면 not-found 위치로 이동
   useEffect(() => {
@@ -121,7 +125,14 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
             </Typography>
             <Box display="flex" justifyContent="space-between" marginBottom={2}>
               <Typography variant="subtitle2" color="text.secondary">
-                작성자: {detail.User.nickname}
+                <Box sx={{ display: "flex" }}>
+                  작성자:
+                  <Avatar
+                    src={`${process.env.NEXT_PUBLIC_BASE_URL}${detail.User.avatar}`}
+                    sx={{ width: 40, height: 40, marginRight: 1 }}
+                  />
+                  {detail.User.nickname}
+                </Box>
                 <div>
                   <Button
                     onClick={() => router.push("/")}

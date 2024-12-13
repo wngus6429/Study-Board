@@ -45,27 +45,44 @@ export class StoryController {
     return data;
   }
 
-  @Post('/detail/:id')
+  @Get('/detail/:id')
   async getStoryDetail(
     @Param('id', ParseIntPipe) id: number,
     @Body() userData?: any,
   ): Promise<any> {
-    console.log('상세페이지부름');
     const data = await this.storyService.findStoryOne(id, userData?.userId);
     // User의 필요한 필드만 남김
-    const { User, loginUser, ...rest } = data;
-    const filteredUser = { nickname: User.nickname, id: User.id };
+    console.log('상세페이지 데이터:', data);
+    const { User, ...rest } = data;
+    const writeUserInfo = {
+      nickname: User.nickname,
+      id: User.id,
+      avatar: User.UserImage?.link || null,
+    };
+    // User는 글 작성자임
+    return { ...rest, User: writeUserInfo };
+  }
+  // 댓글 가져오기
+  @Post('/detail/comment/:id')
+  async getStoryDetailComment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() userId: string | null,
+  ): Promise<any> {
+    const { processedComments, loginUser } =
+      await this.storyService.findStoryOneComment(id, userId);
+
+    console.log('댓글 가져오기', processedComments, loginUser);
     let filteredLoginUser;
     if (loginUser != null) {
       filteredLoginUser = {
         nickname: loginUser?.nickname || null,
-        image: loginUser?.image?.link || null,
+        image: loginUser?.UserImage?.link || null,
       };
     } else {
       filteredLoginUser = null;
     }
-    // User는 글 작성자임
-    return { ...rest, User: filteredUser, loginUser: filteredLoginUser };
+    console.log('필터된 로그인 유저:', filteredLoginUser);
+    return { processedComments, loginUser: filteredLoginUser };
   }
 
   @Post('/create')
@@ -87,7 +104,7 @@ export class StoryController {
     );
     return this.storyService.create(createStoryDto, userData, files);
   }
-
+  // 글 수정
   @Post('/update/:id') // 수정 작업을 POST 요청으로 처리
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
@@ -111,7 +128,7 @@ export class StoryController {
 
     return this.storyService.updateStory(storyId, updateStoryDto, user, files);
   }
-
+  // 글 삭제
   @Delete('/:id')
   @UseGuards(AuthGuard())
   async deleteStory(
@@ -121,7 +138,7 @@ export class StoryController {
     console.log('삭제할 글 ID:', storyId, '사용자정보', userData.user_email);
     return this.storyService.deleteStory(storyId, userData);
   }
-
+  // 댓글 생성
   @Post('/comment/:id')
   @UseGuards(AuthGuard())
   async createComment(

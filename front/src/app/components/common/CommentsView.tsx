@@ -46,16 +46,12 @@ const CommentsView = () => {
     queryKey: ["story", "detail", "comments", storyId],
     queryFn: async () => {
       console.log("댓글 데이터 요청", storyId);
-
-      const userId = status === "authenticated" ? session?.user?.id : null;
-
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/comment/${storyId}`, {
-        userId, // 로그인했으면 userId 전달, 아니면 null
+        userId: session?.user?.id || null, // 로그인했으면 userId 전달, 아니면 null
       });
       return response.data;
     },
     enabled: !!storyId && status !== "loading", // storyId가 있으면 항상 활성화
-    staleTime: 1000 * 60 * 5,
   });
 
   useEffect(() => {

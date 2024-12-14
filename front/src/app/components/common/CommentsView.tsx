@@ -182,7 +182,7 @@ const CommentsView = () => {
         )}
 
         {/* 대댓글 렌더링 */}
-        {comment.children &&
+        {comment.children.length > 0 &&
           comment.children.map((child: any) => (
             <Box key={child.id} sx={{ ml: 2 }}>
               <CommentItem
@@ -199,11 +199,7 @@ const CommentsView = () => {
   });
 
   const memoizedComments = useMemo(() => {
-    // 모든 children 댓글 ID를 수집
-    const childCommentIds = new Set(comments.flatMap((comment: any) => comment.children.map((child: any) => child.id)));
-    // children ID에 포함되지 않은 댓글은 최상위 댓글
-    const topLevelComments = comments.filter((comment: any) => !childCommentIds.has(comment.id));
-    return topLevelComments.map((comment: any) => (
+    return comments.map((comment: any) => (
       <CommentItem
         key={comment.id}
         comment={comment}

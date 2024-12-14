@@ -65,56 +65,59 @@ export class StoryService {
         'Comments',
         'Comments.User',
         'Comments.User.UserImage',
+        'Comments.parent', // 부모 댓글까지 포함
         'Comments.children',
         'Comments.children.User.UserImage',
       ],
     });
+
     if (!findData) {
-      throw new NotFoundException(`${id}의 댓글 데이터가 없음 `);
-    }
-    const { userId } = userData;
-    let loginUser;
-    if (userId != null) {
-      try {
-        loginUser = await this.userRepository.findOne({
-          where: { id: userId },
-          relations: ['UserImage'],
-        });
-      } catch (error) {
-        throw new NotFoundException(`로그인한 유저의 정보를 못 찾음`);
-      }
-    } else {
-      loginUser = null;
+      throw new NotFoundException(`${id}의 댓글 데이터가 없음`);
     }
 
-    // console.log('댓글 데이터 상세', JSON.stringify(findData, null, 2));
+    const { userId } = userData;
+    let loginUser = null;
+    if (userId) {
+      loginUser = await this.userRepository.findOne({
+        where: { id: userId },
+        relations: ['UserImage'],
+      });
+    }
+    console.log('1comments', JSON.stringify(findData, null, 2));
 
     function buildCommentTree(comments: any): any[] {
-      return comments.map((comment) => ({
-        id: comment.id,
-        content: comment.content,
-        updated_at: comment.updated_at,
-        nickname: comment.User?.nickname, // 작성자의 닉네임 (기본값 포함)
-        link: comment.User?.UserImage?.link || null, // 작성자의 이미지 링크 (없으면 null)
-        children: comment.children ? buildCommentTree(comment.children) : [], // 대댓글 재귀 처리
-      }));
+      const commentMap = new Map();
+      // 댓글을 Map에 저장
+      comments.forEach((comment) => {
+        commentMap.set(comment.id, {
+          id: comment.id,
+          content: comment.content,
+          updated_at: comment.updated_at,
+          nickname: comment.User?.nickname || null,
+          link: comment.User?.UserImage?.link || null, // 유저 이미지 링크 추가
+          children: [],
+        });
+      });
+      // 부모-자식 관계 구성
+      const rootComments = [];
+      comments.forEach((comment) => {
+        if (comment.parent) {
+          const parentComment = commentMap.get(comment.parent.id);
+          if (parentComment) {
+            parentComment.children.push(commentMap.get(comment.id));
+          }
+        } else {
+          rootComments.push(commentMap.get(comment.id));
+        }
+      });
+      return rootComments;
     }
 
-    // 댓글 데이터를 계층 구조로 변환
+    // 댓글 계층 구조 생성
     const processedComments = buildCommentTree(findData.Comments);
-    // const processedComments = Array.isArray(findData.Comments)
-    //   ? findData.Comments.map((comment) => ({
-    //       id: comment.id,
-    //       content: comment.content,
-    //       updated_at: comment.updated_at,
-    //       nickname: comment.User.nickname, // User 객체에서 nickname만 남김
-    //       link: comment.User.UserImage?.link || null, // UserImage 객체에서 link만 남김
-    //     }))
-    //   : []; // 배열이 아니면 빈 배열로 처리
-
+    console.log('댓글 데이터 상세', JSON.stringify(processedComments, null, 2));
     return { processedComments, loginUser };
   }
-
   // 글 작성
   async create(
     createStoryDto: CreateStoryDto,

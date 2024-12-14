@@ -148,7 +148,24 @@ const CommentsView = () => {
         </Box>
 
         {/* 댓글 본문 */}
-        <Typography variant="body1">{comment.content}</Typography>
+        <Typography variant="body1">
+          {comment.parentNickname && (
+            <Box
+              component="span"
+              sx={{
+                fontWeight: "bold",
+                color: "black", // 텍스트 색상
+                backgroundColor: "#FFD700", // 골드 색상
+                borderRadius: "4px", // 부드러운 모서리
+                padding: "2px 6px", // 내부 여백
+                mr: 1, // 오른쪽 여백
+              }}
+            >
+              {comment.parentNickname}
+            </Box>
+          )}
+          {comment.content}
+        </Typography>
 
         {/* 답글 버튼 */}
         <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>

@@ -66,6 +66,8 @@ export class StoryService {
         'Comments.User',
         'Comments.User.UserImage',
         'Comments.parent', // 부모 댓글까지 포함
+        'Comments.parent.User', // 부모 댓글의 User 정보
+        'Comments.parent.User.UserImage', // 부모 댓글의 User 이미지
         'Comments.children',
         'Comments.children.User.UserImage',
       ],
@@ -87,6 +89,7 @@ export class StoryService {
 
     function buildCommentTree(comments: any): any[] {
       const commentMap = new Map();
+
       // 댓글을 Map에 저장
       comments.forEach((comment) => {
         commentMap.set(comment.id, {
@@ -95,9 +98,13 @@ export class StoryService {
           updated_at: comment.updated_at,
           nickname: comment.User?.nickname || null,
           link: comment.User?.UserImage?.link || null, // 유저 이미지 링크 추가
+          parentNickname: comment.parent
+            ? comment.parent.User?.nickname || null
+            : null, // 부모 닉네임 추가
           children: [],
         });
       });
+
       // 부모-자식 관계 구성
       const rootComments = [];
       comments.forEach((comment) => {
@@ -110,6 +117,7 @@ export class StoryService {
           rootComments.push(commentMap.get(comment.id));
         }
       });
+
       return rootComments;
     }
 

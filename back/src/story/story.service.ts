@@ -54,31 +54,6 @@ export class StoryService {
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
 
-    // let loginUser;
-    // if (userId != null) {
-    //   try {
-    //     loginUser = await this.userRepository.findOne({
-    //       where: { id: userId },
-    //       relations: ['UserImage'],
-    //     });
-    //   } catch (error) {
-    //     throw new NotFoundException(`User with ID ${userId} not found`);
-    //   }
-    // } else {
-    //   loginUser = null;
-    // }
-
-    // // Comments 필드가 배열인지 확인 후 처리
-    // const processedComments = Array.isArray(findData.Comments)
-    //   ? findData.Comments.map((comment) => ({
-    //       id: comment.id,
-    //       content: comment.content,
-    //       updated_at: comment.updated_at,
-    //       nickname: comment.User.nickname, // User 객체에서 nickname만 남김
-    //       link: comment.User.UserImage?.link || null, // UserImage 객체에서 link만 남김
-    //     }))
-    //   : []; // 배열이 아니면 빈 배열로 처리
-
     return findData;
   }
 
@@ -86,7 +61,13 @@ export class StoryService {
   async findStoryOneComment(id: number, userData?: any): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['Comments', 'Comments.User', 'Comments.User.UserImage'],
+      relations: [
+        'Comments',
+        'Comments.User',
+        'Comments.User.UserImage',
+        'Comments.children',
+        'Comments.children.User.UserImage',
+      ],
     });
     if (!findData) {
       throw new NotFoundException(`${id}의 댓글 데이터가 없음 `);
@@ -106,16 +87,30 @@ export class StoryService {
       loginUser = null;
     }
 
-    // Comments 필드가 배열인지 확인 후 처리
-    const processedComments = Array.isArray(findData.Comments)
-      ? findData.Comments.map((comment) => ({
-          id: comment.id,
-          content: comment.content,
-          updated_at: comment.updated_at,
-          nickname: comment.User.nickname, // User 객체에서 nickname만 남김
-          link: comment.User.UserImage?.link || null, // UserImage 객체에서 link만 남김
-        }))
-      : []; // 배열이 아니면 빈 배열로 처리
+    // console.log('댓글 데이터 상세', JSON.stringify(findData, null, 2));
+
+    function buildCommentTree(comments: any): any[] {
+      return comments.map((comment) => ({
+        id: comment.id,
+        content: comment.content,
+        updated_at: comment.updated_at,
+        nickname: comment.User?.nickname, // 작성자의 닉네임 (기본값 포함)
+        link: comment.User?.UserImage?.link || null, // 작성자의 이미지 링크 (없으면 null)
+        children: comment.children ? buildCommentTree(comment.children) : [], // 대댓글 재귀 처리
+      }));
+    }
+
+    // 댓글 데이터를 계층 구조로 변환
+    const processedComments = buildCommentTree(findData.Comments);
+    // const processedComments = Array.isArray(findData.Comments)
+    //   ? findData.Comments.map((comment) => ({
+    //       id: comment.id,
+    //       content: comment.content,
+    //       updated_at: comment.updated_at,
+    //       nickname: comment.User.nickname, // User 객체에서 nickname만 남김
+    //       link: comment.User.UserImage?.link || null, // UserImage 객체에서 link만 남김
+    //     }))
+    //   : []; // 배열이 아니면 빈 배열로 처리
 
     return { processedComments, loginUser };
   }
@@ -280,48 +275,38 @@ export class StoryService {
     parentId?: number | null;
     authorId: string;
   }): Promise<void> {
-    console.log('응userId', commentData);
+    console.log('데잍', commentData);
     const { storyId, content, parentId, authorId } = commentData;
 
     // 글 확인
     const story = await this.storyRepository.findOne({
       where: { id: Number(storyId) },
     });
-
     if (!story) {
       throw new NotFoundException('댓글을 작성할 글을 찾을 수 없습니다.');
     }
-
-    const UserData = await this.userRepository.findOne({
-      where: { id: authorId },
-    });
-
-    if (!UserData) {
+    // 사용자 확인
+    const user = await this.userRepository.findOne({ where: { id: authorId } });
+    if (!user) {
       throw new NotFoundException('댓글을 작성할 사용자를 찾을 수 없습니다.');
     }
+    // 부모 댓글 확인
+    const parentComment = parentId
+      ? await this.commentRepository.findOne({ where: { id: parentId } })
+      : null;
 
-    // 부모 댓글 확인 (대댓글인 경우)
-    let parentComment: Comments | null = null;
-    if (parentId) {
-      parentComment = await this.commentRepository.findOne({
-        where: { id: parentId },
-      });
+    console.log('par', parentComment);
+    if (parentId && !parentComment)
+      throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
 
-      if (!parentComment) {
-        throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
-      }
-    }
-    console.log('유저', UserData);
-
-    // 댓글 생성
+    // 댓글 생성 및 저장
     const comment = this.commentRepository.create({
       content,
-      parent: parentComment || null,
+      parent: parentComment,
       Story: story,
-      User: UserData,
+      User: user,
     });
 
-    // 댓글 저장
     await this.commentRepository.save(comment);
   }
 }

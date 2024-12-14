@@ -37,7 +37,6 @@ const CommentsView = () => {
   // 유저 데이터 상태
   const [userData, setUserData] = useState<any>(null);
 
-  //! 댓글 데이터 가져오기
   const {
     data: CommentData,
     isLoading,
@@ -47,15 +46,23 @@ const CommentsView = () => {
     queryKey: ["story", "detail", "comments", storyId],
     queryFn: async () => {
       console.log("댓글 데이터 요청", storyId);
+
+      const userId = status === "authenticated" ? session?.user?.id : null;
+
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/comment/${storyId}`, {
-        userId: session?.user?.id, // 로그인 안 한 경우 null 전달
+        userId, // 로그인했으면 userId 전달, 아니면 null
       });
       return response.data;
     },
-    // status === "authenticated"는 단순 세션이 검증 끝났다는거
-    enabled: !!storyId && status === "authenticated", // storyId만 있으면 쿼리 활성화
+    enabled: !!storyId && status !== "loading", // storyId가 있으면 항상 활성화
     staleTime: 1000 * 60 * 5,
   });
+
+  useEffect(() => {
+    if (CommentData) {
+      console.log("CommentData", CommentData);
+    }
+  }, [CommentData]);
 
   useEffect(() => {
     if (CommentData?.processedComments) {
@@ -116,12 +123,12 @@ const CommentsView = () => {
     setReplyTo((prev) => (prev === commentId ? null : commentId)); // 같은 ID를 클릭하면 닫히도록
   };
 
-  // 댓글 컴포넌트 최적화
   const CommentItem = React.memo(({ comment, toggleReply, handleReplySubmit, replyTo }: any) => {
     const [localReplyContent, setLocalReplyContent] = useState("");
 
     return (
       <Box
+        key={comment.id}
         sx={{
           display: "flex",
           flexDirection: "column",
@@ -133,6 +140,7 @@ const CommentsView = () => {
           backgroundColor: comment.parentId ? "#f9f9f9" : "#fff",
         }}
       >
+        {/* 댓글 정보 */}
         <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
           <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`} sx={{ width: 32, height: 32, mr: 1 }} />
           <Typography variant="body2" sx={{ fontWeight: "bold" }}>
@@ -142,12 +150,18 @@ const CommentsView = () => {
             {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
           </Typography>
         </Box>
+
+        {/* 댓글 본문 */}
         <Typography variant="body1">{comment.content}</Typography>
+
+        {/* 답글 버튼 */}
         <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
           <Button size="small" onClick={() => toggleReply(comment.id)} sx={{ textTransform: "none" }}>
             답글
           </Button>
         </Box>
+
+        {/* 답글 입력 */}
         {replyTo === comment.id && (
           <Box sx={{ mt: 1 }}>
             <TextField
@@ -170,22 +184,30 @@ const CommentsView = () => {
             </Button>
           </Box>
         )}
+
+        {/* 대댓글 렌더링 */}
         {comment.children &&
           comment.children.map((child: any) => (
-            <CommentItem
-              key={child.id}
-              comment={child}
-              toggleReply={toggleReply}
-              handleReplySubmit={handleReplySubmit}
-              replyTo={replyTo}
-            />
+            <Box sx={{ ml: 2 }}>
+              <CommentItem
+                key={child.id}
+                comment={child}
+                toggleReply={toggleReply}
+                handleReplySubmit={handleReplySubmit}
+                replyTo={replyTo}
+              />
+            </Box>
           ))}
       </Box>
     );
   });
 
   const memoizedComments = useMemo(() => {
-    return comments.map((comment: any, index) => (
+    // 모든 children 댓글 ID를 수집
+    const childCommentIds = new Set(comments.flatMap((comment: any) => comment.children.map((child: any) => child.id)));
+    // children ID에 포함되지 않은 댓글은 최상위 댓글
+    const topLevelComments = comments.filter((comment: any) => !childCommentIds.has(comment.id));
+    return topLevelComments.map((comment: any) => (
       <CommentItem
         key={comment.id}
         comment={comment}

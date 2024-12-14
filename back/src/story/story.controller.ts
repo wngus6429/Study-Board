@@ -27,24 +27,13 @@ import { Story } from 'src/entities/Story.entity';
 export class StoryController {
   logger: any;
   constructor(private readonly storyService: StoryService) {}
-
+  // 모든 글 가져오지
   @Get('/getall')
   async getAllStory(): Promise<any> {
     console.log('모든 글 가져오기');
-    const all = await this.storyService.findStoryAll();
-    console.log('모든 글:', all);
-    return all;
+    return await this.storyService.findStoryAll();
   }
-
-  @Get('/detail/edit/:id')
-  async getStoryEditStory(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() userData?: any,
-  ): Promise<any> {
-    const data = await this.storyService.findEditStoryOne(id, userData?.userId);
-    return data;
-  }
-
+  // 상세페이지
   @Get('/detail/:id')
   async getStoryDetail(
     @Param('id', ParseIntPipe) id: number,
@@ -62,7 +51,16 @@ export class StoryController {
     // User는 글 작성자임
     return { ...rest, User: writeUserInfo };
   }
-  // 댓글 가져오기
+  // 상세 페이지 수정시 데이터 받아옴
+  @Get('/detail/edit/:id')
+  async getStoryEditStory(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() userData?: any,
+  ): Promise<any> {
+    const data = await this.storyService.findEditStoryOne(id, userData?.userId);
+    return data;
+  }
+  // 상세페이지 댓글 가져오기
   @Post('/detail/comment/:id')
   async getStoryDetailComment(
     @Param('id', ParseIntPipe) id: number,
@@ -70,8 +68,7 @@ export class StoryController {
   ): Promise<any> {
     const { processedComments, loginUser } =
       await this.storyService.findStoryOneComment(id, userId);
-
-    console.log('댓글 가져오기', processedComments, loginUser);
+    // 로그인유저 객체 만들기.
     let filteredLoginUser;
     if (loginUser != null) {
       filteredLoginUser = {
@@ -81,10 +78,10 @@ export class StoryController {
     } else {
       filteredLoginUser = null;
     }
-    console.log('필터된 로그인 유저:', filteredLoginUser);
+    console.log('완성체', processedComments);
     return { processedComments, loginUser: filteredLoginUser };
   }
-
+  // 글 작성
   @Post('/create')
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
@@ -94,14 +91,7 @@ export class StoryController {
     @GetUser() userData: User,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    console.log(
-      '데이터:',
-      createStoryDto,
-      '사용자정보',
-      userData,
-      '업로드된 파일:',
-      files,
-    );
+    console.log('글 작성', createStoryDto, userData, files);
     return this.storyService.create(createStoryDto, userData, files);
   }
   // 글 수정
@@ -115,17 +105,7 @@ export class StoryController {
     @GetUser() user: User,
     @UploadedFiles() files: Express.Multer.File[],
   ): Promise<Story> {
-    console.log(
-      '수정할 글 ID:',
-      storyId,
-      '업데이트 데이터:',
-      updateStoryDto,
-      '사용자정보:',
-      user,
-      '이미지에요',
-      files,
-    );
-
+    console.log('글 수정', storyId, updateStoryDto, user, files);
     return this.storyService.updateStory(storyId, updateStoryDto, user, files);
   }
   // 글 삭제
@@ -138,13 +118,10 @@ export class StoryController {
     console.log('삭제할 글 ID:', storyId, '사용자정보', userData.user_email);
     return this.storyService.deleteStory(storyId, userData);
   }
-  // 댓글 생성
+  // 댓글 작성
   @Post('/comment/:id')
   @UseGuards(AuthGuard())
-  async createComment(
-    // @Param('id', ParseIntPipe) storyId: number,
-    @Body() commentData: any,
-  ): Promise<void> {
+  async createComment(@Body() commentData: any): Promise<void> {
     await this.storyService.createComment(commentData);
   }
 }

@@ -188,7 +188,7 @@ const CommentsView = () => {
         {/* 대댓글 렌더링 */}
         {comment.children &&
           comment.children.map((child: any) => (
-            <Box sx={{ ml: 2 }}>
+            <Box key={child.id} sx={{ ml: 2 }}>
               <CommentItem
                 key={child.id}
                 comment={child}

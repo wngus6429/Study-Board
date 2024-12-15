@@ -143,14 +143,12 @@ const CommentsView = () => {
             sx={{
               display: "flex",
               flexDirection: "column",
-              borderLeft: "1px solid #ddd",
-              borderBottom: "1px solid #ddd",
-              padding: "8px 0",
+              border: "1px solid #ddd",
               ml: `${Math.min(comment.depth, MAX_DEPTH) * 30}px`, // depth에 따라 들여쓰기 적용
             }}
           >
             {/* 댓글 헤더 */}
-            <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Box sx={{ display: "flex", alignItems: "center", backgroundColor: "#e6e6ff" }}>
               <Avatar
                 src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`}
                 sx={{ width: 32, height: 32, mr: 1 }}

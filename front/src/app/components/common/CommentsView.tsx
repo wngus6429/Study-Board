@@ -119,132 +119,123 @@ const CommentsView = () => {
     setReplyTo((prev) => (prev === commentId ? null : commentId)); // 같은 ID를 클릭하면 닫히도록
   };
 
-  const CommentItem = React.memo(({ comment, toggleReply, handleReplySubmit, replyTo }: any) => {
+  const flattenComments = (comments: any[], depth = 0, result = []) => {
+    for (const comment of comments) {
+      result.push({ ...comment, depth }); // 댓글과 depth를 함께 저장
+      if (comment.children && comment.children.length > 0) {
+        flattenComments(comment.children, depth + 1, result); // 재귀 호출
+      }
+    }
+    return result;
+  };
+
+  const MAX_DEPTH = 4; // 최대 깊이 제한
+
+  const CommentList = ({ comments, toggleReply, handleReplySubmit, replyTo }: any) => {
     const [localReplyContent, setLocalReplyContent] = useState("");
+    const flatComments = flattenComments(comments); // 평면 구조로 변환
 
     return (
-      <Box
-        key={comment.id}
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          border: "1px solid #ddd",
-          borderRadius: "4px",
-          padding: 2,
-          mt: 2,
-          ml: comment.parentId ? 4 : 0,
-          backgroundColor: comment.parentId ? "#f9f9f9" : "#fff",
-        }}
-      >
-        {/* 댓글 정보 */}
-        <Box sx={{ display: "flex", alignItems: "center", mb: 1 }}>
-          <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`} sx={{ width: 32, height: 32, mr: 1 }} />
-          <Typography variant="body2" sx={{ fontWeight: "bold" }}>
-            {comment.nickname}
-          </Typography>
-          <Typography variant="caption" sx={{ ml: "auto", color: "gray" }}>
-            {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
-          </Typography>
-        </Box>
-
-        {/* 댓글 본문 */}
-        <Typography variant="body1">
-          {comment.parentNickname && (
-            <Box
-              component="span"
-              sx={{
-                fontWeight: "bold",
-                color: "black", // 텍스트 색상
-                backgroundColor: "#FFD700", // 골드 색상
-                borderRadius: "4px", // 부드러운 모서리
-                padding: "2px 6px", // 내부 여백
-                mr: 1, // 오른쪽 여백
-              }}
-            >
-              {comment.parentNickname}
-            </Box>
-          )}
-          {comment.content}
-        </Typography>
-
-        {/* 답글 버튼 */}
-        <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-          <Button size="small" onClick={() => toggleReply(comment.id)} sx={{ textTransform: "none" }}>
-            답글
-          </Button>
-        </Box>
-
-        {/* 답글 입력 */}
-        {replyTo === comment.id && (
-          <Box sx={{ mt: 1 }}>
-            <TextField
-              fullWidth
-              value={localReplyContent}
-              onChange={(e) => setLocalReplyContent(e.target.value)}
-              placeholder="답글을 입력하세요..."
-              size="small"
-            />
-            <Button
-              onClick={() => {
-                handleReplySubmit(comment.id, localReplyContent);
-                setLocalReplyContent("");
-              }}
-              variant="contained"
-              size="small"
-              sx={{ mt: 1 }}
-            >
-              댓글 작성
-            </Button>
-          </Box>
-        )}
-
-        {/* 대댓글 렌더링 */}
-        {comment.children.length > 0 &&
-          comment.children.map((child: any) => (
-            <Box key={child.id} sx={{ ml: 2 }}>
-              <CommentItem
-                key={child.id}
-                comment={child}
-                toggleReply={toggleReply}
-                handleReplySubmit={handleReplySubmit}
-                replyTo={replyTo}
+      <Box>
+        {flatComments.map((comment: any) => (
+          <Box
+            key={comment.id}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              borderLeft: "1px solid #ddd",
+              borderBottom: "1px solid #ddd",
+              padding: "8px 0",
+              ml: `${Math.min(comment.depth, MAX_DEPTH) * 30}px`, // depth에 따라 들여쓰기 적용
+            }}
+          >
+            {/* 댓글 헤더 */}
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              <Avatar
+                src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`}
+                sx={{ width: 32, height: 32, mr: 1 }}
               />
+              <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+                {comment.nickname}
+              </Typography>
+              <Typography variant="caption" sx={{ ml: "auto", color: "gray" }}>
+                {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
+              </Typography>
             </Box>
-          ))}
+
+            {/* 댓글 내용 */}
+            <Typography variant="body1" sx={{ mt: 1 }}>
+              {comment.parentNickname && (
+                <Box
+                  component="span"
+                  sx={{
+                    fontWeight: "bold",
+                    backgroundColor: "#FFEB3B",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                    mr: 1,
+                  }}
+                >
+                  @{comment.parentNickname}
+                </Box>
+              )}
+              {comment.content}
+            </Typography>
+
+            {/* 답글 버튼 */}
+            <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+              <Button
+                size="small"
+                onClick={() => toggleReply(comment.id)}
+                sx={{ textTransform: "none", color: "#007BFF" }}
+              >
+                답글
+              </Button>
+            </Box>
+
+            {/* 답글 입력 */}
+            {replyTo === comment.id && (
+              <Box sx={{ mt: 1 }}>
+                <TextField
+                  fullWidth
+                  value={localReplyContent}
+                  onChange={(e) => setLocalReplyContent(e.target.value)}
+                  placeholder="답글을 입력하세요..."
+                  size="small"
+                />
+                <Button
+                  onClick={() => {
+                    handleReplySubmit(comment.id, localReplyContent);
+                    setLocalReplyContent("");
+                  }}
+                  variant="contained"
+                  size="small"
+                  sx={{ mt: 1 }}
+                >
+                  댓글 작성
+                </Button>
+              </Box>
+            )}
+          </Box>
+        ))}
       </Box>
     );
-  });
+  };
 
-  const memoizedComments = useMemo(() => {
-    return comments.map((comment: any) => (
-      <CommentItem
-        key={comment.id}
-        comment={comment}
+  return (
+    <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>
+      {isLoading && <Loading />}
+      {isError && <Alert severity="error">댓글을 불러오는 중 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</Alert>}
+      <Typography variant="h6" gutterBottom>
+        댓글
+      </Typography>
+      <CommentList
+        comments={comments}
         toggleReply={toggleReply}
         handleReplySubmit={handleReplySubmit}
         replyTo={replyTo}
       />
-    ));
-  }, [comments, replyTo]);
-
-  if (isLoading) return <Loading />;
-
-  if (isError) {
-    return (
-      <Box sx={{ width: "100%", padding: 2, mt: 2 }}>
-        <Alert severity="error">댓글을 불러오는 중 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</Alert>
-      </Box>
-    );
-  }
-
-  return (
-    <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        댓글
-      </Typography>
-      {CommentData && comments.length === 0 && <Typography>댓글이 없습니다.</Typography>}
-      {memoizedComments}
-      {userData?.nickname != null && (
+      {userData?.nickname && (
         <Box
           sx={{
             width: "100%",
@@ -271,7 +262,7 @@ const CommentsView = () => {
             multiline
             minRows={2}
             maxRows={4}
-            placeholder="댓글을 입력하세요..."
+            placeholder="나쁜말 쓰면 큰일남"
             value={content}
             onChange={(e) => setContent(e.target.value)}
             sx={{ marginBottom: 1 }}

@@ -88,7 +88,7 @@ const MainView = (): ReactNode => {
           </Button>
         </div>
       )}
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
         <Pagination
           pageCount={Math.ceil((data?.total || 0) / viewCount)}
           onPageChange={handlePageClick}

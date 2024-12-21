@@ -7,19 +7,31 @@
 }
 
 .pagination li {
-  padding: 5px 10px;
+  padding: 0; /* 내부 여백 제거 */
   border: 1px solid #ccc;
-  cursor: pointer;
   border-radius: 4px;
+  overflow: hidden; /* 자식 요소가 부모를 넘지 않도록 */
+  cursor: pointer;
 }
 
-.pagination li.active {
+.pagination li a {
+  display: flex; /* 중앙 정렬을 위한 flexbox */
+  justify-content: center; /* 수평 정렬 */
+  align-items: center; /* 수직 정렬 */
+  padding: 5px 10px; /* 기존 디자인 유지 */
+  width: 100%; /* 부모 크기와 동일 */
+  height: 100%; /* 부모 크기와 동일 */
+  text-decoration: none; /* 밑줄 제거 */
+  color: inherit; /* 텍스트 색상 상속 */
+}
+
+.pagination li.active a {
   background-color: #1976d2;
   color: white;
   font-weight: bold;
 }
 
-.pagination li.disabled {
+.pagination li.disabled a {
   color: #ccc;
   cursor: not-allowed;
 }

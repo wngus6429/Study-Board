@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Post,
   Put,
+  Query,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
@@ -29,10 +30,14 @@ export class StoryController {
   constructor(private readonly storyService: StoryService) {}
   // 모든 글 가져오지
   @Get('/getall')
-  async getAllStory(): Promise<any> {
-    console.log('모든 글 가져오기');
-    return await this.storyService.findStoryAll();
+  async getAllStory(
+    @Query('cursor') cursor?: number, // 이전 커서 ID
+    @Query('limit') limit = 10, // 기본 페이지 크기
+  ): Promise<Partial<Story>[]> {
+    console.log('모든 글 가져오기', cursor, limit);
+    return await this.storyService.findStoryAll(cursor, limit);
   }
+
   // 상세페이지
   @Get('/detail/:id')
   async getStoryDetail(

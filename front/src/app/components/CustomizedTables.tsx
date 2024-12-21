@@ -50,23 +50,11 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 interface CustomizedTablesProps {
   tableData: any;
-  currentPage: number;
-  setCurrentPage: React.Dispatch<React.SetStateAction<number>>;
-  viewCount: number;
 }
 
-const CustomizedTables = ({
-  tableData,
-  currentPage,
-  setCurrentPage,
-  viewCount,
-}: CustomizedTablesProps): React.ReactNode => {
+const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
   const router = useRouter();
   const { showMessage } = useMessage((state) => state);
-
-  const handlePageClick = (selectedItem: { selected: number }) => {
-    setCurrentPage(selectedItem.selected + 1); // ReactPaginate는 0부터 시작하므로 +1 필요
-  };
 
   return (
     <>
@@ -118,7 +106,6 @@ const CustomizedTables = ({
           </TableBody>
         </Table>
       </TableContainer>
-      <Pagination pageCount={viewCount} onPageChange={handlePageClick} currentPage={currentPage} />
     </>
   );
 };

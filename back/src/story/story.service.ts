@@ -25,30 +25,26 @@ export class StoryService {
     @InjectRepository(Comments) private commentRepository: Repository<Comments>,
   ) {}
 
-  // 목록 페이지
-  // async findStoryAll(): Promise<Partial<Story>[]> {
-  //   return this.storyRepository.find({ relations: ['User'] });
-  // }
-
-  async findStoryAll(cursor?: number, limit = 10): Promise<Partial<Story>[]> {
-    console.log('왕', cursor, 'limit', limit);
-
-    // 조건 생성
+  async findStory(
+    cursor?: number,
+    limit = 10,
+  ): Promise<{ results: Partial<Story>[]; total: number }> {
     const whereCondition =
       cursor && cursor > 0
-        ? { id: LessThan(cursor) } // 커서 값이 0보다 큰 경우에만 조건 추가
+        ? { id: LessThan(cursor) } // cursor보다 작은 id 가져오기
         : {};
 
-    // 데이터 조회
     const results = await this.storyRepository.find({
-      where: whereCondition, // 조건 추가
-      relations: ['User'], // User 관계 포함
-      order: { id: 'DESC' }, // 최신순 정렬
-      take: limit, // 데이터 개수 제한
+      where: whereCondition,
+      relations: ['User'],
+      order: { id: 'DESC' }, // 최신 데이터 우선 정렬
+      take: limit,
     });
 
+    const total = await this.storyRepository.count(); // 전체 데이터 수
+
     console.log('쿼리 결과:', results);
-    return results;
+    return { results, total };
   }
 
   // 수정 페이지

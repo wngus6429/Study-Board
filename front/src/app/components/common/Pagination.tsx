@@ -1,11 +1,12 @@
 "use client";
 import React from "react";
 import ReactPaginate from "react-paginate";
+import styles from "./Pagination.module.css";
 
 type PaginationProps = {
-  pageCount: number; // 총 페이지 수
-  onPageChange: (selectedItem: { selected: number }) => void; // 페이지 변경 함수
-  currentPage: number; // 현재 페이지
+  pageCount: number;
+  onPageChange: (selectedItem: { selected: number }) => void;
+  currentPage: number;
 };
 
 const Pagination = ({ pageCount, onPageChange, currentPage }: PaginationProps) => {
@@ -16,12 +17,12 @@ const Pagination = ({ pageCount, onPageChange, currentPage }: PaginationProps) =
       breakLabel={"..."}
       pageCount={pageCount}
       onPageChange={onPageChange}
-      forcePage={currentPage - 1} // ReactPaginate는 0-based index
+      forcePage={currentPage - 1} // 0-based index
       marginPagesDisplayed={2}
       pageRangeDisplayed={5}
-      containerClassName={"pagination"}
-      activeClassName={"active"}
-      disabledClassName={"disabled"}
+      containerClassName={styles.pagination}
+      activeClassName={styles.active}
+      disabledClassName={styles.disabled}
     />
   );
 };

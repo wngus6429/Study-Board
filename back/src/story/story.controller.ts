@@ -29,13 +29,13 @@ export class StoryController {
   logger: any;
   constructor(private readonly storyService: StoryService) {}
   // 모든 글 가져오지
-  @Get('/getall')
-  async getAllStory(
-    @Query('cursor') cursor?: number, // 이전 커서 ID
-    @Query('limit') limit = 10, // 기본 페이지 크기
-  ): Promise<Partial<Story>[]> {
-    console.log('모든 글 가져오기', cursor, limit);
-    return await this.storyService.findStoryAll(cursor, limit);
+  @Get('/pageTableData')
+  async getPageStory(
+    @Query('cursor') cursor?: number,
+    @Query('limit') limit = 10,
+  ): Promise<{ results: Partial<Story>[]; total: number }> {
+    console.log('커서', cursor, '리미트', limit);
+    return await this.storyService.findStory(cursor, limit);
   }
 
   // 상세페이지

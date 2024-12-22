@@ -26,22 +26,18 @@ export class StoryService {
   ) {}
 
   async findStory(
-    cursor?: number,
+    offset = 0,
     limit = 10,
   ): Promise<{ results: Partial<Story>[]; total: number }> {
-    const whereCondition =
-      cursor && cursor > 0
-        ? { id: LessThan(cursor) } // cursor보다 작은 id 가져오기
-        : {};
-
-    const results = await this.storyRepository.find({
-      where: whereCondition,
-      relations: ['User'],
-      order: { id: 'DESC' }, // 최신 데이터 우선 정렬
-      take: limit,
-    });
-
-    const total = await this.storyRepository.count(); // 전체 데이터 수
+    const [results, total] = await Promise.all([
+      this.storyRepository.find({
+        relations: ['User'],
+        order: { id: 'DESC' },
+        skip: offset,
+        take: limit,
+      }),
+      this.storyRepository.count(),
+    ]);
 
     console.log('쿼리 결과:', results);
     return { results, total };
@@ -114,6 +110,7 @@ export class StoryService {
           content: comment.content,
           updated_at: comment.updated_at,
           nickname: comment.User?.nickname || null,
+          userId: comment.User?.id, // 유저 이미지 링크 추가
           link: comment.User?.UserImage?.link || null, // 유저 이미지 링크 추가
           parentNickname: comment.parent
             ? comment.parent.User?.nickname || null

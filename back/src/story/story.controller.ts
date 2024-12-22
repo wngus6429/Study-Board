@@ -31,11 +31,11 @@ export class StoryController {
   // 모든 글 가져오지
   @Get('/pageTableData')
   async getPageStory(
-    @Query('cursor') cursor?: number,
+    @Query('offset') offset = 0,
     @Query('limit') limit = 10,
   ): Promise<{ results: Partial<Story>[]; total: number }> {
-    console.log('커서', cursor, '리미트', limit);
-    return await this.storyService.findStory(cursor, limit);
+    console.log('오프셋', offset, '리미트', limit);
+    return await this.storyService.findStory(offset, limit);
   }
 
   // 상세페이지

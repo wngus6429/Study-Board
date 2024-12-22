@@ -184,11 +184,24 @@ const CommentsView = () => {
             <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
               <Button
                 size="small"
+                variant="outlined"
                 onClick={() => toggleReply(comment.id)}
-                sx={{ textTransform: "none", color: "#007BFF" }}
+                color="primary"
+                sx={{ textTransform: "none" }}
               >
                 답글
               </Button>
+              {comment.userId === session?.user.id && (
+                <Button
+                  size="small"
+                  onClick={() => toggleReply(comment.id)}
+                  variant="outlined"
+                  color="error"
+                  sx={{ textTransform: "none" }}
+                >
+                  삭제
+                </Button>
+              )}
             </Box>
 
             {/* 답글 입력 */}

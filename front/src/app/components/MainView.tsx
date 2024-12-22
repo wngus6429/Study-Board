@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useState } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
@@ -11,39 +11,32 @@ import CreateIcon from "@mui/icons-material/Create";
 import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import Pagination from "./common/Pagination";
 
+interface ApiResponse {
+  results: any[];
+  total: number;
+}
+
 const MainView = (): ReactNode => {
   const Router = useRouter();
   const [value, setValue] = useState("all");
   const { data: user } = useSession();
   const [currentPage, setCurrentPage] = useState(1);
-  const viewCount = 3;
+  const viewCount = 2;
 
-  // Keep track of all cursors for each page
-  const [cursors, setCursors] = useState<Record<number, number>>({ 1: 0 });
-
-  const { data, error, isLoading } = useQuery({
-    queryKey: ["stories", currentPage, cursors[currentPage] ?? 0],
+  const { data, error, isLoading } = useQuery<ApiResponse>({
+    queryKey: ["stories", currentPage],
     queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData`, {
+      const offset = (currentPage - 1) * viewCount;
+      const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData`, {
         params: {
-          cursor: cursors[currentPage] ?? 0,
+          offset,
           limit: viewCount,
         },
       });
       return response.data;
     },
+    staleTime: 1000 * 60 * 5,
   });
-
-  // Update cursors when new data is received
-  useEffect(() => {
-    if (data?.results?.length > 0) {
-      const lastItem = data.results[data.results.length - 1];
-      setCursors((prev) => ({
-        ...prev,
-        [currentPage + 1]: lastItem.id,
-      }));
-    }
-  }, [data, currentPage]);
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);

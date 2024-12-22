@@ -38,6 +38,12 @@ export class Comments {
   updated_at: Date;
 
   @ApiProperty({
+    description: '삭제일',
+  })
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  deleted_at: Date;
+
+  @ApiProperty({
     description: '댓글의 부모 댓글 ID (없으면 null)',
   })
   @ManyToOne(() => Comments, (comment) => comment.children, {

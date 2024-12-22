@@ -34,7 +34,6 @@ export class StoryController {
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
   ): Promise<{ results: Partial<Story>[]; total: number }> {
-    console.log('오프셋', offset, '리미트', limit);
     return await this.storyService.findStory(offset, limit);
   }
 
@@ -128,5 +127,12 @@ export class StoryController {
   @UseGuards(AuthGuard())
   async createComment(@Body() commentData: any): Promise<void> {
     await this.storyService.createComment(commentData);
+  }
+  // 댓글 삭제
+  @Put('/comment/:id')
+  @UseGuards(AuthGuard())
+  async deleteComment(@Param('id') commentId: number): Promise<void> {
+    console.log('삭제할 댓글 ID:', commentId);
+    return await this.storyService.deleteComment(commentId);
   }
 }

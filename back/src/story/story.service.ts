@@ -38,8 +38,7 @@ export class StoryService {
       }),
       this.storyRepository.count(),
     ]);
-
-    console.log('쿼리 결과:', results);
+    console.log('쿼리 결과:', results, total);
     return { results, total };
   }
 
@@ -105,34 +104,56 @@ export class StoryService {
 
       // 댓글을 Map에 저장
       comments.forEach((comment) => {
-        commentMap.set(comment.id, {
+        // 삭제된 댓글 처리
+        const isDeleted = !!comment.deleted_at;
+        const formattedComment = {
           id: comment.id,
-          content: comment.content,
+          content: isDeleted ? '삭제되었습니다.' : comment.content, // 삭제된 경우 메시지 설정
           updated_at: comment.updated_at,
-          nickname: comment.User?.nickname || null,
-          userId: comment.User?.id, // 유저 이미지 링크 추가
-          link: comment.User?.UserImage?.link || null, // 유저 이미지 링크 추가
+          nickname: isDeleted ? null : comment.User?.nickname || null,
+          userId: isDeleted ? null : comment.User?.id,
+          link: isDeleted ? null : comment.User?.UserImage?.link || null,
           parentNickname: comment.parent
             ? comment.parent.User?.nickname || null
-            : null, // 부모 닉네임 추가
+            : null,
           children: [],
-        });
+          isDeleted, // 삭제 여부를 표시
+        };
+
+        commentMap.set(comment.id, formattedComment);
       });
 
       // 부모-자식 관계 구성
       const rootComments = [];
       comments.forEach((comment) => {
+        const currentComment = commentMap.get(comment.id);
+
         if (comment.parent) {
           const parentComment = commentMap.get(comment.parent.id);
           if (parentComment) {
-            parentComment.children.push(commentMap.get(comment.id));
+            // 삭제된 대댓글 처리
+            if (currentComment.isDeleted) {
+              currentComment.content = '삭제 됨';
+            }
+            parentComment.children.push(currentComment);
           }
-        } else {
-          rootComments.push(commentMap.get(comment.id));
+        } else if (!comment.deleted_at) {
+          // 삭제되지 않은 최상위 댓글만 포함
+          rootComments.push(currentComment);
         }
       });
 
-      return rootComments;
+      // 삭제된 댓글이 포함된 경우 children 안에서도 삭제된 댓글 필터링
+      function filterDeletedComments(comments: any[]): any[] {
+        return comments.map((comment) => {
+          if (comment.children && comment.children.length > 0) {
+            comment.children = filterDeletedComments(comment.children);
+          }
+          return comment;
+        });
+      }
+
+      return filterDeletedComments(rootComments);
     }
 
     // 댓글 계층 구조 생성
@@ -140,6 +161,7 @@ export class StoryService {
     console.log('댓글 데이터 상세', JSON.stringify(processedComments, null, 2));
     return { processedComments, loginUser };
   }
+
   // 글 작성
   async create(
     createStoryDto: CreateStoryDto,
@@ -332,6 +354,19 @@ export class StoryService {
       User: user,
     });
 
+    await this.commentRepository.save(comment);
+  }
+
+  async deleteComment(commentId: number): Promise<void> {
+    // 댓글 확인
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+    });
+    if (!comment) {
+      throw new NotFoundException('삭제할 댓글을 찾을 수 없습니다.');
+    }
+
+    comment.deleted_at = new Date();
     await this.commentRepository.save(comment);
   }
 }

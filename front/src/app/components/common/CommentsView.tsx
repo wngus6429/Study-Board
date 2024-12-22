@@ -101,6 +101,31 @@ const CommentsView = () => {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async ({ commentId }: { commentId: number }) => {
+      try {
+        console.log("댓글 논리 삭제", commentId);
+        const response = await axios.put(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${commentId}`,
+          {},
+          {
+            withCredentials: true,
+          }
+        );
+        console.log("response", response);
+        return response;
+      } catch (error) {
+        throw new Error("Failed to post comment");
+      }
+    },
+    onSuccess: (response) => {
+      if (response.status === 200) {
+        console.log("리페취");
+        refetch();
+      }
+    },
+  });
+
   const handleSubmit = () => {
     if (content.trim()) {
       mutation.mutate({ storyId, content, parentId: null, authorId: session?.user.id as string });
@@ -181,28 +206,30 @@ const CommentsView = () => {
             </Typography>
 
             {/* 답글 버튼 */}
-            <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => toggleReply(comment.id)}
-                color="primary"
-                sx={{ textTransform: "none" }}
-              >
-                답글
-              </Button>
-              {comment.userId === session?.user.id && (
+            {comment.nickname != null && (
+              <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
                 <Button
                   size="small"
-                  onClick={() => toggleReply(comment.id)}
                   variant="outlined"
-                  color="error"
+                  onClick={() => toggleReply(comment.id)}
+                  color="primary"
                   sx={{ textTransform: "none" }}
                 >
-                  삭제
+                  답글
                 </Button>
-              )}
-            </Box>
+                {comment.userId === session?.user.id && (
+                  <Button
+                    size="small"
+                    onClick={() => deleteMutation.mutate({ commentId: comment.id })}
+                    variant="outlined"
+                    color="error"
+                    sx={{ textTransform: "none" }}
+                  >
+                    삭제
+                  </Button>
+                )}
+              </Box>
+            )}
 
             {/* 답글 입력 */}
             {replyTo === comment.id && (

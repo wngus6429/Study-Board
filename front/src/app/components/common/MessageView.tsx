@@ -1,7 +1,7 @@
 "use client";
 import React from "react";
 import CustomSnackBar from "./CustomSnackBar";
-import { useMessage } from "@/app/store";
+import { useMessage } from "@/app/store/messageStore";
 
 export default function MessageView() {
   const { messageState, messageContent, messageStyle, hideMessage, messageTransition } = useMessage((state) => state);

@@ -1,7 +1,6 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { useComment, useMessage } from "@/app/store";
-import { ImageType, StoryType } from "@/app/types/types";
+import { ImageType, StoryImageType, StoryType } from "@/app/types/types";
 import { Avatar, Box, Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -10,7 +9,8 @@ import { useRouter } from "next/navigation";
 import { ReactNode, useEffect, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
-import Image from "next/image";
+import { useMessage } from "@/app/store/messageStore";
+import { useComment } from "@/app/store/commentStore";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -20,6 +20,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const queryClient = useQueryClient();
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
+  const { openCloseComments } = useComment();
 
   //! 상세 데이터 가져오기
   const {
@@ -30,19 +31,17 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   } = useQuery<StoryType>({
     queryKey: ["story", "detail", params?.id],
     queryFn: async () => {
-      console.log("상세페이지 데이터호출");
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`);
       return response.data;
     },
     // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
     enabled: !!params?.id && !isDeleted,
-    staleTime: 1000 * 60 * 10, // 5분 동안 데이터 신선 상태 유지
+    staleTime: 1000 * 60 * 5, // 5분 동안 데이터 신선 상태 유지
   });
-
-  const { openCloseComments } = useComment();
 
   useEffect(() => {
     if (detail != null) {
+      console.log("상세데이터", detail);
       openCloseComments(true);
     }
     return () => {
@@ -105,7 +104,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                       router.push(`/edit/${detail.id}`);
                     }}
                   >
-                    수정하기
+                    修正
                   </Button>
                   <Button
                     size="medium"
@@ -117,7 +116,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                       deleteData.mutate(detail.id);
                     }}
                   >
-                    삭제
+                    削除
                   </Button>
                 </Box>
               )}
@@ -174,15 +173,15 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   gap: 1, // 이미지 간 간격
                 }}
               >
-                {detail.StoryImage.map((img: ImageType, index: number) => {
+                {detail.StoryImage.map((img: StoryImageType, index: number) => {
                   const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
 
                   return (
                     <CardMedia
-                      key={`${img.imageId}-${index}`}
+                      key={`${img.id}-${index}`}
                       component="img"
                       image={`${img.link}?timestamp=${new Date().getTime()}`}
-                      alt={`첨부 이미지 ${index + 1}`}
+                      alt={`イメージ${img.image_name}`}
                       sx={{
                         flexBasis: isLastOddImage ? "100%" : "calc(50% - 8px)", // 마지막 홀수 이미지는 100% 너비
                         maxWidth: isLastOddImage ? "100%" : "calc(50% - 8px)", // 최대 50% 너비

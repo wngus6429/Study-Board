@@ -1,3 +1,8 @@
+export interface ImageType {
+  id: number; // 이미지의 고유 ID
+  link: string; // 이미지의 링크 (URL)
+}
+
 export interface UserType {
   id: string;
   user_email: string;
@@ -10,13 +15,12 @@ export interface UserType {
 }
 
 export interface StoryImageType {
-  imageId: number;
+  id: number;
   image_name: string;
   link: string;
-  user_id: string;
   created_at: string;
-  deleted_at?: string | null;
-  story_id: number;
+  // deleted_at?: string | null;
+  // story_id: number;
 }
 
 export interface StoryType {

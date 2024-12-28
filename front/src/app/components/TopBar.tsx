@@ -4,14 +4,14 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import { Avatar, Button } from "@mui/material";
-
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import styles from "./style/TopBar.module.css";
 import { signOut, useSession } from "next-auth/react";
-import { useMessage, useUserImage } from "../store";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { useMessage } from "../store/messageStore";
+import { useUserImage } from "../store/userImageStore";
 
 // const SearchBox = styled("div")(({ theme }) => ({
 //   position: "relative",

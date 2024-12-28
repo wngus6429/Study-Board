@@ -10,6 +10,7 @@ import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
 import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import Pagination from "./common/Pagination";
+import usePageStore from "../store/pageStore";
 
 interface ApiResponse {
   results: any[];
@@ -20,7 +21,7 @@ const MainView = (): ReactNode => {
   const Router = useRouter();
   const [value, setValue] = useState("all");
   const { data: user } = useSession();
-  const [currentPage, setCurrentPage] = useState(1);
+  const { currentPage, setCurrentPage } = usePageStore();
   const viewCount = 2;
 
   const { data, error, isLoading } = useQuery<ApiResponse>({

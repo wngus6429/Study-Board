@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, TextField, Typography, Box, Container, Alert } from "@mui/material";
 import axios from "axios";
-import { useMessage } from "@/app/store";
 import { signIn, useSession } from "next-auth/react";
+import { useMessage } from "@/app/store/messageStore";
 
 // 로그인 화면
 const LoginPage = () => {

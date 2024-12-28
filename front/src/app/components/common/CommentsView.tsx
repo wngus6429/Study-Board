@@ -1,6 +1,18 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
-import { Box, TextField, Button, Typography, Avatar, Alert } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Avatar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useComment, useUserImage } from "@/app/store";
@@ -154,6 +166,27 @@ const CommentsView = () => {
     return result;
   };
 
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
+
+  const handleDeleteClick = (commentId: number) => {
+    setCommentToDelete(commentId);
+    setOpenConfirmDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (commentToDelete !== null) {
+      deleteMutation.mutate({ commentId: commentToDelete });
+      setCommentToDelete(null);
+      setOpenConfirmDialog(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setCommentToDelete(null);
+    setOpenConfirmDialog(false);
+  };
+
   const MAX_DEPTH = 4; // 최대 깊이 제한
 
   const CommentList = ({ comments, toggleReply, handleReplySubmit, replyTo }: any) => {
@@ -220,7 +253,7 @@ const CommentsView = () => {
                 {comment.userId === session?.user.id && (
                   <Button
                     size="small"
-                    onClick={() => deleteMutation.mutate({ commentId: comment.id })}
+                    onClick={() => handleDeleteClick(comment.id)}
                     variant="outlined"
                     color="error"
                     sx={{ textTransform: "none" }}
@@ -264,6 +297,27 @@ const CommentsView = () => {
     <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>
       {isLoading && <Loading />}
       {isError && <Alert severity="error">댓글을 불러오는 중 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</Alert>}
+      <Dialog
+        open={openConfirmDialog}
+        onClose={cancelDelete}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">댓글 삭제</DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            댓글을 삭제하시겠습니까? 삭제된 댓글은 복구할 수 없습니다.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelDelete} color="primary">
+            취소
+          </Button>
+          <Button onClick={confirmDelete} color="error" autoFocus>
+            삭제
+          </Button>
+        </DialogActions>
+      </Dialog>
       <Typography variant="h6" gutterBottom>
         댓글
       </Typography>

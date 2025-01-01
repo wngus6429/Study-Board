@@ -17,7 +17,7 @@ import { Today } from 'src/common/helper/today';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: 'park',
-      signOptions: { expiresIn: 3600 },
+      signOptions: { expiresIn: 7200 },
     }),
     TypeOrmModule.forFeature([User, UserImage]),
     MulterModule.register({

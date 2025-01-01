@@ -98,13 +98,12 @@ export class StoryService {
     function buildCommentTree(comments: any): any[] {
       const commentMap = new Map();
 
-      // 댓글을 Map에 저장
+      // First pass: Store all comments in the Map
       comments.forEach((comment) => {
-        // 삭제된 댓글 처리
         const isDeleted = !!comment.deleted_at;
         const formattedComment = {
           id: comment.id,
-          content: isDeleted ? '삭제되었습니다.' : comment.content, // 삭제된 경우 메시지 설정
+          content: isDeleted ? '삭제된 댓글입니다.' : comment.content,
           updated_at: comment.updated_at,
           nickname: isDeleted ? null : comment.User?.nickname || null,
           userId: isDeleted ? null : comment.User?.id,
@@ -113,43 +112,54 @@ export class StoryService {
             ? comment.parent.User?.nickname || null
             : null,
           children: [],
-          isDeleted, // 삭제 여부를 표시
+          isDeleted,
         };
 
         commentMap.set(comment.id, formattedComment);
       });
 
-      // 부모-자식 관계 구성
-      const rootComments = [];
+      // Second pass: Build the tree structure
+      const rootComments: any[] = [];
       comments.forEach((comment) => {
         const currentComment = commentMap.get(comment.id);
 
         if (comment.parent) {
           const parentComment = commentMap.get(comment.parent.id);
           if (parentComment) {
-            // 삭제된 대댓글 처리
-            if (currentComment.isDeleted) {
-              currentComment.content = '삭제 됨';
-            }
             parentComment.children.push(currentComment);
           }
-        } else if (!comment.deleted_at) {
-          // 삭제되지 않은 최상위 댓글만 포함
+        } else {
           rootComments.push(currentComment);
         }
       });
 
-      // 삭제된 댓글이 포함된 경우 children 안에서도 삭제된 댓글 필터링
-      function filterDeletedComments(comments: any[]): any[] {
-        return comments.map((comment) => {
+      // Helper function to process the comment tree
+      function processCommentTree(comments: any[]): any[] {
+        return comments.filter((comment) => {
+          // Process children first
           if (comment.children && comment.children.length > 0) {
-            comment.children = filterDeletedComments(comment.children);
+            comment.children = processCommentTree(comment.children);
+
+            // If comment is deleted but has remaining children, keep it with "삭제된 댓글입니다" message
+            if (comment.isDeleted && comment.children.length > 0) {
+              return true;
+            }
           }
-          return comment;
+
+          // Remove deleted comments that have no children
+          if (
+            comment.isDeleted &&
+            (!comment.children || comment.children.length === 0)
+          ) {
+            return false;
+          }
+
+          return true;
         });
       }
 
-      return filterDeletedComments(rootComments);
+      // Process the entire tree
+      return processCommentTree(rootComments);
     }
 
     // 댓글 계층 구조 생성

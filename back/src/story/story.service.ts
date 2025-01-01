@@ -65,88 +65,93 @@ export class StoryService {
     return findData;
   }
 
-  // 상세 페이지, 댓글 데이터 Get
+  // 상세 페이지에서 댓글 데이터를 가져오는 메서드
   async findStoryOneComment(id: number, userData?: any): Promise<any> {
+    // Story 데이터를 댓글과 함께 가져옴
     const findData = await this.storyRepository.findOne({
       where: { id },
       relations: [
-        'Comments',
-        'Comments.User',
-        'Comments.User.UserImage',
-        'Comments.parent', // 부모 댓글까지 포함
-        'Comments.parent.User', // 부모 댓글의 User 정보
-        'Comments.parent.User.UserImage', // 부모 댓글의 User 이미지
-        'Comments.children',
-        'Comments.children.User.UserImage',
+        'Comments', // 댓글 데이터
+        'Comments.User', // 댓글 작성자 정보
+        'Comments.User.UserImage', // 댓글 작성자의 프로필 이미지
+        'Comments.parent', // 부모 댓글 정보
+        'Comments.parent.User', // 부모 댓글 작성자 정보
+        'Comments.parent.User.UserImage', // 부모 댓글 작성자의 프로필 이미지
+        'Comments.children', // 자식 댓글 정보
+        'Comments.children.User.UserImage', // 자식 댓글 작성자의 프로필 이미지
       ],
     });
 
+    // 데이터가 없을 경우 예외 처리
     if (!findData) {
       throw new NotFoundException(`${id}의 댓글 데이터가 없음`);
     }
 
+    // 로그인한 사용자의 정보 가져오기 (선택적)
     const { userId } = userData;
     let loginUser = null;
     if (userId) {
       loginUser = await this.userRepository.findOne({
         where: { id: userId },
-        relations: ['UserImage'],
+        relations: ['UserImage'], // 사용자 프로필 이미지 포함
       });
     }
-    console.log('1comments', JSON.stringify(findData, null, 2));
 
+    // 댓글을 계층 구조로 빌드하는 함수
     function buildCommentTree(comments: any): any[] {
       const commentMap = new Map();
-
-      // First pass: Store all comments in the Map
+      // 첫 번째 단계: 모든 댓글을 Map에 저장
       comments.forEach((comment) => {
-        const isDeleted = !!comment.deleted_at;
+        const isDeleted = !!comment.deleted_at; // 댓글이 삭제되었는지 확인
         const formattedComment = {
-          id: comment.id,
-          content: isDeleted ? '삭제된 댓글입니다.' : comment.content,
-          updated_at: comment.updated_at,
-          nickname: isDeleted ? null : comment.User?.nickname || null,
-          userId: isDeleted ? null : comment.User?.id,
-          link: isDeleted ? null : comment.User?.UserImage?.link || null,
+          id: comment.id, // 댓글 ID
+          content: isDeleted ? '삭제됨' : comment.content, // 삭제된 댓글 처리
+          updated_at: comment.updated_at, // 마지막 수정 시간
+          nickname: isDeleted ? null : comment.User?.nickname || null, // 댓글 작성자 닉네임
+          userId: isDeleted ? null : comment.User?.id, // 댓글 작성자 ID
+          link: isDeleted ? null : comment.User?.UserImage?.link || null, // 댓글 작성자 이미지 링크
           parentNickname: comment.parent
-            ? comment.parent.User?.nickname || null
+            ? comment.parent.User?.nickname || null // 부모 댓글 작성자 닉네임
             : null,
-          children: [],
-          isDeleted,
+          children: [], // 자식 댓글 리스트
+          isDeleted, // 삭제 여부 플래그
         };
-
-        commentMap.set(comment.id, formattedComment);
+        commentMap.set(comment.id, formattedComment); // Map에 저장
       });
 
-      // Second pass: Build the tree structure
+      console.log('Comment map:', commentMap);
+
+      // 두 번째 단계: 트리 구조를 빌드
       const rootComments: any[] = [];
       comments.forEach((comment) => {
         const currentComment = commentMap.get(comment.id);
 
         if (comment.parent) {
+          // 부모 댓글이 있는 경우 부모에 자식 댓글 추가
           const parentComment = commentMap.get(comment.parent.id);
           if (parentComment) {
             parentComment.children.push(currentComment);
           }
         } else {
+          // 최상위 댓글인 경우 root에 추가
           rootComments.push(currentComment);
         }
       });
 
-      // Helper function to process the comment tree
+      // 댓글 트리를 처리하는 헬퍼 함수
       function processCommentTree(comments: any[]): any[] {
         return comments.filter((comment) => {
-          // Process children first
+          // 자식 댓글을 먼저 처리
           if (comment.children && comment.children.length > 0) {
             comment.children = processCommentTree(comment.children);
 
-            // If comment is deleted but has remaining children, keep it with "삭제된 댓글입니다" message
+            // 삭제된 댓글이지만 자식이 남아 있는 경우 유지
             if (comment.isDeleted && comment.children.length > 0) {
               return true;
             }
           }
 
-          // Remove deleted comments that have no children
+          // 자식 댓글이 없는 삭제된 댓글 제거
           if (
             comment.isDeleted &&
             (!comment.children || comment.children.length === 0)
@@ -154,18 +159,22 @@ export class StoryService {
             return false;
           }
 
-          return true;
+          return true; // 유지
         });
       }
 
-      // Process the entire tree
+      // 전체 트리를 처리
       return processCommentTree(rootComments);
     }
 
-    // 댓글 계층 구조 생성
+    // 댓글 데이터를 계층 구조로 변환
     const processedComments = buildCommentTree(findData.Comments);
-    console.log('댓글 데이터 상세', JSON.stringify(processedComments, null, 2));
-    return { processedComments, loginUser };
+    console.log(
+      'Processed comment data:',
+      JSON.stringify(processedComments, null, 2),
+    );
+
+    return { processedComments, loginUser }; // 댓글 데이터와 로그인 사용자 정보 반환
   }
 
   // 글 작성

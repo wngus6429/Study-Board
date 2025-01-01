@@ -4,10 +4,10 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
-import { useMessage } from "@/app/store";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import InputFileUpload from "@/app/components/common/InputFileUpload";
+import { useMessage } from "@/app/store/messageStore";
 
 export default function StoryWrite() {
   const Router = useRouter();

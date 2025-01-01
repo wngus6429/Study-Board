@@ -11,6 +11,7 @@ import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import { useComment } from "@/app/store/commentStore";
+import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -81,11 +82,43 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     },
   });
 
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+  const [detailToDelete, setDetailToDelete] = useState<number | null>(null);
+
+  const handleDeleteClick = (id: number) => {
+    setDetailToDelete(id);
+    setOpenConfirmDialog(true);
+  };
+
+  const confirmDelete = () => {
+    if (detailToDelete !== null) {
+      deleteData.mutate(detailToDelete);
+      setDetailToDelete(null);
+      setOpenConfirmDialog(false);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDetailToDelete(null);
+    setOpenConfirmDialog(false);
+  };
+
   if (isLoading) return <Loading />;
 
   // TODO : comments 테이블 만들어서 엮기
   return (
     <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 2, overflow: "hidden" }}>
+      {openConfirmDialog && (
+        <ConfirmDialog
+          open={openConfirmDialog}
+          title="글 삭제"
+          description="글을 삭제하시겠습니까? 삭제된 글은 복구할 수 없습니다."
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+          confirmText="삭제"
+          cancelText="취소"
+        />
+      )}
       {detail && (
         <Card sx={{ width: "100%", boxShadow: 3, padding: 2 }}>
           <CardContent>
@@ -113,7 +146,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                     sx={{ marginLeft: 1 }}
                     onClick={(e) => {
                       e.preventDefault();
-                      deleteData.mutate(detail.id);
+                      handleDeleteClick(detail.id);
                     }}
                   >
                     削除

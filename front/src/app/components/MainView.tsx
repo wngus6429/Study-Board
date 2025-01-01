@@ -36,7 +36,7 @@ const MainView = (): ReactNode => {
       });
       return response.data;
     },
-    staleTime: 1000 * 60 * 5,
+    // 최신글 작성, 삭제 때문에 캐쉬 두면 안됨
   });
 
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {

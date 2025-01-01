@@ -20,6 +20,7 @@ import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import dayjs from "dayjs";
 import Loading from "./Loading";
+import ConfirmDialog from "./ConfirmDialog";
 
 interface Comment {
   id: number;
@@ -297,27 +298,17 @@ const CommentsView = () => {
     <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>
       {isLoading && <Loading />}
       {isError && <Alert severity="error">댓글을 불러오는 중 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</Alert>}
-      <Dialog
-        open={openConfirmDialog}
-        onClose={cancelDelete}
-        aria-labelledby="alert-dialog-title"
-        aria-describedby="alert-dialog-description"
-      >
-        <DialogTitle id="alert-dialog-title">댓글 삭제</DialogTitle>
-        <DialogContent>
-          <DialogContentText id="alert-dialog-description">
-            댓글을 삭제하시겠습니까? 삭제된 댓글은 복구할 수 없습니다.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={cancelDelete} color="primary">
-            취소
-          </Button>
-          <Button onClick={confirmDelete} color="error" autoFocus>
-            삭제
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {openConfirmDialog && (
+        <ConfirmDialog
+          open={openConfirmDialog}
+          title="댓글 삭제"
+          description="댓글을 삭제하시겠습니까? 삭제된 댓글은 복구할 수 없습니다."
+          onConfirm={confirmDelete}
+          onCancel={cancelDelete}
+          confirmText="삭제"
+          cancelText="취소"
+        />
+      )}
       <Typography variant="h6" gutterBottom>
         댓글
       </Typography>

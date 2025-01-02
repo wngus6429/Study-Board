@@ -11,13 +11,14 @@ import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { Today } from 'src/common/helper/today';
+import { TOKEN_EXPIRATION_TIME } from 'src/constants/tokenTime';
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.register({
       secret: 'park',
-      signOptions: { expiresIn: 7200 },
+      signOptions: { expiresIn: TOKEN_EXPIRATION_TIME },
     }),
     TypeOrmModule.forFeature([User, UserImage]),
     MulterModule.register({

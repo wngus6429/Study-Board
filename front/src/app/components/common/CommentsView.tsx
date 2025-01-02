@@ -312,6 +312,13 @@ const CommentsView = () => {
       <Typography variant="h6" gutterBottom>
         댓글
       </Typography>
+      {comments.length === 0 && !isLoading && (
+        <Box sx={{ textAlign: "center", padding: 2 }}>
+          <Typography variant="body1" color="textSecondary">
+            아직 댓글이 없습니다. 첫 번째 댓글을 작성해보세요!
+          </Typography>
+        </Box>
+      )}
       <CommentList
         comments={comments}
         toggleReply={toggleReply}

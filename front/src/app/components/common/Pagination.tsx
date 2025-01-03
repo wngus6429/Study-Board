@@ -17,7 +17,7 @@ const Pagination = ({ pageCount, onPageChange, currentPage }: PaginationProps) =
       breakLabel={"..."}
       pageCount={pageCount}
       onPageChange={onPageChange}
-      forcePage={currentPage - 1} // 0-based index
+      forcePage={currentPage - 1}
       marginPagesDisplayed={2}
       pageRangeDisplayed={5}
       containerClassName={styles.pagination}

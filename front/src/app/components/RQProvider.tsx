@@ -10,10 +10,10 @@ type Props = {
 function RQProvider({ children }: Props) {
   // retry는 원래 리액트쿼리 요청이 실패하면 3번까지 재시도하는데,
   // 이를 막기 위해 retry: false로 설정
+  // react-query 전역 설정
   const [client] = useState(
     new QueryClient({
       defaultOptions: {
-        // react-query 전역 설정
         queries: {
           refetchOnWindowFocus: false,
           retryOnMount: true,

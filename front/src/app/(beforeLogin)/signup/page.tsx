@@ -17,8 +17,8 @@ import Grid from "@mui/material/Grid2";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { useMessage } from "@/app/store";
 import { signIn, useSession } from "next-auth/react";
+import { useMessage } from "@/app/store/messageStore";
 
 // 회원가입 화면
 const SignupPage = (): ReactNode => {

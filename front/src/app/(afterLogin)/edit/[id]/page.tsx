@@ -1,7 +1,6 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useMessage } from "@/app/store";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Box, Button, CircularProgress, TextField, Typography } from "@mui/material";
@@ -10,6 +9,7 @@ import InputFileUpload from "@/app/components/common/InputFileUpload";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import { useSession } from "next-auth/react";
+import { useMessage } from "@/app/store/messageStore";
 
 export default function EditPage({ params }: { params: { id: string } }) {
   const queryClient = useQueryClient();

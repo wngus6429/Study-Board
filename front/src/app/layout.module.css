@@ -1,7 +1,40 @@
-.container {
+.main_container {
+  display: flex;
+  /* overflow: hidden; */
+}
+
+.content_wrapper {
   display: flex;
   flex-direction: row;
-  background-color: rgb(var(--background-end-rgb));
-  width: 100dvw;
-  height: 100dvh;
+  flex-grow: 1;
+  gap: 3px;
+}
+
+.main_content {
+  flex-grow: 1;
+  width: calc(60% - 3px);
+  padding: 0 3px;
+  overflow-y: auto;
+}
+
+.right_view {
+  width: 35%;
+}
+
+@media (max-width: 1400px) {
+  .nav_display {
+    display: none;
+  }
+
+  .content_wrapper {
+    flex-direction: column;
+  }
+
+  .main_content {
+    width: 100%;
+  }
+
+  .right_view {
+    width: 100%;
+  }
 }

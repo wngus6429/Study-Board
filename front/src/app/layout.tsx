@@ -8,6 +8,7 @@ import TopBar from "./components/TopBar";
 import AuthSession from "./components/common/AuthSessionCom";
 import MessageView from "./components/common/MessageView";
 import RightView from "./components/common/RightView";
+import style from "./layout.module.css";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,23 +28,22 @@ export default function RootLayout({
       <body className={inter.className}>
         <RQProvider>
           <AuthSession>
+            {/* 상단 바 */}
             <TopBar />
             <div style={{ width: "90%", maxWidth: "1600px", margin: "0 auto" }}>
-              {/* 상단 바 */}
-              {/* TopBar의 높이와 동일하게 설정 */}
-              {/* 아래걸로 하면 전체스크롤 */}
-              <div style={{ display: "flex", overflow: "hidden" }}>
-                {/* <div style={{ display: "flex", height: "calc(100vh - 60px)", overflow: "hidden" }}> */}
-                {/* 왼쪽 네비게이션 */}
-                <NavMenuBar />
-                {/* 메인 콘텐츠: 중앙 정렬 */}
-                <div style={{ flexGrow: 1, paddingLeft: "3px", paddingRight: "3px", width: 1300, overflowY: "auto" }}>
-                  {children}
+              <div className={style.main_container}>
+                <div className={style.nav_display}>
+                  {/* 왼쪽 메뉴 */}
+                  <NavMenuBar />
                 </div>
-                <div style={{ width: "40%" }}>
-                  <RightView />
+                <div className={style.content_wrapper}>
+                  {/* 가운데 데이터 */}
+                  <div className={style.main_content}>{children}</div>
+                  {/* 광고 및 댓글부분 */}
+                  <div className={style.right_view}>
+                    <RightView />
+                  </div>
                 </div>
-                {/* 전역 메세지 표시 설정 */}
                 <MessageView />
               </div>
             </div>

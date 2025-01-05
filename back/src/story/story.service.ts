@@ -53,16 +53,36 @@ export class StoryService {
 
   // 상세 페이지
   async findStoryOne(id: number, userId?: string): Promise<any> {
-    const findData = await this.storyRepository.findOne({
-      where: { id },
-      relations: ['StoryImage', 'User', 'User.UserImage'],
-    });
-    if (!findData) {
-      // 데이터가 없을 경우 404 에러 던지기
-      throw new NotFoundException(`Story with ID ${id} not found`);
-    }
+    const queryRunner =
+      this.storyRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
 
-    return findData;
+    try {
+      // 데이터 조회
+      const findData = await queryRunner.manager.findOne(Story, {
+        where: { id },
+        relations: ['StoryImage', 'User', 'User.UserImage'],
+      });
+
+      if (!findData) {
+        // 데이터가 없을 경우 404 에러 던지기
+        throw new NotFoundException(`Story with ID ${id} not found`);
+      }
+
+      // 조회수 증가
+      await queryRunner.manager.increment(Story, { id }, 'read_count', 1);
+
+      // 트랜잭션 커밋
+      await queryRunner.commitTransaction();
+      return findData;
+    } catch (error) {
+      // 트랜잭션 롤백
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      // QueryRunner 해제
+      await queryRunner.release();
+    }
   }
 
   // 상세 페이지에서 댓글 데이터를 가져오는 메서드

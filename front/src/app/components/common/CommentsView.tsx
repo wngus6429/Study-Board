@@ -133,7 +133,6 @@ const CommentsView = () => {
     },
     onSuccess: (response) => {
       if (response.status === 200) {
-        console.log("리페취");
         refetch();
       }
     },

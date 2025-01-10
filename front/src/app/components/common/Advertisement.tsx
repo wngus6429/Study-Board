@@ -5,7 +5,7 @@ export default function Advertisement() {
   return (
     <div style={{ width: "100%" }}>
       <Image
-        src="/assets/화면.png"
+        src="/assets/right.png"
         alt="Right Icon"
         width={0}
         height={0}
@@ -13,14 +13,14 @@ export default function Advertisement() {
         style={{ width: "100%", height: "auto" }}
       />
       {/* 광고가 올자리 */}
-      {/* <Image
+      <Image
         src="/assets/right2.png"
         alt="Right Icon"
         width={0}
         height={0}
         sizes="100vw"
         style={{ width: "100%", height: "auto" }}
-      /> */}
+      />
     </div>
   );
 }

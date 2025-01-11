@@ -134,4 +134,20 @@ export class AuthService {
     //   await this.userImageRepository.remove(user.image);
     // }
   }
+
+  async changePassword(userData: any): Promise<void> {
+    const { id, password } = userData;
+    // 사용자 찾기
+    const user: User = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    // 비밀번호 해쉬처리
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // 비밀번호 업데이트
+    user.password = hashedPassword;
+    await this.userRepository.save(user);
+  }
 }

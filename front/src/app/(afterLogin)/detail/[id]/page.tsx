@@ -122,17 +122,17 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
         />
       )}
       {detail && (
-        <Card sx={{ width: "100%", boxShadow: 3, padding: 2 }}>
+        <Card sx={{ width: "100%", boxShadow: 4, padding: 3, borderRadius: 2, bgcolor: "background.paper" }}>
           <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" marginBottom={2}>
-              <Typography variant="h4" component="div">
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+              <Typography variant="h4" component="div" sx={{ fontWeight: "bold" }}>
                 {detail.title}
               </Typography>
               {detail?.category !== "question" && detail.User?.id === session?.user?.id && (
-                <Box>
+                <Box display="flex" gap={1}>
                   <Button
                     size="medium"
-                    variant="contained"
+                    variant="outlined"
                     color="warning"
                     onClick={(e) => {
                       e.preventDefault();
@@ -143,9 +143,8 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   </Button>
                   <Button
                     size="medium"
-                    variant="contained"
+                    variant="outlined"
                     color="error"
-                    sx={{ marginLeft: 1 }}
                     onClick={(e) => {
                       e.preventDefault();
                       handleDeleteClick(detail.id);
@@ -156,32 +155,43 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 </Box>
               )}
             </Box>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ marginBottom: 2 }}>
-              <LocalOfferIcon fontSize="small" sx={{ marginRight: 0.5 }} />
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                bgcolor: "grey.100",
+                p: 1,
+                borderRadius: 1,
+                mb: 3,
+              }}
+            >
+              <LocalOfferIcon fontSize="small" />
               종류: {detail.category}
             </Typography>
-            <Box display="flex" justifyContent="space-between" marginBottom={2}>
-              <Typography variant="subtitle2" color="text.secondary">
-                <Box sx={{ display: "flex" }}>
-                  작성자:
-                  <Avatar
-                    src={`${process.env.NEXT_PUBLIC_BASE_URL}${detail.User.avatar}`}
-                    sx={{ width: 40, height: 40, marginRight: 1 }}
-                  />
-                  {detail.User.nickname}
-                </Box>
-                <div>
+            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+              <Box display="flex" alignItems="center" gap={2}>
+                <Avatar
+                  src={`${process.env.NEXT_PUBLIC_BASE_URL}${detail.User.avatar}`}
+                  sx={{ width: 50, height: 50, boxShadow: 2 }}
+                />
+                <Box>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                    작성자: {detail.User.nickname}
+                  </Typography>
                   <Button
                     onClick={() => router.push("/")}
-                    size="medium"
+                    size="small"
                     variant="contained"
-                    color="error"
-                    sx={{ marginTop: "10px" }}
+                    color="primary"
+                    sx={{ mt: 1 }}
                   >
                     뒤로가기
                   </Button>
-                </div>
-              </Typography>
+                </Box>
+              </Box>
               <Box textAlign="right">
                 <Typography variant="subtitle2" color="text.secondary">
                   작성일: {dayjs(detail.created_at).format("YYYY/MM/DD HH:mm:ss")}
@@ -191,45 +201,56 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 </Typography>
               </Box>
             </Box>
-            <Typography variant="body1" color="text.secondary" marginBottom={2}>
+            <Typography
+              variant="body1"
+              color="text.primary"
+              sx={{
+                lineHeight: 1.7,
+                bgcolor: "grey.50",
+                p: 2,
+                borderRadius: 1,
+                boxShadow: 1,
+                mb: 3,
+              }}
+            >
               {detail.content}
             </Typography>
-          </CardContent>
-          {detail.StoryImage && detail.StoryImage.length > 0 && (
-            <Box>
-              <Typography variant="h6" gutterBottom>
-                첨부된 이미지:
-              </Typography>
-              <Box
-                sx={{
-                  display: "flex",
-                  flexWrap: "wrap", // 줄바꿈 처리
-                  justifyContent: "center", // 중앙 정렬
-                  gap: 1, // 이미지 간 간격
-                }}
-              >
-                {detail.StoryImage.map((img: StoryImageType, index: number) => {
-                  const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
+            {detail.StoryImage && detail.StoryImage.length > 0 && (
+              <Box>
+                <Typography variant="h6" gutterBottom>
+                  첨부된 이미지:
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap", // 줄바꿈 처리
+                    justifyContent: "center", // 중앙 정렬
+                    gap: 1, // 이미지 간 간격
+                  }}
+                >
+                  {detail.StoryImage.map((img: StoryImageType, index: number) => {
+                    const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
 
-                  return (
-                    <CardMedia
-                      key={`${img.id}-${index}`}
-                      component="img"
-                      image={`${img.link}?timestamp=${new Date().getTime()}`}
-                      alt={`イメージ${img.image_name}`}
-                      sx={{
-                        flexBasis: isLastOddImage ? "100%" : "calc(50% - 8px)", // 마지막 홀수 이미지는 100% 너비
-                        maxWidth: isLastOddImage ? "100%" : "calc(50% - 8px)", // 최대 50% 너비
-                        margin: isLastOddImage ? "0 auto" : undefined, // 홀수 마지막 이미지를 가운데 정렬
-                        borderRadius: 1,
-                        objectFit: "contain", // 이미지 비율 유지
-                      }}
-                    />
-                  );
-                })}
+                    return (
+                      <CardMedia
+                        key={`${img.id}-${index}`}
+                        component="img"
+                        image={`${img.link}?timestamp=${new Date().getTime()}`}
+                        alt={`イメージ${img.image_name}`}
+                        sx={{
+                          flexBasis: isLastOddImage ? "100%" : "calc(50% - 8px)", // 마지막 홀수 이미지는 100% 너비
+                          maxWidth: isLastOddImage ? "100%" : "calc(50% - 8px)", // 최대 50% 너비
+                          margin: isLastOddImage ? "0 auto" : undefined, // 홀수 마지막 이미지를 가운데 정렬
+                          borderRadius: 1,
+                          objectFit: "contain", // 이미지 비율 유지
+                        }}
+                      />
+                    );
+                  })}
+                </Box>
               </Box>
-            </Box>
-          )}
+            )}
+          </CardContent>
         </Card>
       )}
     </Box>

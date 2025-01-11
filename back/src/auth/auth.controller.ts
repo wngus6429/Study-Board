@@ -113,6 +113,13 @@ export class AuthController {
     console.log('프로필 이미지 삭제 요청', userData);
     await this.authUserService.deleteProfilePicture(userData.id);
   }
+
+  @Post('password')
+  @UseGuards(AuthGuard())
+  async changePassword(@Body() userData: any): Promise<void> {
+    console.log('비밀번호 변경 요청', userData);
+    await this.authUserService.changePassword(userData);
+  }
 }
 
 // JWT를 활용해서, 회원가입하고 바로 로그인 시키는 코드 로직

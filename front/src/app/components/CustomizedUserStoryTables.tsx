@@ -54,8 +54,8 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
         <Table aria-label="customized table">
           <TableHead>
             <TableRow>
-              <StyledTableCell sx={{ width: "500px" }}>제목</StyledTableCell>
-              <StyledTableCell sx={{ width: "180px", textAlign: "right" }}>등록일</StyledTableCell>
+              <StyledTableCell sx={{ width: "200px" }}>제목</StyledTableCell>
+              <StyledTableCell sx={{ width: "80px", textAlign: "right" }}>등록일</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>

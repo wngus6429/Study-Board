@@ -49,9 +49,9 @@ export class StoryService {
         order: { id: 'DESC' },
         skip: offset,
         take: limit,
-        where: { User: { id: userId } },
+        where: { User: { id: userId } }, // 특정 사용자 조건
       }),
-      this.storyRepository.count(),
+      this.storyRepository.count({ where: { User: { id: userId } } }), // 조건 추가
     ]);
     console.log('유저 쿼리 결과:', results, total);
     return { results, total };

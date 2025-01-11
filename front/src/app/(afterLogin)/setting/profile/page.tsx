@@ -77,9 +77,10 @@ function UserProfileEdit() {
     enabled: status === "authenticated",
   });
 
+  console.log("유저 스토리", UserStory);
+
   useEffect(() => {
     if (userDetail) {
-      console.log("유저 디테일", userDetail);
       const profileImageUrl = userDetail?.image?.link
         ? `${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.image.link}`
         : null;
@@ -187,8 +188,41 @@ function UserProfileEdit() {
   if (isLoading) return <Loading />;
 
   return (
-    <>
-      <Container component="main" maxWidth="xs" sx={{ mt: 8 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row", // 한 줄에 나란히 배치
+        alignItems: "flex-start", // 수직 정렬
+        mt: 4,
+      }}
+    >
+      <Box>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
+        >
+          작성한 글
+        </Typography>
+        <Box
+          sx={{
+            bgcolor: "background.paper",
+            boxShadow: 2,
+            borderRadius: 2,
+            p: 3,
+          }}
+        >
+          <CustomizedUserTables tableData={UserStory?.results || []} />
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <Pagination
+              pageCount={Math.ceil((UserStory?.total || 0) / viewCount)}
+              onPageChange={handlePageClick}
+              currentPage={currentPage}
+            />
+          </Box>
+        </Box>
+      </Box>
+      <Container component="main" sx={{ mt: 8, width: "300px", marginLeft: "0" }}>
         <Box
           display="flex"
           flexDirection="column"
@@ -203,7 +237,6 @@ function UserProfileEdit() {
           <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 2 }}>
             프로필 수정
           </Typography>
-
           <Avatar
             src={previewImage}
             sx={{
@@ -284,28 +317,6 @@ function UserProfileEdit() {
           )}
         </Box>
       </Container>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, color: "primary.main" }}>
-          작성한 글
-        </Typography>
-        <Box
-          sx={{
-            bgcolor: "background.paper",
-            boxShadow: 2,
-            borderRadius: 2,
-            p: 3,
-          }}
-        >
-          <CustomizedUserTables tableData={UserStory?.results || []} />
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-            <Pagination
-              pageCount={Math.ceil((UserStory?.total || 0) / viewCount)}
-              onPageChange={handlePageClick}
-              currentPage={currentPage}
-            />
-          </Box>
-        </Box>
-      </Box>
       <Box>
         <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, color: "primary.main" }}>
           작성한 댓글
@@ -321,7 +332,7 @@ function UserProfileEdit() {
           {/* <CustomizedUserCommentsTables tableData={UserStory?.results || []} /> */}
         </Box>
       </Box>
-    </>
+    </Box>
   );
 }
 

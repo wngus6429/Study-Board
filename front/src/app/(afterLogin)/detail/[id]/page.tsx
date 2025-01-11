@@ -250,8 +250,10 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                           flexBasis: isLastOddImage ? "100%" : "calc(50% - 8px)", // 마지막 홀수 이미지는 100% 너비
                           maxWidth: isLastOddImage ? "100%" : "calc(50% - 8px)", // 최대 50% 너비
                           margin: isLastOddImage ? "0 auto" : undefined, // 홀수 마지막 이미지를 가운데 정렬
-                          borderRadius: 1,
+                          borderRadius: 4,
                           objectFit: "contain", // 이미지 비율 유지
+                          // objectFit: "cover",
+                          boxShadow: 4,
                         }}
                       />
                     );

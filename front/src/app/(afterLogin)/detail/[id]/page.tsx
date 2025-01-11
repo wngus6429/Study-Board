@@ -217,7 +217,16 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
             </Typography>
             {detail.StoryImage && detail.StoryImage.length > 0 && (
               <Box>
-                <Typography variant="h6" gutterBottom>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    color: "primary.main",
+                    mb: 2,
+                  }}
+                >
                   첨부된 이미지:
                 </Typography>
                 <Box

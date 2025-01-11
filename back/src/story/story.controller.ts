@@ -37,6 +37,17 @@ export class StoryController {
     return await this.storyService.findStory(offset, limit);
   }
 
+  @Post('/userPageTableData')
+  @UseGuards(AuthGuard())
+  async getUserPageStory(
+    @Body('offset') offset = 0,
+    @Body('limit') limit = 10,
+    @Body('userId') userId: string,
+  ): Promise<{ results: Partial<Story>[]; total: number }> {
+    console.log('요청 데이터:', { offset, limit, userId });
+    return await this.storyService.userfindStory(offset, limit, userId);
+  }
+
   // 상세페이지
   @Get('/detail/:id')
   async getStoryDetail(

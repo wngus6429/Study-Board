@@ -2,6 +2,8 @@ import * as React from "react";
 import { styled } from "@mui/material/styles";
 import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { Box, Card, CardActions, CardMedia, IconButton } from "@mui/material";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -54,51 +56,74 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
   };
 
   return (
-    <>
+    <Box sx={{ width: "100%", textAlign: "center", mt: 2 }}>
       <Button
         component="label"
-        role={undefined}
         variant="contained"
-        tabIndex={-1}
         startIcon={<CloudUploadIcon />}
-        sx={{ width: "100%" }}
+        sx={{
+          width: "100%",
+          mb: 2,
+          fontWeight: "bold",
+        }}
       >
         업로드
         <VisuallyHiddenInput type="file" onChange={onUpload} multiple />
       </Button>
       {preview.length > 0 && (
-        <>
-          <div style={{ display: "flex", flexWrap: "wrap" }}>
+        <Box>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 2,
+              justifyContent: "center",
+            }}
+          >
             {preview.map(
               (v, index) =>
                 v && (
-                  <div key={index} style={{ flex: 1, textAlign: "center" }}>
-                    <img
-                      src={v.dataUrl}
+                  <Card
+                    key={index}
+                    sx={{
+                      maxWidth: 150,
+                      boxShadow: 3,
+                      position: "relative",
+                      borderRadius: 2,
+                    }}
+                  >
+                    <CardMedia
+                      component="img"
+                      image={v.dataUrl}
                       alt="미리보기"
-                      style={{
-                        width: "100%",
-                        objectFit: "contain",
-                        maxHeight: 100,
+                      sx={{
+                        height: 100,
+                        objectFit: "cover",
+                        borderRadius: "8px 8px 0 0",
                       }}
                     />
-                    <Button
-                      variant="outlined"
-                      onClick={() => onRemoveImage(index)}
-                      sx={{ width: "100%" }}
-                      color="error"
-                    >
-                      삭제
-                    </Button>
-                  </div>
+                    <CardActions sx={{ justifyContent: "center" }}>
+                      <IconButton color="error" onClick={() => onRemoveImage(index)} size="small">
+                        <DeleteIcon />
+                      </IconButton>
+                    </CardActions>
+                  </Card>
                 )
             )}
-          </div>
-          <Button variant="outlined" onClick={onRemoveImageAll} sx={{ width: "100%" }} color="error">
+          </Box>
+          <Button
+            variant="outlined"
+            onClick={onRemoveImageAll}
+            sx={{
+              mt: 2,
+              fontWeight: "bold",
+            }}
+            color="error"
+          >
             전체삭제
           </Button>
-        </>
+        </Box>
       )}
-    </>
+    </Box>
   );
 }

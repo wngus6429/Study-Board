@@ -71,21 +71,43 @@ export default function StoryWrite() {
   };
 
   return (
-    <Paper elevation={3} sx={{ p: 4, width: "60%", margin: "auto", mt: 5 }}>
-      <Typography variant="h5" gutterBottom sx={{ mb: 3 }}>
+    <Paper
+      elevation={4}
+      sx={{
+        p: 5,
+        width: "50%",
+        margin: "auto",
+        mt: 8,
+        borderRadius: 3,
+        boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
+        bgcolor: "background.paper",
+      }}
+    >
+      <Typography
+        variant="h4"
+        gutterBottom
+        sx={{
+          fontWeight: "bold",
+          textAlign: "center",
+          color: "primary.main",
+          mb: 4,
+        }}
+      >
         글 작성하기
       </Typography>
       <CustomSelect
         selectArray={WRITE_SELECT_OPTIONS}
         defaultValue={DEFAULT_SELECT_OPTION}
         setSelectedCategory={setSelectedCategory}
+        sx={{ mb: 3 }}
       />
       <Box
         component="form"
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 3, // 필드 간의 간격
+          gap: 4,
+          alignItems: "center",
         }}
         noValidate
         autoComplete="off"
@@ -93,19 +115,28 @@ export default function StoryWrite() {
         <TextField
           required
           id="filled-required"
-          label="제목, 3글자 이상"
-          defaultValue=""
-          variant="filled"
+          label="제목 (3글자 이상)"
+          variant="outlined"
           fullWidth
+          sx={{
+            maxWidth: "90%",
+            bgcolor: "background.default",
+            borderRadius: 2,
+          }}
           onChange={(e) => setTitle(e.target.value)}
         />
         <TextField
           id="filled-multiline-flexible"
-          label="내용, 3글자 이상"
+          label="내용 (3글자 이상)"
           multiline
-          rows={6}
-          variant="filled"
+          rows={8}
+          variant="outlined"
           fullWidth
+          sx={{
+            maxWidth: "90%",
+            bgcolor: "background.default",
+            borderRadius: 2,
+          }}
           onChange={(e) => setContent(e.target.value)}
         />
         <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
@@ -114,6 +145,13 @@ export default function StoryWrite() {
           color="success"
           onClick={mutation.mutate}
           disabled={title.length < 3 || content.length < 3}
+          sx={{
+            mt: 2,
+            py: 1.5,
+            width: "50%",
+            fontWeight: "bold",
+            fontSize: "1.1rem",
+          }}
         >
           {loading ? <CircularProgress size={24} color="inherit" /> : "등록"}
         </Button>

@@ -8,6 +8,15 @@ import Loading from "@/app/components/common/Loading";
 import { useRouter } from "next/navigation";
 import { useMessage } from "@/app/store/messageStore";
 import { useUserImage } from "@/app/store/userImageStore";
+import CustomizedTables from "@/app/components/CustomizedTables";
+import { USER_TABLE_VIEW_COUNT } from "@/app/const/TABLE_VIEW_COUNT";
+import CustomizedUserTables from "@/app/components/CustomizedUserStoryTables";
+import Pagination from "@/app/components/common/Pagination";
+
+interface ApiResponse {
+  results: any[];
+  total: number;
+}
 
 function UserProfileEdit() {
   const [nickname, setNickname] = useState("");
@@ -18,7 +27,7 @@ function UserProfileEdit() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: session, status, update } = useSession();
+  const { data: session, status } = useSession();
   const { setTopBarImageDelete, setUserImageUrl } = useUserImage();
 
   // 세션이 인증된 상태에서만 요청을 수행합니다.
@@ -41,6 +50,31 @@ function UserProfileEdit() {
     // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
     enabled: status === "authenticated",
     staleTime: 0,
+  });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const viewCount: number = USER_TABLE_VIEW_COUNT;
+
+  const {
+    data: UserStory,
+    error: UserTableError,
+    isLoading: UserStoryIsLoading,
+  } = useQuery<ApiResponse>({
+    queryKey: ["user", "stories", currentPage],
+    queryFn: async () => {
+      const offset = (currentPage - 1) * viewCount;
+      const response = await axios.post<ApiResponse>(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/userPageTableData`,
+        {
+          offset,
+          limit: viewCount,
+          userId: session?.user.id,
+        },
+        { withCredentials: true }
+      );
+      return response.data;
+    },
+    enabled: status === "authenticated",
   });
 
   useEffect(() => {
@@ -145,105 +179,149 @@ function UserProfileEdit() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  const handlePageClick = (selectedItem: { selected: number }) => {
+    const newPage = selectedItem.selected + 1;
+    setCurrentPage(newPage);
+  };
+
   if (isLoading) return <Loading />;
 
   return (
-    <Container component="main" maxWidth="xs" sx={{ mt: 8 }}>
-      <Box
-        display="flex"
-        flexDirection="column"
-        alignItems="center"
-        sx={{
-          bgcolor: "background.paper",
-          boxShadow: 3,
-          p: 3,
-          borderRadius: 2,
-        }}
-      >
-        <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 2 }}>
-          프로필 수정
-        </Typography>
-
-        <Avatar
-          src={previewImage}
+    <>
+      <Container component="main" maxWidth="xs" sx={{ mt: 8 }}>
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems="center"
           sx={{
-            width: 120,
-            height: 120,
-            mb: 2,
-            boxShadow: 2,
-            border: "3px solid",
-            borderColor: "primary.main",
+            bgcolor: "background.paper",
+            boxShadow: 3,
+            p: 3,
+            borderRadius: 2,
           }}
-        />
-        <Box display="flex" gap={1} sx={{ mb: 2 }}>
-          <Button variant="outlined" component="label" color="primary" sx={{ flexGrow: 1 }}>
-            사진 업로드
-            <input type="file" hidden onChange={handleImageChange} />
-          </Button>
-          <Button variant="outlined" color="error" onClick={pictureDelete} sx={{ flexGrow: 1 }}>
-            사진 삭제
-          </Button>
-        </Box>
-        <TextField
-          label="닉네임"
-          value={nickname}
-          onChange={handleNicknameChange}
-          variant="outlined"
-          fullWidth
-          sx={{ mb: 2 }}
-        />
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          sx={{ mb: 2, py: 1.5, fontWeight: "bold" }}
-          onClick={mutation.mutate}
         >
-          저장하기
-        </Button>
-        <Button
-          variant="contained"
-          color="error"
-          fullWidth
-          sx={{ py: 1.5, fontWeight: "bold" }}
-          onClick={() => setOpenPasswordChange(!openPasswordChange)}
-        >
-          {openPasswordChange ? "비밀번호 변경 취소" : "비밀번호 변경"}
-        </Button>
-        {openPasswordChange && (
-          <Box sx={{ mt: 2, width: "100%", bgcolor: "grey.100", p: 2, borderRadius: 1, boxShadow: 1 }}>
-            <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}>
-              비밀번호 변경
-            </Typography>
-            <TextField
-              label="새 비밀번호"
-              type="password"
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 2 }}
-              onChange={(e) => setNewPassword(e.target.value)}
-            />
-            <TextField
-              label="새 비밀번호 확인"
-              type="password"
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 2 }}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ py: 1.5, fontWeight: "bold" }}
-              onClick={handlePasswordChange}
-            >
-              비밀번호 변경
+          <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 2 }}>
+            프로필 수정
+          </Typography>
+
+          <Avatar
+            src={previewImage}
+            sx={{
+              width: 120,
+              height: 120,
+              mb: 2,
+              boxShadow: 2,
+              border: "3px solid",
+              borderColor: "primary.main",
+            }}
+          />
+          <Box display="flex" gap={1} sx={{ mb: 2 }}>
+            <Button variant="outlined" component="label" color="primary" sx={{ flexGrow: 1 }}>
+              사진 업로드
+              <input type="file" hidden onChange={handleImageChange} />
+            </Button>
+            <Button variant="outlined" color="error" onClick={pictureDelete} sx={{ flexGrow: 1 }}>
+              사진 삭제
             </Button>
           </Box>
-        )}
+          <TextField
+            label="닉네임"
+            value={nickname}
+            onChange={handleNicknameChange}
+            variant="outlined"
+            fullWidth
+            sx={{ mb: 2 }}
+          />
+          <Button
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mb: 2, py: 1.5, fontWeight: "bold" }}
+            onClick={mutation.mutate}
+          >
+            저장하기
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            fullWidth
+            sx={{ py: 1.5, fontWeight: "bold" }}
+            onClick={() => setOpenPasswordChange(!openPasswordChange)}
+          >
+            {openPasswordChange ? "비밀번호 변경 취소" : "비밀번호 변경"}
+          </Button>
+          {openPasswordChange && (
+            <Box sx={{ mt: 2, width: "100%", bgcolor: "grey.100", p: 2, borderRadius: 1, boxShadow: 1 }}>
+              <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}>
+                비밀번호 변경
+              </Typography>
+              <TextField
+                label="새 비밀번호"
+                type="password"
+                fullWidth
+                variant="outlined"
+                sx={{ mb: 2 }}
+                onChange={(e) => setNewPassword(e.target.value)}
+              />
+              <TextField
+                label="새 비밀번호 확인"
+                type="password"
+                fullWidth
+                variant="outlined"
+                sx={{ mb: 2 }}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{ py: 1.5, fontWeight: "bold" }}
+                onClick={handlePasswordChange}
+              >
+                비밀번호 변경
+              </Button>
+            </Box>
+          )}
+        </Box>
+      </Container>
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, color: "primary.main" }}>
+          작성한 글
+        </Typography>
+        <Box
+          sx={{
+            bgcolor: "background.paper",
+            boxShadow: 2,
+            borderRadius: 2,
+            p: 3,
+          }}
+        >
+          <CustomizedUserTables tableData={UserStory?.results || []} />
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <Pagination
+              pageCount={Math.ceil((UserStory?.total || 0) / viewCount)}
+              onPageChange={handlePageClick}
+              currentPage={currentPage}
+            />
+          </Box>
+        </Box>
       </Box>
-    </Container>
+      <Box>
+        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, color: "primary.main" }}>
+          작성한 댓글
+        </Typography>
+        <Box
+          sx={{
+            bgcolor: "background.paper",
+            boxShadow: 2,
+            borderRadius: 2,
+            p: 3,
+          }}
+        >
+          {/* <CustomizedUserCommentsTables tableData={UserStory?.results || []} /> */}
+        </Box>
+      </Box>
+    </>
   );
 }
 

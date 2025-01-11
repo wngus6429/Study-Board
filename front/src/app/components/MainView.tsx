@@ -11,6 +11,7 @@ import CreateIcon from "@mui/icons-material/Create";
 import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import Pagination from "./common/Pagination";
 import usePageStore from "../store/pageStore";
+import { TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT";
 
 interface ApiResponse {
   results: any[];
@@ -22,7 +23,7 @@ const MainView = (): ReactNode => {
   const [value, setValue] = useState("all");
   const { data: user } = useSession();
   const { currentPage, setCurrentPage } = usePageStore();
-  const viewCount = 2;
+  const viewCount: number = TABLE_VIEW_COUNT;
 
   const { data, error, isLoading } = useQuery<ApiResponse>({
     queryKey: ["stories", currentPage],

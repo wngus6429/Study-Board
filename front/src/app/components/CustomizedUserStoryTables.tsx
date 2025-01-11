@@ -45,7 +45,7 @@ interface CustomizedTablesProps {
   tableData: any;
 }
 
-const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
+const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
   const router = useRouter();
 
   return (
@@ -54,12 +54,8 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
         <Table aria-label="customized table">
           <TableHead>
             <TableRow>
-              <StyledTableCell sx={{ width: "110px", textAlign: "center" }}>번호</StyledTableCell>
               <StyledTableCell sx={{ width: "500px" }}>제목</StyledTableCell>
-              <StyledTableCell sx={{ width: "160px" }}>작성자</StyledTableCell>
-              <StyledTableCell sx={{ width: "180px" }}>등록일</StyledTableCell>
-              <StyledTableCell sx={{ width: "100px", textAlign: "center" }}>조회수</StyledTableCell>
-              <StyledTableCell sx={{ width: "75px", textAlign: "center" }}>추천</StyledTableCell>
+              <StyledTableCell sx={{ width: "180px", textAlign: "right" }}>등록일</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -71,15 +67,11 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                 }}
                 sx={{ cursor: "pointer" }}
               >
-                <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
-                  {row.id}
-                </StyledTableCell>
                 <StyledTableCell
                   sx={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 1, // 아이템 간 간격 추가
-                    borderBottom: "none", // 하단 경계선을 제거합니다.
+                    gap: 1,
                   }}
                 >
                   {row.category === "question" && (
@@ -88,10 +80,10 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                         display: "inline-block",
                         bgcolor: "primary.main",
                         color: "primary.contrastText",
-                        px: 1.5,
-                        py: 0.5,
+                        px: 1,
+                        py: 0.2,
                         borderRadius: 1,
-                        fontSize: "0.875rem",
+                        fontSize: "0.75rem",
                         fontWeight: "bold",
                       }}
                     >
@@ -102,18 +94,9 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                     {row.title}
                   </Typography>
                 </StyledTableCell>
-                <StyledTableCell>
-                  {row.User.nickname.length > 6 ? `${row.User.nickname.slice(0, 6)}...` : row.User.nickname}
-                </StyledTableCell>
-                <StyledTableCell
-                  sx={{
-                    alignItems: "center", // 수직 가운데 정렬
-                  }}
-                >
+                <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
                   {dayjs(row.created_at).format("YYYY.MM.DD HH:mm")}
                 </StyledTableCell>
-                <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
-                <StyledTableCell sx={{ textAlign: "center" }}>{row.like_count}</StyledTableCell>
               </StyledTableRow>
             ))}
           </TableBody>
@@ -123,4 +106,4 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
   );
 };
 
-export default CustomizedTables;
+export default CustomizedUserTables;

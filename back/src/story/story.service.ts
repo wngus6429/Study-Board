@@ -38,6 +38,25 @@ export class StoryService {
     return { results, total };
   }
 
+  async userfindStory(
+    offset = 0,
+    limit = 10,
+    userId: string,
+  ): Promise<{ results: Partial<Story>[]; total: number }> {
+    const [results, total] = await Promise.all([
+      this.storyRepository.find({
+        relations: ['User'],
+        order: { id: 'DESC' },
+        skip: offset,
+        take: limit,
+        where: { User: { id: userId } },
+      }),
+      this.storyRepository.count(),
+    ]);
+    console.log('유저 쿼리 결과:', results, total);
+    return { results, total };
+  }
+
   // 수정 페이지
   async findEditStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({

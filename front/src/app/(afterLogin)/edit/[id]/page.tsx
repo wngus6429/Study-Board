@@ -116,43 +116,101 @@ export default function EditPage({ params }: { params: { id: string } }) {
   if (isLoading) return <Loading />;
 
   return (
-    <Box padding={2} component="form" sx={{ width: "100%" }}>
-      <Typography variant="h5" marginBottom={2}>
+    <Box
+      padding={4}
+      component="form"
+      sx={{
+        width: "60%",
+        margin: "auto",
+        mt: 5,
+        bgcolor: "background.paper",
+        boxShadow: 3,
+        borderRadius: 3,
+      }}
+    >
+      <Typography
+        variant="h4"
+        marginBottom={3}
+        sx={{
+          fontWeight: "bold",
+          textAlign: "center",
+          color: "primary.main",
+        }}
+      >
         글 수정하기
       </Typography>
+
       <TextField
         name="title"
-        label="제목"
+        label="제목 (필수)"
         variant="outlined"
         fullWidth
         margin="normal"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
+        sx={{
+          bgcolor: "background.default",
+          borderRadius: 2,
+        }}
       />
       <TextField
         name="content"
-        label="내용"
+        label="내용 (필수)"
         variant="outlined"
         fullWidth
         margin="normal"
         multiline
-        rows={4}
+        rows={6}
         value={content}
         onChange={(e) => setContent(e.target.value)}
+        sx={{
+          bgcolor: "background.default",
+          borderRadius: 2,
+        }}
       />
       <CustomSelect
         selectArray={WRITE_SELECT_OPTIONS}
         defaultValue={DEFAULT_SELECT_OPTION}
         setSelectedCategory={setSelectedCategory}
-        value={selectedCategory} // 선택된 카테고리 값
+        value={selectedCategory}
+        sx={{ mb: 3 }}
       />
+
       <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
-      <Button variant="contained" color="error" onClick={() => router.push(`/detail/${params.id}`)}>
-        취소
-      </Button>
-      <Button variant="contained" color="success" onClick={handleUpdate}>
-        {loading ? <CircularProgress size={24} color="inherit" /> : "수정"}
-      </Button>
+
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mt: 3,
+        }}
+      >
+        <Button
+          variant="outlined"
+          color="error"
+          onClick={() => router.push(`/detail/${params.id}`)}
+          sx={{
+            flex: 1,
+            marginRight: 1,
+            fontWeight: "bold",
+          }}
+        >
+          취소
+        </Button>
+        <Button
+          variant="contained"
+          color="success"
+          onClick={handleUpdate}
+          disabled={title.length < 3 || content.length < 3}
+          sx={{
+            flex: 1,
+            marginLeft: 1,
+            fontWeight: "bold",
+          }}
+        >
+          {loading ? <CircularProgress size={24} color="inherit" /> : "수정"}
+        </Button>
+      </Box>
     </Box>
   );
 }

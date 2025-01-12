@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, LessThan, Repository } from 'typeorm';
+import { In, IsNull, LessThan, Repository } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { User } from 'src/entities/User.entity';
 import { Story } from 'src/entities/Story.entity';
@@ -37,13 +37,13 @@ export class StoryService {
     console.log('쿼리 결과:', results, total);
     return { results, total };
   }
-
+  // 유저 프로필 작성 글 가져오기
   async userfindStory(
     offset = 0,
     limit = 10,
     userId: string,
-  ): Promise<{ results: Partial<Story>[]; total: number }> {
-    const [results, total] = await Promise.all([
+  ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
+    const [StoryResults, StoryTotal] = await Promise.all([
       this.storyRepository.find({
         relations: ['User'],
         order: { id: 'DESC' },
@@ -53,8 +53,34 @@ export class StoryService {
       }),
       this.storyRepository.count({ where: { User: { id: userId } } }), // 조건 추가
     ]);
-    console.log('유저 쿼리 결과:', results, total);
-    return { results, total };
+    return { StoryResults, StoryTotal };
+  }
+  // 유저 프로필 댓글 가져오기
+  async userfindComments(
+    offset = 0,
+    limit = 10,
+    userId: string,
+  ): Promise<{ CommentsResults: Partial<any>[]; CommentsTotal: number }> {
+    const [CommentsResults, CommentsTotal] = await Promise.all([
+      this.commentRepository.find({
+        relations: ['User', 'Story'],
+        order: { id: 'DESC' },
+        skip: offset,
+        take: limit,
+        where: {
+          User: { id: userId },
+          deleted_at: IsNull(), // IsNull() 연산자를 사용하여 명시적으로 체크
+        },
+      }),
+      this.commentRepository.count({
+        where: {
+          User: { id: userId },
+          deleted_at: IsNull(), // 카운트 쿼리에도 동일하게 적용
+        },
+      }),
+    ]);
+
+    return { CommentsResults, CommentsTotal };
   }
 
   // 수정 페이지

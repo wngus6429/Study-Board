@@ -12,10 +12,16 @@ import CustomizedTables from "@/app/components/CustomizedTables";
 import { USER_TABLE_VIEW_COUNT } from "@/app/const/TABLE_VIEW_COUNT";
 import CustomizedUserTables from "@/app/components/CustomizedUserStoryTables";
 import Pagination from "@/app/components/common/Pagination";
+import CustomizedUserCommentsTables from "@/app/components/CustomizedUserCommentsTables";
 
-interface ApiResponse {
-  results: any[];
-  total: number;
+interface ApiStoryResponse {
+  StoryResults: any[];
+  StoryTotal: number;
+}
+
+interface ApiCommentsResponse {
+  CommentsResults: any[];
+  CommentsTotal: number;
 }
 
 function UserProfileEdit() {
@@ -52,19 +58,20 @@ function UserProfileEdit() {
     staleTime: 0,
   });
 
-  const [currentPage, setCurrentPage] = useState(1);
+  const [storyCurrentPage, setStoryCurrentPage] = useState(1);
+  const [commentsCurrentPage, setCommentsCurrentPage] = useState(1);
   const viewCount: number = USER_TABLE_VIEW_COUNT;
 
   const {
     data: UserStory,
     error: UserTableError,
     isLoading: UserStoryIsLoading,
-  } = useQuery<ApiResponse>({
-    queryKey: ["user", "stories", currentPage],
+  } = useQuery<ApiStoryResponse>({
+    queryKey: ["user", "stories", storyCurrentPage],
     queryFn: async () => {
-      const offset = (currentPage - 1) * viewCount;
-      const response = await axios.post<ApiResponse>(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/userPageTableData`,
+      const offset = (storyCurrentPage - 1) * viewCount;
+      const response = await axios.post<ApiStoryResponse>(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/userStoryTableData`,
         {
           offset,
           limit: viewCount,
@@ -77,7 +84,29 @@ function UserProfileEdit() {
     enabled: status === "authenticated",
   });
 
-  console.log("유저 스토리", UserStory);
+  const {
+    data: UserComments,
+    error: UserCommentsTableError,
+    isLoading: UserCommentsIsLoading,
+  } = useQuery<ApiCommentsResponse>({
+    queryKey: ["user", "comments", commentsCurrentPage],
+    queryFn: async () => {
+      const offset = (commentsCurrentPage - 1) * viewCount;
+      const response = await axios.post<ApiCommentsResponse>(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/userCommentsTableData`,
+        {
+          offset,
+          limit: viewCount,
+          userId: session?.user.id,
+        },
+        { withCredentials: true }
+      );
+      return response.data;
+    },
+    enabled: status === "authenticated",
+  });
+
+  console.log("유저 스토리", UserComments);
 
   useEffect(() => {
     if (userDetail) {
@@ -180,9 +209,14 @@ function UserProfileEdit() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const handlePageClick = (selectedItem: { selected: number }) => {
+  const handleStoryPageClick = (selectedItem: { selected: number }) => {
     const newPage = selectedItem.selected + 1;
-    setCurrentPage(newPage);
+    setStoryCurrentPage(newPage);
+  };
+
+  const handleCommentsPageClick = (selectedItem: { selected: number }) => {
+    const newPage = selectedItem.selected + 1;
+    setCommentsCurrentPage(newPage);
   };
 
   if (isLoading) return <Loading />;
@@ -212,12 +246,12 @@ function UserProfileEdit() {
             p: 3,
           }}
         >
-          <CustomizedUserTables tableData={UserStory?.results || []} />
+          <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <Pagination
-              pageCount={Math.ceil((UserStory?.total || 0) / viewCount)}
-              onPageChange={handlePageClick}
-              currentPage={currentPage}
+              pageCount={Math.ceil((UserStory?.StoryTotal || 0) / viewCount)}
+              onPageChange={handleStoryPageClick}
+              currentPage={storyCurrentPage}
             />
           </Box>
         </Box>
@@ -318,7 +352,11 @@ function UserProfileEdit() {
         </Box>
       </Container>
       <Box>
-        <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, color: "primary.main" }}>
+        <Typography
+          variant="h6"
+          gutterBottom
+          sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
+        >
           작성한 댓글
         </Typography>
         <Box
@@ -329,7 +367,14 @@ function UserProfileEdit() {
             p: 3,
           }}
         >
-          {/* <CustomizedUserCommentsTables tableData={UserStory?.results || []} /> */}
+          <CustomizedUserCommentsTables tableData={UserComments?.CommentsResults || []} />
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+            <Pagination
+              pageCount={Math.ceil((UserComments?.CommentsTotal || 0) / viewCount)}
+              onPageChange={handleCommentsPageClick}
+              currentPage={commentsCurrentPage}
+            />
+          </Box>
         </Box>
       </Box>
     </Box>

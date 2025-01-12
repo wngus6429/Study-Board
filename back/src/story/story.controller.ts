@@ -37,15 +37,26 @@ export class StoryController {
     return await this.storyService.findStory(offset, limit);
   }
 
-  @Post('/userPageTableData')
+  @Post('/userStoryTableData')
   @UseGuards(AuthGuard())
   async getUserPageStory(
     @Body('offset') offset = 0,
     @Body('limit') limit = 10,
     @Body('userId') userId: string,
-  ): Promise<{ results: Partial<Story>[]; total: number }> {
+  ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
     console.log('요청 데이터:', { offset, limit, userId });
     return await this.storyService.userfindStory(offset, limit, userId);
+  }
+
+  @Post('/userCommentsTableData')
+  @UseGuards(AuthGuard())
+  async getUserPageComments(
+    @Body('offset') offset = 0,
+    @Body('limit') limit = 10,
+    @Body('userId') userId: string,
+  ): Promise<{ CommentsResults: Partial<any>[]; CommentsTotal: number }> {
+    console.log('요청 데이터:', { offset, limit, userId });
+    return await this.storyService.userfindComments(offset, limit, userId);
   }
 
   // 상세페이지

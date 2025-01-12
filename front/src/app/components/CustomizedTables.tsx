@@ -74,31 +74,24 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                 <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
                   {row.id}
                 </StyledTableCell>
-                <StyledTableCell
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1, // 아이템 간 간격 추가
-                    borderBottom: "none", // 하단 경계선을 제거합니다.
-                  }}
-                >
-                  {row.category === "question" && (
-                    <Box
-                      sx={{
-                        display: "inline-block",
-                        bgcolor: "primary.main",
-                        color: "primary.contrastText",
-                        px: 1.5,
-                        py: 0.5,
-                        borderRadius: 1,
-                        fontSize: "0.875rem",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      질문
-                    </Box>
-                  )}
-                  <Typography variant="body1" color="text.primary" noWrap>
+                <StyledTableCell>
+                  <Typography variant="body1" color="text.primary">
+                    {row.category === "question" && (
+                      <Box
+                        sx={{
+                          display: "inline-block",
+                          bgcolor: "primary.main",
+                          color: "primary.contrastText",
+                          px: 1.5,
+                          py: 0.5,
+                          borderRadius: 1,
+                          fontSize: "0.875rem",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        질문
+                      </Box>
+                    )}
                     {row.title}
                   </Typography>
                 </StyledTableCell>

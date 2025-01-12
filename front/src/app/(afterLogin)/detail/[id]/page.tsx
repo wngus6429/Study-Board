@@ -13,6 +13,9 @@ import { useMessage } from "@/app/store/messageStore";
 import { useComment } from "@/app/store/commentStore";
 import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 import ErrorView from "@/app/components/common/ErrorView";
+import ThumbUpIcon from "@mui/icons-material/ThumbUp";
+import ThumbDownIcon from "@mui/icons-material/ThumbDown";
+import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -264,6 +267,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
           </CardContent>
         </Card>
       )}
+      <RecommendButtonsWithCount />
     </Box>
   );
 }

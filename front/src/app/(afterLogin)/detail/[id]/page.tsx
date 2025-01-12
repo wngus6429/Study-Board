@@ -1,6 +1,6 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { ImageType, StoryImageType, StoryType } from "@/app/types/types";
+import { StoryImageType, StoryType } from "@/app/types/types";
 import { Avatar, Box, Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -13,8 +13,6 @@ import { useMessage } from "@/app/store/messageStore";
 import { useComment } from "@/app/store/commentStore";
 import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 import ErrorView from "@/app/components/common/ErrorView";
-import ThumbUpIcon from "@mui/icons-material/ThumbUp";
-import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
@@ -255,8 +253,12 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                           margin: isLastOddImage ? "0 auto" : undefined, // 홀수 마지막 이미지를 가운데 정렬
                           borderRadius: 4,
                           objectFit: "contain", // 이미지 비율 유지
-                          // objectFit: "cover",
                           boxShadow: 4,
+                          transition: "transform 0.3s ease, box-shadow 0.3s ease", // 애니메이션 추가
+                          "&:hover": {
+                            transform: "translateY(-5px)", // 위로 살짝 이동
+                            boxShadow: 8, // 그림자 강도 증가
+                          },
                         }}
                       />
                     );

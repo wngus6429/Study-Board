@@ -336,9 +336,9 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       {detail && (
         <RecommendButtonsWithCount
           like={detail?.like_count} // 초기 추천 수
-          unlike={detail?.dislike_count} // 초기 비추천 수
-          likeFunc={(flag: boolean) => {
-            likeOrUnlike.mutate({ storyId: detail?.id, flag }); // API 호출
+          dislike={detail?.dislike_count} // 초기 비추천 수
+          likeFunc={(vote: "like" | "dislike") => {
+            likeOrUnlike.mutate({ storyId: detail?.id, vote }); // API 호출
           }}
         />
       )}

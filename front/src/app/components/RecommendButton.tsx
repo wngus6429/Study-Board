@@ -1,18 +1,14 @@
 import { Box, Button, Typography } from "@mui/material";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
-import { useState } from "react";
 
 interface RecommendButtonsWithCountProps {
   like: number;
-  unlike: number;
-  likeFunc: (flag: boolean) => void;
+  dislike: number;
+  likeFunc: (vote: "like" | "dislike") => void;
 }
 
-export default function RecommendButtonsWithCount({ like, unlike, likeFunc }: RecommendButtonsWithCountProps) {
-  // const [likes, setLikes] = useState(like); // 추천 수
-  // const [dislikes, setDislikes] = useState(unlike); // 비추천 수
-
+export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: RecommendButtonsWithCountProps) {
   return (
     <Box
       sx={{
@@ -56,7 +52,7 @@ export default function RecommendButtonsWithCount({ like, unlike, likeFunc }: Re
                 fontWeight: "bold",
                 opacity: 1,
               }}
-              onClick={() => likeFunc(true)}
+              onClick={() => likeFunc("like")}
             >
               추천
             </Button>
@@ -65,7 +61,7 @@ export default function RecommendButtonsWithCount({ like, unlike, likeFunc }: Re
           {/* 비추천 카운트 */}
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-              {unlike}
+              {dislike}
             </Typography>
             <Button
               variant="contained"
@@ -77,7 +73,7 @@ export default function RecommendButtonsWithCount({ like, unlike, likeFunc }: Re
                 fontWeight: "bold",
                 opacity: 1,
               }}
-              onClick={() => likeFunc(false)}
+              onClick={() => likeFunc("dislike")}
             >
               비추
             </Button>

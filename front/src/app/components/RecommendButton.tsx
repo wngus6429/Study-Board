@@ -1,11 +1,17 @@
-import { Box, Button, Card, Typography } from "@mui/material";
+import { Box, Button, Typography } from "@mui/material";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import { useState } from "react";
 
-export default function RecommendButtonsWithCount() {
-  const [likes, setLikes] = useState(0); // 추천 수
-  const [dislikes, setDislikes] = useState(0); // 비추천 수
+interface RecommendButtonsWithCountProps {
+  like: number;
+  unlike: number;
+  likeFunc: (flag: boolean) => void;
+}
+
+export default function RecommendButtonsWithCount({ like, unlike, likeFunc }: RecommendButtonsWithCountProps) {
+  // const [likes, setLikes] = useState(like); // 추천 수
+  // const [dislikes, setDislikes] = useState(unlike); // 비추천 수
 
   return (
     <Box
@@ -34,36 +40,48 @@ export default function RecommendButtonsWithCount() {
           textAlign: "center",
         }}
       >
-        10
         <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: 1 }}>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<ThumbUpIcon />}
-            sx={{
-              borderRadius: 20,
-              padding: "8px 15px",
-              fontWeight: "bold",
-              opacity: 1,
-            }}
-            onClick={() => setLikes(likes + 1)}
-          >
-            추천
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            startIcon={<ThumbDownIcon />}
-            sx={{
-              borderRadius: 20,
-              padding: "8px 15px",
-              fontWeight: "bold",
-              opacity: 1,
-            }}
-            onClick={() => setDislikes(dislikes + 1)}
-          >
-            비추
-          </Button>
+          {/* 추천 카운트 */}
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {like}
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<ThumbUpIcon />}
+              sx={{
+                borderRadius: 20,
+                padding: "8px 15px",
+                fontWeight: "bold",
+                opacity: 1,
+              }}
+              onClick={() => likeFunc(true)}
+            >
+              추천
+            </Button>
+          </Box>
+
+          {/* 비추천 카운트 */}
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              {unlike}
+            </Typography>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<ThumbDownIcon />}
+              sx={{
+                borderRadius: 20,
+                padding: "8px 15px",
+                fontWeight: "bold",
+                opacity: 1,
+              }}
+              onClick={() => likeFunc(false)}
+            >
+              비추
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Box>

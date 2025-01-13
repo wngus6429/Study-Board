@@ -32,6 +32,7 @@ export interface StoryType {
   creator_user_id: string;
   read_count: number;
   like_count: number;
+  dislike_count: number;
   comments: string | null;
   created_at: string;
   updated_at: string;

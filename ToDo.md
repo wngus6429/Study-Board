@@ -1,5 +1,5 @@
-5. 회원 가입, 로그인 후 Alert 화면 표시
-6. 로그아웃 구현하기
+5. 회원 가입, 로그인 후 Alert 화면 표시 (완료)
+6. 로그아웃 구현하기 (완료)
 7. 맨 오른쪽에 추천하기 버튼, 로그인 해서 내꺼면 삭제 혹은 수정 버튼
 8. refresh-token 이게 뭐임
    https://www.inflearn.com/community/questions/1291603/%EC%84%9C%EB%B2%84-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%A9%EC%8B%9D%EA%B3%BC-%EA%B2%B0%ED%95%A9?srsltid=AfmBOorFPvfwaxD9Y-oRMTKVZikGZpp-_O5SuxRnwsYEZcGedTIVKUer

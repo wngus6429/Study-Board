@@ -14,6 +14,7 @@ import { useComment } from "@/app/store/commentStore";
 import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 import ErrorView from "@/app/components/common/ErrorView";
 import RecommendButtonsWithCount from "@/app/components/RecommendButton";
+import ThumbUpAlt from "@mui/icons-material/ThumbUp";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -31,6 +32,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     isLoading,
     isError,
     error,
+    refetch,
   } = useQuery<StoryType>({
     queryKey: ["story", "detail", params?.id],
     queryFn: async () => {
@@ -80,6 +82,42 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
         showMessage(`${error.response.data.data}`, "error");
       } else {
         showMessage("삭제 중 오류가 발생했습니다.", "error");
+      }
+    },
+  });
+
+  // 좋아요
+  const likeOrUnlike = useMutation({
+    mutationFn: async ({ storyId, vote }: { storyId: number; vote: "like" | "dislike" }) => {
+      console.log("좋아요 API 호출", storyId, vote);
+      if (!session?.user?.id) {
+        showMessage("로그인된 유저 정보가 없습니다.");
+      }
+      return await axios.put(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/likeOrUnlike/${storyId}`,
+        { userId: session?.user.id, vote }, // 명시적으로 userId 전달
+        { withCredentials: true }
+      );
+    },
+    onSuccess: (_, variables) => {
+      // 캐시 업데이트
+      queryClient.setQueryData(["story", "detail", params?.id], (oldData: StoryType | undefined) => {
+        if (!oldData) return oldData; // 데이터가 없으면 그대로 반환
+        return {
+          ...oldData,
+          like_count: variables.flag ? oldData.like_count + 1 : oldData.like_count,
+          dislike_count: !variables.flag ? oldData.dislike_count + 1 : oldData.dislike_count,
+        };
+      });
+      showMessage(`성공적으로 업데이트되었습니다.`, "success");
+    },
+    onError: (error: any) => {
+      if (error.response && error.response.data.code === 404) {
+        showMessage(`${error.response.data.data}`, "error");
+      } else if (error.response && error.response.data.code === 401) {
+        showMessage(`${error.response.data.data}`, "error");
+      } else {
+        showMessage("오류가 발생했습니다.", "error");
       }
     },
   });
@@ -193,6 +231,32 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   </Button>
                 </Box>
               </Box>
+              <Box
+                sx={{
+                  display: "flex",
+                  backgroundColor: "linear-gradient(135deg, #FFD700, #FFB300)", // 골드 그라데이션
+                  borderRadius: 2, // 테두리 라운드 처리
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // 그림자
+                  padding: "4px", // 내부 여백
+                  width: 100, // 고정된 넓이
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#4A4A4A", // 진한 회색으로 텍스트 색상 변경
+                    textTransform: "uppercase", // 대문자로 표시
+                    letterSpacing: 1.5, // 글자 간격 추가
+                  }}
+                >
+                  추천
+                </Typography>
+                <Typography>
+                  {/* {detail.recommend_count} */}
+                  10
+                </Typography>
+              </Box>
               <Box textAlign="right">
                 <Typography variant="subtitle2" color="text.secondary">
                   작성일: {dayjs(detail.created_at).format("YYYY/MM/DD HH:mm:ss")}
@@ -269,7 +333,15 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
           </CardContent>
         </Card>
       )}
-      <RecommendButtonsWithCount />
+      {detail && (
+        <RecommendButtonsWithCount
+          like={detail?.like_count} // 초기 추천 수
+          unlike={detail?.dislike_count} // 초기 비추천 수
+          likeFunc={(flag: boolean) => {
+            likeOrUnlike.mutate({ storyId: detail?.id, flag }); // API 호출
+          }}
+        />
+      )}
     </Box>
   );
 }

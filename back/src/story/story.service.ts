@@ -9,6 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { UpdateStoryDto } from './dto/update-story.dto';
 import { Comments } from 'src/entities/Comments.entity';
+import { Likes } from 'src/entities/Like.entity';
 
 @Injectable()
 export class StoryService {
@@ -19,6 +20,7 @@ export class StoryService {
     private readonly imageRepository: Repository<StoryImage>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Comments) private commentRepository: Repository<Comments>,
+    @InjectRepository(Likes) private likeRepository: Repository<Comments>,
   ) {}
 
   async findStory(
@@ -402,7 +404,6 @@ export class StoryService {
     parentId?: number | null;
     authorId: string;
   }): Promise<void> {
-    console.log('데잍', commentData);
     const { storyId, content, parentId, authorId } = commentData;
 
     // 글 확인
@@ -449,4 +450,53 @@ export class StoryService {
     comment.deleted_at = new Date();
     await this.commentRepository.save(comment);
   }
+
+  // async storyLike(
+  //   storyId: number,
+  //   userId: string,
+  //   vote: 'like' | 'dislike',
+  // ): Promise<void> {
+  //   const story = await this.storyRepository.findOne({
+  //     where: { id: storyId },
+  //   });
+  //   if (!story) {
+  //     throw new NotFoundException('게시글을 찾을 수 없습니다.');
+  //   }
+
+  //   const existingVote = await this.likeRepository.findOne({
+  //     where: { user: { id: userId }, story: { id: storyId } },
+  //   });
+
+  //   if (existingVote) {
+  //     // 기존 투표와 동일한 경우 예외 처리
+  //     if (existingVote.vote === vote) {
+  //       throw new BadRequestException('이미 해당 투표를 완료했습니다.');
+  //     }
+  //     // 기존 투표를 수정
+  //     existingVote.vote = vote;
+  //     await this.likeRepository.save(existingVote);
+  //   } else {
+  //     // 새로운 투표 생성
+  //     const newVote = this.likeRepository.create({
+  //       user: { id: userId },
+  //       story: { id: storyId },
+  //       vote,
+  //     });
+  //     await this.likeRepository.save(newVote);
+  //   }
+
+  //   // 게시글의 like_count 및 dislike_count 업데이트
+  //   if (vote === 'like') {
+  //     story.like_count += 1;
+  //     if (existingVote?.vote === 'dislike') {
+  //       story.dislike_count -= 1;
+  //     }
+  //   } else {
+  //     story.dislike_count += 1;
+  //     if (existingVote?.vote === 'like') {
+  //       story.like_count -= 1;
+  //     }
+  //   }
+  //   await this.storyRepository.save(story);
+  // }
 }

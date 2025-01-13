@@ -157,4 +157,15 @@ export class StoryController {
     console.log('삭제할 댓글 ID:', commentId);
     return await this.storyService.deleteComment(commentId);
   }
+
+  // 좋아요
+  @Put('/likeOrUnlike/:id')
+  @UseGuards(AuthGuard())
+  async storyLike(
+    @Param('id') storyId: number,
+    @Body() body: { userId: string; vote: 'like' | 'dislike' },
+  ): Promise<void> {
+    console.log('좋아요/싫어요:', storyId, body);
+    // return await this.storyService.storyLike(storyId, body.userId, body.vote);
+  }
 }

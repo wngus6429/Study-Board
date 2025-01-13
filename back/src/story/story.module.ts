@@ -12,6 +12,7 @@ import { Today } from 'src/common/helper/today';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { User } from 'src/entities/User.entity';
 import { Comments } from 'src/entities/Comments.entity';
+import { Likes } from 'src/entities/Like.entity';
 
 @Module({
   imports: [
@@ -28,7 +29,14 @@ import { Comments } from 'src/entities/Comments.entity';
         },
       }),
     }),
-    TypeOrmModule.forFeature([Story, StoryImage, UserImage, User, Comments]),
+    TypeOrmModule.forFeature([
+      Story,
+      StoryImage,
+      UserImage,
+      User,
+      Comments,
+      Likes,
+    ]),
     AuthModule,
   ],
   controllers: [StoryController],

@@ -65,6 +65,8 @@ const CommentsView = () => {
       return response.data;
     },
     enabled: !!storyId && status !== "loading", // storyId가 있으면 항상 활성화
+    staleTime: 0, // 페이지 들어갈 때마다 데이터 다시 부름
+    // refetchInterval: 1000, // 1초마다 데이터를 다시 가져옴
   });
 
   useEffect(() => {

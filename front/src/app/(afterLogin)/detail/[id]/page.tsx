@@ -103,8 +103,16 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
         { withCredentials: true }
       );
     },
-    onSuccess: (_, variables) => {
-      // refetch(); // 상세 데이터 다시 불러오기
+    // onMutate의 동작 방식
+    // onMutate 호출 시점: mutationFn 실행 전에 호출됩니다.
+    // variables를 매개변수로 받아, 요청 전에 실행해야 할 로직을 처리할 수 있습니다.
+    // onMutate에서 반환한 값은 context로 저장됩니다.
+    // onError나 onSuccess에서 이 값을 참조할 수 있습니다.
+    onMutate: (variables) => {
+      // `onMutate`에서 `context`로 전달할 데이터를 반환
+      return { vote: variables.vote };
+    },
+    onSuccess: (_, variables, context) => {
       queryClient.setQueryData(["story", "detail", String(variables.storyId)], (oldData: StoryType | undefined) => {
         if (!oldData) return oldData;
 
@@ -114,10 +122,10 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
 
         if (variables.vote === "like") {
           // 반대를 취소하고 좋아요 추가
-          dislikeCount += -1;
+          dislikeCount = Math.max(0, dislikeCount - 1);
           likeCount += 1;
         } else if (variables.vote === "dislike") {
-          likeCount += -1;
+          likeCount = Math.max(0, likeCount - 1);
           dislikeCount += 1;
         }
         return {
@@ -126,11 +134,20 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
           dislike_count: dislikeCount, // 업데이트된 싫어요 수
         };
       });
-      showMessage("성공적으로 업데이트되었습니다.", "success");
+      if (context?.vote === "like") {
+        showMessage("추천 했습니다.", "success");
+      } else if (context?.vote === "dislike") {
+        showMessage("비추천 했습니다.", "error");
+      }
     },
-    onError: (error: any) => {
-      console.error("좋아요 API 호출 실패", error);
-      showMessage("이미 추천, 비추천 하셨습니다.", "error");
+    onError: (error: any, context) => {
+      console.error("좋아요 API 호출 실패", context);
+      // context를 사용해 vote 값 참조
+      if (context?.vote) {
+        showMessage(`이미 ${context.vote === "like" ? "추천" : "비추천"} 하셨습니다.`, "error");
+      } else {
+        showMessage(`${error}업데이트에 실패했습니다. 다시 시도해주세요.`, "error");
+      }
     },
   });
 

@@ -3,7 +3,6 @@ import {
   Column,
   CreateDateColumn,
   Entity,
-  JoinColumn,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -13,7 +12,7 @@ import {
 import { UserImage } from './UserImage.entity';
 import { Story } from './Story.entity';
 import { Comments } from './Comments.entity';
-import { Likes } from './Like.entity';
+import { Likes } from './Likes.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -48,6 +47,6 @@ export class User extends BaseEntity {
   @Column({ type: 'timestamp', nullable: true, default: null })
   deleted_at: Date | null;
 
-  @OneToMany(() => Likes, (like) => like.user)
+  @OneToMany(() => Likes, (like) => like.User)
   Likes: Likes[]; // 유저가 남긴 추천/비추천
 }

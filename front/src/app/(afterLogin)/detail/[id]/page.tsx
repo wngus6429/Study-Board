@@ -87,39 +87,50 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     },
   });
 
-  // 좋아요
+  // 추천, 비추 로직
   const likeOrUnlike = useMutation({
     mutationFn: async ({ storyId, vote }: { storyId: number; vote: "like" | "dislike" }) => {
       console.log("좋아요 API 호출", storyId, vote);
+
       if (!session?.user?.id) {
-        showMessage("로그인된 유저 정보가 없습니다.");
+        showMessage("로그인 해야합니다.");
+        throw new Error("로그인이 필요합니다."); // 예외 처리
       }
+
       return await axios.put(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/likeOrUnlike/${storyId}`,
-        { userId: session?.user.id, vote }, // 명시적으로 userId 전달
+        { userId: session.user.id, vote },
         { withCredentials: true }
       );
     },
     onSuccess: (_, variables) => {
-      // 캐시 업데이트
-      queryClient.setQueryData(["story", "detail", params?.id], (oldData: StoryType | undefined) => {
-        if (!oldData) return oldData; // 데이터가 없으면 그대로 반환
+      // refetch(); // 상세 데이터 다시 불러오기
+      queryClient.setQueryData(["story", "detail", String(variables.storyId)], (oldData: StoryType | undefined) => {
+        if (!oldData) return oldData;
+
+        // 좋아요/싫어요 카운트 계산
+        let likeCount = oldData.like_count;
+        let dislikeCount = oldData.dislike_count;
+
+        if (variables.vote === "like") {
+          // 반대를 취소하고 좋아요 추가
+          dislikeCount += -1;
+          likeCount += 1;
+        } else if (variables.vote === "dislike") {
+          likeCount += -1;
+          dislikeCount += 1;
+        }
         return {
           ...oldData,
-          like_count: variables.flag ? oldData.like_count + 1 : oldData.like_count,
-          dislike_count: !variables.flag ? oldData.dislike_count + 1 : oldData.dislike_count,
+          like_count: likeCount, // 업데이트된 좋아요 수
+          dislike_count: dislikeCount, // 업데이트된 싫어요 수
         };
       });
-      showMessage(`성공적으로 업데이트되었습니다.`, "success");
+      showMessage("성공적으로 업데이트되었습니다.", "success");
     },
     onError: (error: any) => {
-      if (error.response && error.response.data.code === 404) {
-        showMessage(`${error.response.data.data}`, "error");
-      } else if (error.response && error.response.data.code === 401) {
-        showMessage(`${error.response.data.data}`, "error");
-      } else {
-        showMessage("오류가 발생했습니다.", "error");
-      }
+      console.error("좋아요 API 호출 실패", error);
+      showMessage("이미 추천, 비추천 하셨습니다.", "error");
     },
   });
 

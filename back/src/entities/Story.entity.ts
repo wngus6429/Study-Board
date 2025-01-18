@@ -11,7 +11,7 @@ import { StoryImage } from './StoryImage.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { Comments } from './Comments.entity';
 import { User } from './User.entity';
-import { Likes } from './Like.entity';
+import { Likes } from './Likes.entity';
 
 @Entity()
 export class Story {
@@ -77,6 +77,6 @@ export class Story {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @OneToMany(() => Likes, (like) => like.story)
+  @OneToMany(() => Likes, (like) => like.Story)
   Likes: Likes[]; // 게시글에 남겨진 추천/비추천
 }

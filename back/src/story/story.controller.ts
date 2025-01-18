@@ -65,6 +65,7 @@ export class StoryController {
     @Param('id', ParseIntPipe) id: number,
     @Body() userData?: any,
   ): Promise<any> {
+    console.log('다시 가져옴');
     const data = await this.storyService.findStoryOne(id, userData?.userId);
     // User의 필요한 필드만 남김
     console.log('상세페이지 데이터:', data);
@@ -158,7 +159,7 @@ export class StoryController {
     return await this.storyService.deleteComment(commentId);
   }
 
-  // 좋아요
+  // 좋아요, 싫어요.
   @Put('/likeOrUnlike/:id')
   @UseGuards(AuthGuard())
   async storyLike(
@@ -166,6 +167,6 @@ export class StoryController {
     @Body() body: { userId: string; vote: 'like' | 'dislike' },
   ): Promise<void> {
     console.log('좋아요/싫어요:', storyId, body);
-    // return await this.storyService.storyLike(storyId, body.userId, body.vote);
+    return await this.storyService.storyLike(storyId, body.userId, body.vote);
   }
 }

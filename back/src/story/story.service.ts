@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, IsNull, LessThan, Repository } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
@@ -9,7 +13,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { UpdateStoryDto } from './dto/update-story.dto';
 import { Comments } from 'src/entities/Comments.entity';
-import { Likes } from 'src/entities/Like.entity';
+import { Likes } from 'src/entities/Likes.entity';
 
 @Injectable()
 export class StoryService {
@@ -20,7 +24,7 @@ export class StoryService {
     private readonly imageRepository: Repository<StoryImage>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Comments) private commentRepository: Repository<Comments>,
-    @InjectRepository(Likes) private likeRepository: Repository<Comments>,
+    @InjectRepository(Likes) private likeRepository: Repository<Likes>,
   ) {}
 
   async findStory(
@@ -108,7 +112,13 @@ export class StoryService {
       // 데이터 조회
       const findData = await queryRunner.manager.findOne(Story, {
         where: { id },
-        relations: ['StoryImage', 'User', 'User.UserImage'],
+        relations: [
+          'StoryImage',
+          'User',
+          'User.UserImage',
+          'Likes',
+          'Likes.User', // Likes와 연결된 User 정보 포함
+        ],
       });
 
       if (!findData) {
@@ -116,12 +126,30 @@ export class StoryService {
         throw new NotFoundException(`Story with ID ${id} not found`);
       }
 
+      console.log('Story data:', findData);
       // 조회수 증가
       await queryRunner.manager.increment(Story, { id }, 'read_count', 1);
 
+      // 좋아요 및 싫어요 카운트 계산
+      const likeCount = findData.Likes.filter(
+        (like) => like.vote === 'like',
+      ).length;
+      const dislikeCount = findData.Likes.filter(
+        (like) => like.vote === 'dislike',
+      ).length;
+
+      // Likes 배열 제거 및 필요한 데이터만 반환
+      const { Likes, ...filteredData } = findData;
+      const result = {
+        ...filteredData,
+        like_count: likeCount,
+        dislike_count: dislikeCount,
+      };
+
       // 트랜잭션 커밋
       await queryRunner.commitTransaction();
-      return findData;
+      console.log('Story data with counts:', result);
+      return result;
     } catch (error) {
       // 트랜잭션 롤백
       await queryRunner.rollbackTransaction();
@@ -428,7 +456,7 @@ export class StoryService {
       throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
 
     // 댓글 생성 및 저장
-    const comment = this.commentRepository.create({
+    const comment = await this.commentRepository.create({
       content,
       parent: parentComment,
       Story: story,
@@ -451,52 +479,56 @@ export class StoryService {
     await this.commentRepository.save(comment);
   }
 
-  // async storyLike(
-  //   storyId: number,
-  //   userId: string,
-  //   vote: 'like' | 'dislike',
-  // ): Promise<void> {
-  //   const story = await this.storyRepository.findOne({
-  //     where: { id: storyId },
-  //   });
-  //   if (!story) {
-  //     throw new NotFoundException('게시글을 찾을 수 없습니다.');
-  //   }
+  async storyLike(
+    storyId: number,
+    userId: string,
+    vote: 'like' | 'dislike',
+  ): Promise<void> {
+    // 1. 게시글 찾기
+    const story = await this.storyRepository.findOne({
+      where: { id: storyId },
+    });
+    if (!story) {
+      throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
+    }
 
-  //   const existingVote = await this.likeRepository.findOne({
-  //     where: { user: { id: userId }, story: { id: storyId } },
-  //   });
+    // 2. 기존 투표 확인
+    const existingVote = await this.likeRepository.findOne({
+      where: { User: { id: userId }, Story: { id: storyId } },
+    });
 
-  //   if (existingVote) {
-  //     // 기존 투표와 동일한 경우 예외 처리
-  //     if (existingVote.vote === vote) {
-  //       throw new BadRequestException('이미 해당 투표를 완료했습니다.');
-  //     }
-  //     // 기존 투표를 수정
-  //     existingVote.vote = vote;
-  //     await this.likeRepository.save(existingVote);
-  //   } else {
-  //     // 새로운 투표 생성
-  //     const newVote = this.likeRepository.create({
-  //       user: { id: userId },
-  //       story: { id: storyId },
-  //       vote,
-  //     });
-  //     await this.likeRepository.save(newVote);
-  //   }
+    if (existingVote) {
+      // 기존 투표와 동일한 경우 예외 처리
+      if (existingVote.vote === vote) {
+        throw new BadRequestException('이미 동일한 투표를 완료했습니다.');
+      }
 
-  //   // 게시글의 like_count 및 dislike_count 업데이트
-  //   if (vote === 'like') {
-  //     story.like_count += 1;
-  //     if (existingVote?.vote === 'dislike') {
-  //       story.dislike_count -= 1;
-  //     }
-  //   } else {
-  //     story.dislike_count += 1;
-  //     if (existingVote?.vote === 'like') {
-  //       story.like_count -= 1;
-  //     }
-  //   }
-  //   await this.storyRepository.save(story);
-  // }
+      // 기존 투표를 수정
+      existingVote.vote = vote;
+      await this.likeRepository.save(existingVote);
+    } else {
+      // 새로운 투표 생성
+      const newVote = this.likeRepository.create({
+        User: { id: userId },
+        Story: { id: storyId },
+        vote,
+      });
+      await this.likeRepository.save(newVote);
+    }
+
+    // 3. 좋아요/싫어요 집계
+    const [likeCount, dislikeCount] = await Promise.all([
+      this.likeRepository.count({
+        where: { Story: { id: storyId }, vote: 'like' },
+      }),
+      this.likeRepository.count({
+        where: { Story: { id: storyId }, vote: 'dislike' },
+      }),
+    ]);
+
+    // 4. 집계된 값을 반환하거나 필요한 경우 로그에 기록
+    console.log(
+      `게시글 ID: ${storyId}, 좋아요: ${likeCount}, 싫어요: ${dislikeCount}`,
+    );
+  }
 }

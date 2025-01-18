@@ -165,7 +165,10 @@ export class StoryController {
   async storyLike(
     @Param('id') storyId: number,
     @Body() body: { userId: string; vote: 'like' | 'dislike' },
-  ): Promise<void> {
+  ): Promise<{
+    action: 'add' | 'remove' | 'change';
+    vote: 'like' | 'dislike';
+  }> {
     console.log('좋아요/싫어요:', storyId, body);
     return await this.storyService.storyLike(storyId, body.userId, body.vote);
   }

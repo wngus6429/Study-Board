@@ -483,8 +483,11 @@ export class StoryService {
     storyId: number,
     userId: string,
     vote: 'like' | 'dislike',
-  ): Promise<void> {
-    // 1. 게시글 찾기
+  ): Promise<{
+    action: 'add' | 'remove' | 'change';
+    vote: 'like' | 'dislike';
+  }> {
+    // 1. 게시글 찾기 (기존과 동일)
     const story = await this.storyRepository.findOne({
       where: { id: storyId },
     });
@@ -497,38 +500,30 @@ export class StoryService {
       where: { User: { id: userId }, Story: { id: storyId } },
     });
 
-    if (existingVote) {
-      // 기존 투표와 동일한 경우 예외 처리
-      if (existingVote.vote === vote) {
-        throw new BadRequestException('이미 동일한 투표를 완료했습니다.');
-      }
+    let action: 'add' | 'remove' | 'change' = 'add';
 
-      // 기존 투표를 수정
-      existingVote.vote = vote;
-      await this.likeRepository.save(existingVote);
+    if (existingVote) {
+      if (existingVote.vote === vote) {
+        // 같은 투표가 있으면 삭제 (취소)
+        await this.likeRepository.remove(existingVote);
+        action = 'remove';
+      } else {
+        // 다른 투표면 변경
+        existingVote.vote = vote;
+        await this.likeRepository.save(existingVote);
+        action = 'change';
+      }
     } else {
-      // 새로운 투표 생성
+      // 새로운 투표
       const newVote = this.likeRepository.create({
         User: { id: userId },
         Story: { id: storyId },
         vote,
       });
       await this.likeRepository.save(newVote);
+      action = 'add';
     }
 
-    // 3. 좋아요/싫어요 집계
-    const [likeCount, dislikeCount] = await Promise.all([
-      this.likeRepository.count({
-        where: { Story: { id: storyId }, vote: 'like' },
-      }),
-      this.likeRepository.count({
-        where: { Story: { id: storyId }, vote: 'dislike' },
-      }),
-    ]);
-
-    // 4. 집계된 값을 반환하거나 필요한 경우 로그에 기록
-    console.log(
-      `게시글 ID: ${storyId}, 좋아요: ${likeCount}, 싫어요: ${dislikeCount}`,
-    );
+    return { action, vote };
   }
 }

@@ -108,46 +108,74 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     // variables를 매개변수로 받아, 요청 전에 실행해야 할 로직을 처리할 수 있습니다.
     // onMutate에서 반환한 값은 context로 저장됩니다.
     // onError나 onSuccess에서 이 값을 참조할 수 있습니다.
-    onMutate: (variables) => {
-      // `onMutate`에서 `context`로 전달할 데이터를 반환
-      return { vote: variables.vote };
-    },
-    onSuccess: (_, variables, context) => {
+    // onMutate: (variables) => {
+    //   // `onMutate`에서 `context`로 전달할 데이터를 반환
+    //   return { vote: variables.vote };
+    // },
+    onSuccess: (response, variables) => {
+      const { action, vote } = response.data;
+
       queryClient.setQueryData(["story", "detail", String(variables.storyId)], (oldData: StoryType | undefined) => {
         if (!oldData) return oldData;
 
-        // 좋아요/싫어요 카운트 계산
         let likeCount = oldData.like_count;
         let dislikeCount = oldData.dislike_count;
 
-        if (variables.vote === "like") {
-          // 반대를 취소하고 좋아요 추가
-          dislikeCount = Math.max(0, dislikeCount - 1);
-          likeCount += 1;
-        } else if (variables.vote === "dislike") {
-          likeCount = Math.max(0, likeCount - 1);
-          dislikeCount += 1;
+        switch (action) {
+          case "add":
+            // 새로운 투표 추가
+            if (vote === "like") {
+              likeCount += 1;
+            } else {
+              dislikeCount += 1;
+            }
+            break;
+          case "remove":
+            // 기존 투표 취소
+            if (vote === "like") {
+              likeCount -= 1;
+            } else {
+              dislikeCount -= 1;
+            }
+            break;
+          case "change":
+            // 투표 변경 (like → dislike 또는 그 반대)
+            if (vote === "like") {
+              likeCount += 1;
+              dislikeCount -= 1;
+            } else {
+              likeCount -= 1;
+              dislikeCount += 1;
+            }
+            break;
         }
+
         return {
           ...oldData,
-          like_count: likeCount, // 업데이트된 좋아요 수
-          dislike_count: dislikeCount, // 업데이트된 싫어요 수
+          like_count: Math.max(0, likeCount),
+          dislike_count: Math.max(0, dislikeCount),
         };
       });
-      if (context?.vote === "like") {
-        showMessage("추천 했습니다.", "success");
-      } else if (context?.vote === "dislike") {
-        showMessage("비추천 했습니다.", "error");
+
+      // 메시지 표시
+      switch (action) {
+        case "add":
+          showMessage(`${vote === "like" ? "추천" : "비추천"} 했습니다.`, vote === "like" ? "success" : "error");
+          break;
+        case "remove":
+          showMessage(`${vote === "like" ? "추천" : "비추천"}을 취소했습니다.`, "info");
+          break;
+        case "change":
+          showMessage(
+            `${vote === "like" ? "추천" : "비추천"}으로 변경했습니다.`,
+            vote === "like" ? "success" : "error"
+          );
+          break;
       }
     },
-    onError: (error: any, context) => {
-      console.error("좋아요 API 호출 실패", context);
-      // context를 사용해 vote 값 참조
-      if (context?.vote) {
-        showMessage(`이미 ${context.vote === "like" ? "추천" : "비추천"} 하셨습니다.`, "error");
-      } else {
-        showMessage(`${error}업데이트에 실패했습니다. 다시 시도해주세요.`, "error");
-      }
+    onError: (error: any) => {
+      console.error("좋아요 API 호출 실패");
+      showMessage(`추천, 비추천에 실패했습니다. ${error}`, "error");
     },
   });
 

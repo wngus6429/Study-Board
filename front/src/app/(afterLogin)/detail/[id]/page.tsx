@@ -24,6 +24,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
   const { openCloseComments } = useComment();
+  const [likeCalculate, setLikeCalculate] = useState<number>(0);
 
   //! 상세 데이터 가져오기
   const {
@@ -49,6 +50,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       console.log("상세데이터", detail);
       document.title = `${detail.title}`;
       openCloseComments(true);
+      setLikeCalculate(detail.like_count + -detail.dislike_count);
     }
     return () => {
       openCloseComments(false);
@@ -285,10 +287,12 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               <Box
                 sx={{
                   display: "flex",
-                  backgroundColor: "linear-gradient(135deg, #FFD700, #FFB300)", // 골드 그라데이션
-                  borderRadius: 2, // 테두리 라운드 처리
-                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // 그림자
-                  padding: "4px", // 내부 여백
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  background: "linear-gradient(135deg, #FFE08A, #FFC547)", // 부드러운 골드 그라데이션
+                  borderRadius: "12px",
+                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // 그림자 효과
+                  padding: "6px 12px",
                   width: 100, // 고정된 넓이
                 }}
               >
@@ -296,16 +300,21 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   variant="h6"
                   sx={{
                     fontWeight: "bold",
-                    color: "#4A4A4A", // 진한 회색으로 텍스트 색상 변경
-                    textTransform: "uppercase", // 대문자로 표시
-                    letterSpacing: 1.5, // 글자 간격 추가
+                    color: "#4A4A4A", // 진한 회색 텍스트 색상
+                    textTransform: "none", // 텍스트 변환 없음
+                    fontSize: "16px", // 폰트 크기
                   }}
                 >
                   추천
                 </Typography>
-                <Typography>
-                  {/* {detail.recommend_count} */}
-                  10
+                <Typography
+                  sx={{
+                    fontWeight: "bold",
+                    color: "#4A4A4A", // 진한 회색 숫자 색상
+                    fontSize: "16px", // 숫자 크기
+                  }}
+                >
+                  {likeCalculate}
                 </Typography>
               </Box>
               <Box textAlign="right">

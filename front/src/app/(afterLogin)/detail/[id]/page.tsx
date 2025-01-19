@@ -14,7 +14,6 @@ import { useComment } from "@/app/store/commentStore";
 import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 import ErrorView from "@/app/components/common/ErrorView";
 import RecommendButtonsWithCount from "@/app/components/RecommendButton";
-import ThumbUpAlt from "@mui/icons-material/ThumbUp";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -48,6 +47,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   useEffect(() => {
     if (detail != null) {
       console.log("상세데이터", detail);
+      document.title = `${detail.title}`;
       openCloseComments(true);
     }
     return () => {
@@ -103,15 +103,15 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
         { withCredentials: true }
       );
     },
-    // onMutate의 동작 방식
-    // onMutate 호출 시점: mutationFn 실행 전에 호출됩니다.
-    // variables를 매개변수로 받아, 요청 전에 실행해야 할 로직을 처리할 수 있습니다.
-    // onMutate에서 반환한 값은 context로 저장됩니다.
-    // onError나 onSuccess에서 이 값을 참조할 수 있습니다.
-    // onMutate: (variables) => {
-    //   // `onMutate`에서 `context`로 전달할 데이터를 반환
-    //   return { vote: variables.vote };
-    // },
+    //! onMutate의 동작 방식
+    //! onMutate 호출 시점: mutationFn 실행 전에 호출됩니다.
+    //! variables를 매개변수로 받아, 요청 전에 실행해야 할 로직을 처리할 수 있습니다.
+    //! onMutate에서 반환한 값은 context로 저장됩니다.
+    //! onError나 onSuccess에서 이 값을 참조할 수 있습니다.
+    onMutate: (variables) => {
+      // `onMutate`에서 `context`로 전달할 데이터를 반환
+      return { vote: variables.vote };
+    },
     onSuccess: (response, variables) => {
       const { action, vote } = response.data;
 
@@ -277,13 +277,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                     작성자: {detail.User.nickname}
                   </Typography>
-                  <Button
-                    onClick={() => router.push("/")}
-                    size="small"
-                    variant="contained"
-                    color="primary"
-                    sx={{ mt: 1 }}
-                  >
+                  <Button onClick={() => router.back()} size="small" variant="contained" color="primary" sx={{ mt: 1 }}>
                     뒤로가기
                   </Button>
                 </Box>

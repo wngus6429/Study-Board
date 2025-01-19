@@ -1,21 +1,8 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Avatar,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-} from "@mui/material";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import React, { useEffect, useState } from "react";
+import { Box, TextField, Button, Typography, Avatar, Alert } from "@mui/material";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { useComment, useUserImage } from "@/app/store";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import dayjs from "dayjs";

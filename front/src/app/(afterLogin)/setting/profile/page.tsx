@@ -227,7 +227,8 @@ function UserProfileEdit() {
         display: "flex",
         flexDirection: "row", // 한 줄에 나란히 배치
         alignItems: "flex-start", // 수직 정렬
-        mt: 4,
+        mt: 3,
+        minHeight: "65vh",
       }}
     >
       <Box>
@@ -256,7 +257,7 @@ function UserProfileEdit() {
           </Box>
         </Box>
       </Box>
-      <Container component="main" sx={{ mt: 8, width: "300px", marginLeft: "0" }}>
+      <Container component="main" sx={{ mt: 8, width: "300px", marginLeft: "none", marginTop: "48px" }}>
         <Box
           display="flex"
           flexDirection="column"

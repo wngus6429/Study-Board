@@ -55,3 +55,7 @@ https://github.com/typestack/class-validator
 아주 좋은게 많다. 꼭 보기 UUID 부터해서 싹다 있다.
 
 완료
+
+await queryClient.prefetchQuery 랑 const dehydratedState = dehydrate(queryClient);
+사용해서 프로필 하기. Next15 참조. [username].page.tsx
+다른 사람 프로필 페이지 보기,

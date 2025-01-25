@@ -1,14 +1,13 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
-import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress } from "@mui/material";
+import { TextField, Button, Avatar, Typography, Box, Container } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Loading from "@/app/components/common/Loading";
 import { useRouter } from "next/navigation";
 import { useMessage } from "@/app/store/messageStore";
 import { useUserImage } from "@/app/store/userImageStore";
-import CustomizedTables from "@/app/components/CustomizedTables";
 import { USER_TABLE_VIEW_COUNT } from "@/app/const/TABLE_VIEW_COUNT";
 import CustomizedUserTables from "@/app/components/CustomizedUserStoryTables";
 import Pagination from "@/app/components/common/Pagination";
@@ -26,7 +25,7 @@ interface ApiCommentsResponse {
 
 function UserProfileEdit() {
   const [nickname, setNickname] = useState("");
-  const [profileImage, setProfileImage] = useState(null);
+  const [profileImage, setProfileImage] = useState<any>(null);
   const [previewImage, setPreviewImage] = useState<any>(null);
   const { showMessage, messageState } = useMessage((state) => state);
 
@@ -36,26 +35,38 @@ function UserProfileEdit() {
   const { data: session, status } = useSession();
   const { setTopBarImageDelete, setUserImageUrl } = useUserImage();
 
+  // 프로필 정보 불러옴
+  const fetchUserDetail = async (userId: string) => {
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${userId}`, {
+      withCredentials: true,
+    });
+    return response.data;
+  };
+  // 프로필 정보 미리 불러옴
+  if (status === "authenticated" && session?.user?.id) {
+    queryClient.prefetchQuery({
+      queryKey: ["userInfo", session.user.id],
+      queryFn: () => fetchUserDetail(session.user.id),
+    });
+  }
+
   // 세션이 인증된 상태에서만 요청을 수행합니다.
+  // 위에 프리패칭된 데이터를 사용, 키가 일치하니까. 새로고침 시에도 데이터가 날라가지 않음
   const {
     data: userDetail,
     error,
     isLoading,
-    refetch,
-  } = useQuery({
+  } = useQuery<any>({
     queryKey: ["userInfo", session?.user.id],
-    queryFn: async () => {
-      if (session != null) {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${session.user.id}`, {
-          withCredentials: true,
-        });
-        return response.data;
-      }
+    queryFn: () => {
+      console.log("유즈쿼리");
+      fetchUserDetail(session?.user.id as string);
     },
     // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
     // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
     enabled: status === "authenticated",
-    staleTime: 0,
+    staleTime: 1000 * 60 * 1,
+    gcTime: 1000 * 10 * 1,
   });
 
   const [storyCurrentPage, setStoryCurrentPage] = useState(1);
@@ -69,6 +80,7 @@ function UserProfileEdit() {
   } = useQuery<ApiStoryResponse>({
     queryKey: ["user", "stories", storyCurrentPage],
     queryFn: async () => {
+      console.log("유저 스토리 불러옴");
       const offset = (storyCurrentPage - 1) * viewCount;
       const response = await axios.post<ApiStoryResponse>(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/userStoryTableData`,
@@ -91,6 +103,7 @@ function UserProfileEdit() {
   } = useQuery<ApiCommentsResponse>({
     queryKey: ["user", "comments", commentsCurrentPage],
     queryFn: async () => {
+      console.log("유저 코멘트 불러옴");
       const offset = (commentsCurrentPage - 1) * viewCount;
       const response = await axios.post<ApiCommentsResponse>(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/userCommentsTableData`,
@@ -105,8 +118,6 @@ function UserProfileEdit() {
     },
     enabled: status === "authenticated",
   });
-
-  console.log("유저 스토리", UserComments);
 
   useEffect(() => {
     if (userDetail) {
@@ -167,11 +178,10 @@ function UserProfileEdit() {
       }
     },
     onSuccess: async (response) => {
-      console.log("성공", response);
       if (response?.status === 201) {
         // 기존에 있던 이미지 캐쉬파일 삭제해서, 다시 프로필 페이지 왔을때 원래 있던 사진이 잠시 보이는걸 방지함
-        queryClient.invalidateQueries({ queryKey: ["userInfo", session?.user.id] });
-        queryClient.refetchQueries({ queryKey: ["userTopImage", session?.user.id] });
+        await queryClient.invalidateQueries({ queryKey: ["userInfo", session?.user.id] });
+        await queryClient.refetchQueries({ queryKey: ["userTopImage", session?.user.id] });
         showMessage("프로필 변경 완료", "success");
         router.push("/");
       }

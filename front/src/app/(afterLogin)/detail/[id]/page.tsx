@@ -41,8 +41,8 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     },
     // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
     enabled: !!params?.id && !isDeleted,
-    staleTime: 1000 * 60 * 1, // 5분 동안 데이터 신선 상태 유지
-    gcTime: 1000 * 60 * 1,
+    staleTime: 1000 * 60 * 4,
+    gcTime: 1000 * 60 * 4,
   });
 
   useEffect(() => {

@@ -1,10 +1,14 @@
+import Loading from "@/app/components/common/Loading";
 import CustomizedUserCommentsTables from "@/app/components/CustomizedUserCommentsTables";
 import CustomizedUserTables from "@/app/components/CustomizedUserStoryTables";
 import { Avatar, Box, Container, Typography } from "@mui/material";
 import React from "react";
 
-export default function AnotherUserProfile(userDetail: any) {
-  console.log("유저디테일", userDetail);
+interface Props {
+  userDetail: any;
+}
+
+export default function AnotherUserProfile({ userDetail }: Props) {
   return (
     <Box
       sx={{
@@ -21,7 +25,7 @@ export default function AnotherUserProfile(userDetail: any) {
           gutterBottom
           sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
         >
-          작성한 글
+          최근 작성한 글
         </Typography>
         <Box
           sx={{
@@ -52,8 +56,8 @@ export default function AnotherUserProfile(userDetail: any) {
           </Typography>
 
           {/* 프로필 사진 */}
-          {/* <Avatar
-            src={`${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.user.image.link}` || "/default-avatar.png"} // 기본 프로필 이미지 설정
+          <Avatar
+            src={`${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.user.image.link}`} // 기본 프로필 이미지 설정
             sx={{
               width: 120,
               height: 120,
@@ -62,10 +66,10 @@ export default function AnotherUserProfile(userDetail: any) {
               border: "3px solid",
               borderColor: "primary.main",
             }}
-          /> */}
+          />
           {/* 닉네임 */}
           <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 1, textAlign: "center" }}>
-            {userDetail.nickname}
+            {userDetail.user.nickname}
           </Typography>
         </Box>
       </Container>
@@ -76,7 +80,7 @@ export default function AnotherUserProfile(userDetail: any) {
           gutterBottom
           sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
         >
-          작성한 댓글
+          최근 작성한 댓글
         </Typography>
         <Box
           sx={{

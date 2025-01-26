@@ -104,14 +104,14 @@ export class AuthService {
     const posts = await this.storyRepository.find({
       where: { User: { id: user.id } }, // Story 테이블에서 유저 ID를 기준으로 검색
       order: { created_at: 'DESC' }, // 최신순 정렬
-      take: 15, // 최대 15개만 가져오기
+      take: 10, // 최대 15개만 가져오기
     });
 
     // 3. 유저가 작성한 Comments 최신순으로 15개 가져오기
     const comments = await this.commentRepository.find({
       where: { User: { id: user.id } }, // Comments 테이블에서 유저 ID를 기준으로 검색
       order: { created_at: 'DESC' }, // 최신순 정렬
-      take: 15, // 최대 15개만 가져오기
+      take: 10, // 최대 15개만 가져오기
     });
 
     console.log('결과', {

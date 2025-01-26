@@ -1,37 +1,22 @@
 "use client";
-import { FormEvent, useEffect, useState } from "react";
-import { TextField, Button, Avatar, Typography, Box, Container } from "@mui/material";
-import { dehydrate, HydrationBoundary, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { dehydrate, HydrationBoundary, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import Loading from "@/app/components/common/Loading";
 import { useMessage } from "@/app/store/messageStore";
-import { USER_TABLE_VIEW_COUNT } from "@/app/const/TABLE_VIEW_COUNT";
-import CustomizedUserTables from "@/app/components/CustomizedUserStoryTables";
-import CustomizedUserCommentsTables from "@/app/components/CustomizedUserCommentsTables";
 import { useRouter } from "next/navigation";
 import { useParams } from "next/navigation";
-import AnotherUserProfile from "../components/anotherUserProfile";
+import AnotherUserProfile from "../components/AnotherUserProfile";
 
-interface ApiStoryResponse {
-  StoryResults: any[];
-}
-
-interface ApiCommentsResponse {
-  CommentsResults: any[];
-}
-
-type Props = {
-  params: Promise<{ username: string }>;
-};
-
-export default function UserProfileDetail({ props }: { props: { username: string } }) {
+export default function UserProfileDetail() {
   const params = useParams();
   const username = params?.username as string;
+  const router = useRouter();
   const queryClient = useQueryClient();
+  const { showMessage } = useMessage((state) => state);
 
   // 프로필 정보 불러옴
   const fetchUserDetail = async (username: string) => {
-    console.log("씨발?", username);
     const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/profile/${username}`);
     return response.data;
   };
@@ -54,7 +39,6 @@ export default function UserProfileDetail({ props }: { props: { username: string
   } = useQuery<any>({
     queryKey: ["userProfileInfo", username],
     queryFn: () => {
-      console.log("유즈쿼리");
       fetchUserDetail(username);
     },
     // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
@@ -64,26 +48,19 @@ export default function UserProfileDetail({ props }: { props: { username: string
     gcTime: 1000 * 20 * 1,
   });
 
-  console.log("야잌", userDetail);
-
-  //   useEffect(() => {
-  //     if (error) {
-  //       if (axios.isAxiosError(error) && error.response?.status === 404) {
-  //         router.replace("/not-found"); // 404 페이지로 이동
-  //       } else {
-  //         showMessage("오류가 발생했습니다. 다시 시도해주세요.", "error");
-  //       }
-  //     }
-  //   }, [error, router]);
-
-  // await queryClient.prefetchQuery({ queryKey: ["users", username], queryFn: getUserServer });
+  useEffect(() => {
+    if (error) {
+      showMessage("오류가 발생했습니다. 다시 시도해주세요.", "error");
+      router.replace("/not-found"); // 404 페이지로 이동
+    }
+  }, [error, router]);
 
   // React Query 캐시 직렬화
   const dehydratedState = dehydrate(queryClient);
 
   return (
     <HydrationBoundary state={dehydratedState}>
-      <AnotherUserProfile userDetail={userDetail} />
+      {userDetail != null ? <AnotherUserProfile userDetail={userDetail} /> : <Loading />}
     </HydrationBoundary>
   );
 }

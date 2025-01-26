@@ -12,6 +12,8 @@ import { diskStorage } from 'multer';
 import * as path from 'path';
 import { Today } from 'src/common/helper/today';
 import { TOKEN_EXPIRATION_TIME } from 'src/constants/tokenTime';
+import { Story } from 'src/entities/Story.entity';
+import { Comments } from 'src/entities/Comments.entity';
 
 @Module({
   imports: [
@@ -20,7 +22,7 @@ import { TOKEN_EXPIRATION_TIME } from 'src/constants/tokenTime';
       secret: 'park',
       signOptions: { expiresIn: TOKEN_EXPIRATION_TIME },
     }),
-    TypeOrmModule.forFeature([User, UserImage]),
+    TypeOrmModule.forFeature([User, UserImage, Story, Comments]),
     MulterModule.register({
       storage: diskStorage({
         destination: './userUpload',

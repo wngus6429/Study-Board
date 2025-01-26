@@ -3,7 +3,7 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
+// import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/User.entity';
 import { SignupUserDto } from './dto/signup.user.dto';
@@ -11,14 +11,20 @@ import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { SigninUserDto } from './dto/signin.user.dto';
 import { UserImage } from 'src/entities/UserImage.entity';
+import { Comments } from 'src/entities/Comments.entity';
+import { Story } from 'src/entities/Story.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(User) private userRepository: Repository<User>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(UserImage)
     private readonly userImageRepository: Repository<UserImage>,
-    private jwtService: JwtService,
+    @InjectRepository(Comments)
+    private readonly commentRepository: Repository<Comments>,
+    @InjectRepository(Story)
+    private readonly storyRepository: Repository<Story>,
+    // private readonly jwtService: JwtService,
   ) {}
 
   // 회원가입처리
@@ -81,6 +87,63 @@ export class AuthService {
     // TODO 비밀번호 안 빠져나가게 해야함
     console.log('user:', user);
     return { image: user.UserImage, nickname: user.nickname };
+  }
+
+  async anotherUserGet(username: string): Promise<any> {
+    // 1. 유저 정보 가져오기
+    const user = await this.userRepository.findOne({
+      where: { nickname: username },
+      relations: ['UserImage'], // 유저 이미지와 관계를 가져옴
+    });
+
+    if (!user) {
+      throw new ConflictException('사용자를 찾을 수 없습니다.');
+    }
+
+    // 2. 유저가 작성한 Story 최신순으로 15개 가져오기
+    const posts = await this.storyRepository.find({
+      where: { User: { id: user.id } }, // Story 테이블에서 유저 ID를 기준으로 검색
+      order: { created_at: 'DESC' }, // 최신순 정렬
+      take: 15, // 최대 15개만 가져오기
+    });
+
+    // 3. 유저가 작성한 Comments 최신순으로 15개 가져오기
+    const comments = await this.commentRepository.find({
+      where: { User: { id: user.id } }, // Comments 테이블에서 유저 ID를 기준으로 검색
+      order: { created_at: 'DESC' }, // 최신순 정렬
+      take: 15, // 최대 15개만 가져오기
+    });
+
+    console.log('결과', {
+      user: {
+        nickname: user.nickname,
+        image: user.UserImage, // 프로필 이미지
+      },
+      posts: posts.map((post) => ({
+        title: post.title,
+        content: post.content,
+      })),
+      comments: comments.map((comment) => ({
+        content: comment.content,
+        created_at: comment.created_at,
+      })),
+    });
+
+    // 4. 결과 반환
+    return {
+      user: {
+        nickname: user.nickname,
+        image: user.UserImage, // 프로필 이미지
+      },
+      posts: posts.map((post) => ({
+        title: post.title,
+        content: post.content,
+      })),
+      comments: comments.map((comment) => ({
+        content: comment.content,
+        created_at: comment.created_at,
+      })),
+    };
   }
 
   // 유저 정보 업데이트

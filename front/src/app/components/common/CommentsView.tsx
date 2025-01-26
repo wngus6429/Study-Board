@@ -57,12 +57,6 @@ const CommentsView = () => {
   });
 
   useEffect(() => {
-    if (CommentData) {
-      console.log("CommentData", CommentData);
-    }
-  }, [CommentData]);
-
-  useEffect(() => {
     if (CommentData?.processedComments) {
       setComments(CommentData.processedComments);
       setUserData(CommentData.loginUser);

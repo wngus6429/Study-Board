@@ -84,7 +84,7 @@ export class AuthController {
     res.sendStatus(200);
   }
 
-  // 유저 프로필 정보 가져오기
+  // 로그인 한 내 자신 프로필 정보 가져오기
   @Get('/:id')
   @UseGuards(AuthGuard())
   async userGet(
@@ -92,6 +92,12 @@ export class AuthController {
   ): Promise<{ image: UserImage; nickname: string }> {
     console.log('프로필 정보 아이디', id);
     return await this.authUserService.userGet(id);
+  }
+  // 다른 유저 프로필 정보, 작성 글, 댓글까지 가져오기
+  @Get('/profile/:username')
+  async anotherUserGet(@Param('username') username: string): Promise<any> {
+    console.log('다른 유저 정보 닉네임', username);
+    return await this.authUserService.anotherUserGet(username);
   }
 
   // 프로필 업데이트
@@ -106,14 +112,14 @@ export class AuthController {
     await this.authUserService.userUpdate(userData, profileImage);
     // Post가 성공적으로 완료되면 201 상태코드를 반환
   }
-
+  // 내 프로필 사진 삭제
   @Delete('delete')
   @UseGuards(AuthGuard())
   async deleteProfilePicture(@Body() userData: any): Promise<void> {
     console.log('프로필 이미지 삭제 요청', userData);
     await this.authUserService.deleteProfilePicture(userData.id);
   }
-
+  // 내 비밀번호 변경
   @Post('password')
   @UseGuards(AuthGuard())
   async changePassword(@Body() userData: any): Promise<void> {

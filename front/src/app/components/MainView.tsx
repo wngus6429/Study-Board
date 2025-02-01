@@ -54,6 +54,7 @@ const MainView = (): ReactNode => {
   };
 
   if (isLoading) return <Loading />;
+
   if (error) return <div>Error: {(error as Error).message}</div>;
 
   return (

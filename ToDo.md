@@ -1,25 +1,26 @@
-5. 회원 가입, 로그인 후 Alert 화면 표시 (완료)
-6. 로그아웃 구현하기 (완료)
-7. 맨 오른쪽에 추천하기 버튼, 로그인 해서 내꺼면 삭제 혹은 수정 버튼
-8. refresh-token 이게 뭐임
-   https://www.inflearn.com/community/questions/1291603/%EC%84%9C%EB%B2%84-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%A9%EC%8B%9D%EA%B3%BC-%EA%B2%B0%ED%95%A9?srsltid=AfmBOorFPvfwaxD9Y-oRMTKVZikGZpp-_O5SuxRnwsYEZcGedTIVKUer
-9. 유저 클릭시. 다양한 버튼 표시는 popover
-10. 삭제 하시겠습니까? 이거 modal
-11. 질문 삭제 못하게 막기
-12. 글 작성할때, select로 잡단, 한탄, 질문, 스크린샷 등등 탭 만들기 (완료)
-13. 회원 가입후 바로 로그인 안됨. DB에서 access_Token은 받는데. 세션에 안 담김
-14. 회원가입시 이미 가입된 Email주소입니다. 표시하기 (완료)
-15. 좌우 width 이거, 길이 자동측정해서 하면 안되나? cal(100vh - 90px) 같이
+1. 회원 가입 기능 (Next-Auth, CredentialsProvider)
+2. 로그인 구현하기 (Next-Auth) (Alert 표시)
+3. 로그아웃 구현하기 (Alert 표시)
+4. 글 작성하기,
+5. 글 작성시 이미지 업로드 기능
+6. 글 수정하기, 이미지도 수정
+7. 유저 클릭시. 그 유저 프로필 보기
+8. 공통 메세지 Alert
+9. 질문 삭제 못하게 막기
+10. 글 작성할때, select로 잡단, 한탄, 질문, 스크린샷 등등 탭 만들기 (완료)
+11. 회원 가입후 바로 로그인 안됨. DB에서 access_Token은 받는데. 세션에 안 담김
+12. 회원가입시 이미 가입된 Email주소입니다. 표시하기 (완료)
+13. 좌우 width 이거, 길이 자동측정해서 하면 안되나? cal(100vh - 90px) 같이
 
-16. 해야할거 추천기능
-17. 댓글 삭제 하시겟습니까?? (완료)
-18. 상세화면에서 뒤로가기 했을때 기존 페이지 유지 (완료)
-19. 페이지네이션 (완료)
-20. 내가 쓴 글만 모아보기 (완료)
-21. 내가 쓴 댓글 모아보기 (완료)
-22. 비밀번호 변경기능 (완료)
-23. 로그인 만료되면 어떻게 해야하는게 좋지? (완료)
-24. 대댓글의 젤첫 오야 삭제하면 뒤에 대댓글 다 없어짐 (완료)
+14. 해야할거 추천기능
+15. 댓글 삭제 하시겟습니까?? (완료)
+16. 상세화면에서 뒤로가기 했을때 기존 페이지 유지 (완료)
+17. 페이지네이션 (완료)
+18. 내가 쓴 글만 모아보기 (완료)
+19. 내가 쓴 댓글 모아보기 (완료)
+20. 비밀번호 변경기능 (완료)
+21. 로그인 만료되면 어떻게 해야하는게 좋지? (완료)
+22. 대댓글의 젤첫 오야 삭제하면 뒤에 대댓글 다 없어짐 (완료)
 
 -- 기능 구현()
 프론트 - NextJS, Mui, 상태관리(Zustand)
@@ -49,6 +50,7 @@ DB - MySQL,
 21. 유저이미지 등록 및 표시
 22. 업로드 및 상세페이지 사진 표시 (디자인 변경필요)
 23. 회원이미지 TopBar에 표시하기
+24. 댓글 수정 완료
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator
@@ -59,3 +61,6 @@ https://github.com/typestack/class-validator
 await queryClient.prefetchQuery 랑 const dehydratedState = dehydrate(queryClient);
 사용해서 프로필 하기. Next15 참조. [username].page.tsx
 다른 사람 프로필 페이지 보기,
+
+5. refresh-token 이게 뭐임
+   https://www.inflearn.com/community/questions/1291603/%EC%84%9C%EB%B2%84-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%A9%EC%8B%9D%EA%B3%BC-%EA%B2%B0%ED%95%A9?srsltid=AfmBOorFPvfwaxD9Y-oRMTKVZikGZpp-_O5SuxRnwsYEZcGedTIVKUer

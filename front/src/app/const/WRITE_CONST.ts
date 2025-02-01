@@ -15,4 +15,13 @@ export const TAB_SELECT_OPTIONS = [
   { name: "전체", value: "all" },
   ...WRITE_SELECT_OPTIONS,
   { name: "건의", value: "suggestion" },
+  { name: "건의", value: "suggestion" },
+  { name: "건의", value: "suggestion" },
+  { name: "건의", value: "suggestion" },
+  { name: "건의", value: "suggestion" },
+  { name: "건의", value: "suggestion" },
+  { name: "건의", value: "suggestion" },
+  { name: "건의", value: "suggestion" },
+  { name: "건의", value: "suggestion" },
+  { name: "건의", value: "suggestion" },
 ];

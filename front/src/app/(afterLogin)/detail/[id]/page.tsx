@@ -276,7 +276,11 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   sx={{ width: 50, height: 50, boxShadow: 2 }}
                 />
                 <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: "bold", cursor: "pointer" }}
+                    onClick={() => router.push(`/profile/${detail.User.nickname}`)}
+                  >
                     작성자: {detail.User.nickname}
                   </Typography>
                   <Button onClick={() => router.back()} size="small" variant="contained" color="primary" sx={{ mt: 1 }}>

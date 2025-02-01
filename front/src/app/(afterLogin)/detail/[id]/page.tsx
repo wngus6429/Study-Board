@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -206,6 +206,49 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
 
   if (isError) return <ErrorView />;
 
+  const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = ({ img, isLastOddImage }) => {
+    const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
+
+    // img.link가 GIF이면 타임스탬프 없이, 아니라면 타임스탬프를 한 번만 생성하여 사용
+    const imageSrc = useMemo(() => {
+      const lowerLink = img.link.toLowerCase();
+      if (lowerLink.endsWith(".gif")) {
+        return img.link;
+      }
+      return `${img.link}?timestamp=${Date.now()}`;
+    }, [img.link]);
+
+    const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
+      const { naturalWidth, naturalHeight } = e.currentTarget;
+      setDimensions({ width: naturalWidth, height: naturalHeight });
+    };
+
+    const isWideImage = dimensions ? dimensions.width / dimensions.height >= 1.3 : false;
+    const fullWidth = isWideImage || isLastOddImage;
+
+    return (
+      <CardMedia
+        component="img"
+        image={imageSrc}
+        alt={`イメージ${img.image_name}`}
+        onLoad={handleImageLoad}
+        sx={{
+          flexBasis: fullWidth ? "100%" : "calc(50% - 8px)",
+          maxWidth: fullWidth ? "100%" : "calc(50% - 8px)",
+          margin: fullWidth ? "0 auto" : undefined,
+          borderRadius: 4,
+          objectFit: "contain",
+          boxShadow: 4,
+          transition: "transform 0.3s ease, box-shadow 0.3s ease",
+          "&:hover": {
+            transform: "translateY(-10px)",
+            boxShadow: 8,
+          },
+        }}
+      />
+    );
+  };
+
   return (
     <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 2, overflow: "hidden" }}>
       {openConfirmDialog && (
@@ -368,28 +411,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 >
                   {detail.StoryImage.map((img: StoryImageType, index: number) => {
                     const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
-
-                    return (
-                      <CardMedia
-                        key={`${img.id}-${index}`}
-                        component="img"
-                        image={`${img.link}?timestamp=${new Date().getTime()}`}
-                        alt={`イメージ${img.image_name}`}
-                        sx={{
-                          flexBasis: isLastOddImage ? "100%" : "calc(50% - 8px)", // 마지막 홀수 이미지는 100% 너비
-                          maxWidth: isLastOddImage ? "100%" : "calc(50% - 8px)", // 최대 50% 너비
-                          margin: isLastOddImage ? "0 auto" : undefined, // 홀수 마지막 이미지를 가운데 정렬
-                          borderRadius: 4,
-                          objectFit: "contain", // 이미지 비율 유지
-                          boxShadow: 4,
-                          transition: "transform 0.3s ease, box-shadow 0.3s ease", // 애니메이션 추가
-                          "&:hover": {
-                            transform: "translateY(-5px)", // 위로 살짝 이동
-                            boxShadow: 8, // 그림자 강도 증가
-                          },
-                        }}
-                      />
-                    );
+                    return <ImageCard key={`${img.id}-${index}`} img={img} isLastOddImage={isLastOddImage} />;
                   })}
                 </Box>
               </Box>

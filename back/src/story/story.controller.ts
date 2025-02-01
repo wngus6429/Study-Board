@@ -6,6 +6,7 @@ import {
   NotFoundException,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Put,
   Query,
@@ -158,11 +159,21 @@ export class StoryController {
     console.log('삭제할 댓글 ID:', commentId);
     return await this.storyService.deleteComment(commentId);
   }
+  // 댓글 수정
+  @Patch('/comment/:id')
+  @UseGuards(AuthGuard())
+  async editComment(
+    @Param('id') commentId: number,
+    @Body('content') content: string, // body에서 content 필드만 추출
+  ): Promise<void> {
+    console.log('수정할 댓글 ID:', commentId, content);
+    return await this.storyService.editComment(commentId, content);
+  }
 
   // 좋아요, 싫어요.
   @Put('/likeOrUnlike/:id')
   @UseGuards(AuthGuard())
-  async storyLike(
+  async storyLikeOrNot(
     @Param('id') storyId: number,
     @Body() body: { userId: string; vote: 'like' | 'dislike' },
   ): Promise<{
@@ -170,6 +181,10 @@ export class StoryController {
     vote: 'like' | 'dislike';
   }> {
     console.log('좋아요/싫어요:', storyId, body);
-    return await this.storyService.storyLike(storyId, body.userId, body.vote);
+    return await this.storyService.storyLikeUnLike(
+      storyId,
+      body.userId,
+      body.vote,
+    );
   }
 }

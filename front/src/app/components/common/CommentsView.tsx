@@ -8,6 +8,7 @@ import { useParams } from "next/navigation";
 import dayjs from "dayjs";
 import Loading from "./Loading";
 import ConfirmDialog from "./ConfirmDialog";
+import { useMessage } from "@/app/store/messageStore";
 
 interface Comment {
   id: number;
@@ -26,6 +27,8 @@ interface CommentsProps {
 const CommentsView = () => {
   // URL 파라미터에서 스토리 ID 가져오기
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
+  // 메시지 컴포넌트 사용
+  const { showMessage } = useMessage((state) => state);
   // 세션 데이터
   const { data: session, status } = useSession();
   // 댓글 작성 내용
@@ -95,6 +98,9 @@ const CommentsView = () => {
       setContent("");
       refetch();
     },
+    onError: () => {
+      showMessage("댓글 등록 오류가 발생했습니다.", "error");
+    },
   });
 
   const deleteMutation = useMutation({
@@ -118,6 +124,32 @@ const CommentsView = () => {
       if (response.status === 200) {
         refetch();
       }
+    },
+    onError: () => {
+      showMessage("댓글 삭제 오류가 발생했습니다.", "error");
+    },
+  });
+
+  // 댓글 수정 mutation (PATCH나 PUT을 사용 가능)
+  const editMutation = useMutation({
+    mutationFn: async ({ commentId, newContent }: { commentId: number; newContent: string }) => {
+      try {
+        // 여기서는 PATCH 메서드를 사용하여 부분 업데이트
+        const response = await axios.patch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${commentId}`,
+          { content: newContent },
+          { withCredentials: true }
+        );
+        return response.data;
+      } catch (error) {
+        throw new Error("Failed to edit comment");
+      }
+    },
+    onSuccess: () => {
+      refetch();
+    },
+    onError: () => {
+      showMessage("댓글 수정 오류가 발생했습니다.", "error");
     },
   });
 
@@ -170,11 +202,36 @@ const CommentsView = () => {
     setOpenConfirmDialog(false);
   };
 
+  // 댓글 수정 핸들러 (수정 후 API 호출)
+  const handleEditSubmit = (commentId: number, newContent: string) => {
+    if (newContent.trim()) {
+      editMutation.mutate({ commentId, newContent });
+    }
+  };
+
   const MAX_DEPTH = 4; // 최대 깊이 제한
 
-  const CommentList = ({ comments, toggleReply, handleReplySubmit, replyTo }: any) => {
+  // CommentList 컴포넌트 내에서 답글과 수정 모드 관리를 위한 로컬 상태 추가
+  const CommentList = ({
+    comments,
+    toggleReply,
+    handleReplySubmit,
+    replyTo,
+    handleEditSubmit,
+  }: {
+    comments: any;
+    toggleReply: (commentId: number) => void;
+    handleReplySubmit: (parentId: number, content: string) => void;
+    replyTo: number | null;
+    handleEditSubmit: (commentId: number, newContent: string) => void;
+  }) => {
     const [localReplyContent, setLocalReplyContent] = useState("");
-    const flatComments = flattenComments(comments); // 평면 구조로 변환
+    // 댓글 수정 모드 상태
+    const [editCommentId, setEditCommentId] = useState<number | null>(null);
+    const [editContent, setEditContent] = useState<string>("");
+
+    // 평면화한 댓글 배열
+    const flatComments = flattenComments(comments);
 
     return (
       <Box>
@@ -185,11 +242,20 @@ const CommentsView = () => {
               display: "flex",
               flexDirection: "column",
               border: "1px solid #ddd",
-              ml: `${Math.min(comment.depth, MAX_DEPTH) * 30}px`, // depth에 따라 들여쓰기 적용
+              ml: `${Math.min(comment.depth, MAX_DEPTH) * 30}px`,
+              p: 1,
+              mb: 1,
             }}
           >
             {/* 댓글 헤더 */}
-            <Box sx={{ display: "flex", alignItems: "center", backgroundColor: "#e6e6ff" }}>
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                backgroundColor: "#e6e6ff",
+                p: 0.5,
+              }}
+            >
               <Avatar
                 src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`}
                 sx={{ width: 32, height: 32, mr: 1 }}
@@ -202,26 +268,61 @@ const CommentsView = () => {
               </Typography>
             </Box>
 
-            {/* 댓글 내용 */}
-            <Typography variant="body1" sx={{ mt: 1 }}>
-              {comment.parentNickname && (
-                <Box
-                  component="span"
-                  sx={{
-                    fontWeight: "bold",
-                    backgroundColor: "#FFEB3B",
-                    padding: "2px 6px",
-                    borderRadius: "4px",
-                    mr: 1,
-                  }}
-                >
-                  @{comment.parentNickname}
+            {/* 댓글 내용 또는 수정 모드 입력 */}
+            {editCommentId === comment.id ? (
+              <Box sx={{ mt: 1 }}>
+                <TextField
+                  fullWidth
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                  placeholder="댓글 수정..."
+                  size="small"
+                />
+                <Box sx={{ mt: 1, display: "flex", gap: 1 }}>
+                  <Button
+                    size="small"
+                    variant="contained"
+                    onClick={() => {
+                      handleEditSubmit(comment.id, editContent);
+                      setEditCommentId(null);
+                      setEditContent("");
+                    }}
+                  >
+                    저장
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => {
+                      setEditCommentId(null);
+                      setEditContent("");
+                    }}
+                  >
+                    취소
+                  </Button>
                 </Box>
-              )}
-              {comment.content}
-            </Typography>
+              </Box>
+            ) : (
+              <Typography variant="body1" sx={{ mt: 1 }}>
+                {comment.parentNickname && (
+                  <Box
+                    component="span"
+                    sx={{
+                      fontWeight: "bold",
+                      backgroundColor: "#FFEB3B",
+                      padding: "2px 6px",
+                      borderRadius: "4px",
+                      mr: 1,
+                    }}
+                  >
+                    @{comment.parentNickname}
+                  </Box>
+                )}
+                {comment.content}
+              </Typography>
+            )}
 
-            {/* 답글 버튼 */}
+            {/* 액션 버튼 (답글, 수정, 삭제) */}
             {comment.nickname != null && (
               <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
                 <Button
@@ -233,21 +334,38 @@ const CommentsView = () => {
                 >
                   답글
                 </Button>
+                {/* 로그인 상태이고 댓글 작성자일 때 수정, 삭제 버튼 표시 */}
                 {comment.userId === session?.user.id && (
-                  <Button
-                    size="small"
-                    onClick={() => handleDeleteClick(comment.id)}
-                    variant="outlined"
-                    color="error"
-                    sx={{ textTransform: "none" }}
-                  >
-                    삭제
-                  </Button>
+                  <>
+                    {editCommentId !== comment.id && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => {
+                          setEditCommentId(comment.id);
+                          setEditContent(comment.content);
+                        }}
+                        color="secondary"
+                        sx={{ textTransform: "none", ml: 1 }}
+                      >
+                        수정
+                      </Button>
+                    )}
+                    <Button
+                      size="small"
+                      onClick={() => handleDeleteClick(comment.id)}
+                      variant="outlined"
+                      color="error"
+                      sx={{ textTransform: "none", ml: 1 }}
+                    >
+                      삭제
+                    </Button>
+                  </>
                 )}
               </Box>
             )}
 
-            {/* 답글 입력 */}
+            {/* 답글 입력창 */}
             {replyTo === comment.id && (
               <Box sx={{ mt: 1 }}>
                 <TextField
@@ -306,6 +424,7 @@ const CommentsView = () => {
         toggleReply={toggleReply}
         handleReplySubmit={handleReplySubmit}
         replyTo={replyTo}
+        handleEditSubmit={handleEditSubmit}
       />
       {userData?.nickname && (
         <Box

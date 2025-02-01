@@ -479,7 +479,21 @@ export class StoryService {
     await this.commentRepository.save(comment);
   }
 
-  async storyLike(
+  async editComment(commentId: number, content: string): Promise<void> {
+    // 댓글 확인
+    const comment = await this.commentRepository.findOne({
+      where: { id: commentId },
+    });
+    console.log('comment옄', comment);
+    if (!comment) {
+      throw new NotFoundException('수정할 댓글을 찾을 수 없습니다.');
+    }
+
+    comment.content = content;
+    await this.commentRepository.save(comment);
+  }
+
+  async storyLikeUnLike(
     storyId: number,
     userId: string,
     vote: 'like' | 'dislike',

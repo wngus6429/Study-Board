@@ -43,11 +43,19 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
 
 interface CustomizedTablesProps {
   tableData: any;
+  commentsFlag: boolean;
 }
 
-const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
-  const router = useRouter();
+interface CustomizedUserTablesDataProps {
+  id: number;
+  content: string;
+  updated_at: string;
+  storyId: number;
+}
 
+const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps): React.ReactNode => {
+  const router = useRouter();
+  console.log(tableData);
   return (
     <>
       <TableContainer component={Paper}>
@@ -59,13 +67,18 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
             </TableRow>
           </TableHead>
           <TableBody>
-            {tableData.map((row: StoryType) => (
+            {tableData.map((row: CustomizedUserTablesDataProps) => (
               <StyledTableRow
                 key={row.id}
                 onClick={() => {
-                  router.push(`/detail/${row.id}`);
+                  if (!commentsFlag) {
+                    router.push(`/detail/${row.storyId}`);
+                  }
                 }}
-                sx={{ cursor: "pointer" }}
+                sx={{
+                  cursor: commentsFlag ? "default" : "pointer",
+                  pointerEvents: commentsFlag ? "none" : "auto", // 클릭 비활성화
+                }}
               >
                 <StyledTableCell
                   sx={{
@@ -79,7 +92,7 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
                   </Typography>
                 </StyledTableCell>
                 <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
-                  {dayjs(row.created_at).format("YYYY.MM.DD HH:mm")}
+                  {dayjs(row.updated_at).format("YYYY.MM.DD HH:mm")}
                 </StyledTableCell>
               </StyledTableRow>
             ))}

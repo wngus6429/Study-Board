@@ -22,6 +22,7 @@ import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/entities/User.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserImage } from 'src/entities/UserImage.entity';
+import { Story } from 'src/entities/Story.entity';
 
 @Controller('api/auth')
 export class AuthController {
@@ -93,6 +94,29 @@ export class AuthController {
     console.log('프로필 정보 아이디', id);
     return await this.authUserService.userGet(id);
   }
+
+  @Post('/userStoryTableData')
+  @UseGuards(AuthGuard())
+  async getUserPageStory(
+    @Body('offset') offset = 0,
+    @Body('limit') limit = 10,
+    @Body('userId') userId: string,
+  ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
+    console.log('요청 데이터:', { offset, limit, userId });
+    return await this.authUserService.userfindStory(offset, limit, userId);
+  }
+
+  @Post('/userCommentsTableData')
+  @UseGuards(AuthGuard())
+  async getUserPageComments(
+    @Body('offset') offset = 0,
+    @Body('limit') limit = 10,
+    @Body('userId') userId: string,
+  ): Promise<{ CommentsResults: Partial<any>[]; CommentsTotal: number }> {
+    console.log('요청 데이터:', { offset, limit, userId });
+    return await this.authUserService.userfindComments(offset, limit, userId);
+  }
+
   // 다른 유저 프로필 정보, 작성 글, 댓글까지 가져오기
   @Get('/profile/:username')
   async anotherUserGet(@Param('username') username: string): Promise<any> {

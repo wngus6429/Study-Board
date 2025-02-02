@@ -22,7 +22,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/entities/User.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { UpdateStoryDto } from './dto/update-story.dto';
 import { Story } from 'src/entities/Story.entity';
 
 @Controller('api/story')
@@ -36,28 +35,6 @@ export class StoryController {
     @Query('limit') limit = 10,
   ): Promise<{ results: Partial<Story>[]; total: number }> {
     return await this.storyService.findStory(offset, limit);
-  }
-
-  @Post('/userStoryTableData')
-  @UseGuards(AuthGuard())
-  async getUserPageStory(
-    @Body('offset') offset = 0,
-    @Body('limit') limit = 10,
-    @Body('userId') userId: string,
-  ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
-    console.log('요청 데이터:', { offset, limit, userId });
-    return await this.storyService.userfindStory(offset, limit, userId);
-  }
-
-  @Post('/userCommentsTableData')
-  @UseGuards(AuthGuard())
-  async getUserPageComments(
-    @Body('offset') offset = 0,
-    @Body('limit') limit = 10,
-    @Body('userId') userId: string,
-  ): Promise<{ CommentsResults: Partial<any>[]; CommentsTotal: number }> {
-    console.log('요청 데이터:', { offset, limit, userId });
-    return await this.storyService.userfindComments(offset, limit, userId);
   }
 
   // 상세페이지

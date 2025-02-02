@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/User.entity';
 import { SignupUserDto } from './dto/signup.user.dto';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { SigninUserDto } from './dto/signin.user.dto';
 import { UserImage } from 'src/entities/UserImage.entity';
@@ -59,6 +59,61 @@ export class AuthService {
     }
   }
 
+  // 로그인 유저 프로필 작성 글 가져오기
+  async userfindStory(
+    offset = 0,
+    limit = 10,
+    userId: string,
+  ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
+    const [StoryResults, StoryTotal] = await Promise.all([
+      this.storyRepository.find({
+        relations: ['User'],
+        order: { id: 'DESC' },
+        skip: offset,
+        take: limit,
+        where: { User: { id: userId } }, // 특정 사용자 조건
+      }),
+      this.storyRepository.count({ where: { User: { id: userId } } }), // 조건 추가
+    ]);
+    return { StoryResults, StoryTotal };
+  }
+  // 로그인 유저 프로필 댓글 가져오기
+  async userfindComments(
+    offset = 0,
+    limit = 10,
+    userId: string,
+  ): Promise<{ CommentsResults: Partial<any>[]; CommentsTotal: number }> {
+    // 전체 댓글 데이터를 가져옵니다.
+    const [rawComments, CommentsTotal] = await Promise.all([
+      this.commentRepository.find({
+        relations: ['Story'],
+        order: { id: 'DESC' },
+        skip: offset,
+        take: limit,
+        where: {
+          User: { id: userId },
+          deleted_at: IsNull(),
+        },
+      }),
+      this.commentRepository.count({
+        where: {
+          User: { id: userId },
+          deleted_at: IsNull(),
+        },
+      }),
+    ]);
+
+    // 필요한 필드만 추출합니다.
+    const CommentsResults = rawComments.map((comment) => ({
+      id: comment.id,
+      content: comment.content,
+      updated_at: comment.updated_at,
+      storyId: comment.Story?.id, // Story 객체가 존재할 경우 id만 가져옵니다.
+    }));
+
+    return { CommentsResults, CommentsTotal };
+  }
+
   // 로그인 처리
   async signIn(
     userData: SigninUserDto,
@@ -78,7 +133,7 @@ export class AuthService {
     };
   }
 
-  // 유저 프로필 정보 가져오기
+  // 다른 유저 프로필 정보 가져오기
   async userGet(id: string): Promise<{ image: UserImage; nickname: string }> {
     const user = await this.userRepository.findOne({
       where: { id },

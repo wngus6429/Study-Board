@@ -83,7 +83,7 @@ function UserProfileEdit() {
       console.log("유저 스토리 불러옴");
       const offset = (storyCurrentPage - 1) * viewCount;
       const response = await axios.post<ApiStoryResponse>(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/userStoryTableData`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/userStoryTableData`,
         {
           offset,
           limit: viewCount,
@@ -106,7 +106,7 @@ function UserProfileEdit() {
       console.log("유저 코멘트 불러옴");
       const offset = (commentsCurrentPage - 1) * viewCount;
       const response = await axios.post<ApiCommentsResponse>(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/userCommentsTableData`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/userCommentsTableData`,
         {
           offset,
           limit: viewCount,
@@ -378,7 +378,7 @@ function UserProfileEdit() {
             p: 3,
           }}
         >
-          <CustomizedUserCommentsTables tableData={UserComments?.CommentsResults || []} />
+          <CustomizedUserCommentsTables tableData={UserComments?.CommentsResults || []} commentsFlag={false} />
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <Pagination
               pageCount={Math.ceil((UserComments?.CommentsTotal || 0) / viewCount)}

@@ -90,7 +90,7 @@ export default function AnotherUserProfile({ userDetail }: Props) {
             p: 3,
           }}
         >
-          <CustomizedUserCommentsTables tableData={userDetail?.comments || []} />
+          <CustomizedUserCommentsTables tableData={userDetail?.comments || []} commentsFlag={true} />
         </Box>
       </Box>
     </Box>

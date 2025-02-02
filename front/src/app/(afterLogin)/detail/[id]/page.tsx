@@ -32,7 +32,6 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     isLoading,
     isError,
     error,
-    refetch,
   } = useQuery<StoryType>({
     queryKey: ["story", "detail", params?.id],
     queryFn: async () => {

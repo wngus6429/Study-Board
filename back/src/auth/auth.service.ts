@@ -120,6 +120,7 @@ export class AuthService {
         image: user.UserImage,
       },
       posts: posts.map((post) => ({
+        id: post.id,
         title: post.title,
         content: post.content,
       })),

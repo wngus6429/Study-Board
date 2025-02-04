@@ -14,6 +14,7 @@ import { useComment } from "@/app/store/commentStore";
 import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 import ErrorView from "@/app/components/common/ErrorView";
 import RecommendButtonsWithCount from "@/app/components/RecommendButton";
+import Link from "next/link";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -318,12 +319,10 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   sx={{ width: 50, height: 50, boxShadow: 2 }}
                 />
                 <Box>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: "bold", cursor: "pointer" }}
-                    onClick={() => router.push(`/profile/${detail.User.nickname}`)}
-                  >
-                    작성자: {detail.User.nickname}
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", cursor: "pointer" }}>
+                    <Link href={`/profile/${detail.User.nickname}`} passHref>
+                      작성자: {detail.User.nickname}
+                    </Link>
                   </Typography>
                   <Button onClick={() => router.back()} size="small" variant="contained" color="primary" sx={{ mt: 1 }}>
                     뒤로가기

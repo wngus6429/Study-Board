@@ -59,8 +59,27 @@ export class AuthService {
     }
   }
 
+  // 로그인 처리
+  async signIn(
+    userData: SigninUserDto,
+  ): Promise<{ id: string; user_email: string } | null> {
+    const { user_email, password } = userData;
+    // 이메일로 사용자 조회
+    const user = await this.userRepository.findOne({ where: { user_email } });
+    if (!user) {
+      throw new ConflictException('이메일이 존재하지 않습니다.');
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) throw new ConflictException('비밀번호가 일치하지 않습니다.');
+    // 사용자 정보 반환 (민감한 정보인 패스워드 제외)
+    return {
+      id: user.id,
+      user_email: user.user_email,
+    };
+  }
+
   // 로그인 유저 프로필 작성 글 가져오기
-  async userfindStory(
+  async userFindStory(
     offset = 0,
     limit = 10,
     userId: string,
@@ -78,7 +97,7 @@ export class AuthService {
     return { StoryResults, StoryTotal };
   }
   // 로그인 유저 프로필 댓글 가져오기
-  async userfindComments(
+  async userFindComments(
     offset = 0,
     limit = 10,
     userId: string,
@@ -112,25 +131,6 @@ export class AuthService {
     }));
 
     return { CommentsResults, CommentsTotal };
-  }
-
-  // 로그인 처리
-  async signIn(
-    userData: SigninUserDto,
-  ): Promise<{ id: string; user_email: string } | null> {
-    const { user_email, password } = userData;
-    // 이메일로 사용자 조회
-    const user = await this.userRepository.findOne({ where: { user_email } });
-    if (!user) {
-      throw new ConflictException('이메일이 존재하지 않습니다.');
-    }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) throw new ConflictException('비밀번호가 일치하지 않습니다.');
-    // 사용자 정보 반환 (민감한 정보인 패스워드 제외)
-    return {
-      id: user.id,
-      user_email: user.user_email,
-    };
   }
 
   // 다른 유저 프로필 정보 가져오기

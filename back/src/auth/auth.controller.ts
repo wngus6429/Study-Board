@@ -103,7 +103,7 @@ export class AuthController {
     @Body('userId') userId: string,
   ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
     console.log('요청 데이터:', { offset, limit, userId });
-    return await this.authUserService.userfindStory(offset, limit, userId);
+    return await this.authUserService.userFindStory(offset, limit, userId);
   }
 
   @Post('/userCommentsTableData')
@@ -114,7 +114,7 @@ export class AuthController {
     @Body('userId') userId: string,
   ): Promise<{ CommentsResults: Partial<any>[]; CommentsTotal: number }> {
     console.log('요청 데이터:', { offset, limit, userId });
-    return await this.authUserService.userfindComments(offset, limit, userId);
+    return await this.authUserService.userFindComments(offset, limit, userId);
   }
 
   // 다른 유저 프로필 정보, 작성 글, 댓글까지 가져오기

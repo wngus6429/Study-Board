@@ -77,7 +77,7 @@ export default function StoryWrite() {
         p: 5,
         width: "50%",
         margin: "auto",
-        mt: 8,
+        mt: 4,
         borderRadius: 3,
         boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
         bgcolor: "background.paper",
@@ -90,7 +90,7 @@ export default function StoryWrite() {
           fontWeight: "bold",
           textAlign: "center",
           color: "primary.main",
-          mb: 4,
+          mb: 2,
         }}
       >
         글 작성하기
@@ -99,14 +99,13 @@ export default function StoryWrite() {
         selectArray={WRITE_SELECT_OPTIONS}
         defaultValue={DEFAULT_SELECT_OPTION}
         setSelectedCategory={setSelectedCategory}
-        sx={{ mb: 3 }}
       />
       <Box
         component="form"
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 4,
+          gap: 2,
           alignItems: "center",
         }}
         noValidate
@@ -146,9 +145,7 @@ export default function StoryWrite() {
           onClick={mutation.mutate}
           disabled={title.length < 3 || content.length < 3}
           sx={{
-            mt: 2,
-            py: 1.5,
-            width: "50%",
+            width: "40%",
             fontWeight: "bold",
             fontSize: "1.1rem",
           }}

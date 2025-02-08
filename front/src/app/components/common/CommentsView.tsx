@@ -325,15 +325,17 @@ const CommentsView = () => {
             {/* 액션 버튼 (답글, 수정, 삭제) */}
             {comment.nickname != null && (
               <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  onClick={() => toggleReply(comment.id)}
-                  color="primary"
-                  sx={{ textTransform: "none" }}
-                >
-                  답글
-                </Button>
+                {session?.user.id && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    onClick={() => toggleReply(comment.id)}
+                    color="primary"
+                    sx={{ textTransform: "none" }}
+                  >
+                    답글
+                  </Button>
+                )}
                 {/* 로그인 상태이고 댓글 작성자일 때 수정, 삭제 버튼 표시 */}
                 {comment.userId === session?.user.id && (
                   <>

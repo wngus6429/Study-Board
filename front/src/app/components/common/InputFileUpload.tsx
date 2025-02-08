@@ -56,14 +56,14 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
   };
 
   return (
-    <Box sx={{ width: "100%", textAlign: "center", mt: 2 }}>
+    <Box sx={{ width: "100%", textAlign: "center" }}>
       <Button
         component="label"
         variant="contained"
         startIcon={<CloudUploadIcon />}
         sx={{
           width: "100%",
-          mb: 2,
+          // mb: 2,
           fontWeight: "bold",
         }}
       >

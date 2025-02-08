@@ -30,16 +30,21 @@ export class StoryService {
   async findStory(
     offset = 0,
     limit = 10,
+    category?: string, // ✅ category 추가
   ): Promise<{ results: Partial<Story>[]; total: number }> {
+    const whereCondition = category && category !== 'all' ? { category } : {}; // ✅ 전체가 아닐 때만 where 적용
+
     const [results, total] = await Promise.all([
       this.storyRepository.find({
         relations: ['User'],
+        where: whereCondition, // ✅ 카테고리 필터 추가
         order: { id: 'DESC' },
         skip: offset,
         take: limit,
       }),
-      this.storyRepository.count(),
+      this.storyRepository.count({ where: whereCondition }), // ✅ 카운트에도 동일한 조건 적용
     ]);
+
     console.log('쿼리 결과:', results, total);
     return { results, total };
   }

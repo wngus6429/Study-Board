@@ -28,13 +28,14 @@ import { Story } from 'src/entities/Story.entity';
 export class StoryController {
   logger: any;
   constructor(private readonly storyService: StoryService) {}
-  // 모든 글 가져오지
+  // 카테고리별 글 가져오지
   @Get('/pageTableData')
   async getPageStory(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
+    @Query('category') category?: string, // ✅ category 추가
   ): Promise<{ results: Partial<Story>[]; total: number }> {
-    return await this.storyService.findStory(offset, limit);
+    return await this.storyService.findStory(offset, limit, category);
   }
 
   // 상세페이지

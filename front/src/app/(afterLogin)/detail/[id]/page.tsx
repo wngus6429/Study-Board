@@ -6,7 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
-import { ReactNode, useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -15,6 +15,7 @@ import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 import ErrorView from "@/app/components/common/ErrorView";
 import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 import Link from "next/link";
+import ImageCard from "@/app/components/ImageCard";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -202,52 +203,20 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     setOpenConfirmDialog(false);
   };
 
+  // ★ 모든 훅은 조건부 return 전에 호출되어야 합니다.
+  const memoizedImageCards = useMemo(() => {
+    if (!detail || !detail.StoryImage || detail.StoryImage.length === 0) {
+      return null;
+    }
+    return detail.StoryImage.map((img: StoryImageType, index: number) => {
+      const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
+      return <ImageCard key={`${img.id}-${index}`} img={img} isLastOddImage={isLastOddImage} />;
+    });
+  }, [detail?.StoryImage]);
+
+  // ★ 조건부 return은 훅 선언 이후에 배치합니다.
   if (isLoading) return <Loading />;
-
   if (isError) return <ErrorView />;
-
-  const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = ({ img, isLastOddImage }) => {
-    const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
-
-    // img.link가 GIF이면 타임스탬프 없이, 아니라면 타임스탬프를 한 번만 생성하여 사용
-    const imageSrc = useMemo(() => {
-      const lowerLink = img.link.toLowerCase();
-      if (lowerLink.endsWith(".gif")) {
-        return img.link;
-      }
-      return `${img.link}?timestamp=${Date.now()}`;
-    }, [img.link]);
-
-    const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
-      const { naturalWidth, naturalHeight } = e.currentTarget;
-      setDimensions({ width: naturalWidth, height: naturalHeight });
-    };
-
-    const isWideImage = dimensions ? dimensions.width / dimensions.height >= 1.3 : false;
-    const fullWidth = isWideImage || isLastOddImage;
-
-    return (
-      <CardMedia
-        component="img"
-        image={imageSrc}
-        alt={`イメージ${img.image_name}`}
-        onLoad={handleImageLoad}
-        sx={{
-          flexBasis: fullWidth ? "100%" : "calc(50% - 8px)",
-          maxWidth: fullWidth ? "100%" : "calc(50% - 8px)",
-          margin: fullWidth ? "0 auto" : undefined,
-          borderRadius: 4,
-          objectFit: "contain",
-          boxShadow: 4,
-          transition: "transform 0.3s ease, box-shadow 0.3s ease",
-          "&:hover": {
-            transform: "translateY(-10px)",
-            boxShadow: 8,
-          },
-        }}
-      />
-    );
-  };
 
   return (
     <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 2, overflow: "hidden" }}>
@@ -385,7 +354,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
             >
               {detail.content}
             </Typography>
-            {detail.StoryImage && detail.StoryImage.length > 0 && (
+            {/* {detail.StoryImage && detail.StoryImage.length > 0 && (
               <Box>
                 <Typography
                   variant="h6"
@@ -411,6 +380,32 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                     const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
                     return <ImageCard key={`${img.id}-${index}`} img={img} isLastOddImage={isLastOddImage} />;
                   })}
+                </Box>
+              </Box>
+            )} */}
+            {memoizedImageCards && (
+              <Box>
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{
+                    fontWeight: "bold",
+                    textAlign: "center",
+                    color: "primary.main",
+                    mb: 2,
+                  }}
+                >
+                  첨부된 이미지:
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "center",
+                    gap: 1,
+                  }}
+                >
+                  {memoizedImageCards}
                 </Box>
               </Box>
             )}

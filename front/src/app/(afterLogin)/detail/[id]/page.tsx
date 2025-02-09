@@ -249,7 +249,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                       router.push(`/edit/${detail.id}`);
                     }}
                   >
-                    修正
+                    수정
                   </Button>
                   <Button
                     size="medium"
@@ -260,7 +260,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                       handleDeleteClick(detail.id);
                     }}
                   >
-                    削除
+                    삭제
                   </Button>
                 </Box>
               )}

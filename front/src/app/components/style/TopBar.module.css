@@ -1,7 +1,7 @@
 /* MenuBar.module.css */
 .container {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-evenly;
   align-items: center;
   background-color: #070e36;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 하단부 그림자 효과 */

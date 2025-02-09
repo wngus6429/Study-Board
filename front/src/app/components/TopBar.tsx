@@ -104,15 +104,9 @@ export default function MenuBar() {
   return (
     <div className={styles.container}>
       <Link href="/" aria-label="Home" className={styles.title}>
-        Live Board
+        🍔Live Board
       </Link>
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center", // 수평 중앙 정렬
-          alignItems: "center", // 수직 중앙 정렬
-        }}
-      >
+      <Box>
         {userImage && <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImage}`} sx={{ width: 56, height: 56 }} />}
       </Box>
       <nav className={styles.nav}>

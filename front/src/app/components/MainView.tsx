@@ -11,7 +11,7 @@ import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import Pagination from "./common/Pagination";
 import usePageStore from "../store/pageStore";
 import { TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT";
-import { useRouter, useSearchParams } from "next/navigation"; // ✅ URL Query 활용
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface ApiResponse {
   results: any[];
@@ -46,11 +46,10 @@ const MainView = (): ReactNode => {
       });
       return response.data;
     },
-    //! 최신글 작성, 삭제 때문에 캐쉬 두면 안됨
-    // staleTime: 5 * 60 * 1000, // 5 minutes
+    //! 최신글 작성, 삭제 때문에 캐쉬 두면 안됨, 일일이 페이지 누르면 받아옴
   });
 
-  // ✅ 데이터가 업데이트될 때 previousData를 저장
+  // ✅ 새로운 데이터를 받아올 때 previousData를 저장
   useEffect(() => {
     if (data) {
       setPreviousData(data);
@@ -64,7 +63,7 @@ const MainView = (): ReactNode => {
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
     setValue(newValue);
     setCurrentPage(1); // 탭 변경 시 페이지 초기화
-    Router.push(`?category=${newValue}`, { scroll: false }); // ✅ URL 업데이트 (replace 없이 push)
+    Router.push(`?category=${newValue}`, { scroll: false });
   };
 
   const moveWrite = () => {
@@ -96,7 +95,8 @@ const MainView = (): ReactNode => {
           ))}
         </Tabs>
       </Box>
-      {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={tableData} />}
+      {/* 로딩중이고, 이전데이터가 없으면 loading을 표시하고 있으면 이전 데이터 표시 */}
+      {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={tableData || previousData} />}
       {user?.user && (
         <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
           <Button variant="outlined" onClick={moveWrite} color="success">

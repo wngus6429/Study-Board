@@ -354,35 +354,6 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
             >
               {detail.content}
             </Typography>
-            {/* {detail.StoryImage && detail.StoryImage.length > 0 && (
-              <Box>
-                <Typography
-                  variant="h6"
-                  gutterBottom
-                  sx={{
-                    fontWeight: "bold",
-                    textAlign: "center",
-                    color: "primary.main",
-                    mb: 2,
-                  }}
-                >
-                  첨부된 이미지:
-                </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexWrap: "wrap", // 줄바꿈 처리
-                    justifyContent: "center", // 중앙 정렬
-                    gap: 1, // 이미지 간 간격
-                  }}
-                >
-                  {detail.StoryImage.map((img: StoryImageType, index: number) => {
-                    const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
-                    return <ImageCard key={`${img.id}-${index}`} img={img} isLastOddImage={isLastOddImage} />;
-                  })}
-                </Box>
-              </Box>
-            )} */}
             {memoizedImageCards && (
               <Box>
                 <Typography

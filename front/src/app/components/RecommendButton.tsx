@@ -62,8 +62,8 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
               </Typography>
             </motion.div>
             <motion.div
-              whileTap={{ scale: 1.2 }} // 버튼을 눌렀을 때 약간 커지는 효과
-              whileHover={{ scale: 1.1 }} // 마우스를 올리면 커지는 효과
+              whileTap={{ scale: 1.4 }} // 버튼을 눌렀을 때 약간 커지는 효과
+              whileHover={{ scale: 1.2 }} // 마우스를 올리면 커지는 효과
             >
               <Button
                 variant="contained"
@@ -95,7 +95,7 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
                 {dislike}
               </Typography>
             </motion.div>
-            <motion.div whileTap={{ scale: 1.2 }} whileHover={{ scale: 1.1 }}>
+            <motion.div whileTap={{ scale: 1.4 }} whileHover={{ scale: 1.2 }}>
               <Button
                 variant="contained"
                 color="error"

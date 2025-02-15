@@ -41,6 +41,29 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
+// const StyledTableCell = styled(TableCell)(({ theme }) => ({
+//   [`&.${tableCellClasses.head}`]: {
+//     backgroundColor: theme.palette.common.black,
+//     color: theme.palette.common.white,
+//     // 헤더 셀 높이 고정
+//     height: 40,
+//     lineHeight: "40px",
+//     // 혹은 padding을 더 줄이기
+//     padding: "0 8px",
+//   },
+//   [`&.${tableCellClasses.body}`]: {
+//     fontSize: 14,
+//     // 바디 셀 높이 고정
+//     height: 40,
+//     lineHeight: "40px",
+//     padding: "0 8px",
+//     // 텍스트가 길 경우 한 줄로 처리(필요 시)
+//     whiteSpace: "nowrap",
+//     overflow: "hidden",
+//     textOverflow: "ellipsis",
+//   },
+// }));
+
 interface CustomizedTablesProps {
   tableData: any;
 }
@@ -81,12 +104,13 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                         display: "inline-block",
                         bgcolor: "primary.main",
                         color: "primary.contrastText",
-                        px: 1.5,
-                        py: 0.5,
+                        px: 1,
+                        py: 0.4,
                         borderRadius: 1,
-                        fontSize: "0.875rem",
+                        fontSize: "1rem",
                         fontWeight: "bold",
-                        marginRight: 1, // 제목과 간격 추가
+                        marginRight: 1,
+                        lineHeight: 1, // 줄 간격 축소
                       }}
                     >
                       질문

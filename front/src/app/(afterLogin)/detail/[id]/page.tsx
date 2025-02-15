@@ -307,16 +307,16 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   borderRadius: "12px",
                   boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // 그림자 효과
                   padding: "6px 12px",
-                  width: 100, // 고정된 넓이
+                  width: 100,
                 }}
               >
                 <Typography
                   variant="h6"
                   sx={{
                     fontWeight: "bold",
-                    color: "#4A4A4A", // 진한 회색 텍스트 색상
+                    color: "#4A4A4A",
                     textTransform: "none", // 텍스트 변환 없음
-                    fontSize: "16px", // 폰트 크기
+                    fontSize: "16px",
                   }}
                 >
                   추천
@@ -324,8 +324,8 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 <Typography
                   sx={{
                     fontWeight: "bold",
-                    color: "#4A4A4A", // 진한 회색 숫자 색상
-                    fontSize: "16px", // 숫자 크기
+                    color: "#4A4A4A",
+                    fontSize: "16px",
                   }}
                 >
                   {likeCalculate}

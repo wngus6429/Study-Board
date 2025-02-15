@@ -51,6 +51,9 @@ DB - MySQL,
 22. 업로드 및 상세페이지 사진 표시 (디자인 변경필요)
 23. 회원이미지 TopBar에 표시하기
 24. 댓글 수정 완료
+25. 다른 사람 프로필 페이지 보기 (완료)
+26. 검색 기능
+27. 채널 기능
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator
@@ -60,7 +63,6 @@ https://github.com/typestack/class-validator
 
 await queryClient.prefetchQuery 랑 const dehydratedState = dehydrate(queryClient);
 사용해서 프로필 하기. Next15 참조. [username].page.tsx
-다른 사람 프로필 페이지 보기,
 
 5. refresh-token 이게 뭐임
    https://www.inflearn.com/community/questions/1291603/%EC%84%9C%EB%B2%84-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%A9%EC%8B%9D%EA%B3%BC-%EA%B2%B0%ED%95%A9?srsltid=AfmBOorFPvfwaxD9Y-oRMTKVZikGZpp-_O5SuxRnwsYEZcGedTIVKUer

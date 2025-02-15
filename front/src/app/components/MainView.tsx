@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useState } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { Box, Button, Tab, Tabs } from "@mui/material";
+import { Box, Button, IconButton, Tab, Tabs, TextField } from "@mui/material";
 import Loading from "./common/Loading";
 import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
@@ -12,6 +12,7 @@ import Pagination from "./common/Pagination";
 import usePageStore from "../store/pageStore";
 import { TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT";
 import { useRouter, useSearchParams } from "next/navigation";
+import SearchBar from "./common/SearchBar";
 
 interface ApiResponse {
   results: any[];
@@ -75,6 +76,11 @@ const MainView = (): ReactNode => {
     setCurrentPage(newPage);
   };
 
+  const handleSearch = (query: string) => {
+    // 검색어(query)를 이용한 로직 구현
+    console.log("검색어:", query);
+  };
+
   if (error) return <div>Error: {(error as Error).message}</div>;
 
   return (
@@ -97,16 +103,32 @@ const MainView = (): ReactNode => {
       </Box>
       {/* 로딩중이고, 이전데이터가 없으면 loading을 표시하고 있으면 이전 데이터 표시 */}
       {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={tableData || previousData} />}
-      {user?.user && (
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
-          <Button variant="outlined" onClick={moveWrite} color="success">
-            <CreateIcon />
-            글쓰기
-          </Button>
-        </div>
-      )}
+      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 2, height: "35px" }}>
+        {/* 왼쪽 공백을 주어 페이지네이션을 가운데 정렬 */}
+        <Box sx={{ flex: 1 }} />
+        {/* 페이지네이션 (가운데 정렬) */}
+        <Box sx={{ display: "flex", justifyContent: "center", flexGrow: 1 }}>
+          <Pagination
+            pageCount={Math.ceil(total / viewCount)}
+            onPageChange={handlePageClick}
+            currentPage={currentPage}
+          />
+        </Box>
+
+        {/* 글쓰기 버튼 (오른쪽 정렬) */}
+        {user?.user && (
+          <Box sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
+            <Button variant="outlined" onClick={moveWrite} color="success">
+              <CreateIcon />
+              글쓰기
+            </Button>
+          </Box>
+        )}
+      </Box>
+
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-        <Pagination pageCount={Math.ceil(total / viewCount)} onPageChange={handlePageClick} currentPage={currentPage} />
+        <SearchBar onSearch={handleSearch} />
+        {/* 검색 결과 렌더링 등 */}
       </Box>
     </>
   );

@@ -32,7 +32,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
   };
 
   return (
-    <Box sx={{ display: "flex", alignItems: "center", gap: 1, width: "500px" }}>
+    <Box sx={{ display: "flex", alignItems: "center", width: "500px" }}>
       {/* 검색 범위 선택 */}
       <FormControl sx={{ minWidth: 120 }}>
         <Select value={category} onChange={(e) => setCategory(e.target.value)} variant="outlined" size="small">

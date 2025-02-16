@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useState } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { Box, Button, IconButton, Tab, Tabs, TextField } from "@mui/material";
+import { Box, Button, Tab, Tabs } from "@mui/material";
 import Loading from "./common/Loading";
 import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
@@ -19,25 +19,70 @@ interface ApiResponse {
   total: number;
 }
 
+// 검색 파라미터 타입 (SearchBar에서 전달받은 객체)
+// 여기서 type은 검색 옵션(예: title, content, author 등)을 의미합니다.
+interface SearchParams {
+  type: string;
+  query: string;
+}
+
 const MainView = (): ReactNode => {
   const Router = useRouter();
-  const searchParams = useSearchParams();
+  const urlSearchParams = useSearchParams();
 
-  // ✅ URL에서 category 값을 가져와 초기 상태로 설정
-  const categoryFromUrl = searchParams?.get("category") || "all";
-  const [value, setValue] = useState(categoryFromUrl);
+  // URL에 있는 category를 초기 상태로 설정
+  const initialCategory = urlSearchParams?.get("category") || "all";
+  const [value, setValue] = useState(initialCategory);
 
   const { data: user } = useSession();
   const { currentPage, setCurrentPage } = usePageStore();
   const viewCount: number = TABLE_VIEW_COUNT;
 
-  // ✅ 이전 데이터를 저장할 state 추가
+  // 기존 데이터를 유지 (로딩 중에도 화면에 표시)
   const [previousData, setPreviousData] = useState<ApiResponse | null>(null);
+  // SearchBar에서 전달받은 검색 옵션과 검색어
+  const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
 
+  // URL 파라미터와 내부 상태 동기화
+  useEffect(() => {
+    const urlCategory = urlSearchParams?.get("category") || "all";
+    setValue(urlCategory);
+
+    const urlSearchType = urlSearchParams?.get("searchType");
+    const urlSearchQuery = urlSearchParams?.get("searchQuery");
+
+    if (urlSearchType && urlSearchQuery) {
+      setSearchParams({ type: urlSearchType, query: urlSearchQuery });
+    } else {
+      setSearchParams(null);
+    }
+    // 페이지 번호 초기화
+    setCurrentPage(1);
+  }, [urlSearchParams, setCurrentPage]);
+
+  /**
+   * - 검색 파라미터(searchParams)가 있으면 검색 API를 호출합니다.
+   *   이때 현재 탭(category)을 항상 함께 전송합니다.
+   * - 검색 파라미터가 없으면 기존 페이지 데이터 API를 호출합니다.
+   */
   const { data, error, isLoading } = useQuery<ApiResponse>({
-    queryKey: ["stories", value, currentPage],
+    queryKey: searchParams ? ["stories", value, currentPage, searchParams] : ["stories", value, currentPage],
     queryFn: async () => {
       const offset = (currentPage - 1) * viewCount;
+      if (searchParams && searchParams.query.trim() !== "") {
+        // 검색 API 호출 – 현재 탭(value)을 항상 함께 전송
+        const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/search`, {
+          params: {
+            offset,
+            limit: viewCount,
+            type: searchParams.type,
+            query: searchParams.query,
+            category: value, // 항상 현재 탭의 값을 전달 (백엔드에서 "all" 처리 필요)
+          },
+        });
+        return response.data;
+      }
+      // 검색 파라미터가 없으면 기존 API 호출 (탭 필터 적용)
       const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData`, {
         params: {
           offset,
@@ -47,23 +92,25 @@ const MainView = (): ReactNode => {
       });
       return response.data;
     },
-    //! 최신글 작성, 삭제 때문에 캐쉬 두면 안됨, 일일이 페이지 누르면 받아옴
+    // 최신 글 작성/삭제 등으로 매번 새 데이터를 받아오기 위해 캐시 옵션 조정 가능
   });
 
-  // ✅ 새로운 데이터를 받아올 때 previousData를 저장
+  // 데이터 수신 시 이전 데이터를 업데이트 (로딩 중 기존 데이터 유지)
   useEffect(() => {
     if (data) {
       setPreviousData(data);
     }
   }, [data]);
 
-  // ✅ 로딩 중이면 기존 데이터를 유지
   const tableData = data?.results || previousData?.results || [];
   const total = data?.total || previousData?.total || 0;
 
+  // 탭(카테고리) 변경 시: 검색 상태 초기화 및 URL 업데이트
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
+    // 탭 전환 시 검색 상태 초기화
+    setSearchParams(null);
     setValue(newValue);
-    setCurrentPage(1); // 탭 변경 시 페이지 초기화
+    setCurrentPage(1);
     Router.push(`?category=${newValue}`, { scroll: false });
   };
 
@@ -76,9 +123,18 @@ const MainView = (): ReactNode => {
     setCurrentPage(newPage);
   };
 
-  const handleSearch = (query: string) => {
-    // 검색어(query)를 이용한 로직 구현
-    console.log("검색어:", query);
+  /**
+   * SearchBar에서 검색 옵션과 검색어를 전달받습니다.
+   * - 검색 상태를 업데이트하고, URL에도 검색 관련 파라미터를 반영합니다.
+   */
+  const handleSearch = ({ category, query }: { category: string; query: string }) => {
+    setSearchParams({ type: category, query });
+    setCurrentPage(1);
+    const params = new URLSearchParams();
+    params.set("category", value);
+    params.set("searchType", category);
+    params.set("searchQuery", query);
+    Router.push(`?${params.toString()}`, { scroll: false });
   };
 
   if (error) return <div>Error: {(error as Error).message}</div>;
@@ -96,12 +152,12 @@ const MainView = (): ReactNode => {
           scrollButtons="auto"
           sx={{ flexGrow: 1 }}
         >
+          {/* 탭 선택 */}
           {TAB_SELECT_OPTIONS.map((tab) => (
             <Tab key={tab.value} value={tab.value} label={tab.name} />
           ))}
         </Tabs>
       </Box>
-      {/* 로딩중이고, 이전데이터가 없으면 loading을 표시하고 있으면 이전 데이터 표시 */}
       {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={tableData || previousData} />}
       <Box
         sx={{
@@ -112,10 +168,9 @@ const MainView = (): ReactNode => {
           height: "35px",
         }}
       >
-        {/* 왼쪽 공백으로 가운데 정렬 보조 */}
+        {/* 왼쪽 여백 */}
         <Box sx={{ flex: 1 }} />
-
-        {/* 가운데 페이지네이션 영역 */}
+        {/* 가운데 페이지네이션 */}
         <Box sx={{ display: "flex", justifyContent: "center", flex: 1 }}>
           <Pagination
             pageCount={Math.ceil(total / viewCount)}
@@ -123,8 +178,7 @@ const MainView = (): ReactNode => {
             currentPage={currentPage}
           />
         </Box>
-
-        {/* 글쓰기 버튼 영역(오른쪽). 버튼만 조건부로 표시함 */}
+        {/* 오른쪽 글쓰기 버튼 */}
         <Box sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
           {user?.user && (
             <Button variant="outlined" onClick={moveWrite} color="success">
@@ -134,8 +188,8 @@ const MainView = (): ReactNode => {
           )}
         </Box>
       </Box>
-
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+      {/* SearchBar: 검색 옵션과 검색어 입력 */}
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 2 }}>
         <SearchBar onSearch={handleSearch} />
       </Box>
     </>

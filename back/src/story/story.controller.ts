@@ -38,6 +38,17 @@ export class StoryController {
     return await this.storyService.findStory(offset, limit, category);
   }
 
+  // 검색 기능 API
+  @Get('/search')
+  async searchStories(
+    @Query('offset') offset = 0,
+    @Query('limit') limit = 10,
+    @Query('type') type: string = 'all', // 검색 타입: all, title_content, title, content, author, comment 등
+    @Query('query') query: string, // 실제 검색어
+  ): Promise<{ results: Partial<Story>[]; total: number }> {
+    return await this.storyService.searchStory(offset, limit, type, query);
+  }
+
   // 상세페이지
   @Get('/detail/:id')
   async getStoryDetail(

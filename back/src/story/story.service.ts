@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, LessThan, Repository } from 'typeorm';
+import { ILike, In, LessThan, Repository } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { User } from 'src/entities/User.entity';
 import { Story } from 'src/entities/Story.entity';
@@ -48,6 +48,130 @@ export class StoryService {
     console.log('쿼리 결과:', results, total);
     return { results, total };
   }
+
+  // 검색 기능 API
+  async searchStory(
+    offset = 0,
+    limit = 10,
+    type: string = 'all',
+    query: string,
+    category?: string, // 카테고리 필터 (전체 검색이 아닐 경우)
+  ): Promise<{ results: Partial<Story>[]; total: number }> {
+    // 검색어에 대한 like 패턴 생성
+    const likeQuery = `%${query}%`;
+
+    // 검색 옵션에 따른 기본 조건 구성 (카테고리 조건은 나중에 병합)
+    let baseConditions: any;
+    if (type === 'title_content' || type === 'all') {
+      // 제목 OR 내용 검색 조건
+      baseConditions = [
+        { title: ILike(likeQuery) },
+        { content: ILike(likeQuery) },
+      ];
+    } else if (type === 'title') {
+      // 제목 검색 조건
+      baseConditions = { title: ILike(likeQuery) };
+    } else if (type === 'content') {
+      // 내용 검색 조건
+      baseConditions = { content: ILike(likeQuery) };
+    } else if (type === 'author') {
+      // 작성자(User.name) 검색 조건
+      baseConditions = { User: { name: ILike(likeQuery) } };
+    } else if (type === 'comment') {
+      // 댓글 검색은 기본 find 옵션으로는 처리하기 어려움
+      throw new Error('댓글 검색은 QueryBuilder를 사용해야 합니다.');
+    } else {
+      // 정의되지 않은 타입의 경우 기본적으로 제목과 내용 조건 사용
+      baseConditions = [
+        { title: ILike(likeQuery) },
+        { content: ILike(likeQuery) },
+      ];
+    }
+
+    // 카테고리 필터 병합: category 값이 있고 'all'이 아닐 경우 조건에 추가
+    if (category && category !== 'all') {
+      if (Array.isArray(baseConditions)) {
+        // 배열로 된 경우, 각 조건에 category 필드 추가
+        baseConditions = baseConditions.map((condition) => ({
+          ...condition,
+          category,
+        }));
+      } else {
+        // 단일 객체인 경우
+        baseConditions = { ...baseConditions, category };
+      }
+    }
+
+    // 조건에 따른 데이터와 총 개수 조회 (동일 조건 적용)
+    const [results, total] = await Promise.all([
+      this.storyRepository.find({
+        relations: ['User'],
+        where: baseConditions,
+        order: { id: 'DESC' },
+        skip: offset,
+        take: limit,
+      }),
+      this.storyRepository.count({
+        where: baseConditions,
+      }),
+    ]);
+
+    return { results, total };
+  }
+
+  //! 검색 기능 함수 쿼리빌더 사용
+  // async searchStory(
+  //   offset = 0,
+  //   limit = 10,
+  //   type: string = 'all',
+  //   query: string,
+  // ): Promise<{ results: Partial<Story>[]; total: number }> {
+  //   // QueryBuilder를 사용하여 동적 검색 조건 생성
+  //   const queryBuilder = this.storyRepository
+  //     .createQueryBuilder('story')
+  //     .leftJoinAndSelect('story.User', 'user')
+  //     .orderBy('story.id', 'DESC')
+  //     .skip(offset)
+  //     .take(limit);
+
+  //   if (query && query.trim() !== '') {
+  //     const likeQuery = `%${query}%`;
+  //     switch (type) {
+  //       case 'title_content':
+  //         // 제목 또는 내용에 검색어가 포함된 경우
+  //         queryBuilder.andWhere(
+  //           '(story.title LIKE :likeQuery OR story.content LIKE :likeQuery)',
+  //           { likeQuery },
+  //         );
+  //         break;
+  //       case 'title':
+  //         queryBuilder.andWhere('story.title LIKE :likeQuery', { likeQuery });
+  //         break;
+  //       case 'content':
+  //         queryBuilder.andWhere('story.content LIKE :likeQuery', { likeQuery });
+  //         break;
+  //       case 'author':
+  //         // User 테이블과의 조인을 통해 글쓴이 검색
+  //         queryBuilder.andWhere('user.name LIKE :likeQuery', { likeQuery });
+  //         break;
+  //       case 'comment':
+  //         // 댓글 검색 시 댓글 테이블과 조인 (댓글 엔티티가 존재한다고 가정)
+  //         queryBuilder
+  //           .leftJoin('story.comments', 'comment')
+  //           .andWhere('comment.text LIKE :likeQuery', { likeQuery });
+  //         break;
+  //       default: // all 혹은 정의되지 않은 타입인 경우
+  //         queryBuilder.andWhere(
+  //           '(story.title LIKE :likeQuery OR story.content LIKE :likeQuery)',
+  //           { likeQuery },
+  //         );
+  //         break;
+  //     }
+  //   }
+
+  //   const [results, total] = await queryBuilder.getManyAndCount();
+  //   return { results, total };
+  // }
 
   // 수정 페이지
   async findEditStoryOne(id: number, userId?: string): Promise<any> {

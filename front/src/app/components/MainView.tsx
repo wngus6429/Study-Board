@@ -64,6 +64,7 @@ const MainView = (): ReactNode => {
    * - 검색 파라미터(searchParams)가 있으면 검색 API를 호출합니다.
    *   이때 현재 탭(category)을 항상 함께 전송합니다.
    * - 검색 파라미터가 없으면 기존 페이지 데이터 API를 호출합니다.
+   * ! queryKey의 변경이 useQuery 부르는 트리거
    */
   const { data, error, isLoading } = useQuery<ApiResponse>({
     queryKey: searchParams ? ["stories", value, currentPage, searchParams] : ["stories", value, currentPage],

@@ -52,8 +52,10 @@ DB - MySQL,
 23. 회원이미지 TopBar에 표시하기
 24. 댓글 수정 완료
 25. 다른 사람 프로필 페이지 보기 (완료)
-26. 검색 기능
+26. 검색 기능 (완료)
 27. 채널 기능
+28. 추천수 정렬
+29. 개념글 오른쪽 표시 (아카라이브 참조)
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator

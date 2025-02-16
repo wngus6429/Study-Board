@@ -103,11 +103,20 @@ const MainView = (): ReactNode => {
       </Box>
       {/* 로딩중이고, 이전데이터가 없으면 loading을 표시하고 있으면 이전 데이터 표시 */}
       {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={tableData || previousData} />}
-      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 2, height: "35px" }}>
-        {/* 왼쪽 공백을 주어 페이지네이션을 가운데 정렬 */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          mt: 2,
+          height: "35px",
+        }}
+      >
+        {/* 왼쪽 공백으로 가운데 정렬 보조 */}
         <Box sx={{ flex: 1 }} />
-        {/* 페이지네이션 (가운데 정렬) */}
-        <Box sx={{ display: "flex", justifyContent: "center", flexGrow: 1 }}>
+
+        {/* 가운데 페이지네이션 영역 */}
+        <Box sx={{ display: "flex", justifyContent: "center", flex: 1 }}>
           <Pagination
             pageCount={Math.ceil(total / viewCount)}
             onPageChange={handlePageClick}
@@ -115,20 +124,19 @@ const MainView = (): ReactNode => {
           />
         </Box>
 
-        {/* 글쓰기 버튼 (오른쪽 정렬) */}
-        {user?.user && (
-          <Box sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
+        {/* 글쓰기 버튼 영역(오른쪽). 버튼만 조건부로 표시함 */}
+        <Box sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
+          {user?.user && (
             <Button variant="outlined" onClick={moveWrite} color="success">
               <CreateIcon />
               글쓰기
             </Button>
-          </Box>
-        )}
+          )}
+        </Box>
       </Box>
 
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
         <SearchBar onSearch={handleSearch} />
-        {/* 검색 결과 렌더링 등 */}
       </Box>
     </>
   );

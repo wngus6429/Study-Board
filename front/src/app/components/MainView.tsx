@@ -3,10 +3,11 @@ import { ReactNode, useEffect, useState } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { Box, Button, Tab, Tabs } from "@mui/material";
+import { Box, Button, FormControl, InputLabel, MenuItem, Select, Tab, Tabs } from "@mui/material";
 import Loading from "./common/Loading";
 import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import Pagination from "./common/Pagination";
 import usePageStore from "../store/pageStore";
@@ -138,6 +139,8 @@ const MainView = (): ReactNode => {
     Router.push(`?${params.toString()}`, { scroll: false });
   };
 
+  const [sortOrder, setSortOrder] = useState("등록순");
+
   if (error) return <div>Error: {(error as Error).message}</div>;
 
   return (
@@ -170,7 +173,34 @@ const MainView = (): ReactNode => {
         }}
       >
         {/* 왼쪽 여백 */}
-        <Box sx={{ flex: 1 }} />
+        <Box sx={{ flex: 1 }}>
+          {/* 정렬 기준 Select Box */}
+          <FormControl size="small">
+            <InputLabel>정렬 기준</InputLabel>
+            <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
+              <MenuItem value="등록순">등록순</MenuItem>
+              <MenuItem value="최신순">최신순</MenuItem>
+              <MenuItem value="조회수순">조회수순</MenuItem>
+            </Select>
+          </FormControl>
+          <Button
+            variant="contained"
+            startIcon={<EmojiEventsIcon sx={{ fontSize: 24, color: "rgba(255, 255, 255, 0.8)" }} />}
+            sx={{
+              backgroundImage: "linear-gradient(45deg, #ff9800, #f77d58)", // 오렌지~레드 그라데이션
+              color: "white",
+              fontWeight: "bold",
+              borderRadius: "8px",
+              padding: "8px 16px",
+              boxShadow: "0px 4px 10px rgba(0,0,0,0.2)", // 부드러운 그림자 효과
+              "&:hover": {
+                backgroundImage: "linear-gradient(45deg, #e65100, #bf360c)", // 조금 더 어두운 톤으로 변환
+              },
+            }}
+          >
+            추천 랭킹
+          </Button>
+        </Box>
         {/* 가운데 페이지네이션 */}
         <Box sx={{ display: "flex", justifyContent: "center", flex: 1 }}>
           <Pagination

@@ -172,11 +172,10 @@ const MainView = (): ReactNode => {
           height: "35px",
         }}
       >
-        {/* 왼쪽 여백 */}
+        {/* 왼쪽 여백 정렬 기준 Select Box  */}
         <Box sx={{ flex: 1 }}>
-          {/* 정렬 기준 Select Box */}
           <FormControl size="small">
-            <InputLabel>정렬 기준</InputLabel>
+            {/* <InputLabel>정렬 기준</InputLabel> */}
             <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
               <MenuItem value="등록순">등록순</MenuItem>
               <MenuItem value="최신순">최신순</MenuItem>

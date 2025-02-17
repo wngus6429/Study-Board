@@ -57,6 +57,7 @@ DB - MySQL,
 28. 추천수 정렬
 29. 개념글 오른쪽 표시 (아카라이브 참조)
 30. 리프레시 토큰
+31. 버튼 연속으로 다다다 누르지 못하게 하기
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator

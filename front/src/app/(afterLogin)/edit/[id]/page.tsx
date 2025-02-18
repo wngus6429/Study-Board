@@ -126,6 +126,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
         bgcolor: "background.paper",
         boxShadow: 3,
         borderRadius: 3,
+        mb: 5,
       }}
     >
       <Typography

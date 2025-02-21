@@ -49,8 +49,7 @@ export class StoryService {
     ]);
 
     const modifiedResults = results.map((story) => {
-      const likes = story.Likes || [];
-      const recommend_Count = likes.reduce((acc, curr) => {
+      const recommend_Count = story.Likes.reduce((acc, curr) => {
         if (curr.vote === 'like') return acc + 1;
         if (curr.vote === 'dislike') return acc - 1;
         return acc;

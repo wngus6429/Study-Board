@@ -31,12 +31,15 @@ export class StoryService {
     offset = 0,
     limit = 10,
     category?: string, // ✅ category 추가
-  ): Promise<{ results: Partial<Story>[]; total: number }> {
+  ): Promise<{
+    results: Partial<Story & { recommendationCount: number }>[];
+    total: number;
+  }> {
     const whereCondition = category && category !== 'all' ? { category } : {}; // ✅ 전체가 아닐 때만 where 적용
 
     const [results, total] = await Promise.all([
       this.storyRepository.find({
-        relations: ['User'],
+        relations: ['User', 'Likes'],
         where: whereCondition, // ✅ 카테고리 필터 추가
         order: { id: 'DESC' },
         skip: offset,
@@ -45,8 +48,21 @@ export class StoryService {
       this.storyRepository.count({ where: whereCondition }), // ✅ 카운트에도 동일한 조건 적용
     ]);
 
-    console.log('쿼리 결과:', results, total);
-    return { results, total };
+    const modifiedResults = results.map((story) => {
+      const likes = story.Likes || [];
+      const recommend_Count = likes.reduce((acc, curr) => {
+        if (curr.vote === 'like') return acc + 1;
+        if (curr.vote === 'dislike') return acc - 1;
+        return acc;
+      }, 0);
+
+      // Likes 배열을 제거한 나머지 속성과 recommendationCount만 반환
+      const { Likes, ...rest } = story;
+      return { ...rest, recommend_Count };
+    });
+
+    console.log('쿼리 결과:', modifiedResults, total);
+    return { results: modifiedResults, total };
   }
 
   // 검색 기능 API

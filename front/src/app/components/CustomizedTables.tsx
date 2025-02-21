@@ -8,7 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { StoryType } from "../types/types";
+import { StoryType, TableStoryType } from "../types/imageTypes";
 import dayjs from "dayjs";
 //! 몇분전 글이 쓰여졌다 등등 활용, 옛날에는 모먼트를 많이썻다함
 import relativeTime from "dayjs/plugin/relativeTime";
@@ -86,7 +86,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
             </TableRow>
           </TableHead>
           <TableBody>
-            {tableData.map((row: StoryType) => (
+            {tableData.map((row: TableStoryType) => (
               <StyledTableRow
                 key={row.id}
                 onClick={() => {
@@ -131,7 +131,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   {dayjs(row.created_at).format("YYYY.MM.DD HH:mm")}
                 </StyledTableCell>
                 <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
-                <StyledTableCell sx={{ textAlign: "center" }}>{row.like_count}</StyledTableCell>
+                <StyledTableCell sx={{ textAlign: "center" }}>{row.recommend_Count}</StyledTableCell>
               </StyledTableRow>
             ))}
           </TableBody>

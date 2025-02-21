@@ -14,6 +14,7 @@ import usePageStore from "../store/pageStore";
 import { TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "./common/SearchBar";
+import { useMemo } from "react";
 
 interface ApiResponse {
   results: any[];
@@ -139,7 +140,21 @@ const MainView = (): ReactNode => {
     Router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const [sortOrder, setSortOrder] = useState("등록순");
+  const [sortOrder, setSortOrder] = useState<"최신순" | "조회수" | "추천수">("최신순");
+
+  // 정렬된 데이터 생성
+  const sortedTableData = useMemo(() => {
+    if (!tableData) return [];
+
+    return [...tableData].sort((a, b) => {
+      if (sortOrder === "조회수") {
+        return b.read_count - a.read_count; // 조회수 내림차순
+      } else if (sortOrder === "추천수") {
+        return b.recommend_Count - a.recommend_Count; // 추천수 내림차순
+      }
+      return 0; // 최신순(default)일 경우 원래 순서 유지
+    });
+  }, [tableData, sortOrder]);
 
   if (error) return <div>Error: {(error as Error).message}</div>;
 
@@ -162,7 +177,9 @@ const MainView = (): ReactNode => {
           ))}
         </Tabs>
       </Box>
-      {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={tableData || previousData} />}
+      {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={sortedTableData} />}
+
+      {/* {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={sortedTableData || previousData} />} */}
       <Box
         sx={{
           display: "flex",
@@ -175,11 +192,10 @@ const MainView = (): ReactNode => {
         {/* 왼쪽 여백 정렬 기준 Select Box  */}
         <Box sx={{ flex: 1 }}>
           <FormControl size="small">
-            {/* <InputLabel>정렬 기준</InputLabel> */}
-            <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value)}>
-              <MenuItem value="등록순">등록순</MenuItem>
+            <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as "최신순" | "조회수" | "추천수")}>
               <MenuItem value="최신순">최신순</MenuItem>
-              <MenuItem value="조회수순">조회수순</MenuItem>
+              <MenuItem value="조회수">조회수순</MenuItem>
+              <MenuItem value="추천수">추천수순</MenuItem>
             </Select>
           </FormControl>
           <Button

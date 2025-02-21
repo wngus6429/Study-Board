@@ -1,6 +1,6 @@
 "use client";
 import * as React from "react";
-import { StoryType } from "../types/types";
+import { StoryType } from "../types/imageTypes";
 import style from "./HtmlTable.module.css";
 
 interface CustomizedTablesProps {

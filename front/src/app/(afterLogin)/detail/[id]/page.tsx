@@ -1,6 +1,6 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { StoryImageType, StoryType } from "@/app/types/types";
+import { StoryImageType, StoryType } from "@/app/types/imageTypes";
 import { Avatar, Box, Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";

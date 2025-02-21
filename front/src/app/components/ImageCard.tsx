@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useRef } from "react";
 import { CardMedia } from "@mui/material";
-import { StoryImageType } from "@/app/types/types";
+import { StoryImageType } from "@/app/types/imageTypes";
 
 const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = React.memo(({ img, isLastOddImage }) => {
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);

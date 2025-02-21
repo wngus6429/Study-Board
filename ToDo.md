@@ -59,6 +59,8 @@ DB - MySQL,
 30. 리프레시 토큰
 31. 버튼 연속으로 다다다 누르지 못하게 하기
 32. 내가 쓴 글이 아닌데. URL으로 수정페이지 들어가짐
+33. 구독 테이블 만들기, 채널 테이블 만들기
+34. 구독 버튼 만들고 데이터 저장하기
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator

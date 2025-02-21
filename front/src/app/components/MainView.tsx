@@ -146,6 +146,8 @@ const MainView = (): ReactNode => {
   const sortedTableData = useMemo(() => {
     if (!tableData) return [];
 
+    console.log("tableData", tableData);
+
     return [...tableData].sort((a, b) => {
       if (sortOrder === "조회수") {
         return b.read_count - a.read_count; // 조회수 내림차순

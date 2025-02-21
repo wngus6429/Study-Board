@@ -8,12 +8,13 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { StoryType, TableStoryType } from "../types/imageTypes";
 import dayjs from "dayjs";
 //! 몇분전 글이 쓰여졌다 등등 활용, 옛날에는 모먼트를 많이썻다함
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useRouter } from "next/navigation";
 import { Box, Typography } from "@mui/material";
+import { TableStoryType } from "../types/tableType";
+import ImageIcon from "@mui/icons-material/Image";
 
 dayjs.extend(relativeTime);
 
@@ -117,6 +118,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                     </Box>
                   )}
                   <Typography variant="body1" color="text.primary" component="span">
+                    {row.imageFlag && <ImageIcon sx={{ fontSize: "1rem", ml: 1, verticalAlign: "middle" }} />}{" "}
                     {row.title}
                   </Typography>
                 </StyledTableCell>

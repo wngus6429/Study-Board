@@ -39,7 +39,7 @@ export class StoryService {
 
     const [results, total] = await Promise.all([
       this.storyRepository.find({
-        relations: ['User', 'Likes'],
+        relations: ['User', 'Likes', 'StoryImage'],
         where: whereCondition, // ✅ 카테고리 필터 추가
         order: { id: 'DESC' },
         skip: offset,
@@ -48,16 +48,21 @@ export class StoryService {
       this.storyRepository.count({ where: whereCondition }), // ✅ 카운트에도 동일한 조건 적용
     ]);
 
+    console.log('ggresult', results);
+
     const modifiedResults = results.map((story) => {
       const recommend_Count = story.Likes.reduce((acc, curr) => {
         if (curr.vote === 'like') return acc + 1;
         if (curr.vote === 'dislike') return acc - 1;
         return acc;
       }, 0);
-
+      let imageFlag: boolean = false;
+      if (story.StoryImage.length > 0) {
+        imageFlag = true;
+      }
       // Likes 배열을 제거한 나머지 속성과 recommendationCount만 반환
-      const { Likes, ...rest } = story;
-      return { ...rest, recommend_Count };
+      const { Likes, StoryImage, ...rest } = story;
+      return { ...rest, recommend_Count, imageFlag };
     });
 
     console.log('쿼리 결과:', modifiedResults, total);

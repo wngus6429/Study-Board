@@ -9,5 +9,6 @@ export interface TableStoryType {
   User: Pick<UserType, "nickname">;
   read_count: number;
   recommend_Count: number;
+  imageFlag: boolean;
   created_at: string;
 }

@@ -69,22 +69,25 @@ export default function EditPage({ params }: { params: { id: string } }) {
   // 수정 요청
   const updateStory = useMutation<void, Error, FormData>({
     mutationFn: async (formData) => {
-      await axios
-        .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/update/${params.id}`, formData, {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        .finally(() => setLoading(false));
+      await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/update/${params.id}`, formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     },
+    retry: 1, // 1회 재시도
+    retryDelay: () => 2000, // 매 재시도마다 2초(2000ms) 지연
     onSuccess: () => {
+      setLoading(false);
       showMessage("수정 성공", "success");
       queryClient.invalidateQueries({ queryKey: ["story", "detail", params.id] });
       router.push(`/detail/${params.id}`);
     },
     onError: (error) => {
-      showMessage(`수정 중 오류가 발생했습니다.`, "error");
+      showMessage("수정 실패, 이전 화면으로 이동합니다", "error");
+      console.error(error);
+      router.back();
     },
   });
 
@@ -202,14 +205,15 @@ export default function EditPage({ params }: { params: { id: string } }) {
           variant="contained"
           color="success"
           onClick={handleUpdate}
-          disabled={title.length < 3 || content.length < 3}
+          disabled={loading || title.length < 3 || content.length < 3}
           sx={{
             flex: 1,
             marginLeft: 1,
             fontWeight: "bold",
           }}
+          startIcon={loading && <CircularProgress size={20} color="inherit" />}
         >
-          {loading ? <CircularProgress size={24} color="inherit" /> : "수정"}
+          수정
         </Button>
       </Box>
     </Box>

@@ -10,7 +10,7 @@ import InputFileUpload from "@/app/components/common/InputFileUpload";
 import { useMessage } from "@/app/store/messageStore";
 
 export default function StoryWrite() {
-  const Router = useRouter();
+  const router = useRouter();
   const { showMessage } = useMessage((state) => state);
 
   // 제목 변수
@@ -59,12 +59,12 @@ export default function StoryWrite() {
     onSuccess: (data) => {
       setLoading(false);
       showMessage("글쓰기 완료", "info");
-      Router.push("/");
+      router.push("/");
     },
     onError: (error) => {
-      showMessage("글쓰기 실패, 홈 화면으로 이동합니다", "error");
+      showMessage("글쓰기 실패, 이전 화면으로 이동합니다", "error");
       console.error(error);
-      Router.back();
+      router.back();
     },
   });
 

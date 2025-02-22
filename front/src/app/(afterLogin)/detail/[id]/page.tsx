@@ -1,12 +1,12 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { StoryImageType, StoryType } from "@/app/types/imageTypes";
-import { Avatar, Box, Button, Card, CardContent, CardMedia, Typography } from "@mui/material";
+import { StoryImageType } from "@/app/types/imageTypes";
+import { Avatar, Box, Button, Card, CardContent, CardMedia, CircularProgress, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
-import { ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -16,6 +16,7 @@ import ErrorView from "@/app/components/common/ErrorView";
 import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 import Link from "next/link";
 import ImageCard from "@/app/components/ImageCard";
+import { StoryType } from "@/app/types/storyDetailType";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -27,6 +28,8 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
   const { openCloseComments } = useComment();
   const [likeCalculate, setLikeCalculate] = useState<number>(0);
+  // 버튼 여러번 연속 클릭 방지
+  const [editFlag, setEditFlag] = useState<boolean>(false);
 
   //! 상세 데이터 가져오기
   const {
@@ -94,15 +97,9 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const likeOrUnlike = useMutation({
     mutationFn: async ({ storyId, vote }: { storyId: number; vote: "like" | "dislike" }) => {
       console.log("좋아요 API 호출", storyId, vote);
-
-      if (!session?.user?.id) {
-        showMessage("로그인 해야합니다.");
-        throw new Error("로그인이 필요합니다."); // 예외 처리
-      }
-
       return await axios.put(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/likeOrUnlike/${storyId}`,
-        { userId: session.user.id, vote },
+        { userId: session?.user.id, vote },
         { withCredentials: true }
       );
     },
@@ -178,7 +175,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     },
     onError: (error: any) => {
       console.error("좋아요 API 호출 실패");
-      showMessage(`추천, 비추천에 실패했습니다. ${error}`, "error");
+      showMessage(`추천 및 비추천에 실패했습니다. ${error}`, "error");
     },
   });
 
@@ -245,9 +242,12 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                     variant="outlined"
                     color="warning"
                     onClick={(e) => {
+                      setEditFlag(true);
                       e.preventDefault();
                       router.push(`/edit/${detail.id}`);
                     }}
+                    disabled={editFlag}
+                    startIcon={editFlag ? <CircularProgress size={20} /> : null}
                   >
                     수정
                   </Button>
@@ -388,6 +388,10 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
           like={detail?.like_count} // 초기 추천 수
           dislike={detail?.dislike_count} // 초기 비추천 수
           likeFunc={(vote: "like" | "dislike") => {
+            if (!session?.user?.id) {
+              showMessage("로그인 해야합니다.", "error");
+              return;
+            }
             likeOrUnlike.mutate({ storyId: detail?.id, vote }); // API 호출
           }}
         />

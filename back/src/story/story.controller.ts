@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   NotFoundException,
   Param,
   ParseIntPipe,
@@ -109,6 +110,12 @@ export class StoryController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     console.log('글 작성', createStoryDto, userData, files);
+
+    // 테스트를 위해 title이 "error"이면 의도적으로 예외 발생
+    // if (createStoryDto.title === 'error') {
+    //   throw new InternalServerErrorException('의도한 실패');
+    // }
+
     return this.storyService.create(createStoryDto, userData, files);
   }
   // 글 수정

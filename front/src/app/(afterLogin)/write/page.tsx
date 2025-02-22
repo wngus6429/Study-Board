@@ -44,25 +44,27 @@ export default function StoryWrite() {
           }
         });
 
-        return await axios
-          .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`, formData, {
-            withCredentials: true,
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          })
-          .finally(() => setLoading(false));
+        return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`, formData, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
       } else {
         showMessage("제목과 내용을 3글자 이상 입력해주세요", "error");
       }
     },
+    retry: 1, // 1회 재시도
+    retryDelay: () => 2000, // 매 재시도마다 2초(2000ms) 지연
     onSuccess: (data) => {
+      setLoading(false);
       showMessage("글쓰기 완료", "info");
       Router.push("/");
     },
     onError: (error) => {
-      showMessage("글쓰기 실패", "error");
+      showMessage("글쓰기 실패, 홈 화면으로 이동합니다", "error");
       console.error(error);
+      Router.back();
     },
   });
 
@@ -143,14 +145,15 @@ export default function StoryWrite() {
           variant="contained"
           color="success"
           onClick={mutation.mutate}
-          disabled={title.length < 3 || content.length < 3}
+          disabled={loading || title.length < 3 || content.length < 3}
           sx={{
             width: "40%",
             fontWeight: "bold",
             fontSize: "1.1rem",
           }}
+          startIcon={loading ? <CircularProgress size={20} /> : null}
         >
-          {loading ? <CircularProgress size={24} color="inherit" /> : "등록"}
+          등록
         </Button>
       </Box>
     </Paper>

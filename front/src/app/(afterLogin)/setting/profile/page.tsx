@@ -116,6 +116,8 @@ function UserProfileEdit() {
       );
       return response.data;
     },
+    retry: 1,
+    retryDelay: () => 2000,
     enabled: status === "authenticated",
   });
 

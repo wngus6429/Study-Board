@@ -43,6 +43,8 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${params?.id}`);
       return response.data;
     },
+    retry: 1,
+    retryDelay: () => 2000,
     // isDeleted 안 쓰면 삭제 후 API 요청이 되어 오류 발생
     enabled: !!params?.id && !isDeleted,
     staleTime: 1000 * 60 * 4,
@@ -293,8 +295,14 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                       작성자: {detail.User.nickname}
                     </Link>
                   </Typography>
-                  <Button onClick={() => router.back()} size="small" variant="contained" color="primary" sx={{ mt: 1 }}>
-                    뒤로가기
+                  <Button
+                    onClick={() => router.push("/")}
+                    size="small"
+                    variant="contained"
+                    color="primary"
+                    sx={{ mt: 1 }}
+                  >
+                    목록으로
                   </Button>
                 </Box>
               </Box>

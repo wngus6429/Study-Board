@@ -95,6 +95,8 @@ const MainView = (): ReactNode => {
       });
       return response.data;
     },
+    retry: 1,
+    retryDelay: () => 2000,
     // 최신 글 작성/삭제 등으로 매번 새 데이터를 받아오기 위해 캐시 옵션 조정 가능
   });
 

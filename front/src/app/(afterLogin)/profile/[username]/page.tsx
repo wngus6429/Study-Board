@@ -41,6 +41,8 @@ export default function UserProfileDetail() {
     queryFn: () => {
       fetchUserDetail(username);
     },
+    retry: 1,
+    retryDelay: () => 2000,
     // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
     // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
     enabled: !!username,

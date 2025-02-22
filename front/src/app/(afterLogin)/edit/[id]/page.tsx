@@ -47,6 +47,8 @@ export default function EditPage({ params }: { params: { id: string } }) {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/edit/${params.id}`);
       return response.data;
     },
+    retry: 1,
+    retryDelay: () => 2000,
     enabled: !!params.id,
   });
 

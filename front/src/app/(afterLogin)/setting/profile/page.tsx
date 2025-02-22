@@ -27,7 +27,7 @@ function UserProfileEdit() {
   const [nickname, setNickname] = useState("");
   const [profileImage, setProfileImage] = useState<any>(null);
   const [previewImage, setPreviewImage] = useState<any>(null);
-  const { showMessage, messageState } = useMessage((state) => state);
+  const { showMessage } = useMessage((state) => state);
 
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -62,6 +62,8 @@ function UserProfileEdit() {
       console.log("유즈쿼리");
       fetchUserDetail(session?.user.id as string);
     },
+    retry: 1,
+    retryDelay: () => 2000,
     // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
     // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
     enabled: status === "authenticated",
@@ -145,26 +147,38 @@ function UserProfileEdit() {
     }
   };
 
-  const pictureDelete = async () => {
-    if (session?.user.id) {
-      await axios
-        .delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/delete`, {
-          data: { id: session.user.id },
-          withCredentials: true,
-        })
-        .then((res) => {
-          if (res.status === 200) {
-            setPreviewImage(null);
-            queryClient.removeQueries({ queryKey: ["userTopImage", session?.user.id] });
-            setTopBarImageDelete();
-            setUserImageUrl("");
-          }
-        });
-    }
-  };
+  const deleteProfileImageMutation = useMutation({
+    mutationFn: async () => {
+      if (!session?.user.id) {
+        showMessage("로그인 해라", "error");
+        return;
+      }
+      return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/delete`, {
+        data: { id: session.user.id },
+        withCredentials: true,
+      });
+    },
+    retry: 1, // 최대 1회 재시도
+    retryDelay: () => 2000, // 재시도마다 2초 지연
+    onSuccess: () => {
+      setPreviewImage(null);
+      queryClient.removeQueries({ queryKey: ["userTopImage", session?.user.id] });
+      setTopBarImageDelete();
+      setUserImageUrl("");
+      showMessage("프로필 사진 삭제 완료", "success");
+    },
+    onError: (error: any) => {
+      showMessage("프로필 사진 삭제 실패", "error");
+      console.error(error);
+    },
+  });
 
   const mutation = useMutation({
     mutationFn: async (e: FormEvent) => {
+      if (!session?.user.id) {
+        showMessage("로그인 해라", "error");
+        return;
+      }
       if (session != null) {
         e.preventDefault();
         // FormData 객체에 닉네임과 프로필 이미지 추가
@@ -179,14 +193,14 @@ function UserProfileEdit() {
         });
       }
     },
-    onSuccess: async (response) => {
-      if (response?.status === 201) {
-        // 기존에 있던 이미지 캐쉬파일 삭제해서, 다시 프로필 페이지 왔을때 원래 있던 사진이 잠시 보이는걸 방지함
-        await queryClient.invalidateQueries({ queryKey: ["userInfo", session?.user.id] });
-        await queryClient.refetchQueries({ queryKey: ["userTopImage", session?.user.id] });
-        showMessage("프로필 변경 완료", "success");
-        router.push("/");
-      }
+    retry: 1,
+    retryDelay: () => 2000,
+    onSuccess: async () => {
+      // 기존에 있던 이미지 캐쉬파일 삭제해서, 다시 프로필 페이지 왔을때 원래 있던 사진이 잠시 보이는걸 방지함
+      await queryClient.invalidateQueries({ queryKey: ["userInfo", session?.user.id] });
+      await queryClient.refetchQueries({ queryKey: ["userTopImage", session?.user.id] });
+      showMessage("프로필 변경 완료", "success");
+      router.push("/");
     },
     onError: (error: any) => {
       if (error.response && error.response.data.statusCode === 401) {
@@ -300,7 +314,12 @@ function UserProfileEdit() {
               사진 업로드
               <input type="file" hidden onChange={handleImageChange} />
             </Button>
-            <Button variant="outlined" color="error" onClick={pictureDelete} sx={{ flexGrow: 1 }}>
+            <Button
+              variant="outlined"
+              color="error"
+              onClick={() => deleteProfileImageMutation.mutate()}
+              sx={{ flexGrow: 1 }}
+            >
               사진 삭제
             </Button>
           </Box>

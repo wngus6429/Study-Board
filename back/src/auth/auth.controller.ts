@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   Param,
   Post,
   Req,
@@ -141,6 +142,7 @@ export class AuthController {
   @UseGuards(AuthGuard())
   async deleteProfilePicture(@Body() userData: any): Promise<void> {
     console.log('프로필 이미지 삭제 요청', userData);
+    // throw new InternalServerErrorException('의도한 실패');
     await this.authUserService.deleteProfilePicture(userData.id);
   }
   // 내 비밀번호 변경

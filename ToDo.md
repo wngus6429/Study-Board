@@ -61,7 +61,8 @@ DB - MySQL,
 32. 내가 쓴 글이 아닌데. URL으로 수정페이지 들어가짐
 33. 구독 테이블 만들기, 채널 테이블 만들기
 34. 구독 버튼 만들고 데이터 저장하기
-35. Get 실패시 재시도 2초 후에 한번 더 하게 (수정중)
+35. Get 실패시 2초 재시도(수정완료)
+36. Mutate 실패시 2초 재시도 (수정완료)
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator

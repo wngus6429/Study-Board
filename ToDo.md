@@ -64,6 +64,8 @@ DB - MySQL,
 35. Get 실패시 2초 재시도(수정완료)
 36. Mutate 실패시 2초 재시도 (수정완료)
 37. 슈퍼관리자 기능 만들기
+38. url에 페이지도 표시.
+39. 공지사항 기능 만들기
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator

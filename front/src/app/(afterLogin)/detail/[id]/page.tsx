@@ -295,14 +295,8 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                       작성자: {detail.User.nickname}
                     </Link>
                   </Typography>
-                  <Button
-                    onClick={() => router.push("/")}
-                    size="small"
-                    variant="contained"
-                    color="primary"
-                    sx={{ mt: 1 }}
-                  >
-                    목록으로
+                  <Button onClick={() => router.back()} size="small" variant="contained" color="primary" sx={{ mt: 1 }}>
+                    뒤로가기
                   </Button>
                 </Box>
               </Box>

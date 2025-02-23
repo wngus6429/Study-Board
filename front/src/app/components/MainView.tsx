@@ -59,7 +59,7 @@ const MainView = (): ReactNode => {
       setSearchParams(null);
     }
     // 페이지 번호 초기화
-    setCurrentPage(1);
+    // setCurrentPage(1);
   }, [urlSearchParams, setCurrentPage]);
 
   /**

@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useMessage } from "../store/messageStore";
 import { useUserImage } from "../store/userImageStore";
+import usePageStore from "../store/pageStore";
 
 // const SearchBox = styled("div")(({ theme }) => ({
 //   position: "relative",
@@ -46,6 +47,7 @@ export default function MenuBar() {
   const { data: user, status } = useSession();
   const { showMessage } = useMessage((state) => state);
   const { setUserImageUrl, TopBarImageDelete } = useUserImage();
+  const { setCurrentPage } = usePageStore();
 
   const {
     data: userImage,
@@ -103,7 +105,7 @@ export default function MenuBar() {
 
   return (
     <div className={styles.container}>
-      <Link href="/" aria-label="Home" className={styles.title}>
+      <Link href="/" aria-label="Home" className={styles.title} onClick={() => setCurrentPage(1)}>
         🍔Live Board
       </Link>
       <Box>

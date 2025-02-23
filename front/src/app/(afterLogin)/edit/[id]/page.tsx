@@ -14,7 +14,7 @@ import { useMessage } from "@/app/store/messageStore";
 export default function EditPage({ params }: { params: { id: string } }) {
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { status } = useSession();
+  const { data: session, status } = useSession();
 
   // zustand 메시지
   const { showMessage } = useMessage((state) => state);
@@ -29,28 +29,36 @@ export default function EditPage({ params }: { params: { id: string } }) {
   // 로딩
   const [loading, setLoading] = useState<boolean>(false);
 
-  // 수정 중 로그아웃 하면 홈으로 페이지 이동
+  const { data: storyDetail, isLoading } = useQuery({
+    queryKey: ["story", "edit", params?.id],
+    queryFn: async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/edit/${params.id}?userId=${session?.user.id}`
+        );
+        console.log("리스폰", response);
+        return response.data;
+      } catch (error) {
+        console.log("errr", error);
+        if (axios.isAxiosError(error) && error.response?.status === 403) {
+          // 403 에러일 경우 홈 화면으로 리다이렉트
+          router.push("/");
+        }
+        // 에러를 다시 throw해서 React Query의 상태도 업데이트하도록 함
+        throw error;
+      }
+    },
+    retry: 1,
+    retryDelay: () => 2000,
+    enabled: !!params.id && !!session?.user.id,
+  });
+
+  // 로그아웃 하면 홈으로 페이지 이동
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/");
     }
   }, [status, router]);
-
-  // 수정할 글 데이터 가져오기
-  const {
-    data: storyDetail,
-    isLoading,
-    refetch,
-  } = useQuery({
-    queryKey: ["story", "edit", params?.id],
-    queryFn: async () => {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/edit/${params.id}`);
-      return response.data;
-    },
-    retry: 1,
-    retryDelay: () => 2000,
-    enabled: !!params.id,
-  });
 
   // 글 데이터를 제목, 내용, 카테고리, 이미지 데이터로 초기화
   useEffect(() => {
@@ -58,7 +66,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
       setTitle(storyDetail.title || "");
       setContent(storyDetail.content || "");
       setSelectedCategory(storyDetail.category || DEFAULT_SELECT_OPTION);
-
+      console.log("데이터", storyDetail);
       // 기존 이미지 데이터를 preview 형식으로 변환
       const formattedImages = (storyDetail.StoryImage || []).map((image: any) => ({
         dataUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${image.link}`, // 전체 URL로 변환

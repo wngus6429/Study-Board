@@ -17,5 +17,5 @@ export async function middleware(req: NextRequest) {
 
 // 미들웨어를 적용할 경로 설정
 export const config = {
-  matcher: ["/write", "/setting/profile"],
+  matcher: ["/write", "/edit", "/setting/profile"],
 };

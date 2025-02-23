@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -197,13 +198,17 @@ export class StoryService {
   async findEditStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['StoryImage'],
+      relations: ['StoryImage', 'User'],
     });
     if (!findData) {
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
-
-    return findData;
+    // 예를 들어 findData에 작성자 uuid가 authorId로 저장되어 있다고 가정
+    if (findData.User.id !== userId) {
+      throw new ForbiddenException('수정 권한이 없습니다');
+    }
+    const { User, ...editData } = findData;
+    return editData;
   }
 
   // 상세 페이지

@@ -31,7 +31,7 @@ export class AuthController {
     private authUserService: AuthService,
     private jwtService: JwtService, // JwtService를 의존성 주입
   ) {}
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 회원가입 로직 수정
   @Post('signup')
   async signup(
@@ -41,7 +41,7 @@ export class AuthController {
     await this.authUserService.signUp(userData);
     res.sendStatus(201);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 로그인처리
   @Post('signin')
   async signin(
@@ -61,7 +61,7 @@ export class AuthController {
     // 로그인 성공 시 사용자 정보와 함께 응답
     res.status(200).json({ accessToken });
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   @Post('signinSession')
   async signinSession(
     @Body(ValidationPipe) userData: SigninUserDto,
@@ -74,7 +74,7 @@ export class AuthController {
     //   .status(401)
     //   .json({ message: '아이디 또는 비밀번호가 올바르지 않습니다.' });
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   @Post('logout')
   async logout(@Req() req: Request, @Res() res: Response) {
     console.log('로그아웃 요청');
@@ -85,7 +85,7 @@ export class AuthController {
     });
     res.sendStatus(200);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 로그인 한 내 자신 프로필 정보 가져오기
   @Get('/:id')
   @UseGuards(AuthGuard())
@@ -95,7 +95,7 @@ export class AuthController {
     console.log('프로필 정보 아이디', id);
     return await this.authUserService.userGet(id);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   @Post('/userStoryTableData')
   @UseGuards(AuthGuard())
   async getUserPageStory(
@@ -106,7 +106,7 @@ export class AuthController {
     console.log('요청 데이터:', { offset, limit, userId });
     return await this.authUserService.userFindStory(offset, limit, userId);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   @Post('/userCommentsTableData')
   @UseGuards(AuthGuard())
   async getUserPageComments(
@@ -117,14 +117,14 @@ export class AuthController {
     console.log('요청 데이터:', { offset, limit, userId });
     return await this.authUserService.userFindComments(offset, limit, userId);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 다른 유저 프로필 정보, 작성 글, 댓글까지 가져오기
   @Get('/profile/:username')
   async anotherUserGet(@Param('username') username: string): Promise<any> {
     console.log('다른 유저 정보 닉네임', username);
     return await this.authUserService.anotherUserGet(username);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 프로필 업데이트
   @Post('update')
   @UseGuards(AuthGuard())
@@ -137,6 +137,7 @@ export class AuthController {
     await this.authUserService.userUpdate(userData, profileImage);
     // Post가 성공적으로 완료되면 201 상태코드를 반환
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 내 프로필 사진 삭제
   @Delete('delete')
   @UseGuards(AuthGuard())
@@ -145,6 +146,7 @@ export class AuthController {
     // throw new InternalServerErrorException('의도한 실패');
     await this.authUserService.deleteProfilePicture(userData.id);
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 내 비밀번호 변경
   @Post('password')
   @UseGuards(AuthGuard())

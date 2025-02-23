@@ -29,6 +29,7 @@ import { Story } from 'src/entities/Story.entity';
 export class StoryController {
   logger: any;
   constructor(private readonly storyService: StoryService) {}
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 카테고리별 글 가져오지
   @Get('/pageTableData')
   async getPageStory(
@@ -38,7 +39,7 @@ export class StoryController {
   ): Promise<{ results: Partial<Story>[]; total: number }> {
     return await this.storyService.findStory(offset, limit, category);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
   @Get('/search')
   async searchStories(
@@ -49,7 +50,7 @@ export class StoryController {
   ): Promise<{ results: Partial<Story>[]; total: number }> {
     return await this.storyService.searchStory(offset, limit, type, query);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세페이지
   @Get('/detail/:id')
   async getStoryDetail(
@@ -69,15 +70,17 @@ export class StoryController {
     // User는 글 작성자임
     return { ...rest, User: writeUserInfo };
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세 페이지 수정시 데이터 받아옴
   @Get('/detail/edit/:id')
   async getStoryEditStory(
     @Param('id', ParseIntPipe) id: number,
-    @Body() userData?: any,
+    @Query('userId') userId: string,
   ): Promise<any> {
-    const data = await this.storyService.findEditStoryOne(id, userData?.userId);
+    const data = await this.storyService.findEditStoryOne(id, userId);
     return data;
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세페이지 댓글 가져오기
   @Post('/detail/comment/:id')
   async getStoryDetailComment(
@@ -99,6 +102,7 @@ export class StoryController {
     console.log('완성체', processedComments);
     return { processedComments, loginUser: filteredLoginUser };
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 작성
   @Post('/create')
   @UseGuards(AuthGuard())
@@ -110,14 +114,13 @@ export class StoryController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     console.log('글 작성', createStoryDto, userData, files);
-
     // 테스트를 위해 title이 "error"이면 의도적으로 예외 발생
     // if (createStoryDto.title === 'error') {
     //   throw new InternalServerErrorException('의도한 실패');
     // }
-
     return this.storyService.create(createStoryDto, userData, files);
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 수정
   @Post('/update/:id') // 수정 작업을 POST 요청으로 처리
   @UseGuards(AuthGuard())
@@ -132,6 +135,7 @@ export class StoryController {
     console.log('글 수정', storyId, updateStoryDto, user, files);
     return this.storyService.updateStory(storyId, updateStoryDto, user, files);
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 삭제
   @Delete('/:id')
   @UseGuards(AuthGuard())
@@ -142,12 +146,14 @@ export class StoryController {
     console.log('삭제할 글 ID:', storyId, '사용자정보', userData.user_email);
     return this.storyService.deleteStory(storyId, userData);
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 작성
   @Post('/comment/:id')
   @UseGuards(AuthGuard())
   async createComment(@Body() commentData: any): Promise<void> {
     await this.storyService.createComment(commentData);
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 삭제
   @Put('/comment/:id')
   @UseGuards(AuthGuard())
@@ -155,6 +161,7 @@ export class StoryController {
     console.log('삭제할 댓글 ID:', commentId);
     return await this.storyService.deleteComment(commentId);
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 수정
   @Patch('/comment/:id')
   @UseGuards(AuthGuard())
@@ -165,7 +172,7 @@ export class StoryController {
     console.log('수정할 댓글 ID:', commentId, content);
     return await this.storyService.editComment(commentId, content);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 좋아요, 싫어요.
   @Put('/likeOrUnlike/:id')
   @UseGuards(AuthGuard())

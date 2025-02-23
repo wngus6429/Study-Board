@@ -397,7 +397,7 @@ const CommentsView = () => {
   };
 
   return (
-    <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2 }}>
+    <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2, mb: 2 }}>
       {isLoading && <Loading />}
       {isError && <Alert severity="error">댓글을 불러오는 중 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</Alert>}
       {openConfirmDialog && (

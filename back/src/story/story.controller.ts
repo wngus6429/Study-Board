@@ -47,7 +47,14 @@ export class StoryController {
     @Query('limit') limit = 10,
     @Query('type') type: string = 'all', // 검색 타입: all, title_content, title, content, author, comment 등
     @Query('query') query: string, // 실제 검색어
-  ): Promise<{ results: Partial<Story>[]; total: number }> {
+  ): Promise<{
+    results: (Partial<Story> & {
+      nickname: string;
+      recommend_Count: number;
+      imageFlag: boolean;
+    })[];
+    total: number;
+  }> {
     return await this.storyService.searchStory(offset, limit, type, query);
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ

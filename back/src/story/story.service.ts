@@ -27,7 +27,7 @@ export class StoryService {
     @InjectRepository(Comments) private commentRepository: Repository<Comments>,
     @InjectRepository(Likes) private likeRepository: Repository<Likes>,
   ) {}
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async findStory(
     offset = 0,
     limit = 10,
@@ -61,15 +61,15 @@ export class StoryService {
       if (story.StoryImage.length > 0) {
         imageFlag = true;
       }
-      // Likes 배열을 제거한 나머지 속성과 recommendationCount만 반환
-      const { Likes, StoryImage, ...rest } = story;
-      return { ...rest, recommend_Count, imageFlag };
+      // Likes, StoryImage, User를 분리한 후 User 대신 nickname을 최상위 속성으로 반환
+      const { Likes, StoryImage, User, ...rest } = story;
+      return { ...rest, recommend_Count, imageFlag, nickname: User.nickname };
     });
 
     console.log('쿼리 결과:', modifiedResults, total);
     return { results: modifiedResults, total };
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
   async searchStory(
     offset = 0,
@@ -77,7 +77,14 @@ export class StoryService {
     type: string = 'all',
     query: string,
     category?: string, // 카테고리 필터 (전체 검색이 아닐 경우)
-  ): Promise<{ results: Partial<Story>[]; total: number }> {
+  ): Promise<{
+    results: (Partial<Story> & {
+      nickname: string;
+      recommend_Count: number;
+      imageFlag: boolean;
+    })[];
+    total: number;
+  }> {
     // 검색어에 대한 like 패턴 생성
     const likeQuery = `%${query}%`;
 
@@ -112,7 +119,7 @@ export class StoryService {
     // 카테고리 필터 병합: category 값이 있고 'all'이 아닐 경우 조건에 추가
     if (category && category !== 'all') {
       if (Array.isArray(baseConditions)) {
-        // 배열로 된 경우, 각 조건에 category 필드 추가
+        // 배열인 경우, 각 조건에 category 필드 추가
         baseConditions = baseConditions.map((condition) => ({
           ...condition,
           category,
@@ -124,9 +131,9 @@ export class StoryService {
     }
 
     // 조건에 따른 데이터와 총 개수 조회 (동일 조건 적용)
-    const [results, total] = await Promise.all([
+    const [resultsTemp, total] = await Promise.all([
       this.storyRepository.find({
-        relations: ['User'],
+        relations: ['User', 'Likes', 'StoryImage'],
         where: baseConditions,
         order: { id: 'DESC' },
         skip: offset,
@@ -136,6 +143,22 @@ export class StoryService {
         where: baseConditions,
       }),
     ]);
+
+    const results = resultsTemp.map((story) => {
+      const recommend_Count = story.Likes.reduce((acc, curr) => {
+        if (curr.vote === 'like') return acc + 1;
+        if (curr.vote === 'dislike') return acc - 1;
+        return acc;
+      }, 0);
+
+      const imageFlag = story.StoryImage.length > 0;
+
+      // Likes, StoryImage, User를 분리한 후 User 대신 nickname을 최상위 속성으로 반환
+      const { Likes, StoryImage, User, ...rest } = story;
+      return { ...rest, recommend_Count, imageFlag, nickname: User.nickname };
+    });
+
+    console.log('ddd', results, total);
 
     return { results, total };
   }
@@ -193,7 +216,7 @@ export class StoryService {
   //   const [results, total] = await queryBuilder.getManyAndCount();
   //   return { results, total };
   // }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 수정 페이지
   async findEditStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
@@ -210,7 +233,7 @@ export class StoryService {
     const { User, ...editData } = findData;
     return editData;
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세 페이지
   async findStoryOne(id: number, userId?: string): Promise<any> {
     const queryRunner =
@@ -268,7 +291,7 @@ export class StoryService {
       await queryRunner.release();
     }
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세 페이지에서 댓글 데이터를 가져오는 메서드
   async findStoryOneComment(id: number, userData?: any): Promise<any> {
     // Story 데이터를 댓글과 함께 가져옴
@@ -380,7 +403,7 @@ export class StoryService {
 
     return { processedComments, loginUser }; // 댓글 데이터와 로그인 사용자 정보 반환
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 작성
   async create(
     createStoryDto: CreateStoryDto,
@@ -415,7 +438,7 @@ export class StoryService {
 
     return savedStory;
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 수정
   async updateStory(
     storyId: number,
@@ -502,7 +525,7 @@ export class StoryService {
 
     return await this.storyRepository.save(story);
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 삭제
   async deleteStory(storyId: number, userData: User): Promise<void> {
     // 스토리 데이터 가져오기
@@ -534,7 +557,7 @@ export class StoryService {
     // 삭제 권한이 있을 경우, 글 삭제 진행
     await this.storyRepository.delete(storyId);
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async createComment(commentData: {
     storyId: string;
     content: string;
@@ -574,7 +597,7 @@ export class StoryService {
 
     await this.commentRepository.save(comment);
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async deleteComment(commentId: number): Promise<void> {
     // 댓글 확인
     const comment = await this.commentRepository.findOne({
@@ -587,7 +610,7 @@ export class StoryService {
     comment.deleted_at = new Date();
     await this.commentRepository.save(comment);
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async editComment(commentId: number, content: string): Promise<void> {
     // 댓글 확인
     const comment = await this.commentRepository.findOne({
@@ -601,7 +624,7 @@ export class StoryService {
     comment.content = content;
     await this.commentRepository.save(comment);
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async storyLikeUnLike(
     storyId: number,
     userId: string,

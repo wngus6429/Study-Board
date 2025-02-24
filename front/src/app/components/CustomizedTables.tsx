@@ -123,7 +123,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   </Typography>
                 </StyledTableCell>
                 <StyledTableCell>
-                  {row.User.nickname.length > 6 ? `${row.User.nickname.slice(0, 15)}...` : row.User.nickname}
+                  {row.nickname.length > 6 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
                 </StyledTableCell>
                 <StyledTableCell
                   sx={{

@@ -7,6 +7,7 @@ const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = Re
 
   // 컴포넌트가 마운트 될 때 고정되는 타임스탬프
   const timestampRef = useRef(Date.now());
+  const [loaded, setLoaded] = useState<boolean>(false);
 
   // 이미지 URL을 메모이제이션
   const imageSrc = useMemo(() => {
@@ -20,6 +21,7 @@ const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = Re
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {
     const { naturalWidth, naturalHeight } = e.currentTarget;
     setDimensions({ width: naturalWidth, height: naturalHeight });
+    setLoaded(true);
   };
 
   const isWideImage = dimensions ? dimensions.width / dimensions.height >= 1.3 : false;
@@ -38,7 +40,8 @@ const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = Re
         borderRadius: 4,
         objectFit: "contain",
         boxShadow: 4,
-        transition: "transform 0.3s ease, box-shadow 0.3s ease",
+        opacity: loaded ? 1 : 0,
+        transition: "opacity 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease",
         "&:hover": {
           transform: "translateY(-10px)",
           boxShadow: 8,

@@ -39,12 +39,12 @@ const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = Re
         margin: fullWidth ? "0 auto" : undefined,
         borderRadius: 4,
         objectFit: "contain",
-        boxShadow: 4,
+        boxShadow: 16,
         opacity: loaded ? 1 : 0,
         transition: "opacity 0.5s ease, transform 0.3s ease, box-shadow 0.3s ease",
         "&:hover": {
           transform: "translateY(-10px)",
-          boxShadow: 8,
+          boxShadow: 16,
         },
       }}
     />

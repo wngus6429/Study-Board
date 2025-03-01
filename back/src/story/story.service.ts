@@ -35,56 +35,67 @@ export class StoryService {
   ): Promise<{
     results: Partial<Story & { recommendationCount: number }>[];
     total: number;
-    noticeCount: number; // 공지사항 개수를 추가로 반환
   }> {
     // 카테고리 필터 조건 설정
     const whereCondition = category && category !== 'all' ? { category } : {};
-
-    // 첫 페이지이고, 카테고리가 전체(all 또는 undefined)인 경우 공지사항 조회
-    const isFirstPage = Number(offset) === 0;
     const isAllCategory = !category || category === 'all';
 
-    // 공지사항 개수 조회 (모든 페이지에서 total 계산에 사용)
-    const noticeCount = isAllCategory
-      ? await this.storyRepository.count({
+    // 1. 공지사항 조회 (페이지와 무관하게 전체 조회)
+    const notices = isAllCategory
+      ? await this.storyRepository.find({
+          relations: ['User', 'StoryImage'],
           where: { isNotice: true },
+          order: { updated_at: 'DESC' },
         })
-      : 0;
+      : [];
 
-    let notices = [];
-    if (isFirstPage && isAllCategory) {
-      notices = await this.storyRepository.find({
-        relations: ['User', 'StoryImage'],
-        where: { isNotice: true },
-        order: { updated_at: 'DESC' },
-      });
+    const noticeCount = notices.length;
+
+    // 2. 전체 일반 게시글 수 조회 (페이지네이션 계산용)
+    const regularTotal = await this.storyRepository.count({
+      where: {
+        ...whereCondition,
+        isNotice: false,
+      },
+    });
+
+    // 3. 페이지네이션 정확한 계산을 위한 로직
+    let effectiveOffset = Number(offset);
+    let effectiveLimit = Number(limit);
+
+    // 첫 페이지인 경우 공지사항 개수만큼 일반 게시글 수를 조정
+    if (Number(offset) === 0 && isAllCategory) {
+      effectiveLimit = Math.max(0, effectiveLimit - noticeCount);
+    }
+    // 첫 페이지가 아닌 경우 offset 조정 (공지사항을 건너뛰기 위함)
+    else if (isAllCategory) {
+      // 여기가 핵심: 첫 페이지의 공지사항 때문에 밀려난 게시글 수를 고려
+      effectiveOffset = Number(offset) - noticeCount;
     }
 
-    // 일반 게시글 조회 (공지사항 제외)
-    // 오프셋 계산 시 공지사항 개수를 고려하여 조정
-    const adjustedOffset = isAllCategory
-      ? Number(offset) - (isFirstPage ? 0 : noticeCount)
-      : Number(offset);
-    const effectiveOffset = Math.max(0, adjustedOffset); // 음수가 되지 않도록 보정
+    // 4. 일반 게시글 조회 (조정된 offset과 limit 사용)
+    const regularPosts = await this.storyRepository.find({
+      relations: ['User', 'Likes', 'StoryImage'],
+      where: {
+        ...whereCondition,
+        isNotice: false,
+      },
+      order: { id: 'DESC' },
+      skip: Math.max(0, effectiveOffset), // 음수가 되지 않도록 보정
+      take: effectiveLimit,
+    });
 
-    const [regularPosts, regularTotal] = await Promise.all([
-      this.storyRepository.find({
-        relations: ['User', 'Likes', 'StoryImage'],
-        where: {
-          ...whereCondition,
-          isNotice: false, // 공지사항 제외
-        },
-        order: { id: 'DESC' },
-        skip: effectiveOffset,
-        take: limit - (isFirstPage && isAllCategory ? notices.length : 0),
-      }),
-      this.storyRepository.count({
-        where: {
-          ...whereCondition,
-          isNotice: false,
-        },
-      }),
-    ]);
+    // 5. 결과 데이터 가공
+    const modifiedNotices = notices.map((story) => {
+      const { StoryImage, User, ...rest } = story;
+      return {
+        ...rest,
+        recommend_Count: 0,
+        imageFlag: StoryImage.length > 0,
+        nickname: User.nickname,
+        isNotice: story.isNotice,
+      };
+    });
 
     const modifiedPosts = regularPosts.map((story) => {
       const recommend_Count = story.Likes.reduce((acc, curr) => {
@@ -93,40 +104,25 @@ export class StoryService {
         return acc;
       }, 0);
 
-      let imageFlag: boolean = false;
-      if (story.StoryImage.length > 0) {
-        imageFlag = true;
-      }
-
       const { Likes, StoryImage, User, ...rest } = story;
       return {
         ...rest,
         recommend_Count,
-        imageFlag,
-        nickname: User.nickname,
-        isNotice: story.isNotice,
-      };
-    });
-
-    const modifiedNotices = notices.map((story) => {
-      const { StoryImage, User, ...rest } = story;
-      return {
-        ...rest,
-        recommend_Count: 0, // 공지사항에는 추천 수 없음
         imageFlag: StoryImage.length > 0,
         nickname: User.nickname,
         isNotice: story.isNotice,
       };
     });
 
-    const allResults = [...modifiedNotices, ...modifiedPosts];
-
-    console.log('쿼리 결과:', allResults, regularTotal, noticeCount);
+    // 6. 결과 합치기 (첫 페이지에만 공지사항 포함)
+    const allResults =
+      Number(offset) === 0 && isAllCategory
+        ? [...modifiedNotices, ...modifiedPosts]
+        : modifiedPosts;
 
     return {
       results: allResults,
-      total: regularTotal, // 일반 게시글 수만 반환
-      noticeCount, // 프론트엔드에서 페이지네이션 계산에 활용할 수 있도록 공지사항 개수도 함께 반환
+      total: regularTotal + (isAllCategory ? noticeCount : 0), // 전체 카테고리일 때만 공지사항 포함
     };
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ

@@ -77,18 +77,19 @@ const MainView = (): ReactNode => {
 
       // API 호출 로직은 그대로 유지
       if (searchParams && searchParams.query.trim() !== "") {
+        // 검색 API 호출 – 현재 탭(value)을 항상 함께 전송
         const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/search`, {
           params: {
             offset,
             limit: viewCount,
             type: searchParams.type,
             query: searchParams.query,
-            category: value,
+            category: value, // 항상 현재 탭의 값을 전달 (백엔드에서 "all" 처리 필요)
           },
         });
         return response.data;
       }
-
+      // 검색 파라미터가 없으면 기존 API 호출 (탭 필터 적용)
       const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData`, {
         params: {
           offset,
@@ -100,15 +101,6 @@ const MainView = (): ReactNode => {
     },
     // ... 나머지 옵션들
   });
-
-  // 페이지네이션 로직 수정
-  const totalPages = useMemo(() => {
-    if (!data) return 0;
-
-    // 총 페이지 계산 시 일반 게시글 수만 고려하고, 공지사항은 첫 페이지에만 표시된다고 가정
-    const totalRegularItems = data.total;
-    return Math.ceil(totalRegularItems / viewCount);
-  }, [data, viewCount]);
 
   // 데이터 수신 시 이전 데이터를 업데이트 (로딩 중 기존 데이터 유지)
   useEffect(() => {

@@ -4,7 +4,6 @@ import {
   Column,
   ManyToOne,
   CreateDateColumn,
-  DeleteDateColumn,
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Story } from './Story.entity';

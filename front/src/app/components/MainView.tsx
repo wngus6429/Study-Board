@@ -68,24 +68,27 @@ const MainView = (): ReactNode => {
    * - 검색 파라미터가 없으면 기존 페이지 데이터 API를 호출합니다.
    * ! queryKey의 변경이 useQuery 부르는 트리거
    */
+  // 프론트엔드 수정 예시
   const { data, error, isLoading } = useQuery<ApiResponse>({
     queryKey: searchParams ? ["stories", value, currentPage, searchParams] : ["stories", value, currentPage],
     queryFn: async () => {
+      // 공지사항이 첫 페이지에만 표시되는 것을 고려하여 오프셋 계산
       const offset = (currentPage - 1) * viewCount;
+
+      // API 호출 로직은 그대로 유지
       if (searchParams && searchParams.query.trim() !== "") {
-        // 검색 API 호출 – 현재 탭(value)을 항상 함께 전송
         const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/search`, {
           params: {
             offset,
             limit: viewCount,
             type: searchParams.type,
             query: searchParams.query,
-            category: value, // 항상 현재 탭의 값을 전달 (백엔드에서 "all" 처리 필요)
+            category: value,
           },
         });
         return response.data;
       }
-      // 검색 파라미터가 없으면 기존 API 호출 (탭 필터 적용)
+
       const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData`, {
         params: {
           offset,
@@ -95,10 +98,17 @@ const MainView = (): ReactNode => {
       });
       return response.data;
     },
-    retry: 1,
-    retryDelay: () => 2000,
-    // 최신 글 작성/삭제 등으로 매번 새 데이터를 받아오기 위해 캐시 옵션 조정 가능
+    // ... 나머지 옵션들
   });
+
+  // 페이지네이션 로직 수정
+  const totalPages = useMemo(() => {
+    if (!data) return 0;
+
+    // 총 페이지 계산 시 일반 게시글 수만 고려하고, 공지사항은 첫 페이지에만 표시된다고 가정
+    const totalRegularItems = data.total;
+    return Math.ceil(totalRegularItems / viewCount);
+  }, [data, viewCount]);
 
   // 데이터 수신 시 이전 데이터를 업데이트 (로딩 중 기존 데이터 유지)
   useEffect(() => {

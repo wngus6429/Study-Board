@@ -91,12 +91,16 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
               <StyledTableRow
                 key={row.id}
                 onClick={() => {
-                  router.push(`/detail/${row.id}`);
+                  if (row?.isNotice) {
+                    router.push(`/notice/${row.id}`);
+                  } else {
+                    router.push(`/detail/${row.id}`);
+                  }
                 }}
                 sx={{ cursor: "pointer" }}
               >
                 <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
-                  {row.id}
+                  {row.isNotice ? "공지" : row.id}
                 </StyledTableCell>
                 <StyledTableCell>
                   {row.category === "question" && (

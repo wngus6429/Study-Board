@@ -14,7 +14,7 @@ interface CustomSelectProps {
 }
 
 const CustomSelect = ({ selectArray, defaultValue, setSelectedCategory, value }: CustomSelectProps): ReactNode => {
-  const defaultItem = selectArray.find((item) => item.name === defaultValue);
+  const defaultItem = selectArray.find((item) => item.value === defaultValue);
   const [selectedValue, setSelectedValue] = useState<string>(defaultItem?.value || "");
   const [open, setOpen] = useState(false);
 

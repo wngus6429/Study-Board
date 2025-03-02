@@ -19,6 +19,13 @@ import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 
+// 추가 아이콘 import
+import ForumIcon from "@mui/icons-material/Forum";
+import InfoIcon from "@mui/icons-material/Info";
+import RateReviewIcon from "@mui/icons-material/RateReview";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+
 dayjs.extend(relativeTime);
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
@@ -65,14 +72,34 @@ interface CustomizedTablesProps {
 const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
   const router = useRouter();
 
+  // 카테고리별 Chip을 렌더링하는 헬퍼 함수
+  const getCategoryChip = (category: string) => {
+    switch (category) {
+      case "question":
+        return <Chip icon={<QuestionAnswerIcon />} label="질문" color="secondary" size="small" sx={{ mr: 1 }} />;
+      case "chat":
+        return <Chip icon={<ForumIcon />} label="잡담" color="default" size="small" sx={{ mr: 1 }} />;
+      case "info":
+        return <Chip icon={<InfoIcon />} label="정보" color="primary" size="small" sx={{ mr: 1 }} />;
+      case "review":
+        return <Chip icon={<RateReviewIcon />} label="리뷰" color="primary" size="small" sx={{ mr: 1 }} />;
+      case "screenshot":
+        return <Chip icon={<CameraAltIcon />} label="스샷" color="primary" size="small" sx={{ mr: 1 }} />;
+      case "etc":
+        return <Chip icon={<MoreHorizIcon />} label="기타" color="default" size="small" sx={{ mr: 1 }} />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <>
       <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2 }}>
         <Table aria-label="customized table">
           <TableHead>
             <TableRow>
-              <StyledTableCell sx={{ width: "110px", textAlign: "center" }}>번호</StyledTableCell>
-              <StyledTableCell sx={{ width: "450px" }}>제목</StyledTableCell>
+              <StyledTableCell sx={{ width: "100px", textAlign: "center" }}>번호</StyledTableCell>
+              <StyledTableCell sx={{ width: "430px" }}>제목</StyledTableCell>
               <StyledTableCell sx={{ width: "160px" }}>작성자</StyledTableCell>
               <StyledTableCell sx={{ width: "180px" }}>등록일</StyledTableCell>
               <StyledTableCell sx={{ width: "125px", textAlign: "center" }}>
@@ -106,7 +133,14 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                     <Typography variant="body1" color="text.primary" component="span" sx={{ fontWeight: "bold" }}>
                       {row.title}
                       {row.imageFlag && (
-                        <ImageIcon sx={{ fontSize: "1rem", ml: 1, verticalAlign: "middle", color: "info.main" }} />
+                        <ImageIcon
+                          sx={{
+                            fontSize: "1rem",
+                            ml: 1,
+                            verticalAlign: "middle",
+                            color: "info.main",
+                          }}
+                        />
                       )}
                     </Typography>
                   </StyledTableCell>
@@ -128,17 +162,8 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   </StyledTableCell>
                   <StyledTableCell>
                     <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-                      {row.category === "question" ? (
-                        <Chip
-                          icon={<QuestionAnswerIcon />}
-                          label="질문"
-                          color="secondary"
-                          size="small"
-                          sx={{ mr: 1 }}
-                        />
-                      ) : (
-                        <Box sx={{ width: "56px", height: "24px", mr: 1 }}></Box>
-                      )}
+                      {/* 카테고리에 따른 Chip을 렌더링 */}
+                      {getCategoryChip(row.category) || <Box sx={{ width: "56px", height: "24px", mr: 1 }}></Box>}
                       <Typography variant="body1" color="text.primary" component="span">
                         {row.title}
                         {row.imageFlag && (

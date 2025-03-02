@@ -8,13 +8,43 @@ import Loading from "./common/Loading";
 import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
-import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
+// import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import Pagination from "./common/Pagination";
 import usePageStore from "../store/pageStore";
 import { TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "./common/SearchBar";
 import { useMemo } from "react";
+// 필요한 아이콘들을 MUI 아이콘 라이브러리에서 import 합니다.
+import ForumIcon from "@mui/icons-material/Forum";
+import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
+import InfoIcon from "@mui/icons-material/Info";
+import RateReviewIcon from "@mui/icons-material/RateReview";
+import CameraAltIcon from "@mui/icons-material/CameraAlt";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import AllInclusiveIcon from "@mui/icons-material/AllInclusive";
+import FeedbackIcon from "@mui/icons-material/Feedback";
+
+// 게시글 작성 시 선택 옵션 (잡담, 질문, 정보, 리뷰, 스샷, 기타)
+export const WRITE_SELECT_OPTIONS = [
+  { name: "잡담", value: "chat", icon: <ForumIcon /> },
+  { name: "질문", value: "question", icon: <QuestionAnswerIcon /> },
+  { name: "정보", value: "info", icon: <InfoIcon /> },
+  { name: "리뷰", value: "review", icon: <RateReviewIcon /> },
+  { name: "스샷", value: "screenshot", icon: <CameraAltIcon /> },
+  { name: "기타", value: "etc", icon: <MoreHorizIcon /> },
+];
+
+// 탭 선택 옵션 (전체, 위의 옵션들, 건의)
+export const TAB_SELECT_OPTIONS = [
+  { name: "전체", value: "all", icon: <AllInclusiveIcon /> },
+  ...WRITE_SELECT_OPTIONS,
+  { name: "건의", value: "suggestion", icon: <FeedbackIcon /> },
+];
+
+// 기본 선택 옵션은 기존과 동일하게 사용할 수 있습니다.
+export const DEFAULT_SELECT_OPTION = WRITE_SELECT_OPTIONS[0]["name"];
+export type WRITE_SELECT_OPTION_TYPE = (typeof WRITE_SELECT_OPTIONS)[number]["value"];
 
 interface ApiResponse {
   results: any[];
@@ -166,20 +196,50 @@ const MainView = (): ReactNode => {
 
   return (
     <>
-      <Box sx={{ width: "100%" }}>
+      <Box
+        sx={{
+          width: "100%",
+          borderRadius: 2,
+          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+          overflow: "hidden",
+          bgcolor: "background.paper",
+        }}
+      >
         <Tabs
           value={value}
           onChange={handleChange}
           textColor="secondary"
           indicatorColor="secondary"
-          aria-label="secondary tabs example"
+          aria-label="category tabs"
           variant="scrollable"
           scrollButtons="auto"
-          sx={{ flexGrow: 1 }}
+          sx={{
+            flexGrow: 1,
+            "& .MuiTab-root": {
+              fontWeight: 600,
+              fontSize: "1rem",
+              py: 2,
+              px: 3,
+              transition: "all 0.2s ease",
+              "&:hover": {
+                backgroundColor: "rgba(156, 39, 176, 0.04)",
+                color: "secondary.dark",
+              },
+              "&.Mui-selected": {
+                color: "secondary.main",
+                fontWeight: 700,
+              },
+            },
+            "& .MuiTabs-indicator": {
+              height: 3,
+              borderTopLeftRadius: 3,
+              borderTopRightRadius: 3,
+            },
+          }}
         >
           {/* 탭 선택 */}
-          {TAB_SELECT_OPTIONS.map((tab) => (
-            <Tab key={tab.value} value={tab.value} label={tab.name} />
+          {TAB_SELECT_OPTIONS.map((option) => (
+            <Tab key={option.value} icon={option.icon} label={option.name} value={option.value} />
           ))}
         </Tabs>
       </Box>

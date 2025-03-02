@@ -43,7 +43,7 @@ export class StoryService {
     // 1. 공지사항 조회 (페이지와 무관하게 전체 조회)
     const notices = isAllCategory
       ? await this.storyRepository.find({
-          relations: ['User', 'StoryImage'],
+          relations: ['User'],
           where: { isNotice: true },
           order: { updated_at: 'DESC' },
         })
@@ -75,7 +75,7 @@ export class StoryService {
 
     // 4. 일반 게시글 조회 (조정된 offset과 limit 사용)
     const regularPosts = await this.storyRepository.find({
-      relations: ['User', 'Likes', 'StoryImage'],
+      relations: ['User', 'Likes'],
       where: {
         ...whereCondition,
         isNotice: false,
@@ -87,11 +87,11 @@ export class StoryService {
 
     // 5. 결과 데이터 가공
     const modifiedNotices = notices.map((story) => {
-      const { StoryImage, User, ...rest } = story;
+      const { User, ...rest } = story;
       return {
         ...rest,
         recommend_Count: 0,
-        imageFlag: StoryImage.length > 0,
+        imageFlag: story.imageFlag,
         nickname: User.nickname,
         isNotice: story.isNotice,
       };
@@ -108,7 +108,7 @@ export class StoryService {
       return {
         ...rest,
         recommend_Count,
-        imageFlag: StoryImage.length > 0,
+        imageFlag: story.imageFlag,
         nickname: User.nickname,
         isNotice: story.isNotice,
       };
@@ -347,6 +347,40 @@ export class StoryService {
       await queryRunner.release();
     }
   }
+  // 공지 상세 페이지
+  async findNoticeOne(id: number, userId?: string): Promise<any> {
+    const queryRunner =
+      this.storyRepository.manager.connection.createQueryRunner();
+    await queryRunner.startTransaction();
+
+    try {
+      // 데이터 조회
+      const findData = await queryRunner.manager.findOne(Story, {
+        where: { id },
+        relations: ['StoryImage', 'User', 'User.UserImage'],
+      });
+
+      if (!findData) {
+        // 데이터가 없을 경우 404 에러 던지기
+        throw new NotFoundException(`Story with ID ${id} not found`);
+      }
+
+      // 조회수 증가
+      await queryRunner.manager.increment(Story, { id }, 'read_count', 1);
+
+      // 트랜잭션 커밋
+      await queryRunner.commitTransaction();
+      console.log('Story data with counts:', findData);
+      return findData;
+    } catch (error) {
+      // 트랜잭션 롤백
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      // QueryRunner 해제
+      await queryRunner.release();
+    }
+  }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세 페이지에서 댓글 데이터를 가져오는 메서드
   async findStoryOneComment(id: number, userData?: any): Promise<any> {
@@ -467,13 +501,15 @@ export class StoryService {
     files: Express.Multer.File[],
   ): Promise<Story> {
     const { title, content, category } = createStoryDto;
-
+    // 이미지를 업로드 하는지 확인
+    const imageFlag = files && files.length > 0;
     // Story 엔티티 생성
     const story = this.storyRepository.create({
       category,
       title,
       content,
       User: userData, // 유저데이터를 통으로 넣음
+      imageFlag,
     });
 
     const savedStory = await this.storyRepository.save(story);
@@ -565,19 +601,22 @@ export class StoryService {
 
       await this.imageRepository.save(imageEntities);
 
-      // 관계 업데이트
+      // 관계 업데이트: 최신 이미지 목록을 불러와서 할당
       const updatedImages = await this.imageRepository.find({
         where: { Story: { id: storyId } },
       });
       story.StoryImage = updatedImages;
       await this.storyRepository.save(story); // 관계 동기화
     }
-
+    // 제목, 내용, 카테고리 업데이트
     Object.assign(story, {
       title: updateStoryDto.title,
       content: updateStoryDto.content,
       category: updateStoryDto.category,
     });
+
+    // imageFlag 업데이트: 이미지가 하나라도 있으면 true, 없으면 false
+    story.imageFlag = story.StoryImage && story.StoryImage.length > 0;
 
     return await this.storyRepository.save(story);
   }

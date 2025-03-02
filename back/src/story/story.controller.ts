@@ -64,8 +64,25 @@ export class StoryController {
     @Param('id', ParseIntPipe) id: number,
     @Body() userData?: any,
   ): Promise<any> {
-    console.log('다시 가져옴');
     const data = await this.storyService.findStoryOne(id, userData?.userId);
+    // User의 필요한 필드만 남김
+    console.log('상세페이지 데이터:', data);
+    const { User, ...rest } = data;
+    const writeUserInfo = {
+      nickname: User.nickname,
+      id: User.id,
+      avatar: User.UserImage?.link || null,
+    };
+    // User는 글 작성자임
+    return { ...rest, User: writeUserInfo };
+  }
+  // 공지 상세페이지
+  @Get('/notice/:id')
+  async getNoticeDetail(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() userData?: any,
+  ): Promise<any> {
+    const data = await this.storyService.findNoticeOne(id, userData?.userId);
     // User의 필요한 필드만 남김
     console.log('상세페이지 데이터:', data);
     const { User, ...rest } = data;

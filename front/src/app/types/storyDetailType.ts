@@ -17,4 +17,5 @@ export interface StoryType {
   updated_at: string;
   StoryImage: StoryImageType[]; // ImageType 배열로 설정
   User: UserType;
+  isNotice?: boolean;
 }

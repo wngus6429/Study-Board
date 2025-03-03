@@ -148,35 +148,37 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               <Typography variant="h4" component="div" sx={{ fontWeight: "bold" }}>
                 {notice.title}
               </Typography>
-              {notice?.category !== "question" && notice.User?.id === session?.user?.id && (
-                <Box display="flex" gap={1}>
-                  <Button
-                    size="medium"
-                    variant="outlined"
-                    color="warning"
-                    onClick={(e) => {
-                      setEditFlag(true);
-                      e.preventDefault();
-                      router.push(`/edit/${notice.id}`);
-                    }}
-                    disabled={editFlag}
-                    startIcon={editFlag ? <CircularProgress size={20} /> : null}
-                  >
-                    수정
-                  </Button>
-                  <Button
-                    size="medium"
-                    variant="outlined"
-                    color="error"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleDeleteClick(notice.id);
-                    }}
-                  >
-                    삭제
-                  </Button>
-                </Box>
-              )}
+              {notice?.isNotice === false &&
+                notice?.category !== "question" &&
+                notice.User?.id === session?.user?.id && (
+                  <Box display="flex" gap={1}>
+                    <Button
+                      size="medium"
+                      variant="outlined"
+                      color="warning"
+                      onClick={(e) => {
+                        setEditFlag(true);
+                        e.preventDefault();
+                        router.push(`/edit/${notice.id}`);
+                      }}
+                      disabled={editFlag}
+                      startIcon={editFlag ? <CircularProgress size={20} /> : null}
+                    >
+                      수정
+                    </Button>
+                    <Button
+                      size="medium"
+                      variant="outlined"
+                      color="error"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteClick(notice.id);
+                      }}
+                    >
+                      삭제
+                    </Button>
+                  </Box>
+                )}
             </Box>
             <Typography
               variant="subtitle2"

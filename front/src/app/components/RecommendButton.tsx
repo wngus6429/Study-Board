@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { Box, Button, Typography } from "@mui/material";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";

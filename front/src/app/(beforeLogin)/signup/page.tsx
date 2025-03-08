@@ -164,9 +164,6 @@ const SignupPage = (): ReactNode => {
                     />
                   </Grid>
                   <Grid size={12}>
-                    <TextField required fullWidth id="name" name="name" label="이름" />
-                  </Grid>
-                  <Grid size={12}>
                     <FormControlLabel
                       control={<Checkbox onChange={handleAgree} color="primary" />}
                       label="회원가입 약관에 동의합니다."

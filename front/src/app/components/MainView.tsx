@@ -1,5 +1,5 @@
 "use client";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, useMemo } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
@@ -11,10 +11,9 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 // import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import Pagination from "./common/Pagination";
 import usePageStore from "../store/pageStore";
-import { TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT";
+import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "./common/SearchBar";
-import { useMemo } from "react";
 // 필요한 아이콘들을 MUI 아이콘 라이브러리에서 import 합니다.
 import ForumIcon from "@mui/icons-material/Forum";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
@@ -75,6 +74,9 @@ const MainView = (): ReactNode => {
   // SearchBar에서 전달받은 검색 옵션과 검색어
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
 
+  // 추천 랭킹 모드 활성화 상태 (기본: false)
+  const [recommendRankingMode, setRecommendRankingMode] = useState(false);
+
   // URL 파라미터와 내부 상태 동기화
   useEffect(() => {
     const urlCategory = urlSearchParams?.get("category") || "all";
@@ -82,50 +84,58 @@ const MainView = (): ReactNode => {
 
     const urlSearchType = urlSearchParams?.get("searchType");
     const urlSearchQuery = urlSearchParams?.get("searchQuery");
+    const urlRecommend = urlSearchParams?.get("recommendRanking"); // URL에서 추천 랭킹 모드 확인
 
     if (urlSearchType && urlSearchQuery) {
       setSearchParams({ type: urlSearchType, query: urlSearchQuery });
     } else {
       setSearchParams(null);
     }
+    // 추천 랭킹 모드 설정 (URL 파라미터가 "true"이면 활성화)
+    setRecommendRankingMode(urlRecommend === "true");
     // 페이지 번호 초기화
     // setCurrentPage(1);
   }, [urlSearchParams, setCurrentPage]);
 
   /**
    * - 검색 파라미터(searchParams)가 있으면 검색 API를 호출합니다.
-   *   이때 현재 탭(category)을 항상 함께 전송합니다.
+   *   이때 현재 탭(category)과 추천 랭킹 모드(recommendRankingMode), 최소 추천수(MIN_RECOMMEND_COUNT)를 함께 전송합니다.
    * - 검색 파라미터가 없으면 기존 페이지 데이터 API를 호출합니다.
    * ! queryKey의 변경이 useQuery 부르는 트리거
    */
-  // 프론트엔드 수정 예시
   const { data, error, isLoading } = useQuery<ApiResponse>({
-    queryKey: searchParams ? ["stories", value, currentPage, searchParams] : ["stories", value, currentPage],
+    queryKey: searchParams
+      ? ["stories", value, currentPage, searchParams, recommendRankingMode]
+      : ["stories", value, currentPage, recommendRankingMode],
     queryFn: async () => {
       // 공지사항이 첫 페이지에만 표시되는 것을 고려하여 오프셋 계산
       const offset = (currentPage - 1) * viewCount;
 
-      // API 호출 로직은 그대로 유지
+      // 기본 파라미터 객체 생성
+      const params: any = {
+        offset,
+        limit: viewCount,
+        category: value !== "all" ? value : undefined,
+      };
+
+      // 추천 랭킹 모드일 경우 최소 추천수 파라미터 추가
+      if (recommendRankingMode) {
+        params.minRecommend = MIN_RECOMMEND_COUNT;
+      }
+
+      // 검색 API 호출 (검색 파라미터가 있을 경우)
       if (searchParams && searchParams.query.trim() !== "") {
-        // 검색 API 호출 – 현재 탭(value)을 항상 함께 전송
+        params.type = searchParams.type;
+        params.query = searchParams.query;
+        // 검색 API 호출 – 현재 탭(value), 추천 랭킹 모드, 최소 추천수 모두 전송
         const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/search`, {
-          params: {
-            offset,
-            limit: viewCount,
-            type: searchParams.type,
-            query: searchParams.query,
-            category: value, // 항상 현재 탭의 값을 전달 (백엔드에서 "all" 처리 필요)
-          },
+          params,
         });
         return response.data;
       }
-      // 검색 파라미터가 없으면 기존 API 호출 (탭 필터 적용)
+      // 검색 파라미터가 없으면 기존 API 호출 (탭 필터 적용 + 추천 랭킹 모드 적용)
       const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData`, {
-        params: {
-          offset,
-          limit: viewCount,
-          category: value !== "all" ? value : undefined,
-        },
+        params,
       });
       return response.data;
     },
@@ -148,7 +158,27 @@ const MainView = (): ReactNode => {
     setSearchParams(null);
     setValue(newValue);
     setCurrentPage(1);
+    // 탭 변경 시 추천 랭킹 모드 초기화 (필요에 따라 유지할 수도 있음)
+    setRecommendRankingMode(false);
     Router.push(`?category=${newValue}`, { scroll: false });
+  };
+
+  // 추천 랭킹 버튼 클릭 핸들러
+  const toggleRecommendRanking = () => {
+    // 추천 랭킹 모드를 토글하며 페이지 번호 초기화 및 URL 반영
+    const newMode = !recommendRankingMode;
+    setRecommendRankingMode(newMode);
+    setCurrentPage(1);
+
+    // URL 파라미터에 추천 랭킹 모드 반영 (검색 파라미터와 탭 정보 유지)
+    const params = new URLSearchParams();
+    params.set("category", value);
+    if (searchParams) {
+      params.set("searchType", searchParams.type);
+      params.set("searchQuery", searchParams.query);
+    }
+    params.set("recommendRanking", newMode.toString());
+    Router.push(`?${params.toString()}`, { scroll: false });
   };
 
   const moveWrite = () => {
@@ -171,6 +201,8 @@ const MainView = (): ReactNode => {
     params.set("category", value);
     params.set("searchType", category);
     params.set("searchQuery", query);
+    // 검색 시에도 추천 랭킹 모드가 반영되도록 처리
+    params.set("recommendRanking", recommendRankingMode.toString());
     Router.push(`?${params.toString()}`, { scroll: false });
   };
 
@@ -244,8 +276,6 @@ const MainView = (): ReactNode => {
         </Tabs>
       </Box>
       {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={sortedTableData} />}
-
-      {/* {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={sortedTableData || previousData} />} */}
       <Box
         sx={{
           display: "flex",
@@ -264,6 +294,7 @@ const MainView = (): ReactNode => {
               <MenuItem value="추천수">추천수순</MenuItem>
             </Select>
           </FormControl>
+          {/* 추천 랭킹 버튼: 추천 랭킹 모드 활성화/비활성화 */}
           <Button
             variant="contained"
             startIcon={<EmojiEventsIcon sx={{ fontSize: 24, color: "rgba(255, 255, 255, 0.8)" }} />}
@@ -278,6 +309,7 @@ const MainView = (): ReactNode => {
                 backgroundImage: "linear-gradient(45deg, #e65100, #bf360c)", // 조금 더 어두운 톤으로 변환
               },
             }}
+            onClick={toggleRecommendRanking}
           >
             추천 랭킹
           </Button>

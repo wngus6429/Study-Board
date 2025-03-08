@@ -126,6 +126,64 @@ export class StoryService {
     };
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 새로 추가: 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 사용)
+  // 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 미사용)
+  async findStoryWithMinRecommend(
+    offset = 0,
+    limit = 10,
+    category?: string,
+    minRecommend: number = 0,
+  ): Promise<{
+    results: Partial<Story>[];
+    total: number;
+  }> {
+    // 1. 카테고리 필터 조건 설정 (추천 랭킹 모드에서는 공지사항은 제외)
+    const whereCondition =
+      category && category !== 'all'
+        ? { category, isNotice: false }
+        : { isNotice: false };
+
+    // 2. 조건에 맞는 모든 게시글 불러오기 (관계 엔티티(Likes, User, StoryImage) 포함)
+    const posts = await this.storyRepository.find({
+      relations: ['Likes', 'User', 'StoryImage'],
+      where: whereCondition,
+      order: { id: 'DESC' },
+    });
+
+    // 3. 각 게시글의 추천 수(좋아요 - 싫어요)를 계산하고, minRecommend 이상인 게시글만 필터링
+    const filteredPosts = posts.filter((post) => {
+      const recommendCount = post.Likes.reduce((acc, curr) => {
+        if (curr.vote === 'like') return acc + 1;
+        if (curr.vote === 'dislike') return acc - 1;
+        return acc;
+      }, 0);
+      return recommendCount >= minRecommend;
+    });
+
+    // 4. 총 개수 계산 (필터링 후)
+    const total = filteredPosts.length;
+
+    // 5. 페이지네이션 적용 (메모리 상에서 offset, limit 적용)
+    const paginatedPosts = filteredPosts.slice(offset, offset + limit);
+
+    // 6. 결과 데이터 가공: 추천 수, 사용자 닉네임, 이미지 여부 등의 필드 추가
+    const results = paginatedPosts.map((post) => {
+      const recommendCount = post.Likes.reduce((acc, curr) => {
+        if (curr.vote === 'like') return acc + 1;
+        if (curr.vote === 'dislike') return acc - 1;
+        return acc;
+      }, 0);
+      return {
+        ...post,
+        recommend_Count: recommendCount,
+        nickname: post.User.nickname,
+        imageFlag: post.StoryImage && post.StoryImage.length > 0,
+      };
+    });
+
+    return { results, total };
+  }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
   async searchStory(
     offset = 0,

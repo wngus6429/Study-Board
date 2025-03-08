@@ -30,15 +30,28 @@ export class StoryController {
   logger: any;
   constructor(private readonly storyService: StoryService) {}
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 카테고리별 글 가져오지
+  // 게시글 가져오기 API - 카테고리별 글 가져오기
   @Get('/pageTableData')
   async getPageStory(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
     @Query('category') category?: string, // ✅ category 추가
+    @Query('minRecommend') minRecommend?: number, // ✅ 추천 랭킹 모드: 최소 추천 수 필터
   ): Promise<{ results: Partial<Story>[]; total: number }> {
+    console.log('반응');
+    // 추천 랭킹 모드가 활성화되면 minRecommend 값으로 필터링된 결과를 반환
+    if (minRecommend) {
+      return await this.storyService.findStoryWithMinRecommend(
+        offset,
+        limit,
+        category,
+        minRecommend,
+      );
+    }
+    // 기본 페이지 데이터 조회
     return await this.storyService.findStory(offset, limit, category);
   }
+
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
   @Get('/search')

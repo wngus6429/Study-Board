@@ -154,17 +154,38 @@ const MainView = ({
 
   // 추천 랭킹 모드 토글 함수
   const toggleRecommendRanking = () => {
+    // 1. 현재 추천 랭킹 모드의 boolean 값을 반전시켜 새로운 모드(newMode)를 결정합니다.
+    //    예를 들어, 현재 추천 랭킹 모드가 false라면 newMode는 true가 됩니다.
     const newMode = !recommendRankingMode;
+
+    // 2. 추천 랭킹 모드 상태를 업데이트합니다.
+    //    새로운 모드 값(newMode)을 setRecommendRankingMode를 통해 상태에 반영합니다.
     setRecommendRankingMode(newMode);
+
+    // 3. 추천 랭킹 모드를 토글할 때는 페이지 번호를 1로 초기화합니다.
+    //    (새 모드에 맞춰 첫 페이지부터 데이터를 다시 불러오기 위함)
     setCurrentPage(1);
-    // URL 파라미터에 추천 랭킹 모드 반영 및 현재 검색, 카테고리 정보 유지
+
+    // 4. URL 쿼리 파라미터를 구성하기 위해 새로운 URLSearchParams 객체를 생성합니다.
     const params = new URLSearchParams();
+
+    // 5. 현재 선택된 카테고리 값을 "category" 파라미터에 설정합니다.
+    //    이 값은 기존에 선택된 탭(카테고리)을 나타냅니다.
     params.set("category", value);
+
+    // 6. 만약 검색 조건(searchParamsState)이 있다면, 해당 검색 조건을 URL 파라미터에 추가합니다.
+    //    여기서는 검색 옵션의 종류(type)와 검색어(query)를 각각 "searchType"과 "searchQuery"로 설정합니다.
     if (searchParamsState) {
       params.set("searchType", searchParamsState.type);
       params.set("searchQuery", searchParamsState.query);
     }
+
+    // 7. 새로 반전된 추천 랭킹 모드(newMode)를 문자열로 변환하여 "recommendRanking" 파라미터에 설정합니다.
+    //    URL 파라미터는 문자열이어야 하므로 toString()을 사용합니다.
     params.set("recommendRanking", newMode.toString());
+
+    // 8. 구성한 URL 쿼리 파라미터를 사용해 URL을 업데이트합니다.
+    //    Router.push를 사용하여 URL을 변경하며, { scroll: false } 옵션은 페이지 이동 시 스크롤 위치를 유지하도록 합니다.
     Router.push(`?${params.toString()}`, { scroll: false });
   };
 

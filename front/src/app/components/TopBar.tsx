@@ -108,8 +108,15 @@ export default function MenuBar() {
       <Link href="/" aria-label="Home" className={styles.title} onClick={() => setCurrentPage(1)}>
         🍔Live Board
       </Link>
-      <Box>
-        {userImage && <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImage}`} sx={{ width: 56, height: 56 }} />}
+      <Box sx={{ width: 56, height: 56 }}>
+        {userImage ? (
+          <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImage}`} sx={{ width: 56, height: 56 }} />
+        ) : (
+          // 이미지가 없을 때에도 같은 크기의 빈 Avatar 또는 기본 아이콘을 보여줌
+          <Avatar sx={{ width: 56, height: 56 }}>
+            <AccountCircle />
+          </Avatar>
+        )}
       </Box>
       <nav className={styles.nav}>
         {!user?.user && (

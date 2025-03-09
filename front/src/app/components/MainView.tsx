@@ -198,6 +198,12 @@ const MainView = ({
   const handlePageClick = (selectedItem: { selected: number }) => {
     const newPage = selectedItem.selected + 1;
     setCurrentPage(newPage);
+
+    // 기존 쿼리 파라미터들을 유지하면서 페이지 번호만 업데이트
+    const params = new URLSearchParams(window.location.search);
+    params.set("page", newPage.toString());
+    // 만약 다른 파라미터(예: category, recommendRanking 등)도 있다면 그대로 유지됨
+    Router.push(`?${params.toString()}`, { scroll: false });
   };
 
   // SearchBar에서 검색 옵션과 검색어를 전달받아 상태와 URL 업데이트

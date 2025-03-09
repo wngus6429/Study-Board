@@ -113,9 +113,7 @@ export default function MenuBar() {
           <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImage}`} sx={{ width: 56, height: 56 }} />
         ) : (
           // 이미지가 없을 때에도 같은 크기의 빈 Avatar 또는 기본 아이콘을 보여줌
-          <Avatar sx={{ width: 56, height: 56 }}>
-            <AccountCircle />
-          </Avatar>
+          <Box sx={{ width: 56, height: 56 }} />
         )}
       </Box>
       <nav className={styles.nav}>

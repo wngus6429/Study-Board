@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Box, TextField, Button, Typography, Avatar, Alert } from "@mui/material";
+import { Box, TextField, Button, Typography, Avatar, Alert, Pagination } from "@mui/material";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -210,6 +210,23 @@ const CommentsView = () => {
   };
 
   const MAX_DEPTH = 4; // 최대 깊이 제한
+
+  const [currentPage, setCurrentPage] = useState<number>(0);
+
+  // 페이지네이션 클릭 시 호출되는 함수 (페이지 번호 업데이트)
+  const handlePageClick = (selectedItem: { selected: number }) => {
+    const newPage = selectedItem.selected + 1;
+    setCurrentPage(newPage);
+
+    // 기존 쿼리 파라미터들을 유지하면서 페이지 번호만 업데이트
+    // const params = new URLSearchParams(window.location.search);
+    // params.set("page", newPage.toString());
+    // // 만약 다른 파라미터(예: category, recommendRanking 등)도 있다면 그대로 유지됨
+    // Router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  const total = 50;
+  const viewCount = 10;
 
   // CommentList 컴포넌트 내에서 답글과 수정 모드 관리를 위한 로컬 상태 추가
   const CommentList = ({
@@ -481,6 +498,9 @@ const CommentsView = () => {
           </Box>
         </Box>
       )}
+      <Box sx={{ display: "flex", justifyContent: "center", flex: 1, mt: 2 }}>
+        <Pagination pageCount={Math.ceil(total / viewCount)} onPageChange={handlePageClick} currentPage={currentPage} />
+      </Box>
     </Box>
   );
 };

@@ -10,6 +10,7 @@ export interface TableStoryType {
   nickname: string;
   read_count: number;
   recommend_Count: number;
+  comment_count: number;
   imageFlag: boolean;
   isNotice?: boolean;
   created_at: string;

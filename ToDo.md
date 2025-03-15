@@ -67,6 +67,7 @@ DB - MySQL,
 39. 공지사항 기능 만드는중.
 40. 상세페이지에서 다음 스토리 볼수 있게 하기.
 41. 댓글 페이지네이션
+42. 댓글 몇개 인지 테이블 데이터에 (5) 로 표시하기 (완료)
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator

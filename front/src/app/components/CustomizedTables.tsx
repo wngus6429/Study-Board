@@ -163,9 +163,8 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   <StyledTableCell>
                     <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
                       {/* 카테고리에 따른 Chip을 렌더링 */}
-                      {getCategoryChip(row.category) || <Box sx={{ width: "56px", height: "24px", mr: 1 }}></Box>}
-                      <Typography variant="body1" color="text.primary" component="span">
-                        {row.title}
+                      {getCategoryChip(row.category) || <Box sx={{ width: "56px", height: "24px" }}></Box>}
+                      <Typography variant="body1" color="text.primary" component="span" sx={{ mr: 1 }}>
                         {row.imageFlag && (
                           <ImageIcon
                             sx={{
@@ -177,6 +176,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                           />
                         )}
                       </Typography>
+                      {row.title} {row.comment_count > 0 && `(${row.comment_count})`}
                     </Box>
                   </StyledTableCell>
                   <StyledTableCell>

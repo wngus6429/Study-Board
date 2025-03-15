@@ -194,9 +194,12 @@ export class StoryController {
   // 댓글 삭제
   @Put('/comment/:id')
   @UseGuards(AuthGuard())
-  async deleteComment(@Param('id') commentId: number): Promise<void> {
+  async deleteComment(
+    @Param('id') commentId: number,
+    @Body() commentData: { storyId: string },
+  ): Promise<void> {
     console.log('삭제할 댓글 ID:', commentId);
-    return await this.storyService.deleteComment(commentId);
+    return await this.storyService.deleteComment(commentId, commentData);
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 수정
@@ -204,7 +207,7 @@ export class StoryController {
   @UseGuards(AuthGuard())
   async editComment(
     @Param('id') commentId: number,
-    @Body('content') content: string, // body에서 content 필드만 추출
+    @Body('content') content: string, //! body에서 content 필드만 추출
   ): Promise<void> {
     console.log('수정할 댓글 ID:', commentId, content);
     return await this.storyService.editComment(commentId, content);

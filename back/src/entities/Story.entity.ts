@@ -59,6 +59,12 @@ export class Story {
   @Column({ default: 0 })
   read_count: number;
 
+  @ApiProperty({
+    description: '댓글수',
+  })
+  @Column({ default: 0 })
+  comment_count: number;
+
   // 게시글과 댓글 간의 관계 (일대다 관계)
   // 한 개의 Story에 여러 개의 Comments가 연결됩니다.
   @ApiProperty({

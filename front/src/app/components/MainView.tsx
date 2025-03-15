@@ -65,6 +65,7 @@ const MainView = ({
   initialCurrentPage,
   initialRecommendRankingMode,
 }: MainViewProps): ReactNode => {
+  console.log("initialData", initialData);
   // next/navigation의 useRouter를 통해 URL 이동 제어
   const Router = useRouter();
   // next-auth의 useSession을 사용해 사용자 로그인 정보를 가져옴

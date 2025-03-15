@@ -104,12 +104,12 @@ const CommentsView = () => {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: async ({ commentId }: { commentId: number }) => {
+    mutationFn: async ({ commentId, storyId }: { commentId: number; storyId: string }) => {
       try {
         console.log("댓글 논리 삭제", commentId);
         const response = await axios.put(
           `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${commentId}`,
-          {},
+          { storyId },
           {
             withCredentials: true,
           }
@@ -191,7 +191,7 @@ const CommentsView = () => {
 
   const confirmDelete = () => {
     if (commentToDelete !== null) {
-      deleteMutation.mutate({ commentId: commentToDelete });
+      deleteMutation.mutate({ commentId: commentToDelete, storyId });
       setCommentToDelete(null);
       setOpenConfirmDialog(false);
     }

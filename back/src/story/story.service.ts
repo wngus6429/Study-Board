@@ -4,8 +4,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, In, LessThan, Repository } from 'typeorm';
+import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
+import { ILike, In, LessThan, Repository, DataSource } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { User } from 'src/entities/User.entity';
 import { Story } from 'src/entities/Story.entity';
@@ -19,6 +19,8 @@ import { Likes } from 'src/entities/Likes.entity';
 @Injectable()
 export class StoryService {
   constructor(
+    @InjectDataSource()
+    private dataSource: DataSource,
     @InjectRepository(Story)
     private storyRepository: Repository<Story>,
     @InjectRepository(StoryImage)
@@ -748,21 +750,80 @@ export class StoryService {
       User: user,
     });
 
+    await this.storyRepository.increment(
+      { id: Number(storyId) },
+      'comment_count',
+      1,
+    );
+
     await this.commentRepository.save(comment);
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  async deleteComment(commentId: number): Promise<void> {
-    // 댓글 확인
-    const comment = await this.commentRepository.findOne({
-      where: { id: commentId },
-    });
-    if (!comment) {
-      throw new NotFoundException('삭제할 댓글을 찾을 수 없습니다.');
-    }
+  async deleteComment(
+    commentId: number,
+    commentData: { storyId: string },
+  ): Promise<void> {
+    await this.dataSource.transaction(async (manager) => {
+      const commentRepository = manager.getRepository(Comments);
+      const storyRepository = manager.getRepository(Story);
 
-    comment.deleted_at = new Date();
-    await this.commentRepository.save(comment);
+      // 댓글 확인
+      const comment = await commentRepository.findOne({
+        where: { id: commentId },
+      });
+      if (!comment) {
+        throw new NotFoundException('삭제할 댓글을 찾을 수 없습니다.');
+      }
+
+      // 글 확인
+      const story = await storyRepository.findOne({
+        where: { id: Number(commentData.storyId) },
+      });
+      if (!story) {
+        throw new NotFoundException('댓글을 작성할 글을 찾을 수 없습니다.');
+      }
+
+      // 댓글 논리 삭제
+      comment.deleted_at = new Date();
+      await commentRepository.save(comment);
+
+      // 스토리의 comment_count 감소
+      await storyRepository.decrement(
+        { id: Number(commentData.storyId) },
+        'comment_count',
+        1,
+      );
+    });
   }
+
+  // async deleteComment(
+  //   commentId: number,
+  //   commentData: { storyId: string },
+  // ): Promise<void> {
+  //   // 댓글 확인
+  //   const comment = await this.commentRepository.findOne({
+  //     where: { id: commentId },
+  //   });
+  //   if (!comment) {
+  //     throw new NotFoundException('삭제할 댓글을 찾을 수 없습니다.');
+  //   }
+
+  //   // 글 확인
+  //   const story = await this.storyRepository.findOne({
+  //     where: { id: Number(commentData.storyId) },
+  //   });
+  //   if (!story) {
+  //     throw new NotFoundException('댓글을 작성할 글을 찾을 수 없습니다.');
+  //   }
+
+  //   comment.deleted_at = new Date();
+  //   await this.commentRepository.save(comment);
+  //   await this.storyRepository.decrement(
+  //     { id: Number(commentData.storyId) },
+  //     'comment_count',
+  //     1, // 올바른 값: decrement 했으니까 이렇게 해야 1을 빼게 됨
+  //   );
+  // }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async editComment(commentId: number, content: string): Promise<void> {
     // 댓글 확인

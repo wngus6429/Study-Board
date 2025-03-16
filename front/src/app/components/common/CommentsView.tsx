@@ -27,9 +27,7 @@ interface CommentsProps {
 const CommentsView = () => {
   // URL 파라미터에서 스토리 ID 가져오기
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
-  // 메시지 컴포넌트 사용
   const { showMessage } = useMessage((state) => state);
-  // 세션 데이터
   const { data: session, status } = useSession();
   // 댓글 작성 내용
   const [content, setContent] = useState("");
@@ -39,6 +37,10 @@ const CommentsView = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   // 유저 데이터 상태
   const [userData, setUserData] = useState<any>(null);
+
+  // 페이지네이션 상태
+  const [currentPage, setCurrentPage] = useState(1);
+  const viewCount = 5; // 한 페이지당 표시할 최상위 댓글 수
 
   const {
     data: CommentData,
@@ -59,12 +61,18 @@ const CommentsView = () => {
     // refetchInterval: 1000, // 1초마다 데이터를 다시 가져옴
   });
 
+  // 댓글 데이터 업데이트 시, 페이지 번호 유지 (필요시 조정)
   useEffect(() => {
     if (CommentData?.processedComments) {
       setComments(CommentData.processedComments);
       setUserData(CommentData.loginUser);
+      // 전체 페이지 수 계산
+      const totalPages = Math.ceil(CommentData.processedComments.length / viewCount);
+      if (currentPage > totalPages) {
+        setCurrentPage(totalPages);
+      }
     }
-  }, [CommentData]);
+  }, [CommentData, currentPage, viewCount]);
 
   const mutation = useMutation({
     mutationFn: async ({
@@ -78,21 +86,12 @@ const CommentsView = () => {
       parentId: number | null;
       authorId: string;
     }) => {
-      try {
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${storyId}`,
-          {
-            storyId,
-            content,
-            parentId,
-            authorId,
-          },
-          { withCredentials: true }
-        );
-        return response.data;
-      } catch (error) {
-        throw new Error("Failed to post comment");
-      }
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${storyId}`,
+        { storyId, content, parentId, authorId },
+        { withCredentials: true }
+      );
+      return response.data;
     },
     onSuccess: () => {
       setContent("");
@@ -162,7 +161,7 @@ const CommentsView = () => {
 
   const handleReplySubmit = (parentId: number, content: string) => {
     if (content.trim()) {
-      mutation.mutate({ storyId, content: content, parentId, authorId: session?.user.id as string });
+      mutation.mutate({ storyId, content, parentId, authorId: session?.user.id as string });
       setReplyTo(null);
     }
   };
@@ -202,33 +201,23 @@ const CommentsView = () => {
     setOpenConfirmDialog(false);
   };
 
-  // 댓글 수정 핸들러 (수정 후 API 호출)
   const handleEditSubmit = (commentId: number, newContent: string) => {
     if (newContent.trim()) {
       editMutation.mutate({ commentId, newContent });
     }
   };
 
-  const MAX_DEPTH = 4; // 최대 깊이 제한
+  const total = comments.length;
+  const startIndex = (currentPage - 1) * viewCount;
+  const endIndex = startIndex + viewCount;
+  const paginatedComments = comments.slice(startIndex, endIndex);
 
-  const [currentPage, setCurrentPage] = useState<number>(0);
-
-  // 페이지네이션 클릭 시 호출되는 함수 (페이지 번호 업데이트)
-  const handlePageClick = (selectedItem: { selected: number }) => {
-    const newPage = selectedItem.selected + 1;
-    setCurrentPage(newPage);
-
-    // 기존 쿼리 파라미터들을 유지하면서 페이지 번호만 업데이트
-    // const params = new URLSearchParams(window.location.search);
-    // params.set("page", newPage.toString());
-    // // 만약 다른 파라미터(예: category, recommendRanking 등)도 있다면 그대로 유지됨
-    // Router.push(`?${params.toString()}`, { scroll: false });
+  const handlePageClick = (event: React.ChangeEvent<unknown>, page: number) => {
+    setCurrentPage(page);
   };
 
-  const total = 50;
-  const viewCount = 10;
+  const MAX_DEPTH = 4; // 댓글 최대 깊이 제한
 
-  // CommentList 컴포넌트 내에서 답글과 수정 모드 관리를 위한 로컬 상태 추가
   const CommentList = ({
     comments,
     toggleReply,
@@ -243,11 +232,9 @@ const CommentsView = () => {
     handleEditSubmit: (commentId: number, newContent: string) => void;
   }) => {
     const [localReplyContent, setLocalReplyContent] = useState("");
-    // 댓글 수정 모드 상태
     const [editCommentId, setEditCommentId] = useState<number | null>(null);
     const [editContent, setEditContent] = useState<string>("");
 
-    // 평면화한 댓글 배열
     const flatComments = flattenComments(comments);
 
     return (
@@ -440,7 +427,7 @@ const CommentsView = () => {
         </Box>
       )}
       <CommentList
-        comments={comments}
+        comments={paginatedComments}
         toggleReply={toggleReply}
         handleReplySubmit={handleReplySubmit}
         replyTo={replyTo}
@@ -499,7 +486,7 @@ const CommentsView = () => {
         </Box>
       )}
       <Box sx={{ display: "flex", justifyContent: "center", flex: 1, mt: 2 }}>
-        <Pagination pageCount={Math.ceil(total / viewCount)} onPageChange={handlePageClick} currentPage={currentPage} />
+        <Pagination count={Math.ceil(total / viewCount)} page={currentPage} onChange={handlePageClick} />
       </Box>
     </Box>
   );

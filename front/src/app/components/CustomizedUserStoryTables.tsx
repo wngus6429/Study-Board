@@ -28,6 +28,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  // 홀수 행에 hover 색상
   "&:nth-of-type(odd)": {
     backgroundColor: theme.palette.action.hover,
   },
@@ -40,7 +41,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
     backgroundColor: "#ffdef0",
   },
 }));
-
 interface CustomizedTablesProps {
   tableData: any;
 }
@@ -51,11 +51,18 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
   return (
     <>
       <TableContainer component={Paper}>
-        <Table aria-label="customized table">
+        <Table
+          aria-label="customized table"
+          sx={{
+            "& .MuiTableCell-root": {
+              borderBottom: "none", // 모든 셀의 아래 경계선 제거
+            },
+          }}
+        >
           <TableHead>
             <TableRow>
               <StyledTableCell sx={{ width: "200px" }}>제목</StyledTableCell>
-              <StyledTableCell sx={{ width: "80px", textAlign: "right" }}>등록일</StyledTableCell>
+              <StyledTableCell sx={{ width: "170px", textAlign: "right" }}>등록일</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>

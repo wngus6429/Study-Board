@@ -57,7 +57,7 @@ export default function AnotherUserProfile({ userDetail }: Props) {
 
           {/* 프로필 사진 */}
           <Avatar
-            src={`${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.user.image.link}`} // 기본 프로필 이미지 설정
+            src={`${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.user.image?.link}`} // 기본 프로필 이미지 설정
             sx={{
               width: 120,
               height: 120,

@@ -8,9 +8,7 @@ import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
-import { StoryType } from "../types/imageTypes";
 import dayjs from "dayjs";
-//! 몇분전 글이 쓰여졌다 등등 활용, 옛날에는 모먼트를 많이썻다함
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useRouter } from "next/navigation";
 import { Box, Typography } from "@mui/material";
@@ -28,6 +26,7 @@ const StyledTableCell = styled(TableCell)(({ theme }) => ({
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  // 홀수 행에 hover 색상
   "&:nth-of-type(odd)": {
     backgroundColor: theme.palette.action.hover,
   },
@@ -55,51 +54,59 @@ interface CustomizedUserTablesDataProps {
 
 const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps): React.ReactNode => {
   const router = useRouter();
-  console.log(tableData);
   return (
-    <>
-      <TableContainer component={Paper}>
-        <Table aria-label="customized table">
-          <TableHead>
-            <TableRow>
-              <StyledTableCell sx={{ width: "200px" }}>제목</StyledTableCell>
-              <StyledTableCell sx={{ width: "80px", textAlign: "right" }}>등록일</StyledTableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {tableData.map((row: CustomizedUserTablesDataProps) => (
-              <StyledTableRow
-                key={row.id}
-                onClick={() => {
-                  if (!commentsFlag) {
-                    router.push(`/detail/${row.storyId}`);
-                  }
-                }}
+    <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2 }}>
+      {/* 모든 셀의 borderBottom을 제거 */}
+      <Table
+        aria-label="customized table"
+        sx={{
+          "& .MuiTableCell-root": {
+            borderBottom: "none", // 모든 셀의 아래 경계선 제거
+          },
+        }}
+      >
+        <TableHead>
+          <TableRow>
+            <StyledTableCell sx={{ width: "200px" }}>제목</StyledTableCell>
+            <StyledTableCell sx={{ width: "170px", textAlign: "right" }}>등록일</StyledTableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {tableData.map((row: CustomizedUserTablesDataProps) => (
+            <StyledTableRow
+              key={row.id}
+              onClick={() => {
+                if (!commentsFlag) {
+                  router.push(`/detail/${row.storyId}`);
+                }
+              }}
+              sx={{
+                cursor: commentsFlag ? "default" : "pointer",
+                pointerEvents: commentsFlag ? "none" : "auto", // 클릭 비활성화
+              }}
+            >
+              <StyledTableCell
                 sx={{
-                  cursor: commentsFlag ? "default" : "pointer",
-                  pointerEvents: commentsFlag ? "none" : "auto", // 클릭 비활성화
+                  display: "flex",
+                  alignItems: "center", // 세로 방향 가운데 정렬
+                  // justifyContent: "center", // 가로 방향도 가운데 정렬하고 싶다면 추가
+                  gap: 1,
+                  // 테이블 높이가 너무 작다면 아래처럼 최소 높이를 부여
+                  // minHeight: 48
                 }}
               >
-                <StyledTableCell
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  <Typography variant="body1" color="text.primary" noWrap>
-                    {row.content}
-                  </Typography>
-                </StyledTableCell>
-                <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
-                  {dayjs(row.updated_at).format("YYYY.MM.DD HH:mm")}
-                </StyledTableCell>
-              </StyledTableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-    </>
+                <Typography variant="body1" color="text.primary" noWrap>
+                  {row.content}
+                </Typography>
+              </StyledTableCell>
+              <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
+                {dayjs(row.updated_at).format("YYYY.MM.DD HH:mm")}
+              </StyledTableCell>
+            </StyledTableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
   );
 };
 

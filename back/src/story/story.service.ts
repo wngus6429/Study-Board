@@ -442,7 +442,7 @@ export class StoryService {
     }
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 상세 페이지에서 댓글 데이터를 가져오는 메서드
+  // 상세 페이지에서 댓글 데이터를 가져오는 메서드 : 댓글 Get
   async findStoryOneComment(id: number, userData?: any): Promise<any> {
     // Story 데이터를 댓글과 함께 가져옴
     const findData = await this.storyRepository.findOne({

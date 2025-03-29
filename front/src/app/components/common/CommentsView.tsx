@@ -9,7 +9,6 @@ import dayjs from "dayjs";
 import Loading from "./Loading";
 import ConfirmDialog from "./ConfirmDialog";
 import { useMessage } from "@/app/store/messageStore";
-import ScrollUpButton from "./ScrollUpButton";
 
 interface Comment {
   id: number;
@@ -55,6 +54,7 @@ const CommentsView = () => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/comment/${storyId}`, {
         userId: session?.user?.id || null, // 로그인했으면 userId 전달, 아니면 null
       });
+      console.log("데이터 바당옴", response);
       return response.data;
     },
     enabled: !!storyId && status !== "loading", // storyId가 있으면 항상 활성화
@@ -67,14 +67,15 @@ const CommentsView = () => {
     if (CommentData?.processedComments) {
       setComments(CommentData.processedComments);
       setUserData(CommentData.loginUser);
-      // 전체 페이지 수 계산
-      const totalPages = Math.ceil(CommentData.processedComments.length / viewCount);
+      // 전체 페이지 수 계산 (최소 1페이지로 보장, 이거 안하면 첫댓글시, 작성후 바로 반영 안됨)
+      const totalPages = Math.max(1, Math.ceil(CommentData.processedComments.length / viewCount));
       if (currentPage > totalPages) {
         setCurrentPage(totalPages);
       }
     }
   }, [CommentData, currentPage, viewCount]);
 
+  // 댓글 POST
   const mutation = useMutation({
     mutationFn: async ({
       storyId,

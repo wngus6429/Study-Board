@@ -1,49 +1,44 @@
 .main_container {
-  display: flex;
-  /* overflow: hidden; */
-}
-
-.content_wrapper {
-  display: flex;
-  flex-direction: row;
-  flex-grow: 1;
-  gap: 3px;
-}
-
-.main_content {
-  flex-grow: 1;
-  width: calc(60% - 3px);
-  padding: 0 3px;
-  overflow-y: auto;
-  /* 필요에 따라 padding-left 값을 늘려서 선과 내용 사이 간격을 조정할 수 있습니다.
-  예: padding-left: 10px; */
-  border-left: 1px solid #ddd; /* 옅은 수직선 추가 */
-}
-
-.right_view {
-  width: 25%;
+  display: flex; /* 수평 배치 */
+  /* 전체 폭 100% */
 }
 
 .nav_display {
-  width: 7%;
+  width: 7%; /* 왼쪽 메뉴 7% */
+  border-right: 1px solid #ddd; /*메뉴와 컨텐츠 구분선*/
+  /* border-left 대신, 여기서 구분선 주면 가운데 침범 문제 줄어듦 */
+}
+
+.content_wrapper {
+  width: 93%; /* 나머지 93% */
+  display: flex;
+  gap: 3px;
+}
+
+/* 가운데 컨텐츠 */
+.main_content {
+  width: 75%; /* 예: 70% */
+  padding: 0 3px;
+  overflow-y: auto;
+  /* 필요하면 border-left, padding-left 추가 가능 */
+}
+
+/* 오른쪽 영역 */
+.right_view {
+  width: 25%; /* 70% + 30% = 100% (content_wrapper 안에서) */
 }
 
 @media (max-width: 1400px) {
   .nav_display {
     display: none;
   }
-
   .content_wrapper {
+    width: 100%;
     flex-direction: column;
   }
-
-  .main_content {
-    width: 100%;
-    border-left: none; /* 모바일 뷰에서는 선 제거 */
-    border-right: none;
-  }
-
+  .main_content,
   .right_view {
     width: 100%;
+    border: none;
   }
 }

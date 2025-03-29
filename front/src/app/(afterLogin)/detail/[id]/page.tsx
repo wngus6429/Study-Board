@@ -384,7 +384,6 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               </Box>
             )}
           </CardContent>
-          <ScrollUpButton />
         </Card>
       )}
       {detail && (

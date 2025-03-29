@@ -468,7 +468,7 @@ const CommentsView = () => {
           />
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
             <Typography variant="body2" sx={{ color: "gray", marginBottom: 2 }}>
-              내 마음에 안들면 댓글 삭제 할 거임
+              내 마음에 안들면 댓글 삭제
             </Typography>
             <button
               onClick={handleSubmit}
@@ -488,9 +488,6 @@ const CommentsView = () => {
       )}
       <Box sx={{ display: "flex", justifyContent: "center", flex: 1, mt: 2 }}>
         <Pagination count={Math.ceil(total / viewCount)} page={currentPage} onChange={handlePageClick} />
-      </Box>
-      <Box sx={{ mt: 3 }}>
-        <ScrollUpButton />
       </Box>
     </Box>
   );

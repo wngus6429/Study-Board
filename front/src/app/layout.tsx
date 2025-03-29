@@ -9,6 +9,7 @@ import AuthSession from "./components/common/AuthSessionCom";
 import MessageView from "./components/common/MessageView";
 import RightView from "./components/common/RightView";
 import style from "./layout.module.css";
+import ScrollUpButton from "./components/common/ScrollUpButton";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -57,6 +58,7 @@ export default function RootLayout({
                 <MessageView />
               </div>
             </div>
+            <ScrollUpButton />
           </AuthSession>
         </RQProvider>
       </body>

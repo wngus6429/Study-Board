@@ -20,10 +20,6 @@ interface Comment {
   children: Comment[];
 }
 
-interface CommentsProps {
-  storyId?: number;
-}
-
 const CommentsView = () => {
   // URL 파라미터에서 스토리 ID 가져오기
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
@@ -93,11 +89,13 @@ const CommentsView = () => {
         { storyId, content, parentId, authorId },
         { withCredentials: true }
       );
-      return response.data;
+      return response.status;
     },
-    onSuccess: () => {
-      setContent("");
-      refetch();
+    onSuccess: (status) => {
+      if (status === 200 || status === 201) {
+        setContent("");
+        refetch();
+      }
     },
     onError: () => {
       showMessage("댓글 등록 오류가 발생했습니다.", "error");
@@ -106,23 +104,18 @@ const CommentsView = () => {
 
   const deleteMutation = useMutation({
     mutationFn: async ({ commentId, storyId }: { commentId: number; storyId: string }) => {
-      try {
-        console.log("댓글 논리 삭제", commentId);
-        const response = await axios.put(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${commentId}`,
-          { storyId },
-          {
-            withCredentials: true,
-          }
-        );
-        console.log("response", response);
-        return response;
-      } catch (error) {
-        throw new Error("Failed to post comment");
-      }
+      console.log("댓글 논리 삭제", commentId);
+      const response = await axios.put(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${commentId}`,
+        { storyId },
+        {
+          withCredentials: true,
+        }
+      );
+      return response.status;
     },
-    onSuccess: (response) => {
-      if (response.status === 200) {
+    onSuccess: (status) => {
+      if (status === 200 || status === 201) {
         refetch();
       }
     },
@@ -134,20 +127,18 @@ const CommentsView = () => {
   // 댓글 수정 mutation (PATCH나 PUT을 사용 가능)
   const editMutation = useMutation({
     mutationFn: async ({ commentId, newContent }: { commentId: number; newContent: string }) => {
-      try {
-        // 여기서는 PATCH 메서드를 사용하여 부분 업데이트
-        const response = await axios.patch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${commentId}`,
-          { content: newContent },
-          { withCredentials: true }
-        );
-        return response.data;
-      } catch (error) {
-        throw new Error("Failed to edit comment");
-      }
+      // 여기서는 PATCH 메서드를 사용하여 부분 업데이트
+      const response = await axios.patch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${commentId}`,
+        { content: newContent },
+        { withCredentials: true }
+      );
+      return response.status;
     },
-    onSuccess: () => {
-      refetch();
+    onSuccess: (status) => {
+      if (status === 200 || status === 201) {
+        refetch();
+      }
     },
     onError: () => {
       showMessage("댓글 수정 오류가 발생했습니다.", "error");

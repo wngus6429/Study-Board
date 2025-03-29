@@ -15,10 +15,17 @@
   width: calc(60% - 3px);
   padding: 0 3px;
   overflow-y: auto;
+  /* 필요에 따라 padding-left 값을 늘려서 선과 내용 사이 간격을 조정할 수 있습니다.
+  예: padding-left: 10px; */
+  border-left: 1px solid #ddd; /* 옅은 수직선 추가 */
 }
 
 .right_view {
-  width: 30%;
+  width: 25%;
+}
+
+.nav_display {
+  width: 7%;
 }
 
 @media (max-width: 1400px) {
@@ -32,6 +39,8 @@
 
   .main_content {
     width: 100%;
+    border-left: none; /* 모바일 뷰에서는 선 제거 */
+    border-right: none;
   }
 
   .right_view {

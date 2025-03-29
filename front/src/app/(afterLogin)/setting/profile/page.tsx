@@ -12,6 +12,7 @@ import { USER_TABLE_VIEW_COUNT } from "@/app/const/TABLE_VIEW_COUNT";
 import CustomizedUserTables from "@/app/components/CustomizedUserStoryTables";
 import Pagination from "@/app/components/common/Pagination";
 import CustomizedUserCommentsTables from "@/app/components/CustomizedUserCommentsTables";
+import ProfilePagination from "@/app/components/common/ProfilePagination";
 
 interface ApiStoryResponse {
   StoryResults: any[];
@@ -254,7 +255,7 @@ function UserProfileEdit() {
         flexDirection: "row", // 한 줄에 나란히 배치
         alignItems: "flex-start", // 수직 정렬
         mt: 3,
-        minHeight: "65vh",
+        minHeight: "75vh",
       }}
     >
       <Box>
@@ -275,7 +276,7 @@ function UserProfileEdit() {
         >
           <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-            <Pagination
+            <ProfilePagination
               pageCount={Math.ceil((UserStory?.StoryTotal || 0) / viewCount)}
               onPageChange={handleStoryPageClick}
               currentPage={storyCurrentPage}
@@ -401,7 +402,7 @@ function UserProfileEdit() {
         >
           <CustomizedUserCommentsTables tableData={UserComments?.CommentsResults || []} commentsFlag={false} />
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-            <Pagination
+            <ProfilePagination
               pageCount={Math.ceil((UserComments?.CommentsTotal || 0) / viewCount)}
               onPageChange={handleCommentsPageClick}
               currentPage={commentsCurrentPage}

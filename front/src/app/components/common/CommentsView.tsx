@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import Loading from "./Loading";
 import ConfirmDialog from "./ConfirmDialog";
 import { useMessage } from "@/app/store/messageStore";
+import ScrollUpButton from "./ScrollUpButton";
 
 interface Comment {
   id: number;
@@ -487,6 +488,9 @@ const CommentsView = () => {
       )}
       <Box sx={{ display: "flex", justifyContent: "center", flex: 1, mt: 2 }}>
         <Pagination count={Math.ceil(total / viewCount)} page={currentPage} onChange={handlePageClick} />
+      </Box>
+      <Box sx={{ mt: 3 }}>
+        <ScrollUpButton />
       </Box>
     </Box>
   );

@@ -253,7 +253,6 @@ const MainView = ({
       } else if (sortOrder === "recommend") {
         return b.recommend_Count - a.recommend_Count;
       }
-
       // "최신순"인 경우 서버가 이미 최신순으로 반환한다면 그대로 두기(0)
       // 혹은 클라이언트에서 최신순으로 직접 정렬하려면 아래처럼 처리
       // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();

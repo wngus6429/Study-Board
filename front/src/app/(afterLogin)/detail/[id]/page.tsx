@@ -17,6 +17,7 @@ import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 import Link from "next/link";
 import ImageCard from "@/app/components/ImageCard";
 import { StoryType } from "@/app/types/storyDetailType";
+import ScrollUpButton from "@/app/components/common/ScrollUpButton";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -383,6 +384,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               </Box>
             )}
           </CardContent>
+          <ScrollUpButton />
         </Card>
       )}
       {detail && (

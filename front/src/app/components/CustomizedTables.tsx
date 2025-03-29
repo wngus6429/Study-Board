@@ -99,9 +99,9 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
           <TableHead>
             <TableRow>
               <StyledTableCell sx={{ width: "100px", textAlign: "center" }}>번호</StyledTableCell>
-              <StyledTableCell sx={{ width: "430px" }}>제목</StyledTableCell>
+              <StyledTableCell sx={{ width: "460px" }}>제목</StyledTableCell>
               <StyledTableCell sx={{ width: "160px" }}>작성자</StyledTableCell>
-              <StyledTableCell sx={{ width: "180px" }}>등록일</StyledTableCell>
+              <StyledTableCell sx={{ width: "150px", textAlign: "center" }}>등록일</StyledTableCell>
               <StyledTableCell sx={{ width: "125px", textAlign: "center" }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <VisibilityIcon fontSize="small" sx={{ mr: 0.5 }} />
@@ -147,7 +147,11 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   <StyledTableCell>
                     {row.nickname.length > 6 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
                   </StyledTableCell>
-                  <StyledTableCell>{dayjs(row.created_at).format("YYYY.MM.DD HH:mm")}</StyledTableCell>
+                  <StyledTableCell sx={{ textAlign: "center" }}>
+                    {dayjs(row.created_at).isSame(dayjs(), "day")
+                      ? dayjs(row.created_at).format("HH:mm")
+                      : dayjs(row.created_at).format("YYYY/MM/DD")}
+                  </StyledTableCell>
                   <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
                   <StyledTableCell sx={{ textAlign: "center" }}>공지</StyledTableCell>
                 </NoticeRow>
@@ -182,7 +186,11 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                   <StyledTableCell>
                     {row.nickname.length > 6 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
                   </StyledTableCell>
-                  <StyledTableCell>{dayjs(row.created_at).format("YYYY.MM.DD HH:mm")}</StyledTableCell>
+                  <StyledTableCell sx={{ textAlign: "center" }}>
+                    {dayjs(row.created_at).isSame(dayjs(), "day")
+                      ? dayjs(row.created_at).format("HH:mm")
+                      : dayjs(row.created_at).format("YYYY/MM/DD")}
+                  </StyledTableCell>
                   <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
                   <StyledTableCell sx={{ textAlign: "center" }}>{row.recommend_Count}</StyledTableCell>
                 </StyledTableRow>

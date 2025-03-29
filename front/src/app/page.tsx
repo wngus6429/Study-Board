@@ -68,6 +68,8 @@ export default async function Home({
   const res = await fetch(apiUrl, { next: { revalidate: 5 } });
   const initialData = await res.json();
 
+  const sortOrder = typeof searchParams.sortOrder === "string" ? searchParams.sortOrder : "recent";
+
   console.log("서버 컴포넌트에서의 로그: searchParams =", searchParams);
 
   return (
@@ -78,6 +80,7 @@ export default async function Home({
         initialCategory={category}
         initialCurrentPage={currentPage}
         initialRecommendRankingMode={recommendRankingMode}
+        initialSortOrder={sortOrder}
       />
     </div>
   );

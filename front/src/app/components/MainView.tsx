@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useState, useMemo } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { Box, Button, FormControl, MenuItem, Select, Tab, Tabs } from "@mui/material";
+import { Box, Button, FormControl, MenuItem, Select, SelectChangeEvent, Tab, Tabs } from "@mui/material";
 import Loading from "./common/Loading";
 import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
@@ -52,6 +52,7 @@ interface MainViewProps {
   initialCategory: string;
   initialCurrentPage: number;
   initialRecommendRankingMode: boolean;
+  initialSortOrder: "recent" | "view" | "recommend";
 }
 
 /**
@@ -64,6 +65,7 @@ const MainView = ({
   initialCategory,
   initialCurrentPage,
   initialRecommendRankingMode,
+  initialSortOrder,
 }: MainViewProps): ReactNode => {
   console.log("initialData", initialData);
   // next/navigation의 useRouter를 통해 URL 이동 제어
@@ -199,7 +201,6 @@ const MainView = ({
   const handlePageClick = (selectedItem: { selected: number }) => {
     const newPage = selectedItem.selected + 1;
     setCurrentPage(newPage);
-
     // 기존 쿼리 파라미터들을 유지하면서 페이지 번호만 업데이트
     const params = new URLSearchParams(window.location.search);
     params.set("page", newPage.toString());
@@ -221,17 +222,42 @@ const MainView = ({
   };
 
   // 정렬 옵션 상태 (최신순, 조회수, 추천수)
-  const [sortOrder, setSortOrder] = useState<"최신순" | "조회수" | "추천수">("최신순");
+  const [sortOrder, setSortOrder] = useState<"recent" | "view" | "recommend">(initialSortOrder);
+
   // 테이블 데이터를 정렬 (정렬 옵션에 따라)
+  const handleSortChange = (event: SelectChangeEvent<"recent" | "view" | "recommend">) => {
+    const newSortOrder = event.target.value as "recent" | "view" | "recommend";
+    setSortOrder(newSortOrder);
+    // 현재 URL 쿼리 파라미터 가져오기
+    const params = new URLSearchParams(window.location.search);
+    // sortOrder 파라미터 추가 또는 업데이트
+    params.set("sortOrder", newSortOrder);
+    // URL 업데이트
+    Router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  // sortedTableData를 만드는 useMemo 부분
   const sortedTableData = useMemo(() => {
     if (!tableData) return [];
+
     return [...tableData].sort((a, b) => {
-      if (sortOrder === "조회수") {
-        return b.read_count - a.read_count; // 조회수 내림차순
-      } else if (sortOrder === "추천수") {
-        return b.recommend_Count - a.recommend_Count; // 추천수 내림차순
+      // 1) 공지 여부 비교, 공지는 항상 상위
+      //    a가 공지이고 b는 공지가 아니면 a가 먼저(-1)
+      if (a.isNotice && !b.isNotice) return -1;
+      //    b가 공지이고 a는 공지가 아니면 b가 먼저(1)
+      if (!a.isNotice && b.isNotice) return 1;
+
+      // 2) 둘 다 공지거나 둘 다 공지가 아니면, 정렬 옵션에 따라 비교
+      if (sortOrder === "view") {
+        return b.read_count - a.read_count;
+      } else if (sortOrder === "recommend") {
+        return b.recommend_Count - a.recommend_Count;
       }
-      return 0; // 최신순일 경우 원래 순서 유지
+
+      // "최신순"인 경우 서버가 이미 최신순으로 반환한다면 그대로 두기(0)
+      // 혹은 클라이언트에서 최신순으로 직접 정렬하려면 아래처럼 처리
+      // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return 0;
     });
   }, [tableData, sortOrder]);
 
@@ -304,10 +330,10 @@ const MainView = ({
         {/* 왼쪽 영역: 정렬 옵션과 추천 랭킹 토글 버튼 */}
         <Box sx={{ flex: 1 }}>
           <FormControl size="small">
-            <Select value={sortOrder} onChange={(e) => setSortOrder(e.target.value as "최신순" | "조회수" | "추천수")}>
-              <MenuItem value="최신순">최신순</MenuItem>
-              <MenuItem value="조회수">조회수순</MenuItem>
-              <MenuItem value="추천수">추천수순</MenuItem>
+            <Select value={sortOrder} onChange={(e) => handleSortChange(e)}>
+              <MenuItem value="recent">최신순</MenuItem>
+              <MenuItem value="view">조회순</MenuItem>
+              <MenuItem value="recommend">추천순</MenuItem>
             </Select>
           </FormControl>
           <Button

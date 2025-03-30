@@ -46,11 +46,10 @@ const CommentsView = () => {
   } = useQuery({
     queryKey: ["story", "detail", "comments", storyId],
     queryFn: async () => {
-      console.log("댓글 데이터 요청", storyId);
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/comment/${storyId}`, {
         userId: session?.user?.id || null, // 로그인했으면 userId 전달, 아니면 null
       });
-      console.log("데이터 바당옴", response);
+      console.log("댓글 데이터 받아옴", storyId);
       return response.data;
     },
     enabled: !!storyId && status !== "loading", // storyId가 있으면 항상 활성화

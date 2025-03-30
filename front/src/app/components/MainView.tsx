@@ -13,32 +13,7 @@ import usePageStore from "../store/pageStore";
 import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT";
 import { useRouter } from "next/navigation";
 import SearchBar from "./common/SearchBar";
-// MUI 아이콘 import
-import ForumIcon from "@mui/icons-material/Forum";
-import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
-import InfoIcon from "@mui/icons-material/Info";
-import RateReviewIcon from "@mui/icons-material/RateReview";
-import CameraAltIcon from "@mui/icons-material/CameraAlt";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import AllInclusiveIcon from "@mui/icons-material/AllInclusive";
-import FeedbackIcon from "@mui/icons-material/Feedback";
-
-// 탭 선택 옵션 (게시글 작성 시 선택 가능한 옵션들)
-export const WRITE_SELECT_OPTIONS = [
-  { name: "잡담", value: "chat", icon: <ForumIcon /> },
-  { name: "질문", value: "question", icon: <QuestionAnswerIcon /> },
-  { name: "정보", value: "info", icon: <InfoIcon /> },
-  { name: "리뷰", value: "review", icon: <RateReviewIcon /> },
-  { name: "스샷", value: "screenshot", icon: <CameraAltIcon /> },
-  { name: "기타", value: "etc", icon: <MoreHorizIcon /> },
-];
-
-// 전체 탭 옵션: '전체'와 위의 옵션들, '건의' 옵션 포함
-export const TAB_SELECT_OPTIONS = [
-  { name: "전체", value: "all", icon: <AllInclusiveIcon /> },
-  ...WRITE_SELECT_OPTIONS,
-  { name: "건의", value: "suggestion", icon: <FeedbackIcon /> },
-];
+import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 
 // API 응답 타입
 interface ApiResponse {
@@ -55,11 +30,7 @@ interface MainViewProps {
   initialSortOrder: "recent" | "view" | "recommend";
 }
 
-/**
- * MainView 컴포넌트 (클라이언트 컴포넌트)
- * - 서버에서 전달받은 초기 데이터(initialData)와 초기 상태(카테고리, 페이지, 추천 랭킹 모드)를 기반으로 렌더링
- * - react-query를 사용하여 데이터 갱신 및 클라이언트 상호작용(탭 전환, 추천 랭킹, 검색 등)을 처리
- */
+// 서버에서 전달받은 초기 데이터(initialData)와 초기 상태(카테고리, 페이지, 추천 랭킹 모드)를 기반으로 렌더링
 const MainView = ({
   initialData,
   initialCategory,
@@ -76,7 +47,13 @@ const MainView = ({
   const { currentPage, setCurrentPage } = usePageStore();
 
   // 서버에서 전달받은 초기 카테고리 값을 상태로 저장
-  const [value, setValue] = useState(initialCategory);
+  const [categoryValue, setCategoryValue] = useState(initialCategory);
+
+  useEffect(() => {
+    if (categoryValue) {
+      console.log("카테", categoryValue);
+    }
+  }, [categoryValue]);
   // 초기 페이지 번호를 store에 설정 (컴포넌트 마운트 시)
   useEffect(() => {
     setCurrentPage(initialCurrentPage);
@@ -95,8 +72,8 @@ const MainView = ({
   const { data, error, isLoading } = useQuery<ApiResponse>({
     // queryKey는 검색 옵션, 카테고리, 페이지, 추천 랭킹 모드 등에 따라 달라집니다.
     queryKey: searchParamsState
-      ? ["stories", value, currentPage, searchParamsState, recommendRankingMode]
-      : ["stories", value, currentPage, recommendRankingMode],
+      ? ["stories", categoryValue, currentPage, searchParamsState, recommendRankingMode]
+      : ["stories", categoryValue, currentPage, recommendRankingMode],
     // API 호출 함수 (axios를 사용하여 데이터 fetch)
     queryFn: async () => {
       const offset = (currentPage - 1) * viewCount;
@@ -104,7 +81,7 @@ const MainView = ({
       const params: any = {
         offset,
         limit: viewCount,
-        category: value !== "all" ? value : undefined,
+        category: categoryValue !== "all" ? categoryValue : undefined,
       };
       // 추천 랭킹 모드가 활성화되면 최소 추천수 설정
       if (recommendRankingMode) {
@@ -146,7 +123,7 @@ const MainView = ({
     // 탭 전환 시 검색 상태 초기화
     setSearchParamsState(null);
     // 선택한 탭 값 업데이트
-    setValue(newValue);
+    setCategoryValue(newValue);
     // 페이지 번호 초기화
     setCurrentPage(1);
     // 추천 랭킹 모드 초기화 (탭 변경 시 기본값으로)
@@ -174,7 +151,7 @@ const MainView = ({
 
     // 5. 현재 선택된 카테고리 값을 "category" 파라미터에 설정합니다.
     //    이 값은 기존에 선택된 탭(카테고리)을 나타냅니다.
-    params.set("category", value);
+    params.set("category", categoryValue);
 
     // 6. 만약 검색 조건(searchParamsState)이 있다면, 해당 검색 조건을 URL 파라미터에 추가합니다.
     //    여기서는 검색 옵션의 종류(type)와 검색어(query)를 각각 "searchType"과 "searchQuery"로 설정합니다.
@@ -190,11 +167,6 @@ const MainView = ({
     // 8. 구성한 URL 쿼리 파라미터를 사용해 URL을 업데이트합니다.
     //    Router.push를 사용하여 URL을 변경하며, { scroll: false } 옵션은 페이지 이동 시 스크롤 위치를 유지하도록 합니다.
     Router.push(`?${params.toString()}`, { scroll: false });
-  };
-
-  // 글쓰기 페이지로 이동하는 함수
-  const moveWrite = () => {
-    Router.push("/write");
   };
 
   // 페이지네이션 클릭 시 호출되는 함수 (페이지 번호 업데이트)
@@ -213,7 +185,7 @@ const MainView = ({
     setSearchParamsState({ type: category, query });
     setCurrentPage(1);
     const params = new URLSearchParams();
-    params.set("category", value);
+    params.set("category", categoryValue);
     params.set("searchType", category);
     params.set("searchQuery", query);
     // 검색 시 추천 랭킹 모드도 반영
@@ -276,7 +248,7 @@ const MainView = ({
         }}
       >
         <Tabs
-          value={value}
+          value={categoryValue}
           onChange={handleChange}
           textColor="secondary"
           indicatorColor="secondary"
@@ -364,10 +336,15 @@ const MainView = ({
         </Box>
         {/* 오른쪽 영역: 글쓰기 버튼 (로그인 상태인 경우) */}
         <Box sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
-          {user?.user && (
-            <Button variant="outlined" onClick={moveWrite} color="success">
+          {user?.user && categoryValue !== "suggestion" ? (
+            <Button variant="outlined" onClick={() => Router.push("/write")} color="success">
               <CreateIcon />
               글쓰기
+            </Button>
+          ) : (
+            <Button variant="outlined" onClick={() => Router.push("/suggestion")} color="success">
+              <CreateIcon />
+              건의하기
             </Button>
           )}
         </Box>

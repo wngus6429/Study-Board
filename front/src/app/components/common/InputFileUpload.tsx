@@ -63,7 +63,6 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
         startIcon={<CloudUploadIcon />}
         sx={{
           width: "100%",
-          // mb: 2,
           fontWeight: "bold",
         }}
       >
@@ -77,6 +76,7 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
               display: "flex",
               flexWrap: "wrap",
               gap: 2,
+              mt: 2,
               justifyContent: "center",
             }}
           >

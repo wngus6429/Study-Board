@@ -70,6 +70,8 @@ DB - MySQL,
 42. 댓글 몇개 인지 테이블 데이터에 (5) 로 표시하기 (완료)
 43. URL에 정렬 포함하기 (완료)
 44. 위로 스크롤버튼 (완료)
+45. 건의하기 탭에서 글쓰기가 아니라 건의하기 버튼으로 변경 (완료)
+46. 테이블 형태 변경 기능 만드는중
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator

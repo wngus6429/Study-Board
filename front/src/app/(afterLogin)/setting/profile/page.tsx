@@ -310,9 +310,10 @@ function UserProfileEdit() {
               borderColor: "primary.main",
             }}
           />
-          <Box display="flex" gap={1} sx={{ mb: 2 }}>
+          <Box display="flex" gap={1} sx={{ mb: 2, textAlign: "center" }}>
             <Button variant="outlined" component="label" color="primary" sx={{ flexGrow: 1 }}>
-              사진 업로드
+              사진 <br />
+              업로드
               <input type="file" hidden onChange={handleImageChange} />
             </Button>
             <Button
@@ -321,7 +322,8 @@ function UserProfileEdit() {
               onClick={() => deleteProfileImageMutation.mutate()}
               sx={{ flexGrow: 1 }}
             >
-              사진 삭제
+              사진 <br />
+              삭제
             </Button>
           </Box>
           <TextField

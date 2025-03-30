@@ -3,7 +3,7 @@ import { ReactNode, useEffect, useState, useMemo } from "react";
 import CustomizedTables from "./CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
-import { Box, Button, FormControl, MenuItem, Select, SelectChangeEvent, Tab, Tabs } from "@mui/material";
+import { Box, Button, FormControl, IconButton, MenuItem, Select, SelectChangeEvent, Tab, Tabs } from "@mui/material";
 import Loading from "./common/Loading";
 import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
@@ -14,6 +14,8 @@ import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT
 import { useRouter } from "next/navigation";
 import SearchBar from "./common/SearchBar";
 import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
+import ViewListIcon from "@mui/icons-material/ViewList";
+import ViewModuleIcon from "@mui/icons-material/ViewModule";
 
 // API 응답 타입
 interface ApiResponse {
@@ -232,6 +234,9 @@ const MainView = ({
     });
   }, [tableData, sortOrder]);
 
+  // 뷰 모드 토글: "table" (기존 테이블)와 "card" (이미지+제목 카드) 중 선택
+  const [viewMode, setViewMode] = useState<"table" | "card">("table");
+
   // 에러 발생 시 에러 메시지 표시
   if (error) return <div>Error: {(error as Error).message}</div>;
 
@@ -240,6 +245,8 @@ const MainView = ({
       {/* 탭 UI 영역 */}
       <Box
         sx={{
+          display: "flex",
+          alignItems: "center",
           width: "100%",
           borderRadius: 2,
           boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
@@ -279,11 +286,28 @@ const MainView = ({
             },
           }}
         >
-          {/* 탭 옵션을 순회하며 각 Tab 컴포넌트 생성 */}
           {TAB_SELECT_OPTIONS.map((option) => (
             <Tab key={option.value} icon={option.icon} label={option.name} value={option.value} />
           ))}
         </Tabs>
+        {/* 왼쪽: 테이블 보기 아이콘 */}
+        <IconButton
+          onClick={() => setViewMode("table")}
+          color={viewMode === "table" ? "primary" : "default"}
+          sx={{ ml: 2 }}
+          aria-label="table view"
+        >
+          <ViewListIcon sx={{ fontSize: 32 }} />
+        </IconButton>
+        {/* 오른쪽: 카드 보기 아이콘 */}
+        <IconButton
+          onClick={() => setViewMode("card")}
+          color={viewMode === "card" ? "primary" : "default"}
+          sx={{ ml: 1, mr: 2 }}
+          aria-label="card view"
+        >
+          <ViewModuleIcon sx={{ fontSize: 32 }} />
+        </IconButton>
       </Box>
       {/* 데이터 로딩 시 Loading 컴포넌트, 로딩이 완료되면 CustomizedTables에 정렬된 데이터 전달 */}
       {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={sortedTableData} />}

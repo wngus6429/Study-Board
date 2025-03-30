@@ -72,6 +72,7 @@ DB - MySQL,
 44. 위로 스크롤버튼 (완료)
 45. 건의하기 탭에서 글쓰기가 아니라 건의하기 버튼으로 변경 (완료)
 46. 테이블 형태 변경 기능 만드는중
+47. 리프레시토큰 해야함
 
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator

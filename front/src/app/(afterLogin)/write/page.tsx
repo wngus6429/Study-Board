@@ -244,7 +244,7 @@ export default function StoryWrite() {
             }}
             startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
           >
-            {loading ? "스토리 등록 중..." : "스토리 발행하기"}
+            {loading ? "스토리 등록 중..." : "작성하기"}
           </Button>
         </Box>
       </Box>

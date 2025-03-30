@@ -1,5 +1,5 @@
 "use client";
-import { TextField, Box, Typography, Paper, Button, CircularProgress } from "@mui/material";
+import { TextField, Box, Typography, Paper, Button, CircularProgress, Divider } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -62,19 +62,20 @@ export default function FeedbackWrite() {
 
   return (
     <Paper
-      elevation={3}
+      elevation={0}
       sx={{
-        p: { xs: 3, md: 5 },
-        width: { xs: "95%", sm: "80%", md: "60%" },
-        maxWidth: "800px",
+        p: { xs: 3, sm: 4, md: 5 },
+        width: { xs: "95%", sm: "80%", md: "65%", lg: "55%" },
+        maxWidth: "900px",
         margin: "auto",
-        mt: 6,
-        mb: 6,
+        mt: { xs: 3, sm: 4, md: 5 },
+        mb: 5,
         borderRadius: 2,
         boxShadow: "0 10px 30px rgba(0, 0, 0, 0.08)",
         background: "#ffffff",
-        overflow: "hidden",
         position: "relative",
+        overflow: "hidden",
+        border: "1px solid rgba(0, 0, 0, 0.2)",
         "&::before": {
           content: '""',
           position: "absolute",
@@ -89,24 +90,28 @@ export default function FeedbackWrite() {
       <Typography
         variant="h4"
         sx={{
-          fontWeight: 600,
+          fontWeight: 700,
           textAlign: "center",
-          mb: 4,
-          color: "#333",
-          fontSize: { xs: "1.8rem", md: "2.2rem" },
+          mb: 2,
+          mt: 1,
           letterSpacing: "-0.5px",
+          background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
         }}
       >
-        피드백 작성
+        건의하기
       </Typography>
 
-      <Box sx={{ mb: 4 }}>
+      <Box>
         <CustomSelect
           selectArray={FEEDBACK_SELECT_OPTIONS}
           defaultValue={DEFAULT_FEEDBACK_OPTION}
           setSelectedCategory={setSelectedCategory}
         />
       </Box>
+
+      <Divider sx={{ mb: 2, opacity: 0.8 }} />
 
       <Box
         component="form"
@@ -150,7 +155,7 @@ export default function FeedbackWrite() {
           label="내용"
           placeholder="3글자 이상 입력해주세요"
           multiline
-          rows={8}
+          rows={6}
           variant="outlined"
           fullWidth
           sx={{
@@ -173,21 +178,19 @@ export default function FeedbackWrite() {
           onChange={(e) => setContent(e.target.value)}
         />
 
-        <Box sx={{ my: 1 }}>
-          <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
-        </Box>
+        <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
 
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+        <Box sx={{ display: "flex", justifyContent: "center" }}>
           <Button
             variant="contained"
             onClick={(e) => mutation.mutate(e)}
             disabled={loading || title.length < 3 || content.length < 3}
             sx={{
-              width: { xs: "100%", sm: "60%", md: "50%" },
-              py: 1.5,
-              fontSize: "1rem",
+              width: { xs: "100%", sm: "70%", md: "50%" },
+              fontSize: { xs: "0.95rem", sm: "1rem" },
               textTransform: "none",
-              borderRadius: 2,
+              borderRadius: "12px",
+              fontWeight: 600,
               background: "linear-gradient(90deg, #3a8eff, #6f42c1)",
               boxShadow: "0 4px 12px rgba(58, 142, 255, 0.3)",
               transition: "all 0.3s",

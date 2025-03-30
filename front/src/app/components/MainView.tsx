@@ -360,17 +360,18 @@ const MainView = ({
         </Box>
         {/* 오른쪽 영역: 글쓰기 버튼 (로그인 상태인 경우) */}
         <Box sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
-          {user?.user && categoryValue !== "suggestion" ? (
-            <Button variant="outlined" onClick={() => Router.push("/write")} color="success">
-              <CreateIcon />
-              글쓰기
-            </Button>
-          ) : (
-            <Button variant="outlined" onClick={() => Router.push("/suggestion")} color="success">
-              <CreateIcon />
-              건의하기
-            </Button>
-          )}
+          {user?.user &&
+            (categoryValue !== "suggestion" ? (
+              <Button variant="outlined" onClick={() => Router.push("/write")} color="success">
+                <CreateIcon />
+                글쓰기
+              </Button>
+            ) : (
+              <Button variant="outlined" onClick={() => Router.push("/suggestion")} color="success">
+                <CreateIcon />
+                건의하기
+              </Button>
+            ))}
         </Box>
       </Box>
       {/* 하단 검색바 영역 */}

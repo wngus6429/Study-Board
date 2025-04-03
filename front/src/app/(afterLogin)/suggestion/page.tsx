@@ -180,29 +180,76 @@ export default function FeedbackWrite() {
 
         <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
 
-        <Box sx={{ display: "flex", justifyContent: "center" }}>
+        <Box
+          sx={{
+            display: "flex",
+            width: "100%",
+            alignItems: "center", // 세로 방향 가운데 정렬
+          }}
+        >
           <Button
+            onClick={() => router.back()}
             variant="contained"
-            onClick={(e) => mutation.mutate(e)}
-            disabled={loading || title.length < 3 || content.length < 3}
             sx={{
-              width: { xs: "100%", sm: "70%", md: "50%" },
+              // 뒤로가기 버튼 (파란색 계열)
               fontSize: { xs: "0.95rem", sm: "1rem" },
               textTransform: "none",
-              borderRadius: "12px",
               fontWeight: 600,
-              background: "linear-gradient(90deg, #3a8eff, #6f42c1)",
-              boxShadow: "0 4px 12px rgba(58, 142, 255, 0.3)",
-              transition: "all 0.3s",
+              letterSpacing: "0.5px",
+              background: "linear-gradient(135deg, #2196f3, #21cbf3)",
+              boxShadow: "0 6px 15px rgba(33, 150, 243, 0.3)",
+              transition: "all 0.3s ease",
               "&:hover": {
-                boxShadow: "0 6px 16px rgba(58, 142, 255, 0.4)",
-                background: "linear-gradient(90deg, #3a7eff, #6732c1)",
-                transform: "translateY(-1px)",
+                boxShadow: "0 8px 20px rgba(33, 150, 243, 0.4)",
+                transform: "translateY(-2px)",
+                background: "linear-gradient(135deg, #1976d2, #1e88e5)",
+              },
+              "&:active": {
+                transform: "translateY(0)",
+                boxShadow: "0 4px 10px rgba(33, 150, 243, 0.3)",
               },
               "&:disabled": {
                 background: "#e0e0e0",
                 color: "#a0a0a0",
+                boxShadow: "none",
               },
+              borderRadius: "12px 0 0 12px",
+              width: { xs: "50%", sm: "30%", md: "25%" },
+              height: "40px", // 두 버튼 높이를 동일하게
+            }}
+          >
+            뒤로가기
+          </Button>
+
+          <Button
+            variant="contained"
+            onClick={mutation.mutate}
+            disabled={loading || title.length < 3 || content.length < 3}
+            sx={{
+              fontSize: { xs: "0.95rem", sm: "1rem" },
+              textTransform: "none",
+              fontWeight: 600,
+              letterSpacing: "0.5px",
+              background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
+              boxShadow: "0 6px 15px rgba(233, 64, 87, 0.3)",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                boxShadow: "0 8px 20px rgba(233, 64, 87, 0.4)",
+                transform: "translateY(-2px)",
+                background: "linear-gradient(135deg, #7a1d77, #d93a4f, #e2671e)",
+              },
+              "&:active": {
+                transform: "translateY(0)",
+                boxShadow: "0 4px 10px rgba(233, 64, 87, 0.3)",
+              },
+              "&:disabled": {
+                background: "#e0e0e0",
+                color: "#a0a0a0",
+                boxShadow: "none",
+              },
+              borderRadius: "0 12px 12px 0",
+              width: { xs: "50%", sm: "70%", md: "75%" },
+              height: "40px", // 두 버튼 높이를 동일하게
             }}
             startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
           >

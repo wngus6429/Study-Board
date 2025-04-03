@@ -68,7 +68,18 @@ export default async function Home({
   const res = await fetch(apiUrl, { next: { revalidate: 5 } });
   const initialData = await res.json();
 
-  const sortOrder = typeof searchParams.sortOrder === "string" ? searchParams.sortOrder : "recent";
+  function isSortOrder(value: any): value is "recent" | "view" | "recommend" {
+    return value === "recent" || value === "view" || value === "recommend";
+  }
+
+  const sortOrder = isSortOrder(searchParams.sortOrder) ? searchParams.sortOrder : "recent";
+
+  // const validSortOrders = ["recent", "view", "recommend"] as const;
+  // type SortOrder = (typeof validSortOrders)[number];
+
+  // const sortOrder: SortOrder = validSortOrders.includes(searchParams.sortOrder)
+  //   ? (searchParams.sortOrder as SortOrder)
+  //   : "recent";
 
   console.log("서버 컴포넌트에서의 로그: searchParams =", searchParams);
 

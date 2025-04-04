@@ -4,6 +4,7 @@
 /build
 /upload
 /userUpload
+/suggestionUpload
 
 # Logs
 logs

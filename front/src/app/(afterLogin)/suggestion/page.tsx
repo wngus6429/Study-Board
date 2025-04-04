@@ -34,7 +34,7 @@ export default function FeedbackWrite() {
             formData.append("images", item.file);
           }
         });
-        return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/feedback/create`, formData, {
+        return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/suggestion/create`, formData, {
           withCredentials: true,
           headers: { "Content-Type": "multipart/form-data" },
         });

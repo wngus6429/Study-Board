@@ -351,7 +351,7 @@ export class StoryService {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세 페이지
-  async findStoryOne(id: number, userId?: string): Promise<any> {
+  async findStoryOne(id: number): Promise<any> {
     const queryRunner =
       this.storyRepository.manager.connection.createQueryRunner();
     await queryRunner.startTransaction();

@@ -13,6 +13,7 @@ import { UserImage } from './UserImage.entity';
 import { Story } from './Story.entity';
 import { Comments } from './Comments.entity';
 import { Likes } from './Likes.entity';
+import { Suggestion } from './Suggestion.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -49,4 +50,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Likes, (like) => like.User)
   Likes: Likes[]; // 유저가 남긴 추천/비추천
+
+  @OneToMany(() => Suggestion, (suggestion) => suggestion.User)
+  Suggestion: Suggestion[]; // 유저가 남긴 추천/비추천
 }

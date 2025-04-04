@@ -16,6 +16,7 @@ import SearchBar from "./common/SearchBar";
 import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
+import CustomizedSuggestionTable from "./CustomizedSuggestionTable";
 
 // API 응답 타입
 interface ApiResponse {
@@ -44,18 +45,13 @@ const MainView = ({
   // next/navigation의 useRouter를 통해 URL 이동 제어
   const Router = useRouter();
   // next-auth의 useSession을 사용해 사용자 로그인 정보를 가져옴
-  const { data: user } = useSession();
+  const { data: user, status } = useSession();
   // 페이지 번호 관리를 위한 store (예: zustand)에서 currentPage와 setCurrentPage 가져오기
   const { currentPage, setCurrentPage } = usePageStore();
 
   // 서버에서 전달받은 초기 카테고리 값을 상태로 저장
   const [categoryValue, setCategoryValue] = useState(initialCategory);
 
-  useEffect(() => {
-    if (categoryValue) {
-      console.log("카테", categoryValue);
-    }
-  }, [categoryValue]);
   // 초기 페이지 번호를 store에 설정 (컴포넌트 마운트 시)
   useEffect(() => {
     setCurrentPage(initialCurrentPage);
@@ -110,6 +106,35 @@ const MainView = ({
 
   // 데이터 변경 시 이전 데이터를 유지하여 로딩 중에도 기존 데이터가 보이도록 함
   const [previousData, setPreviousData] = useState<ApiResponse | null>(initialData);
+  const [suggestionData, setSuggestionData] = useState<ApiResponse | null>(initialData);
+
+  useEffect(() => {
+    if (categoryValue === "suggestion" && status === "authenticated" && user?.user?.id) {
+      const fetchSuggestionData = async () => {
+        const offset = (currentPage - 1) * viewCount;
+        const params = {
+          offset,
+          limit: viewCount,
+          userId: user.user.id, // 건의사항은 반드시 유저 아이디가 필요합니다.
+        };
+
+        try {
+          const response = await axios.get<ApiResponse>(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/suggestion/pageTableData`,
+            { params, withCredentials: true }
+          );
+          // 받아온 데이터를 필요에 따라 상태에 저장하거나 추가 처리를 합니다.
+          console.log("Fetched suggestion data:", response.data);
+          setSuggestionData(response.data);
+        } catch (error) {
+          console.error("Error fetching suggestion data:", error);
+        }
+      };
+
+      fetchSuggestionData();
+    }
+  }, [categoryValue, currentPage, viewCount, user?.user?.id]);
+
   useEffect(() => {
     if (data) {
       setPreviousData(data);
@@ -309,8 +334,23 @@ const MainView = ({
           <ViewModuleIcon sx={{ fontSize: 32 }} />
         </IconButton>
       </Box>
-      {/* 데이터 로딩 시 Loading 컴포넌트, 로딩이 완료되면 CustomizedTables에 정렬된 데이터 전달 */}
-      {isLoading && !previousData ? <Loading /> : <CustomizedTables tableData={sortedTableData} />}
+      {/* 데이터 로딩 시 Loading 컴포넌트, 로딩이 완료되면 CustomizedTables에 정렬된 데이터 전달
+      {isLoading && categoryValue !== "suggestion" && !previousData ? (
+        <Loading />
+      ) : (
+        <CustomizedTables tableData={sortedTableData} />
+      )}
+      {categoryValue === "suggestion" && <CustomizedSuggestionTable tableData={suggestionData?.results || []} />} */}
+
+      {/* 카테고리가 "suggestion"인 경우 */}
+      {categoryValue === "suggestion" ? (
+        suggestionData?.results && <CustomizedSuggestionTable tableData={suggestionData.results} />
+      ) : /* 카테고리가 "suggestion"이 아닌 경우 */
+      isLoading && !previousData ? (
+        <Loading />
+      ) : (
+        <CustomizedTables tableData={sortedTableData} />
+      )}
 
       {/* 하단 영역: 정렬, 페이지네이션, 글쓰기 버튼 */}
       <Box

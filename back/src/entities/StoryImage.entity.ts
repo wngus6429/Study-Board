@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Story } from './Story.entity';
-import { User } from './User.entity';
+// import { User } from './User.entity';
 
 @Entity()
 export class StoryImage {
@@ -43,8 +43,8 @@ export class StoryImage {
   })
   Story: Story;
 
-  @ApiProperty({
-    description: '작성자',
-  })
-  User?: User;
+  // @ApiProperty({
+  //   description: '작성자',
+  // })
+  // User?: User;
 }

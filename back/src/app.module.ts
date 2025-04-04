@@ -7,6 +7,7 @@ import { diskStorage } from 'multer';
 import path, { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { Today } from './common/helper/today';
+import { SuggestionModule } from './suggestion/suggestion.module';
 
 //어플리케이션의 루트 모듈이 있는 파일
 @Module({
@@ -49,8 +50,13 @@ import { Today } from './common/helper/today';
       serveRoot: '/userUpload',
       rootPath: join(__dirname, '..', 'userUpload'),
     }),
+    ServeStaticModule.forRoot({
+      serveRoot: '/suggestionUpload',
+      rootPath: join(__dirname, '..', 'suggestionUpload'),
+    }),
     StoryModule,
     AuthModule,
+    SuggestionModule,
   ],
 })
 export class AppModule {}

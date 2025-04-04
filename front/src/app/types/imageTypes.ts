@@ -9,3 +9,10 @@ export interface StoryImageType {
   link: string;
   created_at: string;
 }
+
+export interface SuggestionImageType {
+  id: number;
+  image_name: string;
+  link: string;
+  created_at: string;
+}

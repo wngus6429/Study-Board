@@ -13,9 +13,9 @@ const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = Re
   const imageSrc = useMemo(() => {
     const lowerLink = img.link.toLowerCase();
     if (lowerLink.endsWith(".gif")) {
-      return img.link;
+      return `${process.env.NEXT_PUBLIC_BASE_URL}${img.link}`;
     }
-    return `${img.link}?timestamp=${timestampRef.current}`;
+    return `${process.env.NEXT_PUBLIC_BASE_URL}${img.link}?timestamp=${timestampRef.current}`;
   }, [img.link]);
 
   const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {

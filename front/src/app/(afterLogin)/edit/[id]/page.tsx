@@ -34,7 +34,8 @@ export default function EditPage({ params }: { params: { id: string } }) {
     queryFn: async () => {
       try {
         const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/edit/${params.id}?userId=${session?.user.id}`
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/edit/${params.id}?userId=${session?.user.id}`,
+          { withCredentials: true }
         );
         console.log("리스폰", response);
         return response.data;
@@ -187,7 +188,6 @@ export default function EditPage({ params }: { params: { id: string } }) {
         defaultValue={DEFAULT_SELECT_OPTION}
         setSelectedCategory={setSelectedCategory}
         value={selectedCategory}
-        sx={{ mb: 3 }}
       />
 
       <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />

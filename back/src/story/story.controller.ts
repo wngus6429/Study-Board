@@ -73,11 +73,8 @@ export class StoryController {
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세페이지
   @Get('/detail/:id')
-  async getStoryDetail(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() userData?: any,
-  ): Promise<any> {
-    const data = await this.storyService.findStoryOne(id, userData?.userId);
+  async getStoryDetail(@Param('id', ParseIntPipe) id: number): Promise<any> {
+    const data = await this.storyService.findStoryOne(id);
     // User의 필요한 필드만 남김
     console.log('상세페이지 데이터:', data);
     const { User, ...rest } = data;
@@ -110,6 +107,7 @@ export class StoryController {
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세 페이지 수정시 데이터 받아옴
   @Get('/detail/edit/:id')
+  @UseGuards(AuthGuard())
   async getStoryEditStory(
     @Param('id', ParseIntPipe) id: number,
     @Query('userId') userId: string,

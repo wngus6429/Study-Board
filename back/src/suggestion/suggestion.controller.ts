@@ -1,0 +1,109 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  InternalServerErrorException,
+  NotFoundException,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+  UploadedFiles,
+  UseGuards,
+  UseInterceptors,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+// import { CreateStoryDto } from './dto/create-story.dto';
+import { SuggestionService } from './suggestion.service';
+import { AuthGuard } from '@nestjs/passport';
+import { GetUser } from 'src/common/decorators/get-user.decorator';
+import { User } from 'src/entities/User.entity';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { Suggestion } from 'src/entities/Suggestion.entity';
+
+@Controller('api/suggestion')
+export class SuggestionController {
+  logger: any;
+  constructor(private readonly suggestionService: SuggestionService) {}
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 게시글 목록 조회 (카테고리별, 혹은 특정 유저의 건의사항)
+  @Get('/pageTableData')
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  async getPageSuggestion(
+    @Query('offset') offset = 0,
+    @Query('limit') limit = 10,
+    @Query('userId') userId: string,
+  ): Promise<{ results: Partial<Suggestion>[]; total: number }> {
+    console.log('ㅐㄹㄹㄹ', offset, limit, userId);
+    return await this.suggestionService.findSuggestion(offset, limit, userId);
+  }
+
+  // 건의사항 작성
+  @Post('/create')
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  @UseInterceptors(FilesInterceptor('images'))
+  async createSuggestion(
+    @Body() createSuggestionDto: any,
+    @GetUser() user: User,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<Suggestion> {
+    console.log('시발련아');
+    return this.suggestionService.create(createSuggestionDto, user, files);
+  }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 건의사항 상세 조회
+  @Get('/detail/:id')
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  async getSuggestionDetail(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+  ): Promise<any> {
+    return await this.suggestionService.findSuggestionOne(id);
+    // console.log('화긴', data);
+    // // 작성자(User) 정보에서 필요한 필드만 추출
+    // const { User: suggestionUser, ...rest } = data;
+    // const writeUserInfo = {
+    //   nickname: suggestionUser.nickname,
+    //   id: suggestionUser.id,
+    //   avatar: suggestionUser.userImage?.link || null,
+    // };
+    // console.log('으엌', writeUserInfo);
+    // return { ...rest, User: writeUserInfo };
+  }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 건의사항 수정
+  @Post('/update/:id')
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  @UseInterceptors(FilesInterceptor('images'))
+  async updateSuggestion(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateSuggestionDto: any,
+    @GetUser() user: User,
+    @UploadedFiles() files: Express.Multer.File[],
+  ): Promise<Suggestion> {
+    return this.suggestionService.updateSuggestion(
+      id,
+      updateSuggestionDto,
+      user,
+      files,
+    );
+  }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 글 삭제
+  @Delete('/:id')
+  @UseGuards(AuthGuard())
+  async deleteSuggestion(
+    @Param('id', ParseIntPipe) id: number,
+    @GetUser() user: User,
+  ): Promise<void> {
+    return this.suggestionService.deleteSuggestion(id, user);
+  }
+}

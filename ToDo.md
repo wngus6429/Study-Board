@@ -70,6 +70,8 @@
 70. 비밀번호 변경할때, 원래 비번이 맞아야, 새로운 비밀번호 입력 가능하게
 71. 건의사항 CRUD 하는중, 변경 페이지 만들어야함.
 
+기존꺼 공부 좀 해라 AI 쓴것도 보고
+
 class-validator로 엔티티 설정하기
 https://github.com/typestack/class-validator
 아주 좋은게 많다. 꼭 보기 UUID 부터해서 싹다 있다.

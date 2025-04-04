@@ -80,7 +80,7 @@ export default function CustomizedSuggestionTable({ tableData }: CustomizedSugge
           {tableData.length === 0 ? (
             <StyledTableRow>
               <StyledTableCell colSpan={5} align="center">
-                건의 사항 한게 없습니다.
+                😎건의 사항 없음
               </StyledTableCell>
             </StyledTableRow>
           ) : (

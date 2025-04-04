@@ -311,7 +311,11 @@ const MainView = ({
             },
           }}
         >
-          {TAB_SELECT_OPTIONS.map((option) => (
+          {TAB_SELECT_OPTIONS.filter((option) => {
+            // "건의" 탭은 로그인 상태(status가 "authenticated")일 때만 남깁니다.
+            if (option.value === "suggestion" && status !== "authenticated") return false;
+            return true;
+          }).map((option) => (
             <Tab key={option.value} icon={option.icon} label={option.name} value={option.value} />
           ))}
         </Tabs>

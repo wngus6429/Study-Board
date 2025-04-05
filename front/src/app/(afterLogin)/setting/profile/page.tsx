@@ -377,7 +377,7 @@ function UserProfileEdit() {
             sx={{ py: 1.5, fontWeight: "bold" }}
             onClick={() => setVerifyPassword(!verifyPassword)}
           >
-            비밀번호 변경
+            {verifyPassword ? "비밀번호 변경 취소" : "비밀번호 변경"}
           </Button>
           {verifyPassword && (
             <Box sx={{ mt: 2, width: "100%", bgcolor: "grey.100", p: 2, borderRadius: 1, boxShadow: 1 }}>

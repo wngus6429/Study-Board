@@ -24,7 +24,7 @@ export class SuggestionService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 목록 조회 (카테고리 필터 적용)
   async findSuggestion(
     offset = 0,
@@ -59,7 +59,7 @@ export class SuggestionService {
 
     return { results, total };
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 수정용 데이터 조회
   async findEditSuggestionOne(id: number, userId?: string): Promise<any> {
     const suggestion = await this.suggestionRepository.findOne({
@@ -75,7 +75,7 @@ export class SuggestionService {
     const { User, ...editData } = suggestion;
     return editData;
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 상세 조회
   async findSuggestionOne(id: number): Promise<any> {
     const suggestion = await this.suggestionRepository.findOne({
@@ -96,7 +96,7 @@ export class SuggestionService {
     console.log('꺼컹ㅋ', { ...rest, SuggestionImage, User: writeUserInfo });
     return { ...rest, SuggestionImage, User: writeUserInfo };
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 작성
   async create(
     createSuggestionDto: any,
@@ -130,7 +130,7 @@ export class SuggestionService {
     }
     return savedSuggestion;
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 수정
   async updateSuggestion(
     suggestionId: number,
@@ -184,7 +184,7 @@ export class SuggestionService {
       const newImageEntities = newImages.map((file) => {
         const image = new SuggestionImage();
         image.image_name = file.filename;
-        image.link = `/upload/${file.filename}`;
+        image.link = `/suggestionUpload/${file.filename}`;
         image.Suggestion = suggestion;
         return image;
       });
@@ -202,7 +202,7 @@ export class SuggestionService {
     suggestion.category = updateSuggestionDto.category;
     return await this.suggestionRepository.save(suggestion);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 삭제
   async deleteSuggestion(suggestionId: number, userData: User): Promise<void> {
     const suggestion = await this.suggestionRepository.findOne({
@@ -219,7 +219,11 @@ export class SuggestionService {
     // 첨부된 이미지 파일 삭제
     if (suggestion.SuggestionImage && suggestion.SuggestionImage.length > 0) {
       for (const image of suggestion.SuggestionImage) {
-        const filePath = path.join(__dirname, '../../upload', image.image_name);
+        const filePath = path.join(
+          __dirname,
+          '../../suggestionUpload',
+          image.image_name,
+        );
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath);
         }

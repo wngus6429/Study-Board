@@ -87,7 +87,7 @@ export default function CustomizedSuggestionTable({ tableData }: CustomizedSugge
             tableData.map((row) => (
               <StyledTableRow
                 key={row.id}
-                onClick={() => router.push(`/suggestionDetail/${row.id}`)}
+                onClick={() => router.push(`/detail/suggestion/${row.id}`)}
                 sx={{ cursor: "pointer" }}
               >
                 {/* 번호 */}

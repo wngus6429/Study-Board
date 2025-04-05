@@ -77,7 +77,7 @@ const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps
               key={row.id}
               onClick={() => {
                 if (!commentsFlag) {
-                  router.push(`/detail/${row.storyId}`);
+                  router.push(`/detail/story/${row.storyId}`);
                 }
               }}
               sx={{

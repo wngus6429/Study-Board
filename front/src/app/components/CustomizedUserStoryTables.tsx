@@ -70,7 +70,7 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
               <StyledTableRow
                 key={row.id}
                 onClick={() => {
-                  router.push(`/detail/${row.id}`);
+                  router.push(`/detail/story/${row.id}`);
                 }}
                 sx={{ cursor: "pointer" }}
               >

@@ -406,12 +406,12 @@ const MainView = ({
         <Box sx={{ display: "flex", justifyContent: "flex-end", flex: 1 }}>
           {user?.user &&
             (categoryValue !== "suggestion" ? (
-              <Button variant="outlined" onClick={() => Router.push("/write")} color="success">
+              <Button variant="outlined" onClick={() => Router.push("/write/story")} color="success">
                 <CreateIcon />
                 글쓰기
               </Button>
             ) : (
-              <Button variant="outlined" onClick={() => Router.push("/suggestion")} color="success">
+              <Button variant="outlined" onClick={() => Router.push("/write/suggestion")} color="success">
                 <CreateIcon />
                 건의하기
               </Button>

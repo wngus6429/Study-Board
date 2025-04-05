@@ -39,10 +39,9 @@ export class SuggestionController {
     @Query('limit') limit = 10,
     @Query('userId') userId: string,
   ): Promise<{ results: Partial<Suggestion>[]; total: number }> {
-    console.log('ㅐㄹㄹㄹ', offset, limit, userId);
     return await this.suggestionService.findSuggestion(offset, limit, userId);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 작성
   @Post('/create')
   @UseGuards(AuthGuard())
@@ -53,7 +52,6 @@ export class SuggestionController {
     @GetUser() user: User,
     @UploadedFiles() files: Express.Multer.File[],
   ): Promise<Suggestion> {
-    console.log('시발련아');
     return this.suggestionService.create(createSuggestionDto, user, files);
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -66,16 +64,17 @@ export class SuggestionController {
     @GetUser() user: User,
   ): Promise<any> {
     return await this.suggestionService.findSuggestionOne(id);
-    // console.log('화긴', data);
-    // // 작성자(User) 정보에서 필요한 필드만 추출
-    // const { User: suggestionUser, ...rest } = data;
-    // const writeUserInfo = {
-    //   nickname: suggestionUser.nickname,
-    //   id: suggestionUser.id,
-    //   avatar: suggestionUser.userImage?.link || null,
-    // };
-    // console.log('으엌', writeUserInfo);
-    // return { ...rest, User: writeUserInfo };
+  }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 건의하기 상세 페이지 수정시 데이터 받아옴
+  @Get('/detail/edit/:id')
+  @UseGuards(AuthGuard())
+  async getStoryEditStory(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('userId') userId: string,
+  ): Promise<any> {
+    const data = await this.suggestionService.findEditSuggestionOne(id, userId);
+    return data;
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 수정

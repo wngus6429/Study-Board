@@ -150,7 +150,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                     color="warning"
                     onClick={(e) => {
                       e.preventDefault();
-                      router.push(`/edit-suggestion/${detail.id}`);
+                      router.push(`/edit/suggestion/${detail.id}`);
                     }}
                   >
                     수정

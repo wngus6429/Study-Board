@@ -158,7 +158,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
               ) : (
                 <StyledTableRow
                   key={row.id}
-                  onClick={() => router.push(`/detail/${row.id}`)}
+                  onClick={() => router.push(`/detail/story/${row.id}`)}
                   sx={{ cursor: "pointer" }}
                 >
                   <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>

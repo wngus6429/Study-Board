@@ -154,6 +154,16 @@ export class AuthController {
     console.log('비밀번호 변경 요청', userData);
     await this.authUserService.changePassword(userData);
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 비밀번호 변경전 확인
+  @Post('verifyPassword')
+  @UseGuards(AuthGuard())
+  async verifyUser(
+    @Body(ValidationPipe) userData: { id: string; currentPassword: string },
+  ): Promise<boolean> {
+    console.log('로그인 데이터', userData);
+    return await this.authUserService.verifyUser(userData);
+  }
 }
 
 // JWT를 활용해서, 회원가입하고 바로 로그인 시키는 코드 로직

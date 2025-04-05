@@ -72,8 +72,9 @@ function UserProfileEdit() {
     gcTime: 1000 * 10 * 1,
   });
 
-  const [storyCurrentPage, setStoryCurrentPage] = useState(1);
-  const [commentsCurrentPage, setCommentsCurrentPage] = useState(1);
+  const [storyCurrentPage, setStoryCurrentPage] = useState<number>(1);
+  const [commentsCurrentPage, setCommentsCurrentPage] = useState<number>(1);
+
   const viewCount: number = USER_TABLE_VIEW_COUNT;
 
   const {
@@ -210,6 +211,46 @@ function UserProfileEdit() {
     },
   });
 
+  const [verifyPassword, setVerifyPassword] = useState<boolean>(false);
+  const [verifyInputPassword, setVerifyInputPassword] = useState<string>("");
+
+  // 현재 비밀번호 검증 함수 (API 엔드포인트는 실제 상황에 맞게 수정하세요)
+  const handleVerifyCurrentPassword = async () => {
+    try {
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/verifyPassword`,
+        {
+          id: session?.user.id,
+          currentPassword: verifyInputPassword,
+        },
+        { withCredentials: true }
+      );
+      if (res.data) {
+        setIsVerified(true);
+        setVerifyPassword(false);
+        showMessage("현재 비밀번호 확인 완료", "success");
+      } else {
+        showMessage("현재 비밀번호가 일치하지 않습니다.", "error");
+      }
+    } catch (error) {
+      showMessage("비밀번호 확인 에러", "error");
+    }
+  };
+  // 비밀번호 확인 완료되면, 비밀번호 변경 입력창 보이게함
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+
+  const handleStoryPageClick = (selectedItem: { selected: number }) => {
+    const newPage = selectedItem.selected + 1;
+    setStoryCurrentPage(newPage);
+  };
+
+  const handleCommentsPageClick = (selectedItem: { selected: number }) => {
+    const newPage = selectedItem.selected + 1;
+    setCommentsCurrentPage(newPage);
+  };
+
   // 비밀번호 변경 핸들러
   const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
@@ -226,24 +267,10 @@ function UserProfileEdit() {
         { withCredentials: true }
       );
       showMessage("비밀번호 변경 완료", "success");
-      setOpenPasswordChange(false);
+      setIsVerified(false);
     } catch (error) {
       showMessage("비밀번호 변경 실패", "error");
     }
-  };
-
-  const [openPasswordChange, setOpenPasswordChange] = useState(false);
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  const handleStoryPageClick = (selectedItem: { selected: number }) => {
-    const newPage = selectedItem.selected + 1;
-    setStoryCurrentPage(newPage);
-  };
-
-  const handleCommentsPageClick = (selectedItem: { selected: number }) => {
-    const newPage = selectedItem.selected + 1;
-    setCommentsCurrentPage(newPage);
   };
 
   if (isLoading) return <Loading />;
@@ -348,11 +375,32 @@ function UserProfileEdit() {
             color="error"
             fullWidth
             sx={{ py: 1.5, fontWeight: "bold" }}
-            onClick={() => setOpenPasswordChange(!openPasswordChange)}
+            onClick={() => setVerifyPassword(!verifyPassword)}
           >
-            {openPasswordChange ? "비밀번호 변경 취소" : "비밀번호 변경"}
+            비밀번호 변경
           </Button>
-          {openPasswordChange && (
+          {verifyPassword && (
+            <Box sx={{ mt: 2, width: "100%", bgcolor: "grey.100", p: 2, borderRadius: 1, boxShadow: 1 }}>
+              <TextField
+                label="원래 비밀번호"
+                type="password"
+                fullWidth
+                variant="outlined"
+                sx={{ mb: 2 }}
+                onChange={(e) => setVerifyInputPassword(e.target.value)}
+              />
+              <Button
+                variant="contained"
+                color="warning"
+                fullWidth
+                sx={{ py: 1.5, fontWeight: "bold" }}
+                onClick={() => handleVerifyCurrentPassword()}
+              >
+                확인하기
+              </Button>
+            </Box>
+          )}
+          {isVerified && (
             <Box sx={{ mt: 2, width: "100%", bgcolor: "grey.100", p: 2, borderRadius: 1, boxShadow: 1 }}>
               <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}>
                 비밀번호 변경
@@ -381,6 +429,15 @@ function UserProfileEdit() {
                 onClick={handlePasswordChange}
               >
                 비밀번호 변경
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{ py: 1.5, fontWeight: "bold" }}
+                onClick={() => setIsVerified(false)}
+              >
+                비밀번호 변경 취소
               </Button>
             </Box>
           )}

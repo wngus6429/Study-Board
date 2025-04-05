@@ -237,7 +237,32 @@ export class AuthService {
     //   await this.userImageRepository.remove(user.image);
     // }
   }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 비밀번호 변경전 확인 처리 로직
+  async verifyUser(userData: {
+    id: string;
+    currentPassword: string;
+  }): Promise<boolean> {
+    const { id, currentPassword } = userData;
+    // 입력값 검증
+    if (!currentPassword)
+      throw new ConflictException('비밀번호가 제공되지 않았습니다.');
 
+    // 사용자 조회
+    const user = await this.userRepository.findOne({ where: { id } });
+    if (!user) throw new ConflictException('유저가 존재하지 않습니다.');
+
+    // 사용자 객체에 비밀번호가 있는지 확인
+    if (!user.password)
+      throw new ConflictException('사용자 비밀번호 정보가 없습니다.');
+
+    // 비밀번호 비교 (평문 비밀번호, 해시된 비밀번호)
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) throw new ConflictException('비밀번호가 일치하지 않습니다.');
+    return true;
+  }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 비밀번호 변경 처리 로직
   async changePassword(userData: any): Promise<void> {
     const { id, password } = userData;
     // 사용자 찾기

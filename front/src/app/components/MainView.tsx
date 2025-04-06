@@ -17,6 +17,7 @@ import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import CustomizedSuggestionTable from "./CustomizedSuggestionTable";
+import { useStories } from "./api/useStories";
 
 // API 응답 타입
 interface ApiResponse {
@@ -67,41 +68,13 @@ const MainView = ({
 
   // react-query를 이용해 API를 호출합니다.
   // initialData를 hydration하여 클라이언트에서 첫 렌더링 시 사용합니다.
-  const { data, error, isLoading } = useQuery<ApiResponse>({
-    // queryKey는 검색 옵션, 카테고리, 페이지, 추천 랭킹 모드 등에 따라 달라집니다.
-    queryKey: searchParamsState
-      ? ["stories", categoryValue, currentPage, searchParamsState, recommendRankingMode]
-      : ["stories", categoryValue, currentPage, recommendRankingMode],
-    // API 호출 함수 (axios를 사용하여 데이터 fetch)
-    queryFn: async () => {
-      const offset = (currentPage - 1) * viewCount;
-      // API 호출에 필요한 파라미터 설정
-      const params: any = {
-        offset,
-        limit: viewCount,
-        category: categoryValue !== "all" ? categoryValue : undefined,
-      };
-      // 추천 랭킹 모드가 활성화되면 최소 추천수 설정
-      if (recommendRankingMode) {
-        params.minRecommend = MIN_RECOMMEND_COUNT;
-      }
-      // 검색 옵션이 있다면 검색 API 호출
-      if (searchParamsState && searchParamsState.query.trim() !== "") {
-        params.type = searchParamsState.type;
-        params.query = searchParamsState.query;
-        const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/search`, {
-          params,
-        });
-        return response.data;
-      }
-      // 검색 옵션이 없다면 기본 페이지 데이터 API 호출
-      const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData`, {
-        params,
-      });
-      return response.data;
-    },
-    // 서버에서 전달받은 초기 데이터를 사용하여 초기 렌더링 시 바로 데이터를 표시
-    initialData: initialData,
+  const { data, error, isLoading } = useStories({
+    category: categoryValue,
+    currentPage,
+    searchParamsState,
+    recommendRankingMode,
+    viewCount,
+    initialData,
   });
 
   // 데이터 변경 시 이전 데이터를 유지하여 로딩 중에도 기존 데이터가 보이도록 함

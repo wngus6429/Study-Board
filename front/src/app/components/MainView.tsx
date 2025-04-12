@@ -18,6 +18,8 @@ import ViewListIcon from "@mui/icons-material/ViewList";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
 import CustomizedSuggestionTable from "./CustomizedSuggestionTable";
 import { useStories } from "./api/useStories";
+import CustomizedCardView from "./table/CustomizedCardView";
+import { useCardStories } from "./api/useCardStories";
 
 // API 응답 타입
 interface ApiResponse {
@@ -49,7 +51,6 @@ const MainView = ({
   const { data: user, status } = useSession();
   // 페이지 번호 관리를 위한 store (예: zustand)에서 currentPage와 setCurrentPage 가져오기
   const { currentPage, setCurrentPage } = usePageStore();
-
   // 서버에서 전달받은 초기 카테고리 값을 상태로 저장
   const [categoryValue, setCategoryValue] = useState(initialCategory);
 
@@ -66,6 +67,9 @@ const MainView = ({
   // 추천 랭킹 모드 상태: 서버에서 받은 초기값 사용
   const [recommendRankingMode, setRecommendRankingMode] = useState(initialRecommendRankingMode);
 
+  // 뷰 모드 토글: "table" (기존 테이블)와 "card" (이미지+제목 카드) 중 선택
+  const [viewMode, setViewMode] = useState<"table" | "card">("table");
+
   // react-query를 이용해 API를 호출합니다.
   // initialData를 hydration하여 클라이언트에서 첫 렌더링 시 사용합니다.
   const { data, error, isLoading } = useStories({
@@ -75,6 +79,7 @@ const MainView = ({
     recommendRankingMode,
     viewCount,
     initialData,
+    viewMode,
   });
 
   // 데이터 변경 시 이전 데이터를 유지하여 로딩 중에도 기존 데이터가 보이도록 함
@@ -232,8 +237,50 @@ const MainView = ({
     });
   }, [tableData, sortOrder]);
 
-  // 뷰 모드 토글: "table" (기존 테이블)와 "card" (이미지+제목 카드) 중 선택
-  const [viewMode, setViewMode] = useState<"table" | "card">("table");
+  const [cardData, setCardData] = useState<any>();
+
+  const {
+    data: getCardData,
+    error: cardError,
+    isLoading: cardLoading,
+  } = useCardStories({
+    category: categoryValue,
+    currentPage,
+    searchParamsState,
+    recommendRankingMode,
+    viewCount,
+    initialData,
+    viewMode,
+  });
+  // const cardResultData = getCardData?.results || previousData?.results || [];
+  const cardResultData = getCardData?.results || previousData?.results || [];
+  const cardResultTotal = getCardData?.total || previousData?.total || 0;
+
+  useEffect(() => {
+    if (viewMode === "card" && getCardData != null) {
+      console.log("카드데이터", getCardData);
+      const params = new URLSearchParams();
+      params.set("viewMode", "card");
+      setCardData(data);
+    }
+  }, [viewMode, getCardData]);
+
+  // sortedTableData를 만드는 useMemo 부분
+  const sortedCardTableData = useMemo(() => {
+    if (!cardResultData || viewMode != "card") return [];
+
+    return [...cardResultData].sort((a, b) => {
+      if (sortOrder === "view") {
+        return b.read_count - a.read_count;
+      } else if (sortOrder === "recommend") {
+        return b.recommend_Count - a.recommend_Count;
+      }
+      // "최신순"인 경우 서버가 이미 최신순으로 반환한다면 그대로 두기(0)
+      // 혹은 클라이언트에서 최신순으로 직접 정렬하려면 아래처럼 처리
+      // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      return 0;
+    });
+  }, [cardResultData, sortOrder, viewMode]);
 
   // 에러 발생 시 에러 메시지 표시
   if (error) return <div>Error: {(error as Error).message}</div>;
@@ -320,11 +367,13 @@ const MainView = ({
       {categoryValue === "suggestion" && <CustomizedSuggestionTable tableData={suggestionData?.results || []} />} */}
 
       {/* 카테고리가 "suggestion"인 경우 */}
+
       {categoryValue === "suggestion" ? (
         suggestionData?.results && <CustomizedSuggestionTable tableData={suggestionData.results} />
-      ) : /* 카테고리가 "suggestion"이 아닌 경우 */
-      isLoading && !previousData ? (
+      ) : isLoading && !previousData ? (
         <Loading />
+      ) : viewMode === "card" && cardData != null ? (
+        <CustomizedCardView tableData={sortedCardTableData} />
       ) : (
         <CustomizedTables tableData={sortedTableData} />
       )}

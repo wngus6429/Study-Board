@@ -1,4 +1,4 @@
-// hooks/useStories.ts
+// hooks/useCardStories.ts
 import { MIN_RECOMMEND_COUNT } from "@/app/const/TABLE_VIEW_COUNT";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -8,7 +8,7 @@ interface ApiResponse {
   total: number;
 }
 
-interface UseStoriesProps {
+interface UseCardStoriesProps {
   category: string;
   currentPage: number;
   searchParamsState: { type: string; query: string } | null;
@@ -18,7 +18,7 @@ interface UseStoriesProps {
   viewMode: "table" | "card";
 }
 
-export const useStories = ({
+export const useCardStories = ({
   category,
   currentPage,
   searchParamsState,
@@ -26,12 +26,12 @@ export const useStories = ({
   viewCount,
   initialData,
   viewMode,
-}: UseStoriesProps) => {
+}: UseCardStoriesProps) => {
   return useQuery<ApiResponse>({
     // queryKey는 검색 옵션, 카테고리, 페이지, 추천 랭킹 모드 등에 따라 달라집니다.
     queryKey: searchParamsState
-      ? ["stories", category, currentPage, searchParamsState, recommendRankingMode]
-      : ["stories", category, currentPage, recommendRankingMode],
+      ? ["stories", "cards", category, currentPage, searchParamsState, recommendRankingMode]
+      : ["stories", "cards", category, currentPage, recommendRankingMode],
     // API 호출 함수 (axios를 사용하여 데이터 fetch)
     queryFn: async () => {
       const offset = (currentPage - 1) * viewCount;
@@ -49,23 +49,22 @@ export const useStories = ({
       if (searchParamsState && searchParamsState.query.trim() !== "") {
         params.type = searchParamsState.type;
         params.query = searchParamsState.query;
-        const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/search`, {
+        const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/cardSearch`, {
           params,
         });
         return response.data;
       }
-      console.log("아니시발?");
       // 검색 옵션이 없다면 기본 페이지 데이터 API 호출
-      const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData`, {
+      const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/cardPageTableData`, {
         params,
       });
       return response.data;
     },
-    enabled: viewMode === "table",
-    // 서버에서 전달받은 초기 데이터를 사용하여 초기 렌더링 시 바로 데이터를 표시
-    initialData: initialData,
     // TODO 삭제 플래그 두고 true false로 하면 될거 같은데
     // 삭제시에는 staleTime 잠시 무효화 시켜서 바로 최신꺼 제거된거 받아오게끔
     staleTime: 5000, // 5초 이내에는 안 받아옴
+    enabled: viewMode === "card",
+    // 서버에서 전달받은 초기 데이터를 사용하여 초기 렌더링 시 바로 데이터를 표시
+    // initialData: initialData,
   });
 };

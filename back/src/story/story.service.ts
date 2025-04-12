@@ -128,6 +128,66 @@ export class StoryService {
     };
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  async findCardStory(
+    offset = 0,
+    limit = 10,
+    category?: string,
+  ): Promise<{
+    results: Partial<Story & { recommendationCount: number }>[];
+    total: number;
+  }> {
+    // 카테고리 필터 조건 설정
+    const whereCondition = category && category !== 'all' ? { category } : {};
+
+    // # 나중에 데이터 count만 채널이랑 엮어놓은 테이블 만들 예정
+    // 2. 전체 일반 게시글 수 조회 (페이지네이션 계산용)
+    const regularTotal = await this.storyRepository.count({
+      where: {
+        ...whereCondition,
+        isNotice: false,
+      },
+    });
+
+    // // 3. 페이지네이션 정확한 계산을 위한 로직
+    let effectiveOffset = Number(offset);
+    let effectiveLimit = Number(limit);
+
+    // 4. 일반 게시글 조회 (조정된 offset과 limit 사용)
+    const regularPosts = await this.storyRepository.find({
+      relations: ['User', 'Likes', 'StoryImage'],
+      where: {
+        ...whereCondition,
+        isNotice: false,
+      },
+      order: { id: 'DESC' },
+      skip: Math.max(0, effectiveOffset), // 음수가 되지 않도록 보정
+      take: effectiveLimit,
+    });
+
+    const modifiedPosts = regularPosts.map((story) => {
+      const recommend_Count = story.Likes.reduce((acc, curr) => {
+        if (curr.vote === 'like') return acc + 1;
+        if (curr.vote === 'dislike') return acc - 1;
+        return acc;
+      }, 0);
+
+      const { Likes, StoryImage, User, ...rest } = story;
+      return {
+        ...rest,
+        recommend_Count,
+        imageFlag: story.imageFlag,
+        nickname: User.nickname,
+        isNotice: story.isNotice,
+        firstImage: StoryImage[0],
+      };
+    });
+
+    return {
+      results: modifiedPosts,
+      total: regularTotal, // 일반테이블에서 이미 처리함.
+    };
+  }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 새로 추가: 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 사용)
   // 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 미사용)
   async findStoryWithMinRecommend(
@@ -180,6 +240,67 @@ export class StoryService {
         recommend_Count: recommendCount,
         nickname: post.User.nickname,
         imageFlag: post.StoryImage && post.StoryImage.length > 0,
+      };
+    });
+
+    return { results, total };
+  }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 새로 추가: 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 사용)
+  // 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 미사용)
+  async findCardStoryWithMinRecommend(
+    offset = 0,
+    limit = 10,
+    category?: string,
+    minRecommend: number = 0,
+  ): Promise<{
+    results: Partial<Story>[];
+    total: number;
+  }> {
+    // 1. 카테고리 필터 조건 설정 (추천 랭킹 모드에서는 공지사항은 제외)
+    const whereCondition =
+      category && category !== 'all'
+        ? { category, isNotice: false }
+        : { isNotice: false };
+
+    // 2. 조건에 맞는 모든 게시글 불러오기 (관계 엔티티(Likes, User, StoryImage) 포함)
+    const posts = await this.storyRepository.find({
+      relations: ['Likes', 'User', 'StoryImage'],
+      where: whereCondition,
+      order: { id: 'DESC' },
+      skip: offset,
+      take: limit,
+    });
+
+    // 3. 각 게시글의 추천 수(좋아요 - 싫어요)를 계산하고, minRecommend 이상인 게시글만 필터링
+    const filteredPosts = posts.filter((post) => {
+      const recommendCount = post.Likes.reduce((acc, curr) => {
+        if (curr.vote === 'like') return acc + 1;
+        if (curr.vote === 'dislike') return acc - 1;
+        return acc;
+      }, 0);
+      return recommendCount >= minRecommend;
+    });
+
+    // 4. 총 개수 계산 (필터링 후)
+    const total = filteredPosts.length;
+
+    // 5. 페이지네이션 적용 (메모리 상에서 offset, limit 적용)
+    const paginatedPosts = filteredPosts.slice(offset, offset + limit);
+
+    // 6. 결과 데이터 가공: 추천 수, 사용자 닉네임, 이미지 여부 등의 필드 추가
+    const results = paginatedPosts.map((post) => {
+      const recommendCount = post.Likes.reduce((acc, curr) => {
+        if (curr.vote === 'like') return acc + 1;
+        if (curr.vote === 'dislike') return acc - 1;
+        return acc;
+      }, 0);
+      return {
+        ...post,
+        recommend_Count: recommendCount,
+        nickname: post.User.nickname,
+        imageFlag: post.StoryImage && post.StoryImage.length > 0,
+        firstImage: StoryImage[0],
       };
     });
 
@@ -332,6 +453,99 @@ export class StoryService {
   //   const [results, total] = await queryBuilder.getManyAndCount();
   //   return { results, total };
   // }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 검색 기능 API
+  async cardSearchStory(
+    offset = 0,
+    limit = 10,
+    type: string = 'all',
+    query: string,
+    category?: string, // 카테고리 필터 (전체 검색이 아닐 경우)
+  ): Promise<{
+    results: (Partial<Story> & {
+      nickname: string;
+      recommend_Count: number;
+      imageFlag: boolean;
+    })[];
+    total: number;
+  }> {
+    // 검색어에 대한 like 패턴 생성
+    const likeQuery = `%${query}%`;
+
+    // 검색 옵션에 따른 기본 조건 구성 (카테고리 조건은 나중에 병합)
+    let baseConditions: any;
+    if (type === 'title_content' || type === 'all') {
+      // 제목 OR 내용 검색 조건
+      baseConditions = [
+        { title: ILike(likeQuery) },
+        { content: ILike(likeQuery) },
+      ];
+    } else if (type === 'title') {
+      // 제목 검색 조건
+      baseConditions = { title: ILike(likeQuery) };
+    } else if (type === 'content') {
+      // 내용 검색 조건
+      baseConditions = { content: ILike(likeQuery) };
+    } else if (type === 'author') {
+      // 작성자(User.name) 검색 조건
+      baseConditions = { User: { name: ILike(likeQuery) } };
+    } else if (type === 'comment') {
+      // 댓글 검색은 기본 find 옵션으로는 처리하기 어려움
+      throw new Error('댓글 검색은 QueryBuilder를 사용해야 합니다.');
+    } else {
+      // 정의되지 않은 타입의 경우 기본적으로 제목과 내용 조건 사용
+      baseConditions = [
+        { title: ILike(likeQuery) },
+        { content: ILike(likeQuery) },
+      ];
+    }
+
+    // 카테고리 필터 병합: category 값이 있고 'all'이 아닐 경우 조건에 추가
+    if (category && category !== 'all') {
+      if (Array.isArray(baseConditions)) {
+        // 배열인 경우, 각 조건에 category 필드 추가
+        baseConditions = baseConditions.map((condition) => ({
+          ...condition,
+          category,
+        }));
+      } else {
+        // 단일 객체인 경우
+        baseConditions = { ...baseConditions, category };
+      }
+    }
+
+    // 조건에 따른 데이터와 총 개수 조회 (동일 조건 적용)
+    const [resultsTemp, total] = await Promise.all([
+      this.storyRepository.find({
+        relations: ['User', 'Likes', 'StoryImage'],
+        where: baseConditions,
+        order: { id: 'DESC' },
+        skip: offset,
+        take: limit,
+      }),
+      this.storyRepository.count({
+        where: baseConditions,
+      }),
+    ]);
+
+    const results = resultsTemp.map((story) => {
+      const recommend_Count = story.Likes.reduce((acc, curr) => {
+        if (curr.vote === 'like') return acc + 1;
+        if (curr.vote === 'dislike') return acc - 1;
+        return acc;
+      }, 0);
+
+      const imageFlag = story.StoryImage.length > 0;
+
+      // Likes, StoryImage, User를 분리한 후 User 대신 nickname을 최상위 속성으로 반환
+      const { Likes, StoryImage, User, ...rest } = story;
+      return { ...rest, recommend_Count, imageFlag, nickname: User.nickname };
+    });
+
+    console.log('ddd', results, total);
+
+    return { results, total };
+  }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 수정 페이지
   async findEditStoryOne(id: number, userId?: string): Promise<any> {

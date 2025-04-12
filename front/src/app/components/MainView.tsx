@@ -44,7 +44,6 @@ const MainView = ({
   initialRecommendRankingMode,
   initialSortOrder,
 }: MainViewProps): ReactNode => {
-  console.log("initialData", initialData);
   // next/navigation의 useRouter를 통해 URL 이동 제어
   const Router = useRouter();
   // next-auth의 useSession을 사용해 사용자 로그인 정보를 가져옴
@@ -213,10 +212,9 @@ const MainView = ({
     Router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  // sortedTableData를 만드는 useMemo 부분
+  // 데이터 테이블에 뿌리는 데이터를 만듬
   const sortedTableData = useMemo(() => {
     if (!tableData) return [];
-
     return [...tableData].sort((a, b) => {
       // 1) 공지 여부 비교, 공지는 항상 상위
       //    a가 공지이고 b는 공지가 아니면 a가 먼저(-1)
@@ -237,7 +235,8 @@ const MainView = ({
     });
   }, [tableData, sortOrder]);
 
-  const [cardData, setCardData] = useState<any>();
+  // const [cardData, setCardData] = useState<any>(); // 카드 모드 전용 이전 데이터 상태 선언
+  const [previousCardData, setPreviousCardData] = useState<ApiResponse | null>();
 
   const {
     data: getCardData,
@@ -253,34 +252,39 @@ const MainView = ({
     viewMode,
   });
   // const cardResultData = getCardData?.results || previousData?.results || [];
-  const cardResultData = getCardData?.results || previousData?.results || [];
-  const cardResultTotal = getCardData?.total || previousData?.total || 0;
+  const cardResultData = getCardData?.results || previousCardData?.results || [];
+  const cardResultTotal = getCardData?.total || previousCardData?.total || 0;
 
   useEffect(() => {
     if (viewMode === "card" && getCardData != null) {
-      console.log("카드데이터", getCardData);
-      const params = new URLSearchParams();
-      params.set("viewMode", "card");
-      setCardData(data);
+      console.log("API 카드데이터", getCardData);
+      setPreviousCardData(getCardData);
     }
   }, [viewMode, getCardData]);
 
-  // sortedTableData를 만드는 useMemo 부분
+  // 카드 테이블에 뿌리는 데이터를 만듬
   const sortedCardTableData = useMemo(() => {
-    if (!cardResultData || viewMode != "card") return [];
-
+    if (!cardResultData || viewMode !== "card") return [];
     return [...cardResultData].sort((a, b) => {
       if (sortOrder === "view") {
         return b.read_count - a.read_count;
       } else if (sortOrder === "recommend") {
         return b.recommend_Count - a.recommend_Count;
       }
-      // "최신순"인 경우 서버가 이미 최신순으로 반환한다면 그대로 두기(0)
-      // 혹은 클라이언트에서 최신순으로 직접 정렬하려면 아래처럼 처리
-      // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       return 0;
     });
   }, [cardResultData, sortOrder, viewMode]);
+
+  // 새로고침시 움직임
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const viewModeParam = params.get("viewMode");
+    if (viewModeParam === "card") {
+      setViewMode("card");
+    } else {
+      setViewMode("table"); // 기본값, 필요에 따라 변경
+    }
+  }, []);
 
   // 에러 발생 시 에러 메시지 표시
   if (error) return <div>Error: {(error as Error).message}</div>;
@@ -341,7 +345,14 @@ const MainView = ({
         </Tabs>
         {/* 왼쪽: 테이블 보기 아이콘 */}
         <IconButton
-          onClick={() => setViewMode("table")}
+          onClick={() => {
+            // 기존 URL의 쿼리 파라미터를 유지하고, viewMode를 "table"로 설정
+            const params = new URLSearchParams(window.location.search);
+            params.set("viewMode", "table");
+            // URL 업데이트: { scroll: false }를 사용해 스크롤 위치 유지
+            Router.push(`?${params.toString()}`, { scroll: false });
+            setViewMode("table");
+          }}
           color={viewMode === "table" ? "primary" : "default"}
           sx={{ ml: 2 }}
           aria-label="table view"
@@ -350,7 +361,14 @@ const MainView = ({
         </IconButton>
         {/* 오른쪽: 카드 보기 아이콘 */}
         <IconButton
-          onClick={() => setViewMode("card")}
+          onClick={() => {
+            // 기존 URL의 쿼리 파라미터를 유지하고, viewMode 업데이트
+            const params = new URLSearchParams(window.location.search);
+            params.set("viewMode", "card");
+            // URL 업데이트: { scroll: false }로 스크롤 위치 유지
+            Router.push(`?${params.toString()}`, { scroll: false });
+            setViewMode("card");
+          }}
           color={viewMode === "card" ? "primary" : "default"}
           sx={{ ml: 1, mr: 2 }}
           aria-label="card view"
@@ -370,14 +388,13 @@ const MainView = ({
 
       {categoryValue === "suggestion" ? (
         suggestionData?.results && <CustomizedSuggestionTable tableData={suggestionData.results} />
-      ) : isLoading && !previousData ? (
+      ) : isLoading && !previousData && !previousCardData ? (
         <Loading />
-      ) : viewMode === "card" && cardData != null ? (
+      ) : viewMode === "card" ? (
         <CustomizedCardView tableData={sortedCardTableData} />
       ) : (
         <CustomizedTables tableData={sortedTableData} />
       )}
-
       {/* 하단 영역: 정렬, 페이지네이션, 글쓰기 버튼 */}
       <Box
         sx={{

@@ -28,7 +28,7 @@ interface CustomizedCardViewProps {
 const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.ReactElement => {
   const router = useRouter();
   return (
-    <Grid container spacing={2}>
+    <Grid container spacing={1} sx={{ p: 1 }}>
       {tableData.map((row) => (
         <Grid item xs={12} sm={6} md={4} key={row.id}>
           <Card
@@ -45,7 +45,7 @@ const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.React
             }}
           >
             {/* 상단: 제목 */}
-            <CardContent sx={{ pb: 0 }}>
+            <CardContent sx={{ pb: 0, textAlign: "center" }}>
               <Typography variant="h6" gutterBottom>
                 {row.title}
               </Typography>
@@ -55,19 +55,18 @@ const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.React
             {row.imageFlag && row.firstImage ? (
               <CardMedia
                 component="img"
-                height="140"
+                width="360"
+                height="200"
                 image={`${process.env.NEXT_PUBLIC_BASE_URL}${row.firstImage.link}`}
                 alt={row.title}
               />
             ) : (
-              <Image src="/assets/NoImage.PNG" alt="No Image" width={300} height={140} style={{ objectFit: "cover" }} />
+              <Image src="/assets/NoImage.PNG" alt="No Image" width={360} height={200} />
             )}
 
             {/* 하단: 작성자, 번호 및 등록일 */}
             <CardContent sx={{ pt: 1, flexGrow: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                작성자: {row.nickname}
-              </Typography>
+              <Typography variant="body2">작성자: {row.nickname}</Typography>
               <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
                 <Typography variant="caption" color="text.secondary">
                   번호: {row.id}

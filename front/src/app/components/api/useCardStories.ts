@@ -34,6 +34,7 @@ export const useCardStories = ({
       : ["stories", "cards", category, currentPage, recommendRankingMode],
     // API 호출 함수 (axios를 사용하여 데이터 fetch)
     queryFn: async () => {
+      console.log("카드 데이터 호출");
       const offset = (currentPage - 1) * viewCount;
       // API 호출에 필요한 파라미터 설정
       const params: any = {
@@ -62,9 +63,6 @@ export const useCardStories = ({
     },
     // TODO 삭제 플래그 두고 true false로 하면 될거 같은데
     // 삭제시에는 staleTime 잠시 무효화 시켜서 바로 최신꺼 제거된거 받아오게끔
-    staleTime: 5000, // 5초 이내에는 안 받아옴
     enabled: viewMode === "card",
-    // 서버에서 전달받은 초기 데이터를 사용하여 초기 렌더링 시 바로 데이터를 표시
-    // initialData: initialData,
   });
 };

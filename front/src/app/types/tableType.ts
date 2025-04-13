@@ -12,6 +12,5 @@ export interface TableStoryType {
   recommend_Count: number;
   comment_count: number;
   imageFlag: boolean;
-  isNotice?: boolean;
   created_at: string;
 }

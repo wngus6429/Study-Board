@@ -1,6 +1,6 @@
 "use client";
 import { ReactNode, useEffect, useState, useMemo } from "react";
-import CustomizedTables from "./CustomizedTables";
+import CustomizedTables from "./table/CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { Box, Button, FormControl, IconButton, MenuItem, Select, SelectChangeEvent, Tab, Tabs } from "@mui/material";
@@ -16,10 +16,11 @@ import SearchBar from "./common/SearchBar";
 import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import ViewListIcon from "@mui/icons-material/ViewList";
 import ViewModuleIcon from "@mui/icons-material/ViewModule";
-import CustomizedSuggestionTable from "./CustomizedSuggestionTable";
+import CustomizedSuggestionTable from "./table/CustomizedSuggestionTable";
 import { useStories } from "./api/useStories";
 import CustomizedCardView from "./table/CustomizedCardView";
 import { useCardStories } from "./api/useCardStories";
+import NoticesDropdown from "./NoticesDropdown";
 
 // API 응답 타입
 interface ApiResponse {
@@ -216,12 +217,6 @@ const MainView = ({
   const sortedTableData = useMemo(() => {
     if (!tableData) return [];
     return [...tableData].sort((a, b) => {
-      // 1) 공지 여부 비교, 공지는 항상 상위
-      //    a가 공지이고 b는 공지가 아니면 a가 먼저(-1)
-      if (a.isNotice && !b.isNotice) return -1;
-      //    b가 공지이고 a는 공지가 아니면 b가 먼저(1)
-      if (!a.isNotice && b.isNotice) return 1;
-
       // 2) 둘 다 공지거나 둘 다 공지가 아니면, 정렬 옵션에 따라 비교
       if (sortOrder === "view") {
         return b.read_count - a.read_count;
@@ -343,6 +338,8 @@ const MainView = ({
             <Tab key={option.value} icon={option.icon} label={option.name} value={option.value} />
           ))}
         </Tabs>
+        {/* ★ 추가: 필독 공지사항 드롭다운 버튼 */}
+        <NoticesDropdown />
         {/* 왼쪽: 테이블 보기 아이콘 */}
         <IconButton
           onClick={() => {

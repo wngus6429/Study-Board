@@ -42,63 +42,29 @@ export class StoryService {
     const whereCondition = category && category !== 'all' ? { category } : {};
     const isAllCategory = !category || category === 'all';
 
-    // 1. 공지사항 조회 (페이지와 무관하게 전체 조회)
-    const notices = isAllCategory
-      ? await this.storyRepository.find({
-          relations: ['User'],
-          where: { isNotice: true },
-          order: { updated_at: 'DESC' },
-        })
-      : [];
-
-    const noticeCount = notices.length;
-
-    // 2. 전체 일반 게시글 수 조회 (페이지네이션 계산용)
+    // 전체 게시글 수 조회 (페이지네이션 계산용)
     const regularTotal = await this.storyRepository.count({
       where: {
         ...whereCondition,
-        isNotice: false,
       },
     });
 
-    // 3. 페이지네이션 정확한 계산을 위한 로직
+    // 페이지네이션 계산을 위한 로직
     let effectiveOffset = Number(offset);
     let effectiveLimit = Number(limit);
 
-    // 첫 페이지인 경우 공지사항 개수만큼 일반 게시글 수를 조정
-    if (Number(offset) === 0 && isAllCategory) {
-      effectiveLimit = Math.max(0, effectiveLimit - noticeCount);
-    }
-    // 첫 페이지가 아닌 경우 offset 조정 (공지사항을 건너뛰기 위함)
-    else if (isAllCategory) {
-      // 여기가 핵심: 첫 페이지의 공지사항 때문에 밀려난 게시글 수를 고려
-      effectiveOffset = Number(offset) - noticeCount;
-    }
-
-    // 4. 일반 게시글 조회 (조정된 offset과 limit 사용)
+    // 게시글 조회
     const regularPosts = await this.storyRepository.find({
       relations: ['User', 'Likes'],
       where: {
         ...whereCondition,
-        isNotice: false,
       },
       order: { id: 'DESC' },
       skip: Math.max(0, effectiveOffset), // 음수가 되지 않도록 보정
       take: effectiveLimit,
     });
 
-    // 5. 결과 데이터 가공
-    const modifiedNotices = notices.map((story) => {
-      const { User, ...rest } = story;
-      return {
-        ...rest,
-        recommend_Count: 0,
-        imageFlag: story.imageFlag,
-        nickname: User.nickname,
-        isNotice: story.isNotice,
-      };
-    });
-
+    // 결과 데이터 가공
     const modifiedPosts = regularPosts.map((story) => {
       const recommend_Count = story.Likes.reduce((acc, curr) => {
         if (curr.vote === 'like') return acc + 1;
@@ -112,19 +78,12 @@ export class StoryService {
         recommend_Count,
         imageFlag: story.imageFlag,
         nickname: User.nickname,
-        isNotice: story.isNotice,
       };
     });
 
-    // 6. 결과 합치기 (첫 페이지에만 공지사항 포함)
-    const allResults =
-      Number(offset) === 0 && isAllCategory
-        ? [...modifiedNotices, ...modifiedPosts]
-        : modifiedPosts;
-
     return {
-      results: allResults,
-      total: regularTotal + (isAllCategory ? noticeCount : 0), // 전체 카테고리일 때만 공지사항 포함
+      results: modifiedPosts,
+      total: regularTotal,
     };
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -144,7 +103,6 @@ export class StoryService {
     const regularTotal = await this.storyRepository.count({
       where: {
         ...whereCondition,
-        isNotice: false,
       },
     });
 
@@ -157,7 +115,6 @@ export class StoryService {
       relations: ['User', 'Likes', 'StoryImage'],
       where: {
         ...whereCondition,
-        isNotice: false,
       },
       order: { id: 'DESC' },
       skip: Math.max(0, effectiveOffset), // 음수가 되지 않도록 보정
@@ -177,7 +134,6 @@ export class StoryService {
         recommend_Count,
         imageFlag: story.imageFlag,
         nickname: User.nickname,
-        isNotice: story.isNotice,
         firstImage: StoryImage[0],
       };
     });
@@ -199,16 +155,10 @@ export class StoryService {
     results: Partial<Story>[];
     total: number;
   }> {
-    // 1. 카테고리 필터 조건 설정 (추천 랭킹 모드에서는 공지사항은 제외)
-    const whereCondition =
-      category && category !== 'all'
-        ? { category, isNotice: false }
-        : { isNotice: false };
-
+    // TODO 다른 테이블로 관리
     // 2. 조건에 맞는 모든 게시글 불러오기 (관계 엔티티(Likes, User, StoryImage) 포함)
     const posts = await this.storyRepository.find({
       relations: ['Likes', 'User', 'StoryImage'],
-      where: whereCondition,
       order: { id: 'DESC' },
     });
 
@@ -257,16 +207,11 @@ export class StoryService {
     results: Partial<Story>[];
     total: number;
   }> {
-    // 1. 카테고리 필터 조건 설정 (추천 랭킹 모드에서는 공지사항은 제외)
-    const whereCondition =
-      category && category !== 'all'
-        ? { category, isNotice: false }
-        : { isNotice: false };
-
+    // TODO 다른 테이블에서 관리
     // 2. 조건에 맞는 모든 게시글 불러오기 (관계 엔티티(Likes, User, StoryImage) 포함)
     const posts = await this.storyRepository.find({
       relations: ['Likes', 'User', 'StoryImage'],
-      where: whereCondition,
+      // where: whereCondition,
       order: { id: 'DESC' },
       skip: offset,
       take: limit,

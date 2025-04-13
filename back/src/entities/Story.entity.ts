@@ -107,10 +107,6 @@ export class Story {
   @OneToMany(() => Likes, (like) => like.Story)
   Likes: Likes[];
 
-  @Column({ default: false })
-  @Index()
-  isNotice: boolean;
-
   //   @ManyToOne(() => Channel, (channel) => channel.Stories)
   // Channel: Channel;
 }

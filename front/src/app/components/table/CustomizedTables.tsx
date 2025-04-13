@@ -12,7 +12,7 @@ import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useRouter } from "next/navigation";
 import { Box, Typography, Chip } from "@mui/material";
-import { TableStoryType } from "../types/tableType";
+import { TableStoryType } from "../../types/tableType";
 import ImageIcon from "@mui/icons-material/Image";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
@@ -117,21 +117,20 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
             </TableRow>
           </TableHead>
           <TableBody>
-            {tableData.map((row: TableStoryType) =>
-              row.isNotice ? (
-                <NoticeRow key={row.id} onClick={() => router.push(`/notice/${row.id}`)} sx={{ cursor: "pointer" }}>
-                  <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
-                    <Chip
-                      icon={<NotificationsIcon />}
-                      label="공지"
-                      color="primary"
-                      size="small"
-                      sx={{ fontWeight: "bold" }}
-                    />
-                  </StyledTableCell>
-                  <StyledTableCell>
-                    <Typography variant="body1" color="text.primary" component="span" sx={{ fontWeight: "bold" }}>
-                      {row.title}
+            {tableData.map((row: TableStoryType) => (
+              <StyledTableRow
+                key={row.id}
+                onClick={() => router.push(`/detail/story/${row.id}`)}
+                sx={{ cursor: "pointer" }}
+              >
+                <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
+                  {row.id}
+                </StyledTableCell>
+                <StyledTableCell>
+                  <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+                    {/* 카테고리에 따른 Chip을 렌더링 */}
+                    {getCategoryChip(row.category) || <Box sx={{ width: "56px", height: "24px" }}></Box>}
+                    <Typography variant="body1" color="text.primary" component="span" sx={{ mr: 1 }}>
                       {row.imageFlag && (
                         <ImageIcon
                           sx={{
@@ -143,59 +142,21 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                         />
                       )}
                     </Typography>
-                  </StyledTableCell>
-                  <StyledTableCell>
-                    {row.nickname.length > 6 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
-                  </StyledTableCell>
-                  <StyledTableCell sx={{ textAlign: "center" }}>
-                    {dayjs(row.created_at).isSame(dayjs(), "day")
-                      ? dayjs(row.created_at).format("HH:mm")
-                      : dayjs(row.created_at).format("YYYY/MM/DD")}
-                  </StyledTableCell>
-                  <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
-                  <StyledTableCell sx={{ textAlign: "center" }}>공지</StyledTableCell>
-                </NoticeRow>
-              ) : (
-                <StyledTableRow
-                  key={row.id}
-                  onClick={() => router.push(`/detail/story/${row.id}`)}
-                  sx={{ cursor: "pointer" }}
-                >
-                  <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
-                    {row.id}
-                  </StyledTableCell>
-                  <StyledTableCell>
-                    <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-                      {/* 카테고리에 따른 Chip을 렌더링 */}
-                      {getCategoryChip(row.category) || <Box sx={{ width: "56px", height: "24px" }}></Box>}
-                      <Typography variant="body1" color="text.primary" component="span" sx={{ mr: 1 }}>
-                        {row.imageFlag && (
-                          <ImageIcon
-                            sx={{
-                              fontSize: "1rem",
-                              ml: 1,
-                              verticalAlign: "middle",
-                              color: "info.main",
-                            }}
-                          />
-                        )}
-                      </Typography>
-                      {row.title} {row.comment_count > 0 && `(${row.comment_count})`}
-                    </Box>
-                  </StyledTableCell>
-                  <StyledTableCell>
-                    {row.nickname.length > 6 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
-                  </StyledTableCell>
-                  <StyledTableCell sx={{ textAlign: "center" }}>
-                    {dayjs(row.created_at).isSame(dayjs(), "day")
-                      ? dayjs(row.created_at).format("HH:mm")
-                      : dayjs(row.created_at).format("YYYY/MM/DD")}
-                  </StyledTableCell>
-                  <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
-                  <StyledTableCell sx={{ textAlign: "center" }}>{row.recommend_Count}</StyledTableCell>
-                </StyledTableRow>
-              )
-            )}
+                    {row.title} {row.comment_count > 0 && `(${row.comment_count})`}
+                  </Box>
+                </StyledTableCell>
+                <StyledTableCell>
+                  {row.nickname.length > 6 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
+                </StyledTableCell>
+                <StyledTableCell sx={{ textAlign: "center" }}>
+                  {dayjs(row.created_at).isSame(dayjs(), "day")
+                    ? dayjs(row.created_at).format("HH:mm")
+                    : dayjs(row.created_at).format("YYYY/MM/DD")}
+                </StyledTableCell>
+                <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
+                <StyledTableCell sx={{ textAlign: "center" }}>{row.recommend_Count}</StyledTableCell>
+              </StyledTableRow>
+            ))}
           </TableBody>
         </Table>
       </TableContainer>

@@ -1,6 +1,6 @@
 import Loading from "@/app/components/common/Loading";
-import CustomizedUserCommentsTables from "@/app/components/CustomizedUserCommentsTables";
-import CustomizedUserTables from "@/app/components/CustomizedUserStoryTables";
+import CustomizedUserCommentsTables from "@/app/components/table/CustomizedUserCommentsTables";
+import CustomizedUserTables from "@/app/components/table/CustomizedUserStoryTables";
 import { Avatar, Box, Container, Typography } from "@mui/material";
 import React from "react";
 

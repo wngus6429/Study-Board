@@ -9,9 +9,9 @@ import { useRouter } from "next/navigation";
 import { useMessage } from "@/app/store/messageStore";
 import { useUserImage } from "@/app/store/userImageStore";
 import { USER_TABLE_VIEW_COUNT } from "@/app/const/TABLE_VIEW_COUNT";
-import CustomizedUserTables from "@/app/components/CustomizedUserStoryTables";
+import CustomizedUserTables from "@/app/components/table/CustomizedUserStoryTables";
 import Pagination from "@/app/components/common/Pagination";
-import CustomizedUserCommentsTables from "@/app/components/CustomizedUserCommentsTables";
+import CustomizedUserCommentsTables from "@/app/components/table/CustomizedUserCommentsTables";
 import ProfilePagination from "@/app/components/common/ProfilePagination";
 
 interface ApiStoryResponse {

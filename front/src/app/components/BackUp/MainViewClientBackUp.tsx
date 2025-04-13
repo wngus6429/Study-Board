@@ -1,6 +1,6 @@
 "use client";
 import { ReactNode, useEffect, useState, useMemo } from "react";
-import CustomizedTables from "../CustomizedTables";
+import CustomizedTables from "../table/CustomizedTables";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { Box, Button, FormControl, InputLabel, MenuItem, Select, Tab, Tabs } from "@mui/material";

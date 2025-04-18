@@ -56,6 +56,7 @@ const MainView = ({
 
   // 초기 페이지 번호를 store에 설정 (컴포넌트 마운트 시)
   useEffect(() => {
+    console.log("setCurrentPage", initialCurrentPage);
     setCurrentPage(initialCurrentPage);
   }, [initialCurrentPage, setCurrentPage]);
 

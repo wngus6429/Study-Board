@@ -998,6 +998,94 @@ export class StoryService {
     await this.commentRepository.save(comment);
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  //! 트랜잭션 안된 버전
+  // async storyLikeUnLike(
+  //   storyId: number,
+  //   userId: string,
+  //   vote: 'like' | 'dislike',
+  // ): Promise<{
+  //   action: 'add' | 'remove' | 'change';
+  //   vote: 'like' | 'dislike';
+  // }> {
+  //   // 1. 게시글 찾기
+  //   const story = await this.storyRepository.findOne({
+  //     where: { id: storyId },
+  //   });
+  //   if (!story) {
+  //     throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
+  //   }
+
+  //   // 2. 기존 투표 확인
+  //   const existingVote = await this.likeRepository.findOne({
+  //     where: { User: { id: userId }, Story: { id: storyId } },
+  //   });
+
+  //   let action: 'add' | 'remove' | 'change' = 'add';
+
+  //   if (existingVote) {
+  //     if (existingVote.vote === vote) {
+  //       // — 동일한 투표: 취소(remove)
+  //       await this.likeRepository.remove(existingVote);
+  //       action = 'remove';
+
+  //       // like_count 조정
+  //       if (vote === 'like') {
+  //         await this.storyRepository.decrement(
+  //           { id: storyId },
+  //           'like_count',
+  //           1,
+  //         );
+  //       } else {
+  //         await this.storyRepository.increment(
+  //           { id: storyId },
+  //           'like_count',
+  //           1,
+  //         );
+  //       }
+  //     } else {
+  //       // — 다른 투표: 변경(change)
+  //       const oldVote = existingVote.vote;
+  //       existingVote.vote = vote;
+  //       await this.likeRepository.save(existingVote);
+  //       action = 'change';
+
+  //       // 좋아→싫어요 이면 -2, 싫어요→좋아요 이면 +2
+  //       if (oldVote === 'like' && vote === 'dislike') {
+  //         await this.storyRepository.decrement(
+  //           { id: storyId },
+  //           'like_count',
+  //           2,
+  //         );
+  //       } else if (oldVote === 'dislike' && vote === 'like') {
+  //         await this.storyRepository.increment(
+  //           { id: storyId },
+  //           'like_count',
+  //           2,
+  //         );
+  //       }
+  //     }
+  //   } else {
+  //     // 3. 신규 투표(add)
+  //     const newVote = this.likeRepository.create({
+  //       User: { id: userId },
+  //       Story: { id: storyId },
+  //       vote,
+  //     });
+  //     await this.likeRepository.save(newVote);
+  //     action = 'add';
+
+  //     // like_count 조정
+  //     if (vote === 'like') {
+  //       await this.storyRepository.increment({ id: storyId }, 'like_count', 1);
+  //     } else {
+  //       await this.storyRepository.decrement({ id: storyId }, 'like_count', 1);
+  //     }
+  //   }
+
+  //   return { action, vote };
+  // }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  //! 트랜잭션 적용된 버전
   async storyLikeUnLike(
     storyId: number,
     userId: string,
@@ -1006,43 +1094,76 @@ export class StoryService {
     action: 'add' | 'remove' | 'change';
     vote: 'like' | 'dislike';
   }> {
-    // 1. 게시글 찾기 (기존과 동일)
-    const story = await this.storyRepository.findOne({
-      where: { id: storyId },
-    });
-    if (!story) {
-      throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
-    }
+    // 전체 작업을 하나의 트랜잭션으로 묶어 원자성을 보장합니다.
+    return this.dataSource.transaction(async (manager) => {
+      // 트랜잭션 범위 내에서 사용할 Repository 인스턴스를 가져옵니다.
+      const storyRepo = manager.getRepository(Story);
+      const likeRepo = manager.getRepository(Likes);
 
-    // 2. 기존 투표 확인
-    const existingVote = await this.likeRepository.findOne({
-      where: { User: { id: userId }, Story: { id: storyId } },
-    });
-
-    let action: 'add' | 'remove' | 'change' = 'add';
-
-    if (existingVote) {
-      if (existingVote.vote === vote) {
-        // 같은 투표가 있으면 삭제 (취소)
-        await this.likeRepository.remove(existingVote);
-        action = 'remove';
-      } else {
-        // 다른 투표면 변경
-        existingVote.vote = vote;
-        await this.likeRepository.save(existingVote);
-        action = 'change';
+      // 1) 게시글 조회: storyId로 Story 엔티티를 가져옵니다.
+      const story = await storyRepo.findOne({ where: { id: storyId } });
+      if (!story) {
+        // 게시글이 없으면 404 예외를 던집니다.
+        throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
       }
-    } else {
-      // 새로운 투표
-      const newVote = this.likeRepository.create({
-        User: { id: userId },
-        Story: { id: storyId },
-        vote,
-      });
-      await this.likeRepository.save(newVote);
-      action = 'add';
-    }
 
-    return { action, vote };
+      // 2) 기존 투표 조회: userId, storyId 조합으로 Likes 레코드 검색
+      const existingVote = await likeRepo.findOne({
+        where: { User: { id: userId }, Story: { id: storyId } },
+      });
+
+      // 반환할 action과 like_count 조정값을 초기화합니다.
+      let action: 'add' | 'remove' | 'change' = 'add';
+      let likeCountAdjustment = 0;
+
+      console.log('existingVote요', existingVote); // 존재 안하면 null 존재하면
+      // Likes { id: 53, vote: 'like', created_at, updated_at }
+
+      if (existingVote) {
+        if (existingVote.vote === vote) {
+          // 2-a) 동일한 투표인 경우: 투표 취소(remove)
+          await likeRepo.remove(existingVote);
+          action = 'remove';
+          // 좋아요 취소 시 -1, 싫어요 취소 시 +1
+          likeCountAdjustment = vote === 'like' ? -1 : 1;
+        } else {
+          // 2-b) 다른 투표인 경우: 투표 유형 변경(change)
+          console.log('엥');
+          existingVote.vote = vote;
+          await likeRepo.save(existingVote);
+          action = 'change';
+          // 여기에 투표했던 사람이 좋아요 취소하고 싫어요 하면 like_count 2 단위로 변경
+          likeCountAdjustment = vote === 'like' ? 2 : -2;
+        }
+      } else {
+        // 2-c) 신규 투표인 경우: 레코드 생성(add)
+        const newVote = likeRepo.create({
+          User: { id: userId },
+          Story: { id: storyId },
+          vote,
+        });
+        console.log('newVote여', newVote);
+        // Likes { vote: 'like', User: User { id: 'c7a' }, Story: Story { id: '37' }
+        await likeRepo.save(newVote);
+        action = 'add';
+        // 신규 좋아요 +1, 신규 싫어요 -1
+        likeCountAdjustment = vote === 'like' ? 1 : -1;
+      }
+
+      // 3) story의 like_count를 조정합니다.
+      if (likeCountAdjustment !== 0) {
+        await storyRepo
+          .createQueryBuilder()
+          .update()
+          .set({
+            like_count: () => `like_count + ${likeCountAdjustment}`,
+          })
+          .where('id = :storyId', { storyId })
+          .execute();
+      }
+
+      // 최종 수행된 action과 vote 유형을 반환합니다.
+      return { action, vote };
+    });
   }
 }

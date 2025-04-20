@@ -1,10 +1,8 @@
 "use client";
-
 import React, { useState, MouseEvent } from "react";
 import { Menu, MenuItem } from "@mui/material";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import zIndex from "@mui/material/styles/zIndex";
 
 interface NoticeItem {
   id: number;

@@ -102,6 +102,10 @@ export class Story {
   @UpdateDateColumn() // 엔티티 업데이트 시 자동으로 날짜가 갱신됩니다.
   updated_at: Date;
 
+  @ApiProperty({ description: '좋아요 수' })
+  @Column({ type: 'int', default: 0 })
+  like_count: number;
+
   // 게시글과 추천/비추천(Like) 간의 관계 (일대다 관계)
   // 한 개의 Story에 여러 개의 Likes가 연결됩니다.
   @OneToMany(() => Likes, (like) => like.Story)

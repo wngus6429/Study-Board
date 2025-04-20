@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import { Card, CardMedia, CardContent, Typography, Grid, Box } from "@mui/material";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -18,6 +19,7 @@ interface TableRowData {
   imageFlag: boolean;
   nickname: string;
   created_at: string;
+  recommend_Count: number; // 좋아요 카운트는 optional
   firstImage?: FirstImageData; // Optional, 객체 형태
 }
 
@@ -33,8 +35,7 @@ const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.React
         <Grid item xs={12} sm={6} md={4} key={row.id}>
           <Card
             elevation={4}
-            key={row.id}
-            onClick={() => router.push(`/notice/${row.id}`)}
+            onClick={() => router.push(`/detail/story/${row.id}`)}
             sx={{
               borderRadius: 2,
               transition: "transform 0.3s, box-shadow 0.3s",
@@ -45,10 +46,18 @@ const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.React
             }}
           >
             {/* 상단: 제목 */}
-            <CardContent sx={{ pb: 0, textAlign: "center" }}>
-              <Typography variant="h6" gutterBottom>
-                {row.title}
-              </Typography>
+            <CardContent sx={{ pb: 0 }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <Typography variant="h6" gutterBottom sx={{ flex: 1, wordBreak: "break-word" }}>
+                  {row.title}
+                </Typography>
+                <Box sx={{ display: "flex", alignItems: "center", ml: 1 }}>
+                  <FavoriteIcon fontSize="small" sx={{ mr: 0.5, color: "error.main" }} />
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    {row.recommend_Count ?? 0}
+                  </Typography>
+                </Box>
+              </Box>
             </CardContent>
 
             {/* 이미지 영역: imageFlag가 true이고 firstImage가 존재할 경우 렌더링 */}

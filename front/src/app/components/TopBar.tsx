@@ -5,7 +5,7 @@ import IconButton from "@mui/material/IconButton";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import { Avatar, Button } from "@mui/material";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import axios from "@/app/api/axios";
 import styles from "./style/TopBar.module.css";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";

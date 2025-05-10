@@ -55,7 +55,7 @@ export default NextAuth({
   secret: process.env.NEXTAUTH_SECRET,
   session: {
     strategy: "jwt",
-    maxAge: 7200,
+    maxAge: 1800, // 30분
   },
 });
 // 토큰 {

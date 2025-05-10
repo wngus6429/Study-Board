@@ -29,9 +29,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   // JWT가 유효한 경우, payload를 이용해 사용자 정보를 검증
   async validate(payload: any) {
-    const { user_email } = payload;
-    const user = await this.userRepository.findOne({ where: { user_email } });
-    console.log('유효성 검사 후 사용', user);
+    console.log('JWT payload:', payload);
+    let user: User | null = null;
+
+    if (payload.user_email) {
+      user = await this.userRepository.findOne({ where: { user_email: payload.user_email } });
+    } else if (payload.id) {
+      user = await this.userRepository.findOne({ where: { id: payload.id } });
+    }
 
     if (!user) {
       throw new UnauthorizedException('로그인 만료, 다시 로그인해주세요.');

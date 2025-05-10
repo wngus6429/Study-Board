@@ -1,1 +1,1 @@
-export const TOKEN_EXPIRATION_TIME = 7200;
+export const TOKEN_EXPIRATION_TIME = 86400;// 3분

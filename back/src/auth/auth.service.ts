@@ -278,4 +278,8 @@ export class AuthService {
     user.password = hashedPassword;
     await this.userRepository.save(user);
   }
+
+  async findUserById(id: string): Promise<User | null> {
+    return await this.userRepository.findOne({ where: { id } });
+  }
 }

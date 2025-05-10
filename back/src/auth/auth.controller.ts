@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignupUserDto } from './dto/signup.user.dto';
-import { Response } from 'express'; // Express Response 객체를 import
+import { Response, Request } from 'express'; // Express Response 객체를 import
 import { SigninUserDto } from './dto/signin.user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
@@ -24,6 +24,7 @@ import { User } from 'src/entities/User.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { Story } from 'src/entities/Story.entity';
+import { TOKEN_EXPIRATION_TIME } from '../constants/tokenTime';
 
 @Controller('api/auth')
 export class AuthController {
@@ -51,13 +52,32 @@ export class AuthController {
     console.log('로그인 데이터', userData);
     const user = await this.authUserService.signIn(userData);
     // JWT 생성 로직
-    const accessToken = this.jwtService.sign(user);
+    const accessToken = this.jwtService.sign(
+      { id: user.id, user_email: user.user_email },
+      { expiresIn: TOKEN_EXPIRATION_TIME }
+    );
+    
+    // 리프레시 토큰 생성
+    const refreshToken = this.jwtService.sign(
+      { id: user.id },
+      { expiresIn: '7d' }
+    );
+
     // 쿠키에 JWT 토큰 설정
     res.cookie('access_token', accessToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // 프로덕션 환경에서는 true
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
     });
+
+    // 리프레시 토큰 쿠키 설정
+    res.cookie('refresh_token', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
+    });
+
     // 로그인 성공 시 사용자 정보와 함께 응답
     res.status(200).json({ accessToken });
   }
@@ -79,6 +99,11 @@ export class AuthController {
   async logout(@Req() req: Request, @Res() res: Response) {
     console.log('로그아웃 요청');
     res.clearCookie('access_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+    });
+    res.clearCookie('refresh_token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
@@ -164,6 +189,68 @@ export class AuthController {
     console.log('로그인 데이터', userData);
     return await this.authUserService.verifyUser(userData);
   }
+  // 리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받는 엔드포인트
+  @Post('refresh')
+  async refreshToken(@Req() req: Request, @Res() res: Response) {
+    console.log('리프레시 토큰 요청 시작');
+    
+    // 쿠키에서 리프레시 토큰 추출
+    const refreshToken = req.cookies?.refresh_token;
+    if (!refreshToken) {
+      console.log('리프레시 토큰이 없음');
+      return res.status(401).json({ message: '리프레시 토큰이 없습니다.' });
+    }
+
+    try {
+      console.log('리프레시 토큰 검증 시작');
+      // 리프레시 토큰 검증 및 payload 추출
+      const payload = this.jwtService.verify(refreshToken, { secret: 'park' });
+      console.log('리프레시 토큰 payload:', payload);
+      
+      // payload에서 추출한 id로 사용자 조회
+      const user = await this.authUserService.findUserById(payload.id);
+      
+      if (!user) {
+        console.log('사용자를 찾을 수 없음');
+        return res.status(401).json({ message: '사용자를 찾을 수 없습니다.' });
+      }
+
+      console.log('새로운 액세스 토큰 발급');
+      // 새로운 액세스 토큰 생성 (id와 user_email 포함)
+      const accessToken = this.jwtService.sign(
+        { id: user.id, user_email: user.user_email },
+        { expiresIn: TOKEN_EXPIRATION_TIME }
+      );
+
+      // 새로운 리프레시 토큰 생성 (id만 포함)
+      const newRefreshToken = this.jwtService.sign(
+        { id: user.id },
+        { expiresIn: '7d' }
+      );
+
+      // 새로운 액세스 토큰을 쿠키에 설정
+      res.cookie('access_token', accessToken, {
+        httpOnly: true, // JavaScript에서 접근 불가
+        secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송
+        sameSite: 'strict', // CSRF 방지
+      });
+
+      // 새로운 리프레시 토큰을 쿠키에 설정 (7일 유효)
+      res.cookie('refresh_token', newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
+      });
+
+      console.log('토큰 갱신 완료');
+      return res.status(200).json({ message: '토큰이 갱신되었습니다.' });
+    } catch (error) {
+      // 리프레시 토큰 검증 실패 (만료되었거나 유효하지 않은 경우)
+      console.log('리프레시 토큰 검증 실패:', error);
+      return res.status(401).json({ message: '유효하지 않은 리프레시 토큰입니다.' });
+    }
+  }
 }
 
 // JWT를 활용해서, 회원가입하고 바로 로그인 시키는 코드 로직
@@ -203,3 +290,5 @@ export class AuthController {
 //   // 응답 전송
 //   res.sendStatus(200);
 // }
+
+

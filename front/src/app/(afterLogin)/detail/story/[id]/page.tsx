@@ -1,7 +1,7 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
 import { StoryImageType } from "@/app/types/imageTypes";
-import { Avatar, Box, Button, Card, CardContent, CircularProgress, Typography } from "@mui/material";
+import { Avatar, Box, Button, Card, CardContent, CircularProgress, Dialog, IconButton, Typography } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -17,6 +17,9 @@ import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 import Link from "next/link";
 import ImageCard from "@/app/components/ImageCard";
 import { StoryType } from "@/app/types/storyDetailType";
+import CloseIcon from '@mui/icons-material/Close';
+import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -30,6 +33,11 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const [likeCalculate, setLikeCalculate] = useState<number>(0);
   // 버튼 여러번 연속 클릭 방지
   const [editFlag, setEditFlag] = useState<boolean>(false);
+
+  // 이미지 뷰어 상태 추가
+  const [selectedImage, setSelectedImage] = useState<StoryImageType | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [openImageViewer, setOpenImageViewer] = useState(false);
 
   //! 상세 데이터 가져오기
   const {
@@ -202,6 +210,55 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     setOpenConfirmDialog(false);
   };
 
+  // 이미지 클릭 핸들러
+  const handleImageClick = (image: StoryImageType, index: number) => {
+    setSelectedImage(image);
+    setCurrentImageIndex(index);
+    setOpenImageViewer(true);
+  };
+
+  // 이미지 뷰어 닫기
+  const handleCloseImageViewer = () => {
+    setOpenImageViewer(false);
+    setSelectedImage(null);
+  };
+
+  // 다음 이미지로 이동
+  const handleNextImage = () => {
+    if (detail?.StoryImage && currentImageIndex < detail.StoryImage.length - 1) {
+      const nextIndex = currentImageIndex + 1;
+      setCurrentImageIndex(nextIndex);
+      setSelectedImage(detail.StoryImage[nextIndex]);
+    }
+  };
+
+  // 이전 이미지로 이동
+  const handlePrevImage = () => {
+    if (detail?.StoryImage && currentImageIndex > 0) {
+      const prevIndex = currentImageIndex - 1;
+      setCurrentImageIndex(prevIndex);
+      setSelectedImage(detail.StoryImage[prevIndex]);
+    }
+  };
+
+  // 키보드 이벤트 처리
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!openImageViewer) return;
+      
+      if (e.key === 'ArrowRight') {
+        handleNextImage();
+      } else if (e.key === 'ArrowLeft') {
+        handlePrevImage();
+      } else if (e.key === 'Escape') {
+        handleCloseImageViewer();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [openImageViewer, currentImageIndex, detail?.StoryImage]);
+
   // ★ 모든 훅은 조건부 return 전에 호출되어야 합니다.
   const memoizedImageCards = useMemo(() => {
     if (!detail || !detail.StoryImage || detail.StoryImage.length === 0) {
@@ -209,7 +266,14 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     }
     return detail.StoryImage.map((img: StoryImageType, index: number) => {
       const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
-      return <ImageCard key={`${img.id}-${index}`} img={img} isLastOddImage={isLastOddImage} />;
+      return (
+        <ImageCard
+          key={`${img.id}-${index}`}
+          img={img}
+          isLastOddImage={isLastOddImage}
+          onClick={(img) => handleImageClick(img, index)}
+        />
+      );
     });
   }, [detail?.StoryImage]);
 
@@ -398,6 +462,89 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
           }}
         />
       )}
+
+      {/* 이미지 뷰어 다이얼로그 */}
+      <Dialog
+        open={openImageViewer}
+        onClose={handleCloseImageViewer}
+        maxWidth="lg"
+        fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: 'rgba(0, 0, 0, 0.9)',
+            boxShadow: 'none',
+            position: 'relative',
+            height: '90vh',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          },
+        }}
+      >
+        {/* 닫기 버튼 */}
+        <IconButton
+          onClick={handleCloseImageViewer}
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            color: 'white',
+            '&:hover': {
+              bgcolor: 'rgba(255, 255, 255, 0.1)',
+            },
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+
+        {/* 이전 이미지 버튼 */}
+        {currentImageIndex > 0 && (
+          <IconButton
+            onClick={handlePrevImage}
+            sx={{
+              position: 'absolute',
+              left: 16,
+              color: 'white',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
+            <ArrowBackIosNewIcon />
+          </IconButton>
+        )}
+
+        {/* 이미지 */}
+        {selectedImage && (
+          <Box
+            component="img"
+            src={`${process.env.NEXT_PUBLIC_BASE_URL}${selectedImage.link}`}
+            alt="Selected"
+            sx={{
+              maxWidth: '90%',
+              maxHeight: '90vh',
+              objectFit: 'contain',
+            }}
+          />
+        )}
+
+        {/* 다음 이미지 버튼 */}
+        {detail?.StoryImage && currentImageIndex < detail.StoryImage.length - 1 && (
+          <IconButton
+            onClick={handleNextImage}
+            sx={{
+              position: 'absolute',
+              right: 16,
+              color: 'white',
+              '&:hover': {
+                bgcolor: 'rgba(255, 255, 255, 0.1)',
+              },
+            }}
+          >
+            <ArrowForwardIosIcon />
+          </IconButton>
+        )}
+      </Dialog>
     </Box>
   );
 }

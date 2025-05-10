@@ -2,7 +2,13 @@ import React, { useState, useMemo, useRef } from "react";
 import { CardMedia } from "@mui/material";
 import { StoryImageType } from "@/app/types/imageTypes";
 
-const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = React.memo(({ img, isLastOddImage }) => {
+interface ImageCardProps {
+  img: StoryImageType;
+  isLastOddImage: boolean;
+  onClick?: (img: StoryImageType) => void;
+}
+
+const ImageCard: React.FC<ImageCardProps> = React.memo(({ img, isLastOddImage, onClick }) => {
   const [dimensions, setDimensions] = useState<{ width: number; height: number } | null>(null);
 
   // 컴포넌트가 마운트 될 때 고정되는 타임스탬프
@@ -33,6 +39,7 @@ const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = Re
       image={imageSrc}
       alt={`이미지 ${img.image_name}`}
       onLoad={handleImageLoad}
+      onClick={() => onClick?.(img)}
       sx={{
         flexBasis: fullWidth ? "100%" : "calc(50% - 8px)",
         maxWidth: fullWidth ? "100%" : "calc(50% - 8px)",
@@ -45,6 +52,7 @@ const ImageCard: React.FC<{ img: StoryImageType; isLastOddImage: boolean }> = Re
         "&:hover": {
           transform: "translateY(-10px)",
           boxShadow: 16,
+          cursor: onClick ? "pointer" : "default",
         },
       }}
     />

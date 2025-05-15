@@ -24,6 +24,7 @@ interface InputFileUploadProps {
 }
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+const ALLOWED_FILE_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml", "image/bmp"];
 
 export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileUploadProps) {
   const { showMessage } = useMessage((state) => state);
@@ -35,6 +36,13 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
   // 이미지 업로드
   const onUpload: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     if (e.target.files) {
+      // 파일 타입 검사
+      const invalidFiles = Array.from(e.target.files).filter((file) => !ALLOWED_FILE_TYPES.includes(file.type));
+      if (invalidFiles.length > 0) {
+        showMessage("이미지 파일만 업로드 가능합니다 (JPG, PNG, GIF, WEBP, SVG, BMP).", "error");
+        return;
+      }
+
       // 파일 크기 검사
       const oversizedFiles = Array.from(e.target.files).filter((file) => file.size > MAX_FILE_SIZE);
       if (oversizedFiles.length > 0) {
@@ -77,7 +85,7 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
         }}
       >
         업로드
-        <VisuallyHiddenInput type="file" onChange={onUpload} multiple />
+        <VisuallyHiddenInput type="file" onChange={onUpload} multiple accept="image/*" />
       </Button>
       {preview.length > 0 && (
         <Box>

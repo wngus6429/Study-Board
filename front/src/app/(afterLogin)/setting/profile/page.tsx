@@ -142,6 +142,13 @@ function UserProfileEdit() {
   const handleImageChange = (event: any) => {
     const file = event.target.files[0];
     if (file) {
+      // 이미지 파일인지 확인
+      const validImageTypes = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml", "image/bmp"];
+      if (!validImageTypes.includes(file.type)) {
+        showMessage("이미지 파일만 업로드 가능합니다 (JPG, PNG, GIF, WEBP, SVG, BMP).", "error");
+        return;
+      }
+
       if (file.size > 500 * 1024) {
         showMessage("파일 크기가 너무 큽니다. 500KB 이하의 파일을 선택하세요.", "error");
         return;
@@ -345,7 +352,7 @@ function UserProfileEdit() {
             <Button variant="outlined" component="label" color="primary" sx={{ flexGrow: 1 }}>
               사진 <br />
               업로드
-              <input type="file" hidden onChange={handleImageChange} />
+              <input type="file" hidden onChange={handleImageChange} accept="image/*" />
             </Button>
             <Button
               variant="outlined"

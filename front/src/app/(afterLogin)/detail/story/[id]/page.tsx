@@ -1,12 +1,26 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
 import { StoryImageType } from "@/app/types/imageTypes";
-import { Avatar, Box, Button, Card, CardContent, CircularProgress, Dialog, IconButton, Typography } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Dialog,
+  Fade,
+  IconButton,
+  Slide,
+  Tooltip,
+  Typography,
+  Zoom,
+} from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -17,9 +31,12 @@ import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 import Link from "next/link";
 import ImageCard from "@/app/components/ImageCard";
 import { StoryType } from "@/app/types/storyDetailType";
-import CloseIcon from '@mui/icons-material/Close';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+import CloseIcon from "@mui/icons-material/Close";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import ZoomInIcon from "@mui/icons-material/ZoomIn";
+import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import { TransitionProps } from "@mui/material/transitions";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -38,6 +55,9 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const [selectedImage, setSelectedImage] = useState<StoryImageType | null>(null);
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [openImageViewer, setOpenImageViewer] = useState(false);
+
+  // handleImageClick 함수 근처에 줌 관련 상태와 함수 추가
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
 
   //! 상세 데이터 가져오기
   const {
@@ -214,6 +234,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const handleImageClick = (image: StoryImageType, index: number) => {
     setSelectedImage(image);
     setCurrentImageIndex(index);
+    setZoomLevel(1); // 줌 레벨 초기화
     setOpenImageViewer(true);
   };
 
@@ -221,6 +242,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const handleCloseImageViewer = () => {
     setOpenImageViewer(false);
     setSelectedImage(null);
+    setZoomLevel(1); // 줌 레벨 초기화
   };
 
   // 다음 이미지로 이동
@@ -241,23 +263,46 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     }
   };
 
-  // 키보드 이벤트 처리
+  // 확대/축소 기능 추가
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 0.25, 3)); // 최대 3배까지 확대
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 0.25, 0.5)); // 최소 0.5배까지 축소
+  };
+
+  // 키보드 이벤트 처리 업데이트
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!openImageViewer) return;
-      
-      if (e.key === 'ArrowRight') {
+
+      if (e.key === "ArrowRight") {
         handleNextImage();
-      } else if (e.key === 'ArrowLeft') {
+      } else if (e.key === "ArrowLeft") {
         handlePrevImage();
-      } else if (e.key === 'Escape') {
+      } else if (e.key === "Escape") {
         handleCloseImageViewer();
+      } else if (e.key === "+" || e.key === "=") {
+        handleZoomIn();
+      } else if (e.key === "-") {
+        handleZoomOut();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [openImageViewer, currentImageIndex, detail?.StoryImage]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [openImageViewer, currentImageIndex, detail?.StoryImage, zoomLevel]);
+
+  // Slide 트랜지션 커스텀 컴포넌트
+  const SlideTransition = React.forwardRef(function Transition(
+    props: TransitionProps & {
+      children: React.ReactElement;
+    },
+    ref: React.Ref<unknown>
+  ) {
+    return <Slide direction="up" ref={ref} {...props} />;
+  });
 
   // ★ 모든 훅은 조건부 return 전에 호출되어야 합니다.
   const memoizedImageCards = useMemo(() => {
@@ -467,83 +512,137 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       <Dialog
         open={openImageViewer}
         onClose={handleCloseImageViewer}
-        maxWidth="lg"
+        maxWidth={false}
         fullWidth
         PaperProps={{
           sx: {
-            bgcolor: 'rgba(0, 0, 0, 0.9)',
-            boxShadow: 'none',
-            position: 'relative',
-            height: '90vh',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
+            bgcolor: "rgba(0, 0, 0, 0.92)",
+            border: "1px solid rgba(192, 192, 192, 0.5)",
+            boxShadow: "0 0 20px rgba(255, 255, 255, 0.1)",
+            position: "relative",
+            height: "90vh",
+            margin: "20px",
+            borderRadius: "8px",
+            overflow: "hidden",
           },
         }}
       >
-        {/* 닫기 버튼 */}
-        <IconButton
-          onClick={handleCloseImageViewer}
+        {/* 상단 컨트롤 바 */}
+        <Box
           sx={{
-            position: 'absolute',
-            top: 8,
-            right: 8,
-            color: 'white',
-            '&:hover': {
-              bgcolor: 'rgba(255, 255, 255, 0.1)',
-            },
+            position: "absolute",
+            top: 0,
+            right: 0,
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            p: 1.5,
+            zIndex: 10,
           }}
         >
-          <CloseIcon />
-        </IconButton>
-
-        {/* 이전 이미지 버튼 */}
-        {currentImageIndex > 0 && (
+          {/* 줌 컨트롤 */}
           <IconButton
-            onClick={handlePrevImage}
+            onClick={handleZoomOut}
             sx={{
-              position: 'absolute',
-              left: 16,
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.1)',
-              },
+              color: "silver",
+              "&:hover": { color: "white" },
+              mr: 1,
             }}
           >
-            <ArrowBackIosNewIcon />
+            <ZoomOutIcon />
           </IconButton>
-        )}
 
-        {/* 이미지 */}
-        {selectedImage && (
-          <Box
-            component="img"
-            src={`${process.env.NEXT_PUBLIC_BASE_URL}${selectedImage.link}`}
-            alt="Selected"
+          <Typography
+            variant="body2"
             sx={{
-              maxWidth: '90%',
-              maxHeight: '90vh',
-              objectFit: 'contain',
-            }}
-          />
-        )}
-
-        {/* 다음 이미지 버튼 */}
-        {detail?.StoryImage && currentImageIndex < detail.StoryImage.length - 1 && (
-          <IconButton
-            onClick={handleNextImage}
-            sx={{
-              position: 'absolute',
-              right: 16,
-              color: 'white',
-              '&:hover': {
-                bgcolor: 'rgba(255, 255, 255, 0.1)',
-              },
+              color: "silver",
+              mx: 1,
             }}
           >
-            <ArrowForwardIosIcon />
+            {(zoomLevel * 100).toFixed(0)}%
+          </Typography>
+
+          <IconButton
+            onClick={handleZoomIn}
+            sx={{
+              color: "silver",
+              "&:hover": { color: "white" },
+              mr: 1,
+            }}
+          >
+            <ZoomInIcon />
           </IconButton>
-        )}
+
+          {/* 닫기 버튼 */}
+          <IconButton
+            onClick={handleCloseImageViewer}
+            sx={{
+              color: "silver",
+              "&:hover": { color: "white" },
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        {/* 이미지 컨테이너 */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {/* 이전 이미지 네비게이션 버튼 */}
+          {currentImageIndex > 0 && (
+            <IconButton
+              onClick={handlePrevImage}
+              sx={{
+                position: "absolute",
+                left: { xs: 8, md: 24 },
+                color: "silver",
+                "&:hover": { color: "white" },
+              }}
+            >
+              <ArrowBackIosNewIcon />
+            </IconButton>
+          )}
+
+          {/* 이미지 */}
+          {selectedImage && (
+            <Box
+              component="img"
+              src={`${process.env.NEXT_PUBLIC_BASE_URL}${selectedImage.link}`}
+              alt="Selected"
+              sx={{
+                maxWidth: "90%",
+                maxHeight: "80vh",
+                objectFit: "contain",
+                transform: `scale(${zoomLevel})`,
+                transition: "transform 0.2s ease-out",
+                border: "1px solid rgba(192, 192, 192, 0.2)",
+              }}
+            />
+          )}
+
+          {/* 다음 이미지 네비게이션 버튼 */}
+          {detail?.StoryImage && currentImageIndex < detail.StoryImage.length - 1 && (
+            <IconButton
+              onClick={handleNextImage}
+              sx={{
+                position: "absolute",
+                right: { xs: 8, md: 24 },
+                color: "silver",
+                "&:hover": { color: "white" },
+              }}
+            >
+              <ArrowForwardIosIcon />
+            </IconButton>
+          )}
+        </Box>
       </Dialog>
     </Box>
   );

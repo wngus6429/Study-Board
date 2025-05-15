@@ -142,6 +142,10 @@ function UserProfileEdit() {
   const handleImageChange = (event: any) => {
     const file = event.target.files[0];
     if (file) {
+      if (file.size > 500 * 1024) {
+        showMessage("파일 크기가 너무 큽니다. 500KB 이하의 파일을 선택하세요.", "error");
+        return;
+      }
       setProfileImage(file);
       setPreviewImage(URL.createObjectURL(file));
     } else {

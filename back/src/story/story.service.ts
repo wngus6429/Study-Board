@@ -599,7 +599,7 @@ export class StoryService {
   // 상세 페이지에서 댓글 데이터를 가져오는 메서드 : 댓글 Get
   async findStoryOneComment(
     id: number,
-    userId: string | null,
+    userId?: any,
     page: number = 1,
     limit: number = 10,
   ): Promise<any> {
@@ -623,17 +623,14 @@ export class StoryService {
       throw new NotFoundException(`${id}의 댓글 데이터가 없음`);
     }
 
-    // 로그인 했으면 사용자 정보 가져오기
+    // 로그인한 사용자의 정보 가져오기 (선택적)
     let loginUser = null;
-    console.log('유유userId', userId);
     if (userId) {
       loginUser = await this.userRepository.findOne({
         where: { id: userId },
         relations: ['UserImage'], // 사용자 프로필 이미지 포함
       });
     }
-
-    console.log('loginUser', loginUser);
 
     // 댓글을 계층 구조로 빌드하는 함수
     function buildCommentTree(comments: any): any[] {
@@ -707,25 +704,78 @@ export class StoryService {
 
     // 댓글 데이터를 계층 구조로 변환
     const allProcessedComments = buildCommentTree(findData.Comments);
-    console.log(
-      'Processed comment data:',
-      JSON.stringify(allProcessedComments, null, 2),
-    );
 
-    // 전체 댓글 수 계산
-    const totalCount = allProcessedComments.length;
+    // 대댓글을 포함한 모든 댓글을 평탄화하는 함수
+    function flattenCommentsWithReplies(comments: any[]): any[] {
+      let result: any[] = [];
 
-    // 페이지네이션 적용 (루트 댓글만 페이지네이션)
+      for (const comment of comments) {
+        // 댓글 자체를 결과에 추가
+        result.push(comment);
+
+        // 대댓글이 있으면 평탄화하여 결과에 추가
+        if (comment.children && comment.children.length > 0) {
+          result = result.concat(flattenCommentsWithReplies(comment.children));
+        }
+      }
+
+      return result;
+    }
+
+    // 계층 구조를 평탄화하여 모든 댓글을 하나의 배열로 만듦 (대댓글 포함)
+    const allFlattenedComments =
+      flattenCommentsWithReplies(allProcessedComments);
+
+    // 전체 댓글 수 계산 (대댓글 포함)
+    const totalCount = allFlattenedComments.length;
+
+    // 페이지네이션 적용 (대댓글 포함)
     const startIndex = (page - 1) * limit;
     const endIndex = startIndex + limit;
 
-    // 현재 페이지의 댓글만 추출
-    const processedComments = allProcessedComments.slice(
+    // 페이지에 나타낼 댓글 슬라이스 (페이지당 표시할 댓글 수)
+    const pagedComments = allFlattenedComments.slice(
       startIndex,
-      Math.min(endIndex, allProcessedComments.length),
+      Math.min(endIndex, allFlattenedComments.length),
     );
 
-    return { processedComments, loginUser, totalCount }; // 페이지네이션된 댓글 데이터와 총 댓글 수 반환
+    // 현재 페이지에 표시될 댓글의 ID 목록
+    const pagedCommentIds = new Set(pagedComments.map((comment) => comment.id));
+
+    // 루트 댓글 중 페이지에 나타낼 댓글 또는 대댓글을 포함하는 댓글만 필터링
+    const processedComments = allProcessedComments.filter((comment) => {
+      // 최상위 댓글 ID가 페이지에 포함된 경우
+      if (pagedCommentIds.has(comment.id)) return true;
+
+      // 대댓글 ID가 페이지에 포함된 경우 해당 최상위 댓글도 포함
+      if (comment.children && comment.children.length > 0) {
+        return comment.children.some((child) =>
+          hasChildInPage(child, pagedCommentIds),
+        );
+      }
+
+      return false;
+    });
+
+    // 대댓글이 페이지에 포함되는지 재귀적으로 확인하는 헬퍼 함수
+    function hasChildInPage(comment, pagedIds) {
+      if (pagedIds.has(comment.id)) return true;
+
+      if (comment.children && comment.children.length > 0) {
+        return comment.children.some((child) =>
+          hasChildInPage(child, pagedIds),
+        );
+      }
+
+      return false;
+    }
+
+    // 최종 결과 반환
+    return {
+      processedComments,
+      loginUser,
+      totalCount, // 전체 댓글 수 (대댓글 포함)
+    };
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 작성

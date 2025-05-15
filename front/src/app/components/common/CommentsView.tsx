@@ -24,7 +24,7 @@ interface Comment {
 interface CommentResponse {
   processedComments: Comment[];
   loginUser: any;
-  totalCount: number; // 전체 댓글 수 추가
+  totalCount: number; // 전체 댓글 수 추가 (대댓글 포함)
 }
 
 const CommentsView = () => {
@@ -58,7 +58,7 @@ const CommentsView = () => {
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/comment/${storyId}`, {
         userId: session?.user?.id || null,
         page: currentPage, // 현재 페이지 정보 전달
-        limit: viewCount, // 페이지당 표시할 댓글 수 전달
+        limit: viewCount, // 페이지당 표시할 댓글 수 전달 (대댓글 포함)
       });
       console.log("댓글 데이터 받아옴", storyId, "페이지:", currentPage);
       return response.data;
@@ -98,7 +98,16 @@ const CommentsView = () => {
     onSuccess: (status) => {
       if (status === 200 || status === 201) {
         setContent("");
-        refetch(); // 성공 후 현재 페이지의 댓글 다시 로드
+        // 댓글 작성 후 마지막 페이지로 이동하기 위해 totalCount 확인 후 페이지 계산
+        refetch().then((result) => {
+          if (result.data) {
+            const newTotalCount = result.data.totalCount;
+            const lastPage = Math.ceil((newTotalCount + 1) / viewCount); // +1은 방금 작성한 댓글 고려
+            if (currentPage !== lastPage) {
+              setCurrentPage(lastPage); // 마지막 페이지로 이동
+            }
+          }
+        });
       }
     },
     onError: () => {
@@ -157,7 +166,12 @@ const CommentsView = () => {
 
   const handleReplySubmit = (parentId: number, content: string) => {
     if (content.trim()) {
-      mutation.mutate({ storyId, content, parentId, authorId: session?.user.id as string });
+      mutation.mutate({
+        storyId,
+        content,
+        parentId,
+        authorId: session?.user.id as string,
+      });
       setReplyTo(null);
     }
   };
@@ -394,8 +408,6 @@ const CommentsView = () => {
     );
   };
 
-  console.log("@userData", userData);
-
   return (
     <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2, mb: 2 }}>
       {isLoading && <Loading />}
@@ -423,7 +435,7 @@ const CommentsView = () => {
         </Box>
       )}
       <CommentList
-        comments={comments} // 이제 서버에서 받아온 페이지 댓글 그대로 사용
+        comments={comments} // 서버에서 받아온 계층 구조의 댓글 사용
         toggleReply={toggleReply}
         handleReplySubmit={handleReplySubmit}
         replyTo={replyTo}
@@ -481,8 +493,18 @@ const CommentsView = () => {
           </Box>
         </Box>
       )}
+      {session?.user?.id && !userData?.nickname && (
+        <Box sx={{ mt: 2, textAlign: "center" }}>
+          <Typography variant="body2" color="error">
+            댓글 작성을 위한, 로그인 정보를 가져오는 중 문제가 발생했습니다.
+          </Typography>
+          <Button variant="outlined" color="primary" onClick={() => refetch()} sx={{ mt: 1 }}>
+            다시 시도
+          </Button>
+        </Box>
+      )}
       <Box sx={{ display: "flex", justifyContent: "center", flex: 1, mt: 2 }}>
-        {/* 서버에서 받아온, 전체 댓글 수를 기반으로 페이지네이션 표시 */}
+        {/* 서버에서 받아온, 전체 댓글 수(대댓글 포함)를 기반으로 페이지네이션 표시 */}
         <Pagination count={Math.ceil(totalCount / viewCount)} page={currentPage} onChange={handlePageClick} />
       </Box>
     </Box>

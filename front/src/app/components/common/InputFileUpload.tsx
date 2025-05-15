@@ -4,6 +4,7 @@ import Button from "@mui/material/Button";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { Box, Card, CardActions, CardMedia, IconButton } from "@mui/material";
+import { useMessage } from "@/app/store/messageStore";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -22,7 +23,10 @@ interface InputFileUploadProps {
   preview: Array<{ dataUrl: string; file: File } | null>;
 }
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB in bytes
+
 export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileUploadProps) {
+  const { showMessage } = useMessage((state) => state);
   // 이미지 삭제
   const onRemoveImage = (index: number) => {
     const updatedPreview = preview.filter((_, i) => i !== index);
@@ -31,6 +35,12 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
   // 이미지 업로드
   const onUpload: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     if (e.target.files) {
+      // 파일 크기 검사
+      const oversizedFiles = Array.from(e.target.files).filter((file) => file.size > MAX_FILE_SIZE);
+      if (oversizedFiles.length > 0) {
+        showMessage("파일 크기는 10MB를 초과할 수 없습니다.", "error");
+        return;
+      }
       const newPreviews = Array.from(e.target.files).map((file) => {
         const reader = new FileReader();
         return new Promise<{ dataUrl: string; file: File }>((resolve) => {

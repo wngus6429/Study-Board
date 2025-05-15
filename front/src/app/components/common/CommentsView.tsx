@@ -20,6 +20,13 @@ interface Comment {
   children: Comment[];
 }
 
+// 페이지네이션 응답 인터페이스 추가
+interface CommentResponse {
+  processedComments: Comment[];
+  loginUser: any;
+  totalCount: number; // 전체 댓글 수 추가
+}
+
 const CommentsView = () => {
   // URL 파라미터에서 스토리 ID 가져오기
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
@@ -36,39 +43,37 @@ const CommentsView = () => {
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
-  const viewCount = 5; // 한 페이지당 표시할 최상위 댓글 수
+  const viewCount = 10; // 한 페이지당 표시할 댓글 수
+  const [totalCount, setTotalCount] = useState(0); // 전체 댓글 수 상태 추가
 
   const {
     data: CommentData,
     isLoading,
     isError,
     refetch,
-  } = useQuery({
-    queryKey: ["story", "detail", "comments", storyId],
+  } = useQuery<CommentResponse>({
+    queryKey: ["story", "detail", "comments", storyId, currentPage, viewCount], // 페이지 정보를 쿼리 키에 추가
     queryFn: async () => {
+      // 서버에 현재 페이지와 페이지당 댓글 수 정보를 함께 전달
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/comment/${storyId}`, {
-        userId: session?.user?.id || null, // 로그인했으면 userId 전달, 아니면 null
+        userId: session?.user?.id || null,
+        page: currentPage, // 현재 페이지 정보 전달
+        limit: viewCount, // 페이지당 표시할 댓글 수 전달
       });
-      console.log("댓글 데이터 받아옴", storyId);
+      console.log("댓글 데이터 받아옴", storyId, "페이지:", currentPage);
       return response.data;
     },
     enabled: !!storyId && status !== "loading", // storyId가 있으면 항상 활성화
-    staleTime: 0, // 페이지 들어갈 때마다 데이터 다시 부름
-    // refetchInterval: 1000, // 1초마다 데이터를 다시 가져옴
   });
 
-  // 댓글 데이터 업데이트 시, 페이지 번호 유지 (필요시 조정)
+  // 댓글 데이터 업데이트 시 상태 업데이트
   useEffect(() => {
-    if (CommentData?.processedComments) {
+    if (CommentData) {
       setComments(CommentData.processedComments);
       setUserData(CommentData.loginUser);
-      // 전체 페이지 수 계산 (최소 1페이지로 보장, 이거 안하면 첫댓글시, 작성후 바로 반영 안됨)
-      const totalPages = Math.max(1, Math.ceil(CommentData.processedComments.length / viewCount));
-      if (currentPage > totalPages) {
-        setCurrentPage(totalPages);
-      }
+      setTotalCount(CommentData.totalCount); // 전체 댓글 수 업데이트
     }
-  }, [CommentData, currentPage, viewCount]);
+  }, [CommentData]);
 
   // 댓글 POST
   const mutation = useMutation({
@@ -93,7 +98,7 @@ const CommentsView = () => {
     onSuccess: (status) => {
       if (status === 200 || status === 201) {
         setContent("");
-        refetch();
+        refetch(); // 성공 후 현재 페이지의 댓글 다시 로드
       }
     },
     onError: () => {
@@ -115,7 +120,7 @@ const CommentsView = () => {
     },
     onSuccess: (status) => {
       if (status === 200 || status === 201) {
-        refetch();
+        refetch(); // 삭제 후 현재 페이지 다시 로드
       }
     },
     onError: () => {
@@ -123,10 +128,9 @@ const CommentsView = () => {
     },
   });
 
-  // 댓글 수정 mutation (PATCH나 PUT을 사용 가능)
+  // 댓글 수정 mutation
   const editMutation = useMutation({
     mutationFn: async ({ commentId, newContent }: { commentId: number; newContent: string }) => {
-      // 여기서는 PATCH 메서드를 사용하여 부분 업데이트
       const response = await axios.patch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${commentId}`,
         { content: newContent },
@@ -136,7 +140,7 @@ const CommentsView = () => {
     },
     onSuccess: (status) => {
       if (status === 200 || status === 201) {
-        refetch();
+        refetch(); // 수정 성공 후 현재 페이지 다시 로드
       }
     },
     onError: () => {
@@ -162,7 +166,8 @@ const CommentsView = () => {
     setReplyTo((prev) => (prev === commentId ? null : commentId)); // 같은 ID를 클릭하면 닫히도록
   };
 
-  const flattenComments = (comments: any[], depth = 0, result = []) => {
+  // 댓글 계층 구조를 평탄화하는 함수
+  const flattenComments = (comments: Comment[], depth = 0, result: any[] = []) => {
     for (const comment of comments) {
       result.push({ ...comment, depth }); // 댓글과 depth를 함께 저장
       if (comment.children && comment.children.length > 0) {
@@ -199,13 +204,10 @@ const CommentsView = () => {
     }
   };
 
-  const total = comments.length;
-  const startIndex = (currentPage - 1) * viewCount;
-  const endIndex = startIndex + viewCount;
-  const paginatedComments = comments.slice(startIndex, endIndex);
-
+  // 페이지 변경 시 API 호출
   const handlePageClick = (event: React.ChangeEvent<unknown>, page: number) => {
     setCurrentPage(page);
+    // 페이지 변경 시 자동으로 쿼리가 다시 실행됨 (queryKey에 currentPage가 포함되어 있으므로)
   };
 
   const MAX_DEPTH = 4; // 댓글 최대 깊이 제한
@@ -392,6 +394,8 @@ const CommentsView = () => {
     );
   };
 
+  console.log("@userData", userData);
+
   return (
     <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2, mb: 2 }}>
       {isLoading && <Loading />}
@@ -419,7 +423,7 @@ const CommentsView = () => {
         </Box>
       )}
       <CommentList
-        comments={paginatedComments}
+        comments={comments} // 이제 서버에서 받아온 페이지 댓글 그대로 사용
         toggleReply={toggleReply}
         handleReplySubmit={handleReplySubmit}
         replyTo={replyTo}
@@ -478,7 +482,8 @@ const CommentsView = () => {
         </Box>
       )}
       <Box sx={{ display: "flex", justifyContent: "center", flex: 1, mt: 2 }}>
-        <Pagination count={Math.ceil(total / viewCount)} page={currentPage} onChange={handlePageClick} />
+        {/* 서버에서 받아온, 전체 댓글 수를 기반으로 페이지네이션 표시 */}
+        <Pagination count={Math.ceil(totalCount / viewCount)} page={currentPage} onChange={handlePageClick} />
       </Box>
     </Box>
   );

@@ -597,7 +597,12 @@ export class StoryService {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세 페이지에서 댓글 데이터를 가져오는 메서드 : 댓글 Get
-  async findStoryOneComment(id: number, userData?: any): Promise<any> {
+  async findStoryOneComment(
+    id: number,
+    userId: string | null,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<any> {
     // Story 데이터를 댓글과 함께 가져옴
     const findData = await this.storyRepository.findOne({
       where: { id },
@@ -618,15 +623,17 @@ export class StoryService {
       throw new NotFoundException(`${id}의 댓글 데이터가 없음`);
     }
 
-    // 로그인한 사용자의 정보 가져오기 (선택적)
-    const { userId } = userData;
+    // 로그인 했으면 사용자 정보 가져오기
     let loginUser = null;
+    console.log('유유userId', userId);
     if (userId) {
       loginUser = await this.userRepository.findOne({
         where: { id: userId },
         relations: ['UserImage'], // 사용자 프로필 이미지 포함
       });
     }
+
+    console.log('loginUser', loginUser);
 
     // 댓글을 계층 구조로 빌드하는 함수
     function buildCommentTree(comments: any): any[] {
@@ -699,13 +706,26 @@ export class StoryService {
     }
 
     // 댓글 데이터를 계층 구조로 변환
-    const processedComments = buildCommentTree(findData.Comments);
+    const allProcessedComments = buildCommentTree(findData.Comments);
     console.log(
       'Processed comment data:',
-      JSON.stringify(processedComments, null, 2),
+      JSON.stringify(allProcessedComments, null, 2),
     );
 
-    return { processedComments, loginUser }; // 댓글 데이터와 로그인 사용자 정보 반환
+    // 전체 댓글 수 계산
+    const totalCount = allProcessedComments.length;
+
+    // 페이지네이션 적용 (루트 댓글만 페이지네이션)
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    // 현재 페이지의 댓글만 추출
+    const processedComments = allProcessedComments.slice(
+      startIndex,
+      Math.min(endIndex, allProcessedComments.length),
+    );
+
+    return { processedComments, loginUser, totalCount }; // 페이지네이션된 댓글 데이터와 총 댓글 수 반환
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 작성

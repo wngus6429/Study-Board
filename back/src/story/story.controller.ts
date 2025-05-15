@@ -159,10 +159,13 @@ export class StoryController {
   @Post('/detail/comment/:id')
   async getStoryDetailComment(
     @Param('id', ParseIntPipe) id: number,
-    @Body() userId: string | null,
+    @Body() body: { userId: string | null; page?: number; limit?: number },
   ): Promise<any> {
-    const { processedComments, loginUser } =
-      await this.storyService.findStoryOneComment(id, userId);
+    const { userId, page = 1, limit = 10 } = body; // 페이지네이션 파라미터 추출 (기본값 설정)
+    console.log('유저아이디', userId);
+    const { processedComments, loginUser, totalCount } =
+      await this.storyService.findStoryOneComment(id, userId, page, limit);
+
     // 로그인유저 객체 만들기.
     let filteredLoginUser;
     if (loginUser != null) {
@@ -174,7 +177,7 @@ export class StoryController {
       filteredLoginUser = null;
     }
     console.log('완성체', processedComments);
-    return { processedComments, loginUser: filteredLoginUser };
+    return { processedComments, loginUser: filteredLoginUser, totalCount };
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 작성

@@ -132,10 +132,16 @@ const MainView = ({
     setCategoryValue(newValue);
     // 페이지 번호 초기화
     setCurrentPage(1);
-    // 추천 랭킹 모드 초기화 (탭 변경 시 기본값으로)
-    setRecommendRankingMode(false);
+
+    // URL 쿼리 파라미터 구성
+    const params = new URLSearchParams();
+    params.set("category", newValue);
+
+    // 추천 랭킹 모드 상태 유지 (탭 변경에도 유지)
+    params.set("recommendRanking", recommendRankingMode.toString());
+
     // URL 업데이트 (예: 쿼리 파라미터 반영)
-    Router.push(`?category=${newValue}`, { scroll: false });
+    Router.push(`?${params.toString()}`, { scroll: false });
   };
 
   // 추천 랭킹 모드 토글 함수

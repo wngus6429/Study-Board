@@ -15,6 +15,8 @@ import * as path from 'path';
 import { UpdateStoryDto } from './dto/update-story.dto';
 import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
+import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
+import { MIN_RECOMMEND_COUNT } from 'src/common/constants/app.constants';
 
 @Injectable()
 export class StoryService {
@@ -28,6 +30,8 @@ export class StoryService {
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Comments) private commentRepository: Repository<Comments>,
     @InjectRepository(Likes) private likeRepository: Repository<Likes>,
+    @InjectRepository(RecommendRanking)
+    private recommendRankingRepository: Repository<RecommendRanking>,
   ) {}
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async findStory(
@@ -150,45 +154,8 @@ export class StoryService {
     results: Partial<Story>[];
     total: number;
   }> {
-    // TODO 다른 테이블로 관리
-    // 2. 조건에 맞는 모든 게시글 불러오기 (관계 엔티티(Likes, User, StoryImage) 포함)
-    const posts = await this.storyRepository.find({
-      relations: ['Likes', 'User', 'StoryImage'],
-      order: { id: 'DESC' },
-    });
-
-    // 3. 각 게시글의 추천 수(좋아요 - 싫어요)를 계산하고, minRecommend 이상인 게시글만 필터링
-    const filteredPosts = posts.filter((post) => {
-      const recommendCount = post.Likes.reduce((acc, curr) => {
-        if (curr.vote === 'like') return acc + 1;
-        if (curr.vote === 'dislike') return acc - 1;
-        return acc;
-      }, 0);
-      return recommendCount >= minRecommend;
-    });
-
-    // 4. 총 개수 계산 (필터링 후)
-    const total = filteredPosts.length;
-
-    // 5. 페이지네이션 적용 (메모리 상에서 offset, limit 적용)
-    const paginatedPosts = filteredPosts.slice(offset, offset + limit);
-
-    // 6. 결과 데이터 가공: 추천 수, 사용자 닉네임, 이미지 여부 등의 필드 추가
-    const results = paginatedPosts.map((post) => {
-      const recommendCount = post.Likes.reduce((acc, curr) => {
-        if (curr.vote === 'like') return acc + 1;
-        if (curr.vote === 'dislike') return acc - 1;
-        return acc;
-      }, 0);
-      return {
-        ...post,
-        recommend_Count: recommendCount,
-        nickname: post.User.nickname,
-        imageFlag: post.StoryImage && post.StoryImage.length > 0,
-      };
-    });
-
-    return { results, total };
+    // RecommendRanking 테이블에서 데이터 가져오기
+    return this.getRecommendRankings(offset, limit, category);
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 새로 추가: 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 사용)
@@ -202,49 +169,8 @@ export class StoryService {
     results: Partial<Story>[];
     total: number;
   }> {
-    // TODO 다른 테이블에서 관리
-    // 2. 조건에 맞는 모든 게시글 불러오기 (관계 엔티티(Likes, User, StoryImage) 포함)
-    const posts = await this.storyRepository.find({
-      relations: ['Likes', 'User', 'StoryImage'],
-      // where: whereCondition,
-      order: { id: 'DESC' },
-      skip: offset,
-      take: limit,
-    });
-
-    // 3. 각 게시글의 추천 수(좋아요 - 싫어요)를 계산하고, minRecommend 이상인 게시글만 필터링
-    const filteredPosts = posts.filter((post) => {
-      const recommendCount = post.Likes.reduce((acc, curr) => {
-        if (curr.vote === 'like') return acc + 1;
-        if (curr.vote === 'dislike') return acc - 1;
-        return acc;
-      }, 0);
-      return recommendCount >= minRecommend;
-    });
-
-    // 4. 총 개수 계산 (필터링 후)
-    const total = filteredPosts.length;
-
-    // 5. 페이지네이션 적용 (메모리 상에서 offset, limit 적용)
-    const paginatedPosts = filteredPosts.slice(offset, offset + limit);
-
-    // 6. 결과 데이터 가공: 추천 수, 사용자 닉네임, 이미지 여부 등의 필드 추가
-    const results = paginatedPosts.map((post) => {
-      const recommendCount = post.Likes.reduce((acc, curr) => {
-        if (curr.vote === 'like') return acc + 1;
-        if (curr.vote === 'dislike') return acc - 1;
-        return acc;
-      }, 0);
-      return {
-        ...post,
-        recommend_Count: recommendCount,
-        nickname: post.User.nickname,
-        imageFlag: post.StoryImage && post.StoryImage.length > 0,
-        firstImage: StoryImage[0],
-      };
-    });
-
-    return { results, total };
+    // RecommendRanking 테이블에서 데이터 가져오기
+    return this.getRecommendRankings(offset, limit, category);
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
@@ -1077,6 +1003,7 @@ export class StoryService {
       // 트랜잭션 범위 내에서 사용할 Repository 인스턴스를 가져옵니다.
       const storyRepo = manager.getRepository(Story);
       const likeRepo = manager.getRepository(Likes);
+      const rankingRepo = manager.getRepository(RecommendRanking);
 
       // 1) 게시글 조회: storyId로 Story 엔티티를 가져옵니다.
       const story = await storyRepo.findOne({ where: { id: storyId } });
@@ -1138,6 +1065,39 @@ export class StoryService {
           })
           .where('id = :storyId', { storyId })
           .execute();
+
+        // 4) 게시글의 최신 추천 수를 가져옵니다.
+        const updatedStory = await storyRepo.findOne({
+          where: { id: storyId },
+        });
+
+        // 5) 추천 랭킹 테이블 관리
+        if (updatedStory.like_count >= MIN_RECOMMEND_COUNT) {
+          // 추천 수가 기준치 이상이면 랭킹 테이블에 추가/업데이트
+          let rankingEntry = await rankingRepo.findOne({ where: { storyId } });
+
+          if (rankingEntry) {
+            // 이미 랭킹 테이블에 있으면 추천 수 업데이트
+            rankingEntry.recommendCount = updatedStory.like_count;
+            await rankingRepo.save(rankingEntry);
+          } else {
+            // 랭킹 테이블에 없고 기준치를 넘었으면 새로 추가
+            rankingEntry = rankingRepo.create({
+              Story: { id: storyId },
+              storyId: storyId,
+              recommendCount: updatedStory.like_count,
+            });
+            await rankingRepo.save(rankingEntry);
+          }
+        } else if (updatedStory.like_count < MIN_RECOMMEND_COUNT) {
+          // 추천 수가 기준치 미만이면 랭킹 테이블에서 제거
+          const rankingEntry = await rankingRepo.findOne({
+            where: { storyId },
+          });
+          if (rankingEntry) {
+            await rankingRepo.remove(rankingEntry);
+          }
+        }
       }
 
       // 최종 수행된 action과 vote 유형을 반환합니다.
@@ -1145,90 +1105,108 @@ export class StoryService {
     });
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  //! 트랜잭션 안된 버전
-  // async storyLikeUnLike(
-  //   storyId: number,
-  //   userId: string,
-  //   vote: 'like' | 'dislike',
-  // ): Promise<{
-  //   action: 'add' | 'remove' | 'change';
-  //   vote: 'like' | 'dislike';
-  // }> {
-  //   // 1. 게시글 찾기
-  //   const story = await this.storyRepository.findOne({
-  //     where: { id: storyId },
-  //   });
-  //   if (!story) {
-  //     throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
-  //   }
+  // 추천 랭킹 테이블에서 데이터 가져오기
+  async getRecommendRankings(
+    offset = 0,
+    limit = 10,
+    category?: string,
+  ): Promise<{
+    results: Partial<Story>[];
+    total: number;
+  }> {
+    // 1. 추천 랭킹 테이블에서 데이터 조회 (카테고리 필터링 포함)
+    const query = this.recommendRankingRepository
+      .createQueryBuilder('ranking')
+      .leftJoinAndSelect('ranking.Story', 'story')
+      .leftJoinAndSelect('story.User', 'user')
+      .leftJoinAndSelect('story.StoryImage', 'image')
+      .orderBy('ranking.recommendCount', 'DESC')
+      .skip(offset)
+      .take(limit);
 
-  //   // 2. 기존 투표 확인
-  //   const existingVote = await this.likeRepository.findOne({
-  //     where: { User: { id: userId }, Story: { id: storyId } },
-  //   });
+    // 카테고리 필터링 적용
+    if (category && category !== 'all') {
+      query.andWhere('story.category = :category', { category });
+    }
 
-  //   let action: 'add' | 'remove' | 'change' = 'add';
+    // 쿼리 실행
+    const [rankings, total] = await query.getManyAndCount();
 
-  //   if (existingVote) {
-  //     if (existingVote.vote === vote) {
-  //       // — 동일한 투표: 취소(remove)
-  //       await this.likeRepository.remove(existingVote);
-  //       action = 'remove';
+    // 2. 결과 가공
+    const results = rankings.map((ranking) => {
+      const story = ranking.Story;
+      return {
+        ...story,
+        recommend_Count: ranking.recommendCount,
+        nickname: story.User.nickname,
+        imageFlag: story.StoryImage && story.StoryImage.length > 0,
+        firstImage:
+          story.StoryImage && story.StoryImage.length > 0
+            ? story.StoryImage[0]
+            : null,
+      };
+    });
 
-  //       // like_count 조정
-  //       if (vote === 'like') {
-  //         await this.storyRepository.decrement(
-  //           { id: storyId },
-  //           'like_count',
-  //           1,
-  //         );
-  //       } else {
-  //         await this.storyRepository.increment(
-  //           { id: storyId },
-  //           'like_count',
-  //           1,
-  //         );
-  //       }
-  //     } else {
-  //       // — 다른 투표: 변경(change)
-  //       const oldVote = existingVote.vote;
-  //       existingVote.vote = vote;
-  //       await this.likeRepository.save(existingVote);
-  //       action = 'change';
+    return { results, total };
+  }
 
-  //       // 좋아→싫어요 이면 -2, 싫어요→좋아요 이면 +2
-  //       if (oldVote === 'like' && vote === 'dislike') {
-  //         await this.storyRepository.decrement(
-  //           { id: storyId },
-  //           'like_count',
-  //           2,
-  //         );
-  //       } else if (oldVote === 'dislike' && vote === 'like') {
-  //         await this.storyRepository.increment(
-  //           { id: storyId },
-  //           'like_count',
-  //           2,
-  //         );
-  //       }
-  //     }
-  //   } else {
-  //     // 3. 신규 투표(add)
-  //     const newVote = this.likeRepository.create({
-  //       User: { id: userId },
-  //       Story: { id: storyId },
-  //       vote,
-  //     });
-  //     await this.likeRepository.save(newVote);
-  //     action = 'add';
+  //   이 코드는 추천 랭킹 테이블을 초기화하거나 업데이트할 때 사용되는 함수입니다.
+  // 작동 방식:
+  // 모든 게시글(스토리)을 데이터베이스에서 가져옵니다.
+  // 각 게시글의 좋아요와 싫어요 수를 계산해서 추천 점수를 구합니다.
+  // 추천 점수가 설정된 최소값(MIN_RECOMMEND_COUNT) 이상인 게시글만 필터링합니다.
+  // 기존 추천 랭킹 테이블을 비웁니다.
+  // 조건을 충족하는 게시글들을 추천 랭킹 테이블에 새로 등록합니다.
+  // 사용 시기:
+  // 시스템 처음 설정 시 - 기존 데이터를 추천 랭킹 테이블에 채울 때
+  // 데이터 복구가 필요할 때 - 추천 랭킹 테이블에 문제가 생긴 경우
+  // 관리자 작업 수행 시 - 랭킹 데이터를 초기화하고 싶을 때
+  // 이 함수는 관리자 권한을 가진 사용자만 API를 통해 실행할 수 있습니다. 일반 사용자는 실행할 수 없으며, 시스템 유지보수용 기능입니다.
+  // 기존 스토리 데이터를 RecommendRanking 테이블로 마이그레이션
+  async migrateToRecommendRanking(): Promise<number> {
+    try {
+      // 1. 모든 스토리 가져오기
+      const stories = await this.storyRepository.find({
+        relations: ['Likes'],
+      });
 
-  //     // like_count 조정
-  //     if (vote === 'like') {
-  //       await this.storyRepository.increment({ id: storyId }, 'like_count', 1);
-  //     } else {
-  //       await this.storyRepository.decrement({ id: storyId }, 'like_count', 1);
-  //     }
-  //   }
+      // 2. 추천 수가 MIN_RECOMMEND_COUNT 이상인 스토리 필터링
+      const eligibleStories = stories.filter((story) => {
+        // 각 스토리의 추천 수 계산 (좋아요 - 싫어요)
+        const recommendCount = story.Likes.reduce((acc, curr) => {
+          if (curr.vote === 'like') return acc + 1;
+          if (curr.vote === 'dislike') return acc - 1;
+          return acc;
+        }, 0);
 
-  //   return { action, vote };
-  // }
+        return recommendCount >= MIN_RECOMMEND_COUNT;
+      });
+
+      // 3. 현재 RecommendRanking 테이블 비우기
+      await this.recommendRankingRepository.clear();
+
+      // 4. 자격을 갖춘 스토리 추가
+      const rankingEntries = eligibleStories.map((story) => {
+        const recommendCount = story.Likes.reduce((acc, curr) => {
+          if (curr.vote === 'like') return acc + 1;
+          if (curr.vote === 'dislike') return acc - 1;
+          return acc;
+        }, 0);
+
+        return this.recommendRankingRepository.create({
+          Story: { id: story.id },
+          storyId: story.id,
+          recommendCount,
+        });
+      });
+
+      // 5. 일괄 저장
+      await this.recommendRankingRepository.save(rankingEntries);
+
+      return rankingEntries.length;
+    } catch (error) {
+      console.error('추천 랭킹 마이그레이션 중 오류 발생:', error);
+      throw new Error('추천 랭킹 마이그레이션에 실패했습니다.');
+    }
+  }
 }

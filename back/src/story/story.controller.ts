@@ -16,6 +16,7 @@ import {
   UseInterceptors,
   UsePipes,
   ValidationPipe,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { StoryService } from './story.service';
@@ -268,5 +269,21 @@ export class StoryController {
       body.userId,
       body.vote,
     );
+  }
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  //! 관리자 전용: 기존 데이터를 RecommendRanking 테이블로 마이그레이션
+  @Post('/migrateToRecommendRanking')
+  @UseGuards(AuthGuard())
+  async migrateToRecommendRanking(
+    @GetUser() user: User,
+  ): Promise<{ success: boolean; migrated: number }> {
+    // 관리자 권한 확인 (실제 프로덕션에서는 더 엄격한 권한 체크가 필요)
+    if (!user || user.user_email !== 'admin@example.com') {
+      throw new UnauthorizedException('관리자만 실행할 수 있는 기능입니다.');
+    }
+
+    // 데이터 마이그레이션 서비스 호출
+    const migrated = await this.storyService.migrateToRecommendRanking();
+    return { success: true, migrated };
   }
 }

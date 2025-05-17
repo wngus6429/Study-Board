@@ -66,46 +66,56 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
             </TableRow>
           </TableHead>
           <TableBody>
-            {tableData.map((row: StoryType) => (
-              <StyledTableRow
-                key={row.id}
-                onClick={() => {
-                  router.push(`/detail/story/${row.id}`);
-                }}
-                sx={{ cursor: "pointer" }}
-              >
-                <StyledTableCell
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                  }}
-                >
-                  {row.category === "question" && (
-                    <Box
-                      sx={{
-                        display: "inline-block",
-                        bgcolor: "primary.main",
-                        color: "primary.contrastText",
-                        px: 1,
-                        py: 0.2,
-                        borderRadius: 1,
-                        fontSize: "0.75rem",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      질문
-                    </Box>
-                  )}
-                  <Typography variant="body1" color="text.primary" noWrap>
-                    {row.title}
-                  </Typography>
-                </StyledTableCell>
-                <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
-                  {dayjs(row.created_at).format("YYYY.MM.DD HH:mm")}
+            {tableData.length === 0 ? (
+              <StyledTableRow>
+                <StyledTableCell colSpan={2} align="center" sx={{ height: "100px" }}>
+                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                    <Typography variant="h6">😊 작성한 게시글이 없습니다</Typography>
+                  </Box>
                 </StyledTableCell>
               </StyledTableRow>
-            ))}
+            ) : (
+              tableData.map((row: StoryType) => (
+                <StyledTableRow
+                  key={row.id}
+                  onClick={() => {
+                    router.push(`/detail/story/${row.id}`);
+                  }}
+                  sx={{ cursor: "pointer" }}
+                >
+                  <StyledTableCell
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    {row.category === "question" && (
+                      <Box
+                        sx={{
+                          display: "inline-block",
+                          bgcolor: "primary.main",
+                          color: "primary.contrastText",
+                          px: 1,
+                          py: 0.2,
+                          borderRadius: 1,
+                          fontSize: "0.75rem",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        질문
+                      </Box>
+                    )}
+                    <Typography variant="body1" color="text.primary" noWrap>
+                      {row.title}
+                    </Typography>
+                  </StyledTableCell>
+                  <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
+                    {dayjs(row.created_at).format("YYYY.MM.DD HH:mm")}
+                  </StyledTableCell>
+                </StyledTableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

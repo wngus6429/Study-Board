@@ -2,6 +2,7 @@
 import React from "react";
 import { Card, CardMedia, CardContent, Typography, Grid, Box } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -21,6 +22,7 @@ interface TableRowData {
   created_at: string;
   recommend_Count: number; // 좋아요 카운트는 optional
   firstImage?: FirstImageData; // Optional, 객체 형태
+  isRecommendRanking?: boolean; // 추천 랭킹 여부
 }
 
 interface CustomizedCardViewProps {
@@ -30,67 +32,101 @@ interface CustomizedCardViewProps {
 const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.ReactElement => {
   const router = useRouter();
   return (
-    <Grid container spacing={1} sx={{ p: 1 }}>
-      {tableData.map((row) => (
-        <Grid item xs={12} sm={6} md={4} key={row.id}>
-          <Card
-            elevation={4}
-            onClick={() => router.push(`/detail/story/${row.id}`)}
-            sx={{
-              borderRadius: 2,
-              transition: "transform 0.3s, box-shadow 0.3s",
-              "&:hover": { transform: "scale(1.03)", boxShadow: 6 },
-              display: "flex",
-              flexDirection: "column",
-              cursor: "pointer",
-            }}
-          >
-            {/* 상단: 제목 */}
-            <CardContent sx={{ pb: 0 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <Typography variant="h6" gutterBottom sx={{ flex: 1, wordBreak: "break-word" }}>
-                  {row.title}
-                </Typography>
-                <Box sx={{ display: "flex", alignItems: "center", ml: 1 }}>
-                  <FavoriteIcon fontSize="small" sx={{ mr: 0.5, color: "error.main" }} />
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    {row.recommend_Count ?? 0}
-                  </Typography>
-                </Box>
-              </Box>
-            </CardContent>
+    <>
+      {tableData.length === 0 ? (
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "200px",
+            width: "100%",
+            border: "1px dashed #ccc",
+            borderRadius: 2,
+            p: 3,
+            backgroundColor: "#f9f9f9"
+          }}
+        >
+          <Typography variant="h5" gutterBottom>😊 게시글이 없습니다</Typography>
+          <Typography variant="body2" color="text.secondary">첫 번째 게시글을 작성해보세요!</Typography>
+        </Box>
+      ) : (
+        <Grid container spacing={1} sx={{ p: 1 }}>
+          {tableData.map((row) => (
+            <Grid item xs={12} sm={6} md={4} key={row.id}>
+              <Card
+                elevation={4}
+                onClick={() => router.push(`/detail/story/${row.id}`)}
+                sx={{
+                  borderRadius: 2,
+                  transition: "transform 0.3s, box-shadow 0.3s",
+                  "&:hover": { transform: "scale(1.03)", boxShadow: 6 },
+                  display: "flex",
+                  flexDirection: "column",
+                  cursor: "pointer",
+                }}
+              >
+                {/* 상단: 제목 */}
+                <CardContent sx={{ pb: 0 }}>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Box sx={{ display: "flex", alignItems: "center", flex: 1 }}>
+                      {row.isRecommendRanking && (
+                        <EmojiEventsIcon
+                          sx={{
+                            fontSize: "1.2rem",
+                            color: "#ff9800",
+                            mr: 1,
+                            verticalAlign: "middle",
+                          }}
+                        />
+                      )}
+                      <Typography variant="h6" gutterBottom sx={{ wordBreak: "break-word" }}>
+                        {row.title}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: "flex", alignItems: "center", ml: 1 }}>
+                      <FavoriteIcon fontSize="small" sx={{ mr: 0.5, color: "error.main" }} />
+                      <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                        {row.recommend_Count ?? 0}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
 
-            {/* 이미지 영역: imageFlag가 true이고 firstImage가 존재할 경우 렌더링 */}
-            {row.imageFlag && row.firstImage ? (
-              <CardMedia
-                component="img"
-                width="360"
-                height="200"
-                image={`${process.env.NEXT_PUBLIC_BASE_URL}${row.firstImage.link}`}
-                alt={row.title}
-              />
-            ) : (
-              <Image src="/assets/NoImage.PNG" alt="No Image" width={360} height={200} />
-            )}
+                {/* 이미지 영역: imageFlag가 true이고 firstImage가 존재할 경우 렌더링 */}
+                {row.imageFlag && row.firstImage ? (
+                  <CardMedia
+                    component="img"
+                    width="360"
+                    height="200"
+                    image={`${process.env.NEXT_PUBLIC_BASE_URL}${row.firstImage.link}`}
+                    alt={row.title}
+                  />
+                ) : (
+                  <Image src="/assets/NoImage.PNG" alt="No Image" width={360} height={200} />
+                )}
 
-            {/* 하단: 작성자, 번호 및 등록일 */}
-            <CardContent sx={{ pt: 1, flexGrow: 1 }}>
-              <Typography variant="body2">작성자: {row.nickname}</Typography>
-              <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
-                <Typography variant="caption" color="text.secondary">
-                  번호: {row.id}
-                </Typography>
-                <Typography variant="caption" color="text.secondary">
-                  {dayjs(row.created_at).isSame(dayjs(), "day")
-                    ? dayjs(row.created_at).format("HH:mm")
-                    : dayjs(row.created_at).format("YYYY/MM/DD")}
-                </Typography>
-              </Box>
-            </CardContent>
-          </Card>
+                {/* 하단: 작성자, 번호 및 등록일 */}
+                <CardContent sx={{ pt: 1, flexGrow: 1 }}>
+                  <Typography variant="body2">작성자: {row.nickname}</Typography>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      번호: {row.id}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {dayjs(row.created_at).isSame(dayjs(), "day")
+                        ? dayjs(row.created_at).format("HH:mm")
+                        : dayjs(row.created_at).format("YYYY/MM/DD")}
+                    </Typography>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
         </Grid>
-      ))}
-    </Grid>
+      )}
+    </>
   );
 };
 

@@ -13,4 +13,5 @@ export interface TableStoryType {
   comment_count: number;
   imageFlag: boolean;
   created_at: string;
+  isRecommendRanking?: boolean; // 추천 랭킹 게시글 여부
 }

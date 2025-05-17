@@ -25,6 +25,7 @@ import InfoIcon from "@mui/icons-material/Info";
 import RateReviewIcon from "@mui/icons-material/RateReview";
 import CameraAltIcon from "@mui/icons-material/CameraAlt";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 
 dayjs.extend(relativeTime);
 
@@ -117,46 +118,68 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
             </TableRow>
           </TableHead>
           <TableBody>
-            {tableData.map((row: TableStoryType) => (
-              <StyledTableRow
-                key={row.id}
-                onClick={() => router.push(`/detail/story/${row.id}`)}
-                sx={{ cursor: "pointer" }}
-              >
-                <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
-                  {row.id}
+            {tableData.length === 0 ? (
+              <StyledTableRow>
+                <StyledTableCell colSpan={6} align="center" sx={{ height: "120px" }}>
+                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                    <Typography variant="h6">😊 게시글이 없습니다</Typography>
+                    <Typography variant="body2" color="text.secondary">첫 번째 게시글을 작성해보세요!</Typography>
+                  </Box>
                 </StyledTableCell>
-                <StyledTableCell>
-                  <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
-                    {/* 카테고리에 따른 Chip을 렌더링 */}
-                    {getCategoryChip(row.category) || <Box sx={{ width: "56px", height: "24px" }}></Box>}
-                    <Typography variant="body1" color="text.primary" component="span" sx={{ mr: 1 }}>
-                      {row.imageFlag && (
-                        <ImageIcon
+              </StyledTableRow>
+            ) : (
+              tableData.map((row: TableStoryType) => (
+                <StyledTableRow
+                  key={row.id}
+                  onClick={() => router.push(`/detail/story/${row.id}`)}
+                  sx={{ cursor: "pointer" }}
+                >
+                  <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>
+                    {row.id}
+                  </StyledTableCell>
+                  <StyledTableCell>
+                    <Box sx={{ display: "flex", alignItems: "center", height: "100%" }}>
+                      {/* 카테고리에 따른 Chip을 렌더링 */}
+                      {getCategoryChip(row.category) || <Box sx={{ width: "56px", height: "24px" }}></Box>}
+                      {/* 추천 랭킹 게시글 표시 */}
+                      {row.isRecommendRanking && (
+                        <EmojiEventsIcon
                           sx={{
-                            fontSize: "1rem",
-                            ml: 1,
+                            fontSize: "1.2rem",
+                            color: "#ff9800",
+                            mr: 1,
                             verticalAlign: "middle",
-                            color: "info.main",
                           }}
                         />
                       )}
-                    </Typography>
-                    {row.title} {row.comment_count > 0 && `(${row.comment_count})`}
-                  </Box>
-                </StyledTableCell>
-                <StyledTableCell>
-                  {row.nickname.length > 6 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
-                </StyledTableCell>
-                <StyledTableCell sx={{ textAlign: "center" }}>
-                  {dayjs(row.created_at).isSame(dayjs(), "day")
-                    ? dayjs(row.created_at).format("HH:mm")
-                    : dayjs(row.created_at).format("YYYY/MM/DD")}
-                </StyledTableCell>
-                <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
-                <StyledTableCell sx={{ textAlign: "center" }}>{row.recommend_Count}</StyledTableCell>
-              </StyledTableRow>
-            ))}
+                      <Typography variant="body1" color="text.primary" component="span" sx={{ mr: 1 }}>
+                        {row.imageFlag && (
+                          <ImageIcon
+                            sx={{
+                              fontSize: "1rem",
+                              ml: 1,
+                              verticalAlign: "middle",
+                              color: "info.main",
+                            }}
+                          />
+                        )}
+                      </Typography>
+                      {row.title} {row.comment_count > 0 && `(${row.comment_count})`}
+                    </Box>
+                  </StyledTableCell>
+                  <StyledTableCell>
+                    {row.nickname.length > 6 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
+                  </StyledTableCell>
+                  <StyledTableCell sx={{ textAlign: "center" }}>
+                    {dayjs(row.created_at).isSame(dayjs(), "day")
+                      ? dayjs(row.created_at).format("HH:mm")
+                      : dayjs(row.created_at).format("YYYY/MM/DD")}
+                  </StyledTableCell>
+                  <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
+                  <StyledTableCell sx={{ textAlign: "center" }}>{row.recommend_Count}</StyledTableCell>
+                </StyledTableRow>
+              ))
+            )}
           </TableBody>
         </Table>
       </TableContainer>

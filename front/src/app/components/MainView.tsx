@@ -234,8 +234,11 @@ const MainView = ({
       // 혹은 클라이언트에서 최신순으로 직접 정렬하려면 아래처럼 처리
       // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
       return 0;
-    });
-  }, [tableData, sortOrder]);
+    }).map(item => ({
+      ...item,
+      isRecommendRanking: recommendRankingMode
+    }));
+  }, [tableData, sortOrder, recommendRankingMode]);
 
   // const [cardData, setCardData] = useState<any>(); // 카드 모드 전용 이전 데이터 상태 선언
   const [previousCardData, setPreviousCardData] = useState<ApiResponse | null>();
@@ -274,8 +277,11 @@ const MainView = ({
         return b.recommend_Count - a.recommend_Count;
       }
       return 0;
-    });
-  }, [cardResultData, sortOrder, viewMode]);
+    }).map(item => ({
+      ...item,
+      isRecommendRanking: recommendRankingMode
+    }));
+  }, [cardResultData, sortOrder, viewMode, recommendRankingMode]);
 
   // 새로고침시 움직임
   useEffect(() => {
@@ -434,7 +440,7 @@ const MainView = ({
             }}
             onClick={toggleRecommendRanking}
           >
-            추천 랭킹
+            {recommendRankingMode ? "추천 랭킹 해제" : "추천 랭킹"}
           </Button>
         </Box>
         {/* 가운데 영역: 페이지네이션 */}

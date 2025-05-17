@@ -72,38 +72,50 @@ const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps
           </TableRow>
         </TableHead>
         <TableBody>
-          {tableData.map((row: CustomizedUserTablesDataProps) => (
-            <StyledTableRow
-              key={row.id}
-              onClick={() => {
-                if (!commentsFlag) {
-                  router.push(`/detail/story/${row.storyId}`);
-                }
-              }}
-              sx={{
-                cursor: commentsFlag ? "default" : "pointer",
-                pointerEvents: commentsFlag ? "none" : "auto", // 클릭 비활성화
-              }}
-            >
-              <StyledTableCell
-                sx={{
-                  display: "flex",
-                  alignItems: "center", // 세로 방향 가운데 정렬
-                  // justifyContent: "center", // 가로 방향도 가운데 정렬하고 싶다면 추가
-                  gap: 1,
-                  // 테이블 높이가 너무 작다면 아래처럼 최소 높이를 부여
-                  // minHeight: 48
-                }}
-              >
-                <Typography variant="body1" color="text.primary" noWrap>
-                  {row.content}
-                </Typography>
-              </StyledTableCell>
-              <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
-                {dayjs(row.updated_at).format("YYYY.MM.DD HH:mm")}
+          {tableData.length === 0 ? (
+            <StyledTableRow>
+              <StyledTableCell colSpan={2} align="center" sx={{ height: "100px" }}>
+                <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
+                  <Typography variant="h6">
+                    {commentsFlag ? "😊 작성한 댓글이 없습니다" : "😊 작성한 게시글이 없습니다"}
+                  </Typography>
+                </Box>
               </StyledTableCell>
             </StyledTableRow>
-          ))}
+          ) : (
+            tableData.map((row: CustomizedUserTablesDataProps) => (
+              <StyledTableRow
+                key={row.id}
+                onClick={() => {
+                  if (!commentsFlag) {
+                    router.push(`/detail/story/${row.storyId}`);
+                  }
+                }}
+                sx={{
+                  cursor: commentsFlag ? "default" : "pointer",
+                  pointerEvents: commentsFlag ? "none" : "auto", // 클릭 비활성화
+                }}
+              >
+                <StyledTableCell
+                  sx={{
+                    display: "flex",
+                    alignItems: "center", // 세로 방향 가운데 정렬
+                    // justifyContent: "center", // 가로 방향도 가운데 정렬하고 싶다면 추가
+                    gap: 1,
+                    // 테이블 높이가 너무 작다면 아래처럼 최소 높이를 부여
+                    // minHeight: 48
+                  }}
+                >
+                  <Typography variant="body1" color="text.primary" noWrap>
+                    {row.content}
+                  </Typography>
+                </StyledTableCell>
+                <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
+                  {dayjs(row.updated_at).format("YYYY.MM.DD HH:mm")}
+                </StyledTableCell>
+              </StyledTableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </TableContainer>

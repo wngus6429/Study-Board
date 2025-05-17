@@ -9,6 +9,7 @@ import dayjs from "dayjs";
 import Loading from "./Loading";
 import ConfirmDialog from "./ConfirmDialog";
 import { useMessage } from "@/app/store/messageStore";
+import { COMMENT_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 
 interface Comment {
   id: number;
@@ -43,7 +44,7 @@ const CommentsView = () => {
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
-  const viewCount = 10; // 한 페이지당 표시할 댓글 수
+  const viewCount = COMMENT_VIEW_COUNT; // 한 페이지당 표시할 댓글 수
   const [totalCount, setTotalCount] = useState(0); // 전체 댓글 수 상태 추가
 
   const {

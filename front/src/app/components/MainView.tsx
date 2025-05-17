@@ -10,7 +10,7 @@ import CreateIcon from "@mui/icons-material/Create";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import Pagination from "./common/Pagination";
 import usePageStore from "../store/pageStore";
-import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "../const/TABLE_VIEW_COUNT";
+import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "../const/VIEW_COUNT";
 import { useRouter } from "next/navigation";
 import SearchBar from "./common/SearchBar";
 import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";

@@ -1,5 +1,5 @@
 // hooks/useStories.ts
-import { MIN_RECOMMEND_COUNT } from "@/app/const/TABLE_VIEW_COUNT";
+import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 

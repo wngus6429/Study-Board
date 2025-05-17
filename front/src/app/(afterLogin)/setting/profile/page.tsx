@@ -8,7 +8,7 @@ import Loading from "@/app/components/common/Loading";
 import { useRouter } from "next/navigation";
 import { useMessage } from "@/app/store/messageStore";
 import { useUserImage } from "@/app/store/userImageStore";
-import { USER_TABLE_VIEW_COUNT } from "@/app/const/TABLE_VIEW_COUNT";
+import { USER_TABLE_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import CustomizedUserTables from "@/app/components/table/CustomizedUserStoryTables";
 import Pagination from "@/app/components/common/Pagination";
 import CustomizedUserCommentsTables from "@/app/components/table/CustomizedUserCommentsTables";

@@ -11,7 +11,7 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 // import { TAB_SELECT_OPTIONS } from "../const/WRITE_CONST";
 import Pagination from "../common/Pagination";
 import usePageStore from "../../store/pageStore";
-import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "../../const/TABLE_VIEW_COUNT";
+import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "../../const/VIEW_COUNT";
 import { useRouter, useSearchParams } from "next/navigation";
 import SearchBar from "../common/SearchBar";
 // 필요한 아이콘들을 MUI 아이콘 라이브러리에서 import 합니다.

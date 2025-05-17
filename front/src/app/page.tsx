@@ -1,7 +1,7 @@
 // Home.tsx
 // 이 파일은 Next.js App Router의 페이지 컴포넌트로, 기본적으로 서버 컴포넌트입니다.
 import MainView from "./components/MainView";
-import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "./const/TABLE_VIEW_COUNT";
+import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "./const/VIEW_COUNT";
 
 export default async function Home({
   searchParams,

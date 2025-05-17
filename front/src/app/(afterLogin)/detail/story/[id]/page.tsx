@@ -355,7 +355,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                     onClick={(e) => {
                       setEditFlag(true);
                       e.preventDefault();
-                      router.push(`/edit/${detail.id}`);
+                      router.push(`/edit/story/${detail.id}`);
                     }}
                     disabled={editFlag}
                     startIcon={editFlag ? <CircularProgress size={20} /> : null}
@@ -520,7 +520,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
             border: "1px solid rgba(192, 192, 192, 0.5)",
             boxShadow: "0 0 20px rgba(255, 255, 255, 0.1)",
             position: "relative",
-            height: "70vh",
+            height: "85vh",
             width: "80vw",
             margin: "20px",
             borderRadius: "8px",

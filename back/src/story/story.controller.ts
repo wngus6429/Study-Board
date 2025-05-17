@@ -116,7 +116,7 @@ export class StoryController {
   async getStoryDetail(@Param('id', ParseIntPipe) id: number): Promise<any> {
     const data = await this.storyService.findStoryOne(id);
     // User의 필요한 필드만 남김
-    console.log('상세페이지 데이터:', data);
+    console.log('q상세페이지 데이터:', data);
     const { User, ...rest } = data;
     const writeUserInfo = {
       nickname: User.nickname,

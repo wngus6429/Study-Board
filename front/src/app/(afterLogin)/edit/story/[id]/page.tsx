@@ -93,7 +93,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
       setLoading(false);
       showMessage("수정 성공", "success");
       queryClient.invalidateQueries({ queryKey: ["story", "detail", params.id] });
-      router.push(`/detail/${params.id}`);
+      router.push(`/detail/story/${params.id}`);
     },
     onError: (error) => {
       showMessage("수정 실패, 이전 화면으로 이동합니다", "error");
@@ -202,7 +202,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
         <Button
           variant="outlined"
           color="error"
-          onClick={() => router.push(`/detail/${params.id}`)}
+          onClick={() => router.push(`/detail/story/${params.id}`)}
           sx={{
             flex: 1,
             marginRight: 1,

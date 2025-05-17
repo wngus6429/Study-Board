@@ -204,7 +204,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
         <Button
           variant="outlined"
           color="error"
-          onClick={() => router.push(`/detail/${params.id}`)}
+          onClick={() => router.push(`/detail/suggestion/${params.id}`)}
           sx={{
             flex: 1,
             marginRight: 1,

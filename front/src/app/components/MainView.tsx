@@ -139,6 +139,9 @@ const MainView = ({
 
     // 추천 랭킹 모드 상태 유지 (탭 변경에도 유지)
     params.set("recommendRanking", recommendRankingMode.toString());
+    
+    // 현재 뷰 모드 상태 유지 (카드 뷰 또는 테이블 뷰)
+    params.set("viewMode", viewMode);
 
     // URL 업데이트 (예: 쿼리 파라미터 반영)
     Router.push(`?${params.toString()}`, { scroll: false });
@@ -175,8 +178,11 @@ const MainView = ({
     // 7. 새로 반전된 추천 랭킹 모드(newMode)를 문자열로 변환하여 "recommendRanking" 파라미터에 설정합니다.
     //    URL 파라미터는 문자열이어야 하므로 toString()을 사용합니다.
     params.set("recommendRanking", newMode.toString());
+    
+    // 8. 현재 뷰 모드 상태 유지 (카드 뷰 또는 테이블 뷰)
+    params.set("viewMode", viewMode);
 
-    // 8. 구성한 URL 쿼리 파라미터를 사용해 URL을 업데이트합니다.
+    // 9. 구성한 URL 쿼리 파라미터를 사용해 URL을 업데이트합니다.
     //    Router.push를 사용하여 URL을 변경하며, { scroll: false } 옵션은 페이지 이동 시 스크롤 위치를 유지하도록 합니다.
     Router.push(`?${params.toString()}`, { scroll: false });
   };
@@ -202,6 +208,8 @@ const MainView = ({
     params.set("searchQuery", query);
     // 검색 시 추천 랭킹 모드도 반영
     params.set("recommendRanking", recommendRankingMode.toString());
+    // 현재 뷰 모드 상태 유지
+    params.set("viewMode", viewMode);
     Router.push(`?${params.toString()}`, { scroll: false });
   };
 
@@ -216,6 +224,8 @@ const MainView = ({
     const params = new URLSearchParams(window.location.search);
     // sortOrder 파라미터 추가 또는 업데이트
     params.set("sortOrder", newSortOrder);
+    // 현재 뷰 모드 상태 유지
+    params.set("viewMode", viewMode);
     // URL 업데이트
     Router.push(`?${params.toString()}`, { scroll: false });
   };

@@ -10,6 +10,7 @@ import {
 import { Story } from './Story.entity';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from './User.entity';
+import { Notification } from './Notification.entity'; 
 
 @Entity()
 export class Comments {
@@ -69,4 +70,7 @@ export class Comments {
     nullable: false,
   })
   User: User;
+
+  @OneToMany(() => Notification, (notification) => notification.recipient)  // ← 추가
+  Notifications: Notification[];  // ← 추가
 }

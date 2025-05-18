@@ -14,6 +14,7 @@ import { Story } from './Story.entity';
 import { Comments } from './Comments.entity';
 import { Likes } from './Likes.entity';
 import { Suggestion } from './Suggestion.entity';
+import { Notification } from './Notification.entity'; 
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -38,6 +39,9 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Comments, (comment) => comment.User)
   Comments: Comments[];
+
+  @OneToMany(() => Notification, (notification) => notification.recipient)  // ← 추가
+  Notifications: Notification[];  // ← 추가
 
   @CreateDateColumn()
   created_at: Date;

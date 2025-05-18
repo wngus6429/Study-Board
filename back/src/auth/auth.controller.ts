@@ -54,13 +54,13 @@ export class AuthController {
     // JWT 생성 로직
     const accessToken = this.jwtService.sign(
       { id: user.id, user_email: user.user_email },
-      { expiresIn: TOKEN_EXPIRATION_TIME }
+      { expiresIn: TOKEN_EXPIRATION_TIME },
     );
-    
+
     // 리프레시 토큰 생성
     const refreshToken = this.jwtService.sign(
       { id: user.id },
-      { expiresIn: '7d' }
+      { expiresIn: '7d' },
     );
 
     // 쿠키에 JWT 토큰 설정
@@ -159,8 +159,14 @@ export class AuthController {
     @UploadedFile() profileImage: Express.Multer.File,
   ): Promise<any> {
     console.log('업데이트 데이터:', userData, '업로드된 파일:', profileImage);
-    await this.authUserService.userUpdate(userData, profileImage);
-    // Post가 성공적으로 완료되면 201 상태코드를 반환
+    const result = await this.authUserService.userUpdate(
+      userData,
+      profileImage,
+    );
+    return {
+      image: result.UserImage.link,
+      nickname: result.nickname,
+    };
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 내 프로필 사진 삭제
@@ -193,7 +199,7 @@ export class AuthController {
   @Post('refresh')
   async refreshToken(@Req() req: Request, @Res() res: Response) {
     console.log('리프레시 토큰 요청 시작');
-    
+
     // 쿠키에서 리프레시 토큰 추출
     const refreshToken = req.cookies?.refresh_token;
     if (!refreshToken) {
@@ -206,10 +212,10 @@ export class AuthController {
       // 리프레시 토큰 검증 및 payload 추출
       const payload = this.jwtService.verify(refreshToken, { secret: 'park' });
       console.log('리프레시 토큰 payload:', payload);
-      
+
       // payload에서 추출한 id로 사용자 조회
       const user = await this.authUserService.findUserById(payload.id);
-      
+
       if (!user) {
         console.log('사용자를 찾을 수 없음');
         return res.status(401).json({ message: '사용자를 찾을 수 없습니다.' });
@@ -219,13 +225,13 @@ export class AuthController {
       // 새로운 액세스 토큰 생성 (id와 user_email 포함)
       const accessToken = this.jwtService.sign(
         { id: user.id, user_email: user.user_email },
-        { expiresIn: TOKEN_EXPIRATION_TIME }
+        { expiresIn: TOKEN_EXPIRATION_TIME },
       );
 
       // 새로운 리프레시 토큰 생성 (id만 포함)
       const newRefreshToken = this.jwtService.sign(
         { id: user.id },
-        { expiresIn: '7d' }
+        { expiresIn: '7d' },
       );
 
       // 새로운 액세스 토큰을 쿠키에 설정
@@ -248,7 +254,9 @@ export class AuthController {
     } catch (error) {
       // 리프레시 토큰 검증 실패 (만료되었거나 유효하지 않은 경우)
       console.log('리프레시 토큰 검증 실패:', error);
-      return res.status(401).json({ message: '유효하지 않은 리프레시 토큰입니다.' });
+      return res
+        .status(401)
+        .json({ message: '유효하지 않은 리프레시 토큰입니다.' });
     }
   }
 }
@@ -290,5 +298,3 @@ export class AuthController {
 //   // 응답 전송
 //   res.sendStatus(200);
 // }
-
-

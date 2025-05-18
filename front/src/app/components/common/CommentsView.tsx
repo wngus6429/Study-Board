@@ -39,8 +39,6 @@ const CommentsView = () => {
   const [replyTo, setReplyTo] = useState<number | null>(null);
   // 댓글 데이터 상태
   const [comments, setComments] = useState<Comment[]>([]);
-  // 유저 데이터 상태
-  const [userData, setUserData] = useState<any>(null);
 
   // 페이지네이션 상태
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,7 +55,6 @@ const CommentsView = () => {
     queryFn: async () => {
       // 서버에 현재 페이지와 페이지당 댓글 수 정보를 함께 전달
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/comment/${storyId}`, {
-        userId: session?.user?.id || null,
         page: currentPage, // 현재 페이지 정보 전달
         limit: viewCount, // 페이지당 표시할 댓글 수 전달 (대댓글 포함)
       });
@@ -71,7 +68,6 @@ const CommentsView = () => {
   useEffect(() => {
     if (CommentData) {
       setComments(CommentData.processedComments);
-      setUserData(CommentData.loginUser);
       setTotalCount(CommentData.totalCount); // 전체 댓글 수 업데이트
     }
   }, [CommentData]);
@@ -442,7 +438,7 @@ const CommentsView = () => {
         replyTo={replyTo}
         handleEditSubmit={handleEditSubmit}
       />
-      {userData?.nickname && (
+      {session?.user?.id && (
         <Box
           sx={{
             width: "100%",
@@ -454,14 +450,14 @@ const CommentsView = () => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
-            {userData.image && (
+            {session?.user?.image && (
               <Avatar
-                src={`${process.env.NEXT_PUBLIC_BASE_URL}${userData?.image}`}
+                src={`${process.env.NEXT_PUBLIC_BASE_URL}${session?.user?.image}`}
                 sx={{ width: 40, height: 40, marginRight: 1 }}
               />
             )}
             <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-              {userData.nickname}
+              {session?.user?.nickname}
             </Typography>
           </Box>
           <TextField
@@ -494,7 +490,7 @@ const CommentsView = () => {
           </Box>
         </Box>
       )}
-      {session?.user?.id && !userData?.nickname && (
+      {session?.user?.id && !session?.user?.nickname && (
         <Box sx={{ mt: 2, textAlign: "center" }}>
           <Typography variant="body2" color="error">
             댓글 작성을 위한, 로그인 정보를 가져오는 중 문제가 발생했습니다.

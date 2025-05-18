@@ -525,7 +525,6 @@ export class StoryService {
   // 상세 페이지에서 댓글 데이터를 가져오는 메서드 : 댓글 Get
   async findStoryOneComment(
     id: number,
-    userId?: any,
     page: number = 1,
     limit: number = 10,
   ): Promise<any> {
@@ -547,15 +546,6 @@ export class StoryService {
     // 데이터가 없을 경우 예외 처리
     if (!findData) {
       throw new NotFoundException(`${id}의 댓글 데이터가 없음`);
-    }
-
-    // 로그인한 사용자의 정보 가져오기 (선택적)
-    let loginUser = null;
-    if (userId) {
-      loginUser = await this.userRepository.findOne({
-        where: { id: userId },
-        relations: ['UserImage'], // 사용자 프로필 이미지 포함
-      });
     }
 
     // 댓글을 계층 구조로 빌드하는 함수
@@ -697,11 +687,7 @@ export class StoryService {
     }
 
     // 최종 결과 반환
-    return {
-      processedComments,
-      loginUser,
-      totalCount, // 전체 댓글 수 (대댓글 포함)
-    };
+    return { processedComments, totalCount };
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 작성

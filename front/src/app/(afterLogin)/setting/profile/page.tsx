@@ -33,7 +33,7 @@ function UserProfileEdit() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const { setTopBarImageDelete, setUserImageUrl } = useUserImage();
 
   // 프로필 정보 불러옴
@@ -173,12 +173,13 @@ function UserProfileEdit() {
     },
     retry: 1, // 최대 1회 재시도
     retryDelay: () => 2000, // 재시도마다 2초 지연
-    onSuccess: () => {
+    onSuccess: async () => {
       setPreviewImage(null);
       queryClient.removeQueries({ queryKey: ["userTopImage", session?.user.id] });
       setTopBarImageDelete();
       setUserImageUrl("");
       showMessage("프로필 사진 삭제 완료", "success");
+      await update({ image: null });
     },
     onError: (error: any) => {
       showMessage("프로필 사진 삭제 실패", "error");
@@ -208,7 +209,11 @@ function UserProfileEdit() {
     },
     retry: 1,
     retryDelay: () => 2000,
-    onSuccess: async () => {
+    onSuccess: async (res) => {
+      await update({
+        image: res?.data.image,
+        nickname: res?.data.nickname, // 닉네임도 바뀌었으면 함께 넘겨주세요
+      });
       // 기존에 있던 이미지 캐쉬파일 삭제해서, 다시 프로필 페이지 왔을때 원래 있던 사진이 잠시 보이는걸 방지함
       await queryClient.invalidateQueries({ queryKey: ["userInfo", session?.user.id] });
       await queryClient.refetchQueries({ queryKey: ["userTopImage", session?.user.id] });

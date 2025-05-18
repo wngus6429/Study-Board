@@ -60,21 +60,31 @@ export class AuthService {
   }
 
   // 로그인 처리
-  async signIn(
-    userData: SigninUserDto,
-  ): Promise<{ id: string; user_email: string } | null> {
+  async signIn(userData: SigninUserDto): Promise<{
+    id: string;
+    user_email: string;
+    nickname: string;
+    image: string;
+  } | null> {
     const { user_email, password } = userData;
     // 이메일로 사용자 조회
-    const user = await this.userRepository.findOne({ where: { user_email } });
+    const user = await this.userRepository.findOne({
+      where: { user_email },
+      relations: ['UserImage'],
+    });
     if (!user) {
       throw new ConflictException('이메일이 존재하지 않습니다.');
     }
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) throw new ConflictException('비밀번호가 일치하지 않습니다.');
     // 사용자 정보 반환 (민감한 정보인 패스워드 제외)
+    // UserImage가 없으면 null, 있으면 link 값을 그대로 사용
+    const imageLink = user.UserImage?.link ?? null;
     return {
       id: user.id,
       user_email: user.user_email,
+      nickname: user.nickname,
+      image: imageLink,
     };
   }
 

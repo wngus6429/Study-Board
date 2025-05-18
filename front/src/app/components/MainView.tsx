@@ -54,6 +54,8 @@ const MainView = ({
   // 서버에서 전달받은 초기 카테고리 값을 상태로 저장
   const [categoryValue, setCategoryValue] = useState(initialCategory);
 
+  console.log("씨발user", user);
+
   // 초기 페이지 번호를 store에 설정 (컴포넌트 마운트 시)
   useEffect(() => {
     console.log("setCurrentPage", initialCurrentPage);
@@ -139,7 +141,7 @@ const MainView = ({
 
     // 추천 랭킹 모드 상태 유지 (탭 변경에도 유지)
     params.set("recommendRanking", recommendRankingMode.toString());
-    
+
     // 현재 뷰 모드 상태 유지 (카드 뷰 또는 테이블 뷰)
     params.set("viewMode", viewMode);
 
@@ -178,7 +180,7 @@ const MainView = ({
     // 7. 새로 반전된 추천 랭킹 모드(newMode)를 문자열로 변환하여 "recommendRanking" 파라미터에 설정합니다.
     //    URL 파라미터는 문자열이어야 하므로 toString()을 사용합니다.
     params.set("recommendRanking", newMode.toString());
-    
+
     // 8. 현재 뷰 모드 상태 유지 (카드 뷰 또는 테이블 뷰)
     params.set("viewMode", viewMode);
 
@@ -233,21 +235,23 @@ const MainView = ({
   // 데이터 테이블에 뿌리는 데이터를 만듬
   const sortedTableData = useMemo(() => {
     if (!tableData) return [];
-    return [...tableData].sort((a, b) => {
-      // 2) 둘 다 공지거나 둘 다 공지가 아니면, 정렬 옵션에 따라 비교
-      if (sortOrder === "view") {
-        return b.read_count - a.read_count;
-      } else if (sortOrder === "recommend") {
-        return b.recommend_Count - a.recommend_Count;
-      }
-      // "최신순"인 경우 서버가 이미 최신순으로 반환한다면 그대로 두기(0)
-      // 혹은 클라이언트에서 최신순으로 직접 정렬하려면 아래처럼 처리
-      // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      return 0;
-    }).map(item => ({
-      ...item,
-      isRecommendRanking: recommendRankingMode
-    }));
+    return [...tableData]
+      .sort((a, b) => {
+        // 2) 둘 다 공지거나 둘 다 공지가 아니면, 정렬 옵션에 따라 비교
+        if (sortOrder === "view") {
+          return b.read_count - a.read_count;
+        } else if (sortOrder === "recommend") {
+          return b.recommend_Count - a.recommend_Count;
+        }
+        // "최신순"인 경우 서버가 이미 최신순으로 반환한다면 그대로 두기(0)
+        // 혹은 클라이언트에서 최신순으로 직접 정렬하려면 아래처럼 처리
+        // return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return 0;
+      })
+      .map((item) => ({
+        ...item,
+        isRecommendRanking: recommendRankingMode,
+      }));
   }, [tableData, sortOrder, recommendRankingMode]);
 
   // const [cardData, setCardData] = useState<any>(); // 카드 모드 전용 이전 데이터 상태 선언
@@ -280,17 +284,19 @@ const MainView = ({
   // 카드 테이블에 뿌리는 데이터를 만듬
   const sortedCardTableData = useMemo(() => {
     if (!cardResultData || viewMode !== "card") return [];
-    return [...cardResultData].sort((a, b) => {
-      if (sortOrder === "view") {
-        return b.read_count - a.read_count;
-      } else if (sortOrder === "recommend") {
-        return b.recommend_Count - a.recommend_Count;
-      }
-      return 0;
-    }).map(item => ({
-      ...item,
-      isRecommendRanking: recommendRankingMode
-    }));
+    return [...cardResultData]
+      .sort((a, b) => {
+        if (sortOrder === "view") {
+          return b.read_count - a.read_count;
+        } else if (sortOrder === "recommend") {
+          return b.recommend_Count - a.recommend_Count;
+        }
+        return 0;
+      })
+      .map((item) => ({
+        ...item,
+        isRecommendRanking: recommendRankingMode,
+      }));
   }, [cardResultData, sortOrder, viewMode, recommendRankingMode]);
 
   // 새로고침시 움직임

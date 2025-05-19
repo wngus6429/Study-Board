@@ -43,15 +43,7 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    //! 맨아래 로그 참조
     async jwt({ token, user, trigger, session: newSession }) {
-      // if (user) {
-      //   // console.log("토큰", token);
-      //   // console.log("유저", user);
-      //   // 로그인 성공 시 사용자 데이터를 토큰에 저장
-      //   token.user = user;
-      // }
-      // return token;
       if (user) {
         token.id = user.id;
         token.user_email = user.user_email;
@@ -74,9 +66,6 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       // console.log("토큰", token);
       //! sub, iat, exp, jti는 세션 객체에 포함되지 않아도됨.
-      // session.user = token.user as typeof session.user;
-      // // console.log("session", session);
-      // return session;
       session.user.id = token.id as string;
       session.user.user_email = token.user_email as string;
       session.user.nickname = token.nickname as string;

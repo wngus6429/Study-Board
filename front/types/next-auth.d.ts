@@ -15,7 +15,6 @@ declare module "next-auth" {
       id: string;
       user_email: string;
       nickname: string;
-      link: string;
     };
   }
 
@@ -24,7 +23,7 @@ declare module "next-auth" {
     id: string;
     user_email: string;
     nickname: string;
-    link: string;
+    image: string;
   }
 }
 
@@ -34,6 +33,6 @@ declare module "next-auth/jwt" {
     id: string;
     user_email: string;
     nickname: string;
-    link: string;
+    image: string;
   }
 }

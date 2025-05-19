@@ -156,18 +156,6 @@ export class StoryController {
     return data;
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 상세페이지 댓글 가져오기
-  @Post('/detail/comment/:id')
-  async getStoryDetailComment(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: { page?: number; limit?: number },
-  ): Promise<any> {
-    const { page = 1, limit = 10 } = body; // 페이지네이션 파라미터 추출 (기본값 설정)
-    const { processedComments, totalCount } =
-      await this.storyService.findStoryOneComment(id, page, limit);
-    return { processedComments, totalCount };
-  }
-  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 작성
   @Post('/create')
   @UseGuards(AuthGuard())

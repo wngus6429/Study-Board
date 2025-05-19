@@ -17,20 +17,21 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/entities/User.entity';
 
-@Controller('api/comments')
+@Controller('api/story')
 export class CommentController {
   constructor(private readonly commentsService: CommentService) {}
 
-  // 댓글 조회
-  @Get('/:storyId')
-  async getComments(
-    @Param('storyId', ParseIntPipe) storyId: number,
-    @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10,
-    @Query('userId') userId?: string,
-  ) {
-    console.log('호출됨',storyId, userId, page, limit);
-    return await this.commentsService.findStoryComments(storyId, userId, page, limit);
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 상세페이지 댓글 가져오기
+  @Post('/detail/comment/:id')
+  async getStoryDetailComment(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { page?: number; limit?: number },
+  ): Promise<any> {
+    const { page = 1, limit = 10 } = body; // 페이지네이션 파라미터 추출 (기본값 설정)
+    const { processedComments, totalCount } =
+      await this.commentsService.findStoryOneComment(id, page, limit);
+    return { processedComments, totalCount };
   }
 
   // 댓글 작성
@@ -38,7 +39,8 @@ export class CommentController {
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   async createComment(
-    @Body() commentData: {
+    @Body()
+    commentData: {
       storyId: string;
       content: string;
       parentId?: number | null;
@@ -67,4 +69,4 @@ export class CommentController {
   ): Promise<void> {
     return this.commentsService.editComment(commentId, body.content);
   }
-} 
+}

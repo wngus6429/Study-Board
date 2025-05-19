@@ -1,7 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository } from 'typeorm';
 import { Comments } from 'src/entities/Comments.entity';
@@ -17,7 +14,8 @@ export class CommentService {
     @InjectRepository(Comments) private commentRepository: Repository<Comments>,
     @InjectRepository(Story) private storyRepository: Repository<Story>,
     @InjectRepository(User) private userRepository: Repository<User>,
-    @InjectRepository(Notification) private notificationRepository: Repository<Notification>,
+    @InjectRepository(Notification)
+    private notificationRepository: Repository<Notification>,
   ) {}
 
   // 댓글 작성
@@ -47,11 +45,11 @@ export class CommentService {
     // 부모 댓글 확인
     let parentComment = null;
     if (parentId) {
-      parentComment = await this.commentRepository.findOne({ 
+      parentComment = await this.commentRepository.findOne({
         where: { id: parentId },
-        relations: ['User'] // 부모 댓글 작성자 정보도 함께 가져옴
+        relations: ['User'], // 부모 댓글 작성자 정보도 함께 가져옴
       });
-      
+
       if (!parentComment) {
         throw new NotFoundException('부모 댓글을 찾을 수 없습니다.');
       }
@@ -66,7 +64,7 @@ export class CommentService {
         Story: story,
         User: user,
       });
-      
+
       await manager.save(comment);
 
       // 글의 댓글 수 증가
@@ -150,7 +148,7 @@ export class CommentService {
     const comment = await this.commentRepository.findOne({
       where: { id: commentId },
     });
-    
+
     if (!comment) {
       throw new NotFoundException('수정할 댓글을 찾을 수 없습니다.');
     }
@@ -159,16 +157,17 @@ export class CommentService {
     await this.commentRepository.save(comment);
   }
 
-  // 댓글 조회
-  async findStoryComments(
-    storyId: number,
-    userId?: string,
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 댓글조회, 상세 페이지에서 댓글 데이터를 가져오는 메서드
+  async findStoryOneComment(
+    id: number,
     page: number = 1,
     limit: number = 10,
   ): Promise<any> {
+    console.log('findStoryOneComment 호출됨', id, page, limit);
     // Story 데이터를 댓글과 함께 가져옴
     const findData = await this.storyRepository.findOne({
-      where: { id: storyId },
+      where: { id },
       relations: [
         'Comments', // 댓글 데이터
         'Comments.User', // 댓글 작성자 정보
@@ -183,16 +182,7 @@ export class CommentService {
 
     // 데이터가 없을 경우 예외 처리
     if (!findData) {
-      throw new NotFoundException(`게시글 ID ${storyId}의 댓글 데이터가 없음`);
-    }
-
-    // 로그인한 사용자의 정보 가져오기 (선택적)
-    let loginUser = null;
-    if (userId) {
-      loginUser = await this.userRepository.findOne({
-        where: { id: userId },
-        relations: ['UserImage'], // 사용자 프로필 이미지 포함
-      });
+      throw new NotFoundException(`${id}의 댓글 데이터가 없음`);
     }
 
     // 댓글을 계층 구조로 빌드하는 함수
@@ -216,6 +206,8 @@ export class CommentService {
         };
         commentMap.set(comment.id, formattedComment); // Map에 저장
       });
+
+      console.log('Comment map:', commentMap);
 
       // 두 번째 단계: 트리 구조를 빌드
       const rootComments: any[] = [];
@@ -292,20 +284,46 @@ export class CommentService {
 
     // 페이지네이션 적용 (대댓글 포함)
     const startIndex = (page - 1) * limit;
-    const paginatedComments = allProcessedComments.slice(
+    const endIndex = startIndex + limit;
+
+    // 페이지에 나타낼 댓글 슬라이스 (페이지당 표시할 댓글 수)
+    const pagedComments = allFlattenedComments.slice(
       startIndex,
-      startIndex + limit,
+      Math.min(endIndex, allFlattenedComments.length),
     );
 
-    // 현재 페이지의 댓글 수
-    const currentPageCount = paginatedComments.length;
+    // 현재 페이지에 표시될 댓글의 ID 목록
+    const pagedCommentIds = new Set(pagedComments.map((comment) => comment.id));
 
-    return {
-      comments: paginatedComments,
-      totalCount,
-      currentPageCount,
-      page,
-      limit,
-    };
+    // 루트 댓글 중 페이지에 나타낼 댓글 또는 대댓글을 포함하는 댓글만 필터링
+    const processedComments = allProcessedComments.filter((comment) => {
+      // 최상위 댓글 ID가 페이지에 포함된 경우
+      if (pagedCommentIds.has(comment.id)) return true;
+
+      // 대댓글 ID가 페이지에 포함된 경우 해당 최상위 댓글도 포함
+      if (comment.children && comment.children.length > 0) {
+        return comment.children.some((child) =>
+          hasChildInPage(child, pagedCommentIds),
+        );
+      }
+
+      return false;
+    });
+
+    // 대댓글이 페이지에 포함되는지 재귀적으로 확인하는 헬퍼 함수
+    function hasChildInPage(comment, pagedIds) {
+      if (pagedIds.has(comment.id)) return true;
+
+      if (comment.children && comment.children.length > 0) {
+        return comment.children.some((child) =>
+          hasChildInPage(child, pagedIds),
+        );
+      }
+
+      return false;
+    }
+
+    // 최종 결과 반환
+    return { processedComments, totalCount };
   }
-} 
+}

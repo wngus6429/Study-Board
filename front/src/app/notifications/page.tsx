@@ -28,6 +28,7 @@ import {
 import { INotification } from "../types/notification";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
+import { NOTIFICATION_VIEW_COUNT } from "../const/VIEW_COUNT";
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function NotificationsPage() {
   // 모든 알림 조회 (항상 최상단에서 호출, enabled 옵션 사용)
   const { data, isLoading, error } = useQuery({
     queryKey: ["allNotifications", page],
-    queryFn: () => getAllNotifications(page, 20),
+    queryFn: () => getAllNotifications(page, NOTIFICATION_VIEW_COUNT),
     enabled: !!session?.user && status === "authenticated",
   });
 

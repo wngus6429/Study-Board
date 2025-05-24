@@ -65,7 +65,7 @@ export class CommentService {
         User: user,
       });
 
-      await manager.save(comment);
+      const savedComment = await manager.save(comment);
 
       // 글의 댓글 수 증가
       await manager.increment(
@@ -75,15 +75,17 @@ export class CommentService {
         1,
       );
 
-      // 알림 생성
+      // 알림 생성 - 직접 생성
       if (parentComment) {
         // 대댓글인 경우: 원댓글 작성자에게 알림
         // 단, 자기 자신의 댓글에 대댓글 다는 경우는 제외
         if (parentComment.User.id !== authorId) {
+          const contentPreview = content.length > 50 ? content.substring(0, 50) + '...' : content;
           const notification = this.notificationRepository.create({
             recipient: parentComment.User,
-            comment: comment,
+            comment: savedComment,
             type: 'reply',
+            message: `님이 회원님의 댓글에 답글을 남겼습니다: "${contentPreview}"`,
             isRead: false,
           });
           await manager.save(notification);
@@ -92,10 +94,12 @@ export class CommentService {
         // 일반 댓글인 경우: 글 작성자에게 알림
         // 단, 자기 자신의 글에 댓글 다는 경우는 제외
         if (story.User.id !== authorId) {
+          const contentPreview = content.length > 50 ? content.substring(0, 50) + '...' : content;
           const notification = this.notificationRepository.create({
             recipient: story.User,
-            comment: comment,
+            comment: savedComment,
             type: 'comment',
+            message: `님이 회원님의 글에 댓글을 남겼습니다: "${contentPreview}"`,
             isRead: false,
           });
           await manager.save(notification);

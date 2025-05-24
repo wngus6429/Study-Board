@@ -9,6 +9,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { Today } from './common/helper/today';
 import { SuggestionModule } from './suggestion/suggestion.module';
 import { CommentModule } from './comment/comment.module';
+import { NotificationModule } from './notification/notification.module';
 
 //어플리케이션의 루트 모듈이 있는 파일
 @Module({
@@ -59,6 +60,7 @@ import { CommentModule } from './comment/comment.module';
     AuthModule,
     SuggestionModule,
     CommentModule,
+    NotificationModule,
   ],
 })
 export class AppModule {}

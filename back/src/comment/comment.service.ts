@@ -24,7 +24,7 @@ export class CommentService {
     content: string;
     parentId?: number | null;
     authorId: string;
-  }): Promise<void> {
+  }): Promise<{ commentId: number }> {
     const { storyId, content, parentId, authorId } = commentData;
 
     // 글 확인
@@ -55,6 +55,8 @@ export class CommentService {
       }
     }
 
+    let savedCommentId: number = 0;
+
     // 트랜잭션으로 처리
     await this.dataSource.transaction(async (manager) => {
       // 댓글 생성 및 저장
@@ -66,6 +68,7 @@ export class CommentService {
       });
 
       const savedComment = await manager.save(comment);
+      savedCommentId = savedComment.id;
 
       // 글의 댓글 수 증가
       await manager.increment(
@@ -106,6 +109,8 @@ export class CommentService {
         }
       }
     });
+
+    return { commentId: savedCommentId };
   }
 
   // 댓글 삭제

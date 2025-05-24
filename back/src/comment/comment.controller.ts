@@ -43,8 +43,8 @@ export class CommentController {
       parentId?: number | null;
       authorId: string;
     },
-  ): Promise<void> {
-    await this.commentsService.createComment(commentData);
+  ): Promise<{ commentId: number }> {
+    return await this.commentsService.createComment(commentData);
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 삭제

@@ -92,30 +92,45 @@ const CommentsView = () => {
         { storyId, content, parentId, authorId },
         { withCredentials: true }
       );
-      return response.status;
+      return response.data; // commentId를 포함한 데이터 반환
     },
-    onSuccess: async (status) => {
-      if (status === 200 || status === 201) {
-        setContent("");
+    onSuccess: async (data) => {
+      setContent("");
+      
+      // 새로 생성된 댓글 ID
+      const newCommentId = data.commentId;
+      console.log("🔥 새로 생성된 댓글 ID:", newCommentId);
+      
+      // 현재 페이지 데이터 새로고침
+      const result = await refetch();
+      
+      if (result.data) {
+        const currentPageComments = result.data.processedComments;
+        const newTotalCount = result.data.totalCount;
+        const lastPage = Math.ceil(newTotalCount / viewCount);
         
-        // 먼저 현재 페이지에서 데이터를 새로고침
-        const result = await refetch();
+        console.log("📄 현재 페이지:", currentPage);
+        console.log("📄 마지막 페이지:", lastPage);
+        console.log("📝 현재 페이지 댓글 IDs:", currentPageComments.map(c => c.id));
+        console.log("📊 전체 댓글 수:", newTotalCount);
         
-        if (result.data) {
-          const currentPageComments = result.data.processedComments;
-          const newTotalCount = result.data.totalCount;
-          const lastPage = Math.ceil(newTotalCount / viewCount);
-          
-          // 현재 페이지에 댓글이 있으면 현재 페이지 유지
-          if (currentPageComments && currentPageComments.length > 0) {
-            // 현재 페이지에 댓글이 있으므로 페이지 이동 없이 데이터만 갱신
-            queryClient.invalidateQueries({
-              queryKey: ["story", "detail", "comments", storyId]
-            });
-          } else {
-            // 현재 페이지가 비어있으면 마지막 페이지로 이동
-            setCurrentPage(lastPage);
-          }
+        // 새로 생성된 댓글이 현재 페이지에 있는지 확인
+        const isNewCommentInCurrentPage = currentPageComments.some(
+          comment => comment.id === newCommentId
+        );
+        
+        console.log("✅ 새 댓글이 현재 페이지에 있나?", isNewCommentInCurrentPage);
+        
+        if (isNewCommentInCurrentPage) {
+          console.log("🏠 현재 페이지 유지");
+          // 현재 페이지에 새 댓글이 있으면 현재 페이지 유지
+          queryClient.invalidateQueries({
+            queryKey: ["story", "detail", "comments", storyId]
+          });
+        } else {
+          console.log("🚀 마지막 페이지로 이동:", lastPage);
+          // 현재 페이지에 새 댓글이 없으면 마지막 페이지로 이동
+          setCurrentPage(lastPage);
         }
       }
     },

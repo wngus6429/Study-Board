@@ -1,12 +1,11 @@
 import {
   Body,
   Controller,
-  Delete,
-  Get,
   Param,
   ParseIntPipe,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
   UsePipes,
@@ -14,8 +13,6 @@ import {
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { AuthGuard } from '@nestjs/passport';
-import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { User } from 'src/entities/User.entity';
 
 @Controller('api/story')
 export class CommentController {
@@ -35,7 +32,7 @@ export class CommentController {
   }
 
   // 댓글 작성
-  @Post('/')
+  @Post('/comment/:id')
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   async createComment(
@@ -49,9 +46,9 @@ export class CommentController {
   ): Promise<void> {
     await this.commentsService.createComment(commentData);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 삭제
-  @Delete('/:id')
+  @Put('/comment/:id')
   @UseGuards(AuthGuard())
   async deleteComment(
     @Param('id', ParseIntPipe) commentId: number,
@@ -59,14 +56,15 @@ export class CommentController {
   ): Promise<void> {
     return this.commentsService.deleteComment(commentId, commentData);
   }
-
+  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 수정
-  @Patch('/:id')
+  @Patch('/comment/:id')
   @UseGuards(AuthGuard())
   async editComment(
-    @Param('id', ParseIntPipe) commentId: number,
-    @Body() body: { content: string },
+    @Param('id') commentId: number,
+    @Body('content') content: string, //! body에서 content 필드만 추출
   ): Promise<void> {
-    return this.commentsService.editComment(commentId, body.content);
+    console.log('수정할 댓글 ID:', commentId, content);
+    return await this.commentsService.editComment(commentId, content);
   }
 }

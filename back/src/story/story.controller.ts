@@ -200,35 +200,6 @@ export class StoryController {
     return this.storyService.deleteStory(storyId, userData);
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 댓글 작성
-  @Post('/comment/:id')
-  @UseGuards(AuthGuard())
-  async createComment(@Body() commentData: any): Promise<void> {
-    await this.storyService.createComment(commentData);
-  }
-  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 댓글 삭제
-  @Put('/comment/:id')
-  @UseGuards(AuthGuard())
-  async deleteComment(
-    @Param('id') commentId: number,
-    @Body() commentData: { storyId: string },
-  ): Promise<void> {
-    console.log('삭제할 댓글 ID:', commentId);
-    return await this.storyService.deleteComment(commentId, commentData);
-  }
-  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 댓글 수정
-  @Patch('/comment/:id')
-  @UseGuards(AuthGuard())
-  async editComment(
-    @Param('id') commentId: number,
-    @Body('content') content: string, //! body에서 content 필드만 추출
-  ): Promise<void> {
-    console.log('수정할 댓글 ID:', commentId, content);
-    return await this.storyService.editComment(commentId, content);
-  }
-  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 좋아요, 싫어요.
   @Put('/likeOrUnlike/:id')
   @UseGuards(AuthGuard())

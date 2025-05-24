@@ -35,24 +35,11 @@ export default function NotificationsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
 
-  // 로그인 체크
-  if (status === "loading") {
-    return (
-      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
-        <CircularProgress />
-      </Box>
-    );
-  }
-
-  if (!session?.user) {
-    router.push("/login");
-    return null;
-  }
-
-  // 모든 알림 조회
+  // 모든 알림 조회 (항상 최상단에서 호출, enabled 옵션 사용)
   const { data, isLoading, error } = useQuery({
     queryKey: ["allNotifications", page],
     queryFn: () => getAllNotifications(page, 20),
+    enabled: !!session?.user && status === "authenticated",
   });
 
   // 알림 읽음 처리
@@ -82,13 +69,27 @@ export default function NotificationsPage() {
     },
   });
 
+  // 로그인 체크
+  if (status === "loading") {
+    return (
+      <Box display="flex" justifyContent="center" alignItems="center" minHeight="80vh">
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (!session?.user) {
+    router.push("/login");
+    return null;
+  }
+
   // 알림 클릭 처리
   const handleNotificationClick = async (notification: INotification) => {
     if (!notification.isRead) {
       await markAsReadMutation.mutateAsync(notification.id);
     }
     if (notification.comment?.storyId) {
-      router.push(`/detail/${notification.comment.storyId}`);
+      router.push(`/detail/story/${notification.comment.storyId}`);
     }
   };
 
@@ -139,7 +140,7 @@ export default function NotificationsPage() {
           <Typography variant="h4" fontWeight="bold">
             알림
           </Typography>
-          {data && data.items.some(item => !item.isRead) && (
+          {data && data.items.some((item) => !item.isRead) && (
             <Button
               variant="outlined"
               onClick={() => markAllAsReadMutation.mutate()}
@@ -195,15 +196,10 @@ export default function NotificationsPage() {
                       <ListItemText
                         primary={
                           <Box display="flex" alignItems="center" gap={1}>
-                            <Typography
-                              variant="body1"
-                              fontWeight={notification.isRead ? "normal" : "bold"}
-                            >
+                            <Typography variant="body1" fontWeight={notification.isRead ? "normal" : "bold"}>
                               {title}
                             </Typography>
-                            {!notification.isRead && (
-                              <Chip label="새 알림" size="small" color="primary" />
-                            )}
+                            {!notification.isRead && <Chip label="새 알림" size="small" color="primary" />}
                           </Box>
                         }
                         secondary={
@@ -227,12 +223,7 @@ export default function NotificationsPage() {
             {/* 페이지네이션 */}
             {data.totalPages > 1 && (
               <Box display="flex" justifyContent="center" mt={3}>
-                <Pagination
-                  count={data.totalPages}
-                  page={page}
-                  onChange={handlePageChange}
-                  color="primary"
-                />
+                <Pagination count={data.totalPages} page={page} onChange={handlePageChange} color="primary" />
               </Box>
             )}
           </>
@@ -240,4 +231,4 @@ export default function NotificationsPage() {
       </Paper>
     </Container>
   );
-} 
+}

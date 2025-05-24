@@ -503,6 +503,11 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               showMessage("로그인 해야합니다.", "error");
               return;
             }
+            // 자신이 작성한 글인지 체크
+            if (detail?.User?.id === session?.user?.id) {
+              showMessage("자신이 작성한 글에는 추천/비추천을 할 수 없습니다.", "warning");
+              return;
+            }
             likeOrUnlike.mutate({ storyId: detail?.id, vote }); // API 호출
           }}
         />

@@ -98,21 +98,23 @@ const CommentsView = () => {
       if (status === 200 || status === 201) {
         setContent("");
         
-        // 먼저 현재 데이터를 새로고침하여 최신 댓글 수를 확인
+        // 먼저 현재 페이지에서 데이터를 새로고침
         const result = await refetch();
         
         if (result.data) {
+          const currentPageComments = result.data.processedComments;
           const newTotalCount = result.data.totalCount;
           const lastPage = Math.ceil(newTotalCount / viewCount);
           
-          // 마지막 페이지로 이동해야 하는 경우
-          if (currentPage !== lastPage) {
-            setCurrentPage(lastPage);
-          } else {
-            // 현재 페이지에 머물 경우 쿼리 무효화하여 데이터 갱신
+          // 현재 페이지에 댓글이 있으면 현재 페이지 유지
+          if (currentPageComments && currentPageComments.length > 0) {
+            // 현재 페이지에 댓글이 있으므로 페이지 이동 없이 데이터만 갱신
             queryClient.invalidateQueries({
               queryKey: ["story", "detail", "comments", storyId]
             });
+          } else {
+            // 현재 페이지가 비어있으면 마지막 페이지로 이동
+            setCurrentPage(lastPage);
           }
         }
       }

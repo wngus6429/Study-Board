@@ -262,26 +262,26 @@ export class CommentService {
     // 댓글 데이터를 계층 구조로 변환
     const allProcessedComments = buildCommentTree(findData.Comments);
 
-    // 대댓글을 포함한 모든 댓글을 평탄화하는 함수
-    function flattenCommentsWithReplies(comments: any[]): any[] {
+    // 대댓글을 포함한 모든 댓글을 평탄화하는 함수 (depth 정보 포함)
+    function flattenCommentsWithDepth(comments: any[], depth = 0): any[] {
       let result: any[] = [];
 
       for (const comment of comments) {
-        // 댓글 자체를 결과에 추가
-        result.push(comment);
+        // 댓글에 depth 정보 추가
+        const commentWithDepth = { ...comment, depth };
+        result.push(commentWithDepth);
 
-        // 대댓글이 있으면 평탄화하여 결과에 추가
+        // 대댓글이 있으면 평탄화하여 결과에 추가 (depth + 1)
         if (comment.children && comment.children.length > 0) {
-          result = result.concat(flattenCommentsWithReplies(comment.children));
+          result = result.concat(flattenCommentsWithDepth(comment.children, depth + 1));
         }
       }
 
       return result;
     }
 
-    // 계층 구조를 평탄화하여 모든 댓글을 하나의 배열로 만듦 (대댓글 포함)
-    const allFlattenedComments =
-      flattenCommentsWithReplies(allProcessedComments);
+    // 계층 구조를 평탄화하여 모든 댓글을 하나의 배열로 만듦 (depth 정보 포함)
+    const allFlattenedComments = flattenCommentsWithDepth(allProcessedComments);
 
     // 전체 댓글 수 계산 (대댓글 포함)
     const totalCount = allFlattenedComments.length;
@@ -296,38 +296,7 @@ export class CommentService {
       Math.min(endIndex, allFlattenedComments.length),
     );
 
-    // 현재 페이지에 표시될 댓글의 ID 목록
-    const pagedCommentIds = new Set(pagedComments.map((comment) => comment.id));
-
-    // 루트 댓글 중 페이지에 나타낼 댓글 또는 대댓글을 포함하는 댓글만 필터링
-    const processedComments = allProcessedComments.filter((comment) => {
-      // 최상위 댓글 ID가 페이지에 포함된 경우
-      if (pagedCommentIds.has(comment.id)) return true;
-
-      // 대댓글 ID가 페이지에 포함된 경우 해당 최상위 댓글도 포함
-      if (comment.children && comment.children.length > 0) {
-        return comment.children.some((child) =>
-          hasChildInPage(child, pagedCommentIds),
-        );
-      }
-
-      return false;
-    });
-
-    // 대댓글이 페이지에 포함되는지 재귀적으로 확인하는 헬퍼 함수
-    function hasChildInPage(comment, pagedIds) {
-      if (pagedIds.has(comment.id)) return true;
-
-      if (comment.children && comment.children.length > 0) {
-        return comment.children.some((child) =>
-          hasChildInPage(child, pagedIds),
-        );
-      }
-
-      return false;
-    }
-
-    // 최종 결과 반환
-    return { processedComments, totalCount };
+    // 평탄화된 댓글을 그대로 반환 (depth 정보 포함)
+    return { processedComments: pagedComments, totalCount };
   }
 }

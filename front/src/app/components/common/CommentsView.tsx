@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Box, TextField, Button, Typography, Avatar, Alert, Pagination } from "@mui/material";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
@@ -19,9 +19,10 @@ interface Comment {
   parentId: number | null;
   createdAt: string;
   children: Comment[];
+  depth?: number;
 }
 
-// 페이지네이션 응답 인터페이스 추가
+// 페이지네이션 응답 인터페이스 수정
 interface CommentResponse {
   processedComments: Comment[];
   loginUser: any;
@@ -33,6 +34,7 @@ const CommentsView = () => {
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
   const { showMessage } = useMessage((state) => state);
   const { data: session, status } = useSession();
+  const queryClient = useQueryClient(); // queryClient 추가
   // 댓글 작성 내용
   const [content, setContent] = useState("");
   // 현재 열려 있는 답글 대상 ID 관리
@@ -67,7 +69,7 @@ const CommentsView = () => {
   // 댓글 데이터 업데이트 시 상태 업데이트
   useEffect(() => {
     if (CommentData) {
-      setComments(CommentData.processedComments);
+      setComments(CommentData.processedComments); // 평탄화된 댓글을 직접 사용
       setTotalCount(CommentData.totalCount); // 전체 댓글 수 업데이트
     }
   }, [CommentData]);
@@ -92,19 +94,27 @@ const CommentsView = () => {
       );
       return response.status;
     },
-    onSuccess: (status) => {
+    onSuccess: async (status) => {
       if (status === 200 || status === 201) {
         setContent("");
-        // 댓글 작성 후 마지막 페이지로 이동하기 위해 totalCount 확인 후 페이지 계산
-        refetch().then((result) => {
-          if (result.data) {
-            const newTotalCount = result.data.totalCount;
-            const lastPage = Math.ceil((newTotalCount + 1) / viewCount); // +1은 방금 작성한 댓글 고려
-            if (currentPage !== lastPage) {
-              setCurrentPage(lastPage); // 마지막 페이지로 이동
-            }
+        
+        // 먼저 현재 데이터를 새로고침하여 최신 댓글 수를 확인
+        const result = await refetch();
+        
+        if (result.data) {
+          const newTotalCount = result.data.totalCount;
+          const lastPage = Math.ceil(newTotalCount / viewCount);
+          
+          // 마지막 페이지로 이동해야 하는 경우
+          if (currentPage !== lastPage) {
+            setCurrentPage(lastPage);
+          } else {
+            // 현재 페이지에 머물 경우 쿼리 무효화하여 데이터 갱신
+            queryClient.invalidateQueries({
+              queryKey: ["story", "detail", "comments", storyId]
+            });
           }
-        });
+        }
       }
     },
     onError: () => {
@@ -124,9 +134,25 @@ const CommentsView = () => {
       );
       return response.status;
     },
-    onSuccess: (status) => {
+    onSuccess: async (status) => {
       if (status === 200 || status === 201) {
-        refetch(); // 삭제 후 현재 페이지 다시 로드
+        // 댓글 삭제 후 데이터를 새로고침하여 최신 댓글 수를 확인
+        const result = await refetch();
+        
+        if (result.data) {
+          const newTotalCount = result.data.totalCount;
+          const maxPage = Math.ceil(newTotalCount / viewCount) || 1; // 댓글이 없으면 1페이지
+          
+          // 현재 페이지가 최대 페이지보다 크면 (현재 페이지가 비어있으면)
+          if (currentPage > maxPage) {
+            setCurrentPage(maxPage); // 마지막 페이지로 이동
+          } else {
+            // 현재 페이지에 머물 경우 쿼리 무효화하여 데이터 갱신
+            queryClient.invalidateQueries({
+              queryKey: ["story", "detail", "comments", storyId]
+            });
+          }
+        }
       }
     },
     onError: () => {
@@ -177,17 +203,6 @@ const CommentsView = () => {
     setReplyTo((prev) => (prev === commentId ? null : commentId)); // 같은 ID를 클릭하면 닫히도록
   };
 
-  // 댓글 계층 구조를 평탄화하는 함수
-  const flattenComments = (comments: Comment[], depth = 0, result: any[] = []) => {
-    for (const comment of comments) {
-      result.push({ ...comment, depth }); // 댓글과 depth를 함께 저장
-      if (comment.children && comment.children.length > 0) {
-        flattenComments(comment.children, depth + 1, result); // 재귀 호출
-      }
-    }
-    return result;
-  };
-
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
 
@@ -230,7 +245,7 @@ const CommentsView = () => {
     replyTo,
     handleEditSubmit,
   }: {
-    comments: any;
+    comments: Comment[];
     toggleReply: (commentId: number) => void;
     handleReplySubmit: (parentId: number, content: string) => void;
     replyTo: number | null;
@@ -240,18 +255,16 @@ const CommentsView = () => {
     const [editCommentId, setEditCommentId] = useState<number | null>(null);
     const [editContent, setEditContent] = useState<string>("");
 
-    const flatComments = flattenComments(comments);
-
     return (
       <Box>
-        {flatComments.map((comment: any) => (
+        {comments.map((comment: any) => (
           <Box
             key={comment.id}
             sx={{
               display: "flex",
               flexDirection: "column",
               border: "1px solid #ddd",
-              ml: `${Math.min(comment.depth, MAX_DEPTH) * 30}px`,
+              ml: `${Math.min(comment.depth || 0, MAX_DEPTH) * 30}px`,
               p: 1,
               mb: 1,
             }}
@@ -432,7 +445,7 @@ const CommentsView = () => {
         </Box>
       )}
       <CommentList
-        comments={comments} // 서버에서 받아온 계층 구조의 댓글 사용
+        comments={comments}
         toggleReply={toggleReply}
         handleReplySubmit={handleReplySubmit}
         replyTo={replyTo}

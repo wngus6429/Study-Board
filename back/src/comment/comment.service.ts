@@ -17,7 +17,7 @@ export class CommentService {
     @InjectRepository(Notification)
     private notificationRepository: Repository<Notification>,
   ) {}
-
+  //!ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 작성
   async createComment(commentData: {
     storyId: string;
@@ -83,7 +83,8 @@ export class CommentService {
         // 대댓글인 경우: 원댓글 작성자에게 알림
         // 단, 자기 자신의 댓글에 대댓글 다는 경우는 제외
         if (parentComment.User.id !== authorId) {
-          const contentPreview = content.length > 50 ? content.substring(0, 50) + '...' : content;
+          const contentPreview =
+            content.length > 50 ? content.substring(0, 50) + '...' : content;
           const notification = this.notificationRepository.create({
             recipient: parentComment.User,
             comment: savedComment,
@@ -97,7 +98,8 @@ export class CommentService {
         // 일반 댓글인 경우: 글 작성자에게 알림
         // 단, 자기 자신의 글에 댓글 다는 경우는 제외
         if (story.User.id !== authorId) {
-          const contentPreview = content.length > 50 ? content.substring(0, 50) + '...' : content;
+          const contentPreview =
+            content.length > 50 ? content.substring(0, 50) + '...' : content;
           const notification = this.notificationRepository.create({
             recipient: story.User,
             comment: savedComment,
@@ -112,7 +114,7 @@ export class CommentService {
 
     return { commentId: savedCommentId };
   }
-
+  //!ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 삭제
   async deleteComment(
     commentId: number,
@@ -278,7 +280,9 @@ export class CommentService {
 
         // 대댓글이 있으면 평탄화하여 결과에 추가 (depth + 1)
         if (comment.children && comment.children.length > 0) {
-          result = result.concat(flattenCommentsWithDepth(comment.children, depth + 1));
+          result = result.concat(
+            flattenCommentsWithDepth(comment.children, depth + 1),
+          );
         }
       }
 

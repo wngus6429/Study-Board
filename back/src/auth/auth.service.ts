@@ -26,7 +26,7 @@ export class AuthService {
     private readonly storyRepository: Repository<Story>,
     // private readonly jwtService: JwtService,
   ) {}
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 회원가입처리
   async signUp(userData: SignupUserDto): Promise<void> {
     const { user_email, password, nickname } = userData;
@@ -58,7 +58,7 @@ export class AuthService {
       }
     }
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 로그인 처리
   async signIn(userData: SigninUserDto): Promise<{
     id: string;
@@ -87,7 +87,7 @@ export class AuthService {
       image: imageLink,
     };
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 로그인 유저 프로필 작성 글 가져오기
   async userFindStory(
     offset = 0,
@@ -142,7 +142,7 @@ export class AuthService {
 
     return { CommentsResults, CommentsTotal };
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 다른 유저 프로필 정보 가져오기
   async userGet(id: string): Promise<{ image: UserImage; nickname: string }> {
     const user = await this.userRepository.findOne({
@@ -195,7 +195,7 @@ export class AuthService {
       })),
     };
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 유저 정보 업데이트
   async userUpdate(
     userData: User,
@@ -233,7 +233,7 @@ export class AuthService {
     // 사용자 정보 및 관계된 이미지 저장
     return user;
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async deleteProfilePicture(id: string): Promise<void> {
     await this.userImageRepository.delete({ User: { id } });
     // 사용자 찾기
@@ -247,7 +247,7 @@ export class AuthService {
     //   await this.userImageRepository.remove(user.image);
     // }
   }
-  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 비밀번호 변경전 확인 처리 로직
   async verifyUser(userData: {
     id: string;
@@ -271,7 +271,7 @@ export class AuthService {
     if (!isMatch) throw new ConflictException('비밀번호가 일치하지 않습니다.');
     return true;
   }
-  // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 비밀번호 변경 처리 로직
   async changePassword(userData: any): Promise<void> {
     const { id, password } = userData;

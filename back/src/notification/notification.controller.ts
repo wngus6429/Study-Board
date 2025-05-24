@@ -17,7 +17,7 @@ import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 @UseGuards(AuthGuard('jwt'))
 export class NotificationController {
   constructor(private readonly notificationService: NotificationService) {}
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 사용자의 읽지 않은 알림 조회
   @Get()
   @ApiOperation({ summary: '읽지 않은 알림 조회' })
@@ -26,7 +26,7 @@ export class NotificationController {
     const userId = req.user.id;
     return this.notificationService.findUnread(userId);
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 사용자의 모든 알림 조회 (페이지네이션 포함)
   @Get('all')
   @ApiOperation({ summary: '모든 알림 조회' })
@@ -39,7 +39,7 @@ export class NotificationController {
     const userId = req.user.id;
     return this.notificationService.findAll(userId, page, limit);
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 알림을 읽음으로 표시
   @Patch(':id/read')
   @ApiOperation({ summary: '알림 읽음 처리' })
@@ -48,7 +48,7 @@ export class NotificationController {
     const userId = req.user.id;
     return this.notificationService.markAsRead(id, userId);
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 모든 알림을 읽음으로 표시
   @Patch('read-all')
   @ApiOperation({ summary: '모든 알림 읽음 처리' })
@@ -57,7 +57,7 @@ export class NotificationController {
     const userId = req.user.id;
     return this.notificationService.markAllAsRead(userId);
   }
-
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 알림 삭제
   @Delete(':id')
   @ApiOperation({ summary: '알림 삭제' })
@@ -66,4 +66,4 @@ export class NotificationController {
     const userId = req.user.id;
     return this.notificationService.deleteNotification(id, userId);
   }
-} 
+}

@@ -260,6 +260,36 @@ export class AuthController {
         .json({ message: '유효하지 않은 리프레시 토큰입니다.' });
     }
   }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 사용자 프로필 페이지용 - 작성한 글 조회 (페이지네이션)
+  @Post('/userProfileStoryTableData')
+  async getUserProfileStory(
+    @Body('offset') offset = 0,
+    @Body('limit') limit = 10,
+    @Body('username') username: string,
+  ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
+    console.log('프로필 스토리 요청 데이터:', { offset, limit, username });
+    return await this.authUserService.userProfileFindStory(
+      offset,
+      limit,
+      username,
+    );
+  }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 사용자 프로필 페이지용 - 작성한 댓글 조회 (페이지네이션)
+  @Post('/userProfileCommentsTableData')
+  async getUserProfileComments(
+    @Body('offset') offset = 0,
+    @Body('limit') limit = 10,
+    @Body('username') username: string,
+  ): Promise<{ CommentsResults: Partial<any>[]; CommentsTotal: number }> {
+    console.log('프로필 댓글 요청 데이터:', { offset, limit, username });
+    return await this.authUserService.userProfileFindComments(
+      offset,
+      limit,
+      username,
+    );
+  }
 }
 
 // JWT를 활용해서, 회원가입하고 바로 로그인 시키는 코드 로직

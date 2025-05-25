@@ -292,4 +292,94 @@ export class AuthService {
   async findUserById(id: string): Promise<User | null> {
     return await this.userRepository.findOne({ where: { id } });
   }
+
+  // 사용자 프로필 페이지용 - 작성한 글 조회 (페이지네이션)
+  async userProfileFindStory(
+    offset = 0,
+    limit = 10,
+    username: string,
+  ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
+    // 먼저 사용자 정보 확인
+    const user = await this.userRepository.findOne({
+      where: { nickname: username },
+    });
+
+    if (!user) {
+      throw new ConflictException('사용자를 찾을 수 없습니다.');
+    }
+
+    // 전체 스토리 데이터를 가져옵니다.
+    const [rawStories, StoryTotal] = await Promise.all([
+      this.storyRepository.find({
+        relations: ['User'],
+        order: { id: 'DESC' },
+        skip: offset,
+        take: limit,
+        where: {
+          User: { id: user.id },
+        },
+      }),
+      this.storyRepository.count({
+        where: {
+          User: { id: user.id },
+        },
+      }),
+    ]);
+
+    // 필요한 필드만 추출합니다.
+    const StoryResults = rawStories.map((story) => ({
+      id: story.id,
+      title: story.title,
+      category: story.category,
+      created_at: story.created_at,
+    }));
+
+    return { StoryResults, StoryTotal };
+  }
+
+  // 사용자 프로필 페이지용 - 작성한 댓글 조회 (페이지네이션)
+  async userProfileFindComments(
+    offset = 0,
+    limit = 10,
+    username: string,
+  ): Promise<{ CommentsResults: Partial<any>[]; CommentsTotal: number }> {
+    // 먼저 사용자 정보 확인
+    const user = await this.userRepository.findOne({
+      where: { nickname: username },
+    });
+
+    if (!user) {
+      throw new ConflictException('사용자를 찾을 수 없습니다.');
+    }
+
+    // 전체 댓글 데이터를 가져옵니다.
+    const [rawComments, CommentsTotal] = await Promise.all([
+      this.commentRepository.find({
+        relations: ['Story'],
+        order: { id: 'DESC' },
+        skip: offset,
+        take: limit,
+        where: {
+          User: { id: user.id },
+          deleted_at: IsNull(),
+        },
+      }),
+      this.commentRepository.count({
+        where: {
+          User: { id: user.id },
+          deleted_at: IsNull(),
+        },
+      }),
+    ]);
+
+    // 필요한 필드만 추출합니다.
+    const CommentsResults = rawComments.map((comment) => ({
+      id: comment.id,
+      content: comment.content,
+      updated_at: comment.updated_at,
+      storyId: comment.Story?.id, // Story 객체가 존재할 경우 id만 가져옵니다.
+    }));
+
+    return { CommentsResults, CommentsTotal };
+  }
 }

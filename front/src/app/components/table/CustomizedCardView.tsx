@@ -45,11 +45,15 @@ const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.React
             border: "1px dashed #ccc",
             borderRadius: 2,
             p: 3,
-            backgroundColor: "#f9f9f9"
+            backgroundColor: "#f9f9f9",
           }}
         >
-          <Typography variant="h5" gutterBottom>😊 게시글이 없습니다</Typography>
-          <Typography variant="body2" color="text.secondary">첫 번째 게시글을 작성해보세요!</Typography>
+          <Typography variant="h5" gutterBottom>
+            😊 게시글이 없습니다
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            첫 번째 게시글을 작성해보세요!
+          </Typography>
         </Box>
       ) : (
         <Grid container spacing={1} sx={{ p: 1 }}>
@@ -57,7 +61,13 @@ const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.React
             <Grid item xs={12} sm={6} md={4} key={row.id}>
               <Card
                 elevation={4}
-                onClick={() => router.push(`/detail/story/${row.id}`)}
+                onClick={() => {
+                  // 현재 페이지 URL을 세션 스토리지에 저장
+                  if (typeof window !== "undefined") {
+                    sessionStorage.setItem("previousMainPageUrl", window.location.href);
+                  }
+                  router.push(`/detail/story/${row.id}`);
+                }}
                 sx={{
                   borderRadius: 2,
                   transition: "transform 0.3s, box-shadow 0.3s",

@@ -382,6 +382,34 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     });
   }, [detail?.StoryImage]);
 
+  // 메인으로 이동하는 함수 (이전 페이지 상태 유지)
+  const handleGoToMain = () => {
+    // 세션 스토리지에서 이전 메인 페이지 URL 확인
+    if (typeof window !== "undefined") {
+      const previousMainPageUrl = sessionStorage.getItem("previousMainPageUrl");
+
+      if (previousMainPageUrl) {
+        // 저장된 URL에서 현재 도메인 부분을 제거하고 경로만 추출
+        try {
+          const url = new URL(previousMainPageUrl);
+          const pathWithQuery = url.pathname + url.search;
+
+          // 세션 스토리지에서 URL 제거 (한 번 사용 후 삭제)
+          sessionStorage.removeItem("previousMainPageUrl");
+
+          // 이전 페이지로 이동
+          router.push(pathWithQuery);
+          return;
+        } catch (error) {
+          console.error("Invalid URL in session storage:", error);
+        }
+      }
+    }
+
+    // 저장된 URL이 없거나 오류가 발생한 경우 기본 메인으로 이동
+    router.push("/");
+  };
+
   // ★ 조건부 return은 훅 선언 이후에 배치합니다.
   if (isLoading) return <Loading />;
   if (isError) return <ErrorView />;
@@ -469,7 +497,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                       뒤로가기
                     </Button>
                     <Button
-                      onClick={() => router.push("/")}
+                      onClick={handleGoToMain}
                       size="small"
                       variant="contained"
                       sx={{

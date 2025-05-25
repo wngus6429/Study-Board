@@ -123,7 +123,9 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                 <StyledTableCell colSpan={6} align="center" sx={{ height: "120px" }}>
                   <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                     <Typography variant="h6">😊 게시글이 없습니다</Typography>
-                    <Typography variant="body2" color="text.secondary">첫 번째 게시글을 작성해보세요!</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      첫 번째 게시글을 작성해보세요!
+                    </Typography>
                   </Box>
                 </StyledTableCell>
               </StyledTableRow>
@@ -131,7 +133,13 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
               tableData.map((row: TableStoryType) => (
                 <StyledTableRow
                   key={row.id}
-                  onClick={() => router.push(`/detail/story/${row.id}`)}
+                  onClick={() => {
+                    // 현재 페이지 URL을 세션 스토리지에 저장
+                    if (typeof window !== "undefined") {
+                      sessionStorage.setItem("previousMainPageUrl", window.location.href);
+                    }
+                    router.push(`/detail/story/${row.id}`);
+                  }}
                   sx={{ cursor: "pointer" }}
                 >
                   <StyledTableCell component="th" scope="row" sx={{ textAlign: "center" }}>

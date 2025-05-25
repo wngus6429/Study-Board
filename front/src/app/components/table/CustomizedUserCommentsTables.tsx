@@ -89,8 +89,8 @@ const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps
                 onClick={() => {
                   // 댓글 클릭 시 해당 댓글로 이동 (내 프로필, 상대방 프로필 모두)
                   if (row.storyId) {
-                    // 현재 페이지 URL을 세션 스토리지에 저장
-                    if (typeof window !== "undefined") {
+                    // 상대방 프로필에서만 현재 페이지 URL을 세션 스토리지에 저장
+                    if (typeof window !== "undefined" && commentsFlag) {
                       sessionStorage.setItem("previousMainPageUrl", window.location.href);
                     }
                     router.push(`/detail/story/${row.storyId}#comment-${row.id}`);

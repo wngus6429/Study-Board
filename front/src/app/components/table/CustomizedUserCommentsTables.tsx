@@ -87,28 +87,37 @@ const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps
               <StyledTableRow
                 key={row.id}
                 onClick={() => {
-                  if (!commentsFlag) {
-                    router.push(`/detail/story/${row.storyId}`);
+                  // 댓글 클릭 시 해당 댓글로 이동 (내 프로필, 상대방 프로필 모두)
+                  if (row.storyId) {
+                    // 현재 페이지 URL을 세션 스토리지에 저장
+                    if (typeof window !== "undefined") {
+                      sessionStorage.setItem("previousMainPageUrl", window.location.href);
+                    }
+                    router.push(`/detail/story/${row.storyId}#comment-${row.id}`);
+                  } else {
+                    console.warn("storyId가 없습니다:", row);
                   }
                 }}
                 sx={{
-                  cursor: commentsFlag ? "default" : "pointer",
-                  pointerEvents: commentsFlag ? "none" : "auto", // 클릭 비활성화
+                  cursor: row.storyId ? "pointer" : "default",
+                  opacity: row.storyId ? 1 : 0.6,
                 }}
               >
                 <StyledTableCell
                   sx={{
                     display: "flex",
-                    alignItems: "center", // 세로 방향 가운데 정렬
-                    // justifyContent: "center", // 가로 방향도 가운데 정렬하고 싶다면 추가
+                    alignItems: "center",
                     gap: 1,
-                    // 테이블 높이가 너무 작다면 아래처럼 최소 높이를 부여
-                    // minHeight: 48
                   }}
                 >
                   <Typography variant="body1" color="text.primary" noWrap>
                     {row.content}
                   </Typography>
+                  {!row.storyId && (
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                      (삭제된 글)
+                    </Typography>
+                  )}
                 </StyledTableCell>
                 <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
                   {dayjs(row.updated_at).format("YYYY.MM.DD HH:mm")}

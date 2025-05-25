@@ -174,7 +174,8 @@ export class AuthService {
 
     // 3. 유저가 작성한 Comments 최신순으로 10개 가져오기
     const comments = await this.commentRepository.find({
-      where: { User: { id: user.id } }, // Comments 테이블에서 유저 ID를 기준으로 검색
+      where: { User: { id: user.id }, deleted_at: IsNull() }, // 삭제되지 않은 댓글만
+      relations: ['Story'], // Story 관계 추가
       order: { created_at: 'DESC' }, // 최신순 정렬
       take: 10, // 최대 10개만 가져오기
     });
@@ -190,8 +191,11 @@ export class AuthService {
         content: post.content,
       })),
       comments: comments.map((comment) => ({
+        id: comment.id,
         content: comment.content,
         created_at: comment.created_at,
+        updated_at: comment.updated_at,
+        storyId: comment.Story?.id, // storyId 추가
       })),
     };
   }

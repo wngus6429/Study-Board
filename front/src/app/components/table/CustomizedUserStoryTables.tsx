@@ -79,6 +79,10 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
                 <StyledTableRow
                   key={row.id}
                   onClick={() => {
+                    // 현재 페이지 URL을 세션 스토리지에 저장
+                    if (typeof window !== "undefined") {
+                      sessionStorage.setItem("previousMainPageUrl", window.location.href);
+                    }
                     router.push(`/detail/story/${row.id}`);
                   }}
                   sx={{ cursor: "pointer" }}

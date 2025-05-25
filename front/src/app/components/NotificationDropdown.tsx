@@ -1,24 +1,10 @@
 "use client";
 import React, { useState, useEffect } from "react";
-import {
-  IconButton,
-  Badge,
-  Menu,
-  MenuItem,
-  Typography,
-  Box,
-  Divider,
-  Button,
-  CircularProgress,
-} from "@mui/material";
+import { IconButton, Badge, Menu, MenuItem, Typography, Box, Divider, Button, CircularProgress } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  getUnreadNotifications,
-  markNotificationAsRead,
-  markAllNotificationsAsRead,
-} from "../api/notification";
+import { getUnreadNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "../api/notification";
 import { INotification } from "../types/notification";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -71,9 +57,10 @@ const NotificationDropdown = () => {
       await markAsReadMutation.mutateAsync(notification.id);
     }
 
-    // 해당 게시글로 이동
+    // 해당 게시글로 이동 (댓글 ID를 해시로 포함)
     if (notification.comment?.storyId) {
-      router.push(`/detail/story/${notification.comment.storyId}`);
+      const url = `/detail/story/${notification.comment.storyId}#comment-${notification.comment.id}`;
+      router.push(url);
     }
 
     handleClose();
@@ -105,16 +92,15 @@ const NotificationDropdown = () => {
     }
   };
 
+  // 알림 페이지로 이동
+  const handleMoveToNotificationPage = () => {
+    router.push("/notifications");
+  };
+
   return (
     <>
       {/* 알림 아이콘 버튼 */}
-      <IconButton
-        size="large"
-        aria-label="알림"
-        color="inherit"
-        onClick={handleOpen}
-        sx={{ mr: 1, color: "white" }}
-      >
+      <IconButton size="large" aria-label="알림" color="inherit" onClick={handleOpen} sx={{ mr: 1, color: "white" }}>
         <Badge badgeContent={notifications.length} color="error">
           <NotificationsIcon />
         </Badge>
@@ -149,14 +135,13 @@ const NotificationDropdown = () => {
             알림
           </Typography>
           {notifications.length > 0 && (
-            <Button
-              size="small"
-              onClick={handleMarkAllAsRead}
-              disabled={markAllAsReadMutation.isPending}
-            >
+            <Button size="small" onClick={handleMarkAllAsRead} disabled={markAllAsReadMutation.isPending}>
               모두 읽음
             </Button>
           )}
+          <Button size="small" onClick={handleMoveToNotificationPage} sx={{ fontSize: "16px" }}>
+            알림 페이지로 이동
+          </Button>
         </Box>
         <Divider />
 
@@ -167,9 +152,7 @@ const NotificationDropdown = () => {
           </Box>
         ) : notifications.length === 0 ? (
           <Box sx={{ px: 2, py: 3, textAlign: "center" }}>
-            <Typography color="text.secondary">
-              새로운 알림이 없습니다
-            </Typography>
+            <Typography color="text.secondary">새로운 알림이 없습니다</Typography>
           </Box>
         ) : (
           notifications.map((notification) => (
@@ -220,9 +203,7 @@ const NotificationDropdown = () => {
                 color: "primary.main",
               }}
             >
-              <Typography variant="body2">
-                모든 알림 보기
-              </Typography>
+              <Typography variant="body2">모든 알림 보기</Typography>
             </MenuItem>
           </>
         )}
@@ -231,4 +212,4 @@ const NotificationDropdown = () => {
   );
 };
 
-export default NotificationDropdown; 
+export default NotificationDropdown;

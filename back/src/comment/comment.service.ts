@@ -167,7 +167,6 @@ export class CommentService {
     comment.content = content;
     await this.commentRepository.save(comment);
   }
-
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글조회, 상세 페이지에서 댓글 데이터를 가져오는 메서드
   async findStoryOneComment(
@@ -307,5 +306,123 @@ export class CommentService {
 
     // 평탄화된 댓글을 그대로 반환 (depth 정보 포함)
     return { processedComments: pagedComments, totalCount };
+  }
+
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 특정 댓글이 포함된 페이지 번호를 찾는 메서드
+  async findCommentPage(
+    storyId: number,
+    commentId: number,
+    limit: number = 10,
+  ): Promise<{ page: number; totalPages: number }> {
+    console.log('findCommentPage 호출됨', storyId, commentId, limit);
+
+    // Story 데이터를 댓글과 함께 가져옴
+    const findData = await this.storyRepository.findOne({
+      where: { id: storyId },
+      relations: [
+        'Comments',
+        'Comments.User',
+        'Comments.User.UserImage',
+        'Comments.parent',
+        'Comments.parent.User',
+        'Comments.parent.User.UserImage',
+        'Comments.children',
+        'Comments.children.User.UserImage',
+      ],
+    });
+
+    if (!findData) {
+      throw new NotFoundException(`${storyId}의 댓글 데이터가 없음`);
+    }
+
+    // 댓글을 계층 구조로 빌드하는 함수 (기존과 동일)
+    function buildCommentTree(comments: any): any[] {
+      const commentMap = new Map();
+      comments.forEach((comment) => {
+        const isDeleted = !!comment.deleted_at;
+        const formattedComment = {
+          id: comment.id,
+          content: isDeleted ? '삭제됨' : comment.content,
+          updated_at: comment.updated_at,
+          nickname: isDeleted ? null : comment.User?.nickname || null,
+          userId: isDeleted ? null : comment.User?.id,
+          link: isDeleted ? null : comment.User?.UserImage?.link || null,
+          parentNickname: comment.parent
+            ? comment.parent.User?.nickname || null
+            : null,
+          children: [],
+          isDeleted,
+        };
+        commentMap.set(comment.id, formattedComment);
+      });
+
+      const rootComments: any[] = [];
+      comments.forEach((comment) => {
+        const currentComment = commentMap.get(comment.id);
+        if (comment.parent) {
+          const parentComment = commentMap.get(comment.parent.id);
+          if (parentComment) {
+            parentComment.children.push(currentComment);
+          }
+        } else {
+          rootComments.push(currentComment);
+        }
+      });
+
+      function processCommentTree(comments: any[]): any[] {
+        return comments.filter((comment) => {
+          if (comment.children && comment.children.length > 0) {
+            comment.children = processCommentTree(comment.children);
+            if (comment.isDeleted && comment.children.length > 0) {
+              return true;
+            }
+          }
+          if (
+            comment.isDeleted &&
+            (!comment.children || comment.children.length === 0)
+          ) {
+            return false;
+          }
+          return true;
+        });
+      }
+
+      return processCommentTree(rootComments);
+    }
+
+    // 댓글을 평탄화하는 함수 (기존과 동일)
+    function flattenCommentsWithDepth(comments: any[], depth = 0): any[] {
+      let result: any[] = [];
+      for (const comment of comments) {
+        const commentWithDepth = { ...comment, depth };
+        result.push(commentWithDepth);
+        if (comment.children && comment.children.length > 0) {
+          result = result.concat(
+            flattenCommentsWithDepth(comment.children, depth + 1),
+          );
+        }
+      }
+      return result;
+    }
+
+    // 댓글 데이터를 계층 구조로 변환 후 평탄화
+    const allProcessedComments = buildCommentTree(findData.Comments);
+    const allFlattenedComments = flattenCommentsWithDepth(allProcessedComments);
+
+    // 특정 댓글의 인덱스 찾기
+    const commentIndex = allFlattenedComments.findIndex(
+      (comment) => comment.id === commentId,
+    );
+
+    if (commentIndex === -1) {
+      throw new NotFoundException('해당 댓글을 찾을 수 없습니다.');
+    }
+
+    // 페이지 번호 계산 (1부터 시작)
+    const page = Math.floor(commentIndex / limit) + 1;
+    const totalPages = Math.ceil(allFlattenedComments.length / limit);
+
+    return { page, totalPages };
   }
 }

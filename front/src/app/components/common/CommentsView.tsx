@@ -4,7 +4,7 @@ import { Box, TextField, Button, Typography, Avatar, Alert, Pagination } from "@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import dayjs from "dayjs";
 import Loading from "./Loading";
 import ConfirmDialog from "./ConfirmDialog";
@@ -47,6 +47,64 @@ const CommentsView = () => {
   const viewCount = COMMENT_VIEW_COUNT; // 한 페이지당 표시할 댓글 수
   const [totalCount, setTotalCount] = useState(0); // 전체 댓글 수 상태 추가
 
+  // URL 해시에서 댓글 ID 추출 및 스크롤 처리
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith("#comment-")) {
+      const commentId = hash.replace("#comment-", "");
+      // 먼저 해당 댓글이 포함된 페이지를 찾아서 이동
+      findAndNavigateToCommentPage(parseInt(commentId));
+    }
+  }, []);
+
+  // 댓글이 포함된 페이지를 찾아서 이동하는 함수
+  const findAndNavigateToCommentPage = async (commentId: number) => {
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/comment/${storyId}/page/${commentId}?limit=${viewCount}`
+      );
+      const { page } = response.data;
+
+      // 해당 페이지로 이동
+      if (page !== currentPage) {
+        setCurrentPage(page);
+        // 페이지 변경 후 댓글 로딩을 기다린 후 스크롤
+        setTimeout(() => {
+          scrollToComment(commentId.toString());
+        }, 1500);
+      } else {
+        // 이미 해당 페이지에 있다면 바로 스크롤
+        setTimeout(() => {
+          scrollToComment(commentId.toString());
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("댓글 페이지를 찾는 중 오류 발생:", error);
+      // 오류 발생 시 현재 페이지에서 스크롤 시도
+      setTimeout(() => {
+        scrollToComment(commentId.toString());
+      }, 1000);
+    }
+  };
+
+  // 특정 댓글로 스크롤하는 함수
+  const scrollToComment = (commentId: string) => {
+    const element = document.getElementById(`comment-${commentId}`);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      // 댓글 하이라이트 효과
+      element.style.backgroundColor = "#fff3cd";
+      element.style.border = "2px solid #ffc107";
+      setTimeout(() => {
+        element.style.backgroundColor = "";
+        element.style.border = "";
+      }, 3000);
+    }
+  };
+
   const {
     data: CommentData,
     isLoading,
@@ -71,6 +129,15 @@ const CommentsView = () => {
     if (CommentData) {
       setComments(CommentData.processedComments); // 평탄화된 댓글을 직접 사용
       setTotalCount(CommentData.totalCount); // 전체 댓글 수 업데이트
+
+      // 페이지 변경 후 해시가 있다면 해당 댓글로 스크롤
+      const hash = window.location.hash;
+      if (hash.startsWith("#comment-")) {
+        const commentId = hash.replace("#comment-", "");
+        setTimeout(() => {
+          scrollToComment(commentId);
+        }, 500);
+      }
     }
   }, [CommentData]);
 
@@ -96,36 +163,37 @@ const CommentsView = () => {
     },
     onSuccess: async (data) => {
       setContent("");
-      
+
       // 새로 생성된 댓글 ID
       const newCommentId = data.commentId;
       console.log("🔥 새로 생성된 댓글 ID:", newCommentId);
-      
+
       // 현재 페이지 데이터 새로고침
       const result = await refetch();
-      
+
       if (result.data) {
         const currentPageComments = result.data.processedComments;
         const newTotalCount = result.data.totalCount;
         const lastPage = Math.ceil(newTotalCount / viewCount);
-        
+
         console.log("📄 현재 페이지:", currentPage);
         console.log("📄 마지막 페이지:", lastPage);
-        console.log("📝 현재 페이지 댓글 IDs:", currentPageComments.map(c => c.id));
-        console.log("📊 전체 댓글 수:", newTotalCount);
-        
-        // 새로 생성된 댓글이 현재 페이지에 있는지 확인
-        const isNewCommentInCurrentPage = currentPageComments.some(
-          comment => comment.id === newCommentId
+        console.log(
+          "📝 현재 페이지 댓글 IDs:",
+          currentPageComments.map((c) => c.id)
         );
-        
+        console.log("📊 전체 댓글 수:", newTotalCount);
+
+        // 새로 생성된 댓글이 현재 페이지에 있는지 확인
+        const isNewCommentInCurrentPage = currentPageComments.some((comment) => comment.id === newCommentId);
+
         console.log("✅ 새 댓글이 현재 페이지에 있나?", isNewCommentInCurrentPage);
-        
+
         if (isNewCommentInCurrentPage) {
           console.log("🏠 현재 페이지 유지");
           // 현재 페이지에 새 댓글이 있으면 현재 페이지 유지
           queryClient.invalidateQueries({
-            queryKey: ["story", "detail", "comments", storyId]
+            queryKey: ["story", "detail", "comments", storyId],
           });
         } else {
           console.log("🚀 마지막 페이지로 이동:", lastPage);
@@ -155,18 +223,18 @@ const CommentsView = () => {
       if (status === 200 || status === 201) {
         // 댓글 삭제 후 데이터를 새로고침하여 최신 댓글 수를 확인
         const result = await refetch();
-        
+
         if (result.data) {
           const newTotalCount = result.data.totalCount;
           const maxPage = Math.ceil(newTotalCount / viewCount) || 1; // 댓글이 없으면 1페이지
-          
+
           // 현재 페이지가 최대 페이지보다 크면 (현재 페이지가 비어있으면)
           if (currentPage > maxPage) {
             setCurrentPage(maxPage); // 마지막 페이지로 이동
           } else {
             // 현재 페이지에 머물 경우 쿼리 무효화하여 데이터 갱신
             queryClient.invalidateQueries({
-              queryKey: ["story", "detail", "comments", storyId]
+              queryKey: ["story", "detail", "comments", storyId],
             });
           }
         }
@@ -277,6 +345,7 @@ const CommentsView = () => {
         {comments.map((comment: any) => (
           <Box
             key={comment.id}
+            id={`comment-${comment.id}`}
             sx={{
               display: "flex",
               flexDirection: "column",
@@ -284,6 +353,7 @@ const CommentsView = () => {
               ml: `${Math.min(comment.depth || 0, MAX_DEPTH) * 30}px`,
               p: 1,
               mb: 1,
+              transition: "all 0.3s ease",
             }}
           >
             {/* 댓글 헤더 */}

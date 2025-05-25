@@ -90,7 +90,8 @@ export default function NotificationsPage() {
       await markAsReadMutation.mutateAsync(notification.id);
     }
     if (notification.comment?.storyId) {
-      router.push(`/detail/story/${notification.comment.storyId}`);
+      const url = `/detail/story/${notification.comment.storyId}#comment-${notification.comment.id}`;
+      router.push(url);
     }
   };
 

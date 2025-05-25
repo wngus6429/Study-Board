@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   ParseIntPipe,
   Patch,
@@ -66,5 +67,20 @@ export class CommentController {
   ): Promise<void> {
     console.log('수정할 댓글 ID:', commentId, content);
     return await this.commentsService.editComment(commentId, content);
+  }
+
+  //!ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 특정 댓글이 포함된 페이지 번호 찾기
+  @Get('/comment/:storyId/page/:commentId')
+  async findCommentPage(
+    @Param('storyId', ParseIntPipe) storyId: number,
+    @Param('commentId', ParseIntPipe) commentId: number,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+  ): Promise<{ page: number; totalPages: number }> {
+    return await this.commentsService.findCommentPage(
+      storyId,
+      commentId,
+      limit,
+    );
   }
 }

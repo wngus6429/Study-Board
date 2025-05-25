@@ -91,6 +91,66 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     };
   }, [detail]);
 
+  // URL 해시 변경 감지 및 댓글 스크롤 처리
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith("#comment-")) {
+        const commentId = hash.replace("#comment-", "");
+        // 댓글이 포함된 페이지를 찾아서 이동하는 로직은 CommentsView 컴포넌트에서 처리
+        // 여기서는 단순히 스크롤만 처리
+        setTimeout(() => {
+          scrollToComment(commentId);
+        }, 2000); // 댓글 컴포넌트 로딩 대기
+      }
+    };
+
+    // 초기 로드 시 해시 확인
+    handleHashChange();
+
+    // 해시 변경 이벤트 리스너 추가
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
+
+  // 특정 댓글로 스크롤하는 함수
+  const scrollToComment = (commentId: string) => {
+    const element = document.getElementById(`comment-${commentId}`);
+    if (element) {
+      element.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+      // 댓글 하이라이트 효과
+      element.style.backgroundColor = "#fff3cd";
+      element.style.border = "2px solid #ffc107";
+      setTimeout(() => {
+        element.style.backgroundColor = "";
+        element.style.border = "";
+      }, 3000);
+    } else {
+      // 댓글이 현재 페이지에 없을 수 있으므로 재시도
+      setTimeout(() => {
+        const retryElement = document.getElementById(`comment-${commentId}`);
+        if (retryElement) {
+          retryElement.scrollIntoView({
+            behavior: "smooth",
+            block: "center",
+          });
+          retryElement.style.backgroundColor = "#fff3cd";
+          retryElement.style.border = "2px solid #ffc107";
+          setTimeout(() => {
+            retryElement.style.backgroundColor = "";
+            retryElement.style.border = "";
+          }, 3000);
+        }
+      }, 3000); // 더 긴 대기 시간
+    }
+  };
+
   //! 데이터 없으면 not-found 위치로 이동
   useEffect(() => {
     if (isError && !isDeleted) {
@@ -404,9 +464,22 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                       작성자: {detail.User.nickname}
                     </Link>
                   </Typography>
-                  <Button onClick={() => router.back()} size="small" variant="contained" color="primary" sx={{ mt: 1 }}>
-                    뒤로가기
-                  </Button>
+                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                    <Button onClick={() => router.back()} size="small" variant="contained" color="primary">
+                      뒤로가기
+                    </Button>
+                    <Button
+                      onClick={() => router.push("/")}
+                      size="small"
+                      variant="contained"
+                      sx={{
+                        backgroundColor: "#ff9800",
+                        "&:hover": { backgroundColor: "#f57c00" },
+                      }}
+                    >
+                      메인으로
+                    </Button>
+                  </Box>
                 </Box>
               </Box>
               <Box

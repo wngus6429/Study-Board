@@ -1,12 +1,22 @@
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #1e293b;
+  --primary: #6366f1;
+  --secondary: #ec4899;
+}
+
+/* 다크모드 CSS 변수 */
+[data-theme="dark"] {
+  --background: #0f0f23;
+  --foreground: #e2e8f0;
+  --primary: #8b5cf6;
+  --secondary: #06b6d4;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #0f0f23;
+    --foreground: #e2e8f0;
   }
 }
 
@@ -23,9 +33,31 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Inter", "Roboto", "Helvetica", "Arial", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition:
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 다크모드 스크롤바 스타일 */
+[data-theme="dark"] ::-webkit-scrollbar {
+  width: 8px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: #1a1a2e;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #8b5cf6, #06b6d4);
+  border-radius: 4px;
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #7c3aed, #0891b2);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
 }
 
 * {

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { Box, Button, Typography } from "@mui/material";
+import { Box, Button, Typography, useTheme } from "@mui/material";
 import ThumbUpIcon from "@mui/icons-material/ThumbUp";
 import ThumbDownIcon from "@mui/icons-material/ThumbDown";
 import { motion } from "framer-motion"; // framer-motion 추가
@@ -13,6 +13,7 @@ interface RecommendButtonsWithCountProps {
 
 export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: RecommendButtonsWithCountProps) {
   const [clicked, setClicked] = useState<"like" | "dislike" | null>(null);
+  const theme = useTheme();
 
   const handleClick = (vote: "like" | "dislike") => {
     setClicked(vote);
@@ -40,13 +41,14 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
     >
       <Box
         sx={{
-          border: "2px solid rgba(0, 0, 0, 0.1)",
-          padding: "8px",
-          borderRadius: 2,
-          backgroundColor: "rgba(255, 255, 255, 0.8)",
-          boxShadow: 3,
-          width: 200,
+          border: theme.palette.mode === "dark" ? "2px solid rgba(139, 92, 246, 0.4)" : "2px solid rgba(0, 0, 0, 0.1)",
+          padding: "12px",
+          borderRadius: 3,
+          backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "rgba(255, 255, 255, 0.95)",
+          boxShadow: theme.palette.mode === "dark" ? "0 8px 32px rgba(139, 92, 246, 0.3)" : 3,
+          width: 220,
           textAlign: "center",
+          backdropFilter: "blur(10px)",
         }}
       >
         <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: 1 }}>
@@ -58,7 +60,14 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: "bold",
+                  color: theme.palette.mode === "dark" ? "#22d3ee" : "#1976d2",
+                  fontSize: "1.2rem",
+                }}
+              >
                 {like}
               </Typography>
             </motion.div>
@@ -72,10 +81,22 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
                 startIcon={<ThumbUpIcon />}
                 sx={{
                   borderRadius: 20,
-                  padding: "8px 15px",
+                  padding: "10px 18px",
                   fontWeight: "bold",
                   opacity: 1,
-                  backgroundColor: clicked === "like" ? "green" : undefined, // 클릭 시 색상 변경
+                  background:
+                    clicked === "like"
+                      ? "linear-gradient(45deg, #10b981 30%, #22d3ee 90%)"
+                      : theme.palette.mode === "dark"
+                        ? "linear-gradient(45deg, #3b82f6 30%, #22d3ee 90%)"
+                        : undefined,
+                  boxShadow: theme.palette.mode === "dark" ? "0 4px 15px rgba(59, 130, 246, 0.4)" : undefined,
+                  "&:hover": {
+                    background:
+                      theme.palette.mode === "dark" ? "linear-gradient(45deg, #2563eb 30%, #0891b2 90%)" : undefined,
+                    boxShadow: theme.palette.mode === "dark" ? "0 6px 20px rgba(59, 130, 246, 0.6)" : undefined,
+                    transform: "translateY(-2px)",
+                  },
                 }}
                 onClick={() => handleClick("like")}
               >
@@ -92,7 +113,14 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3 }}
             >
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+              <Typography
+                variant="subtitle1"
+                sx={{
+                  fontWeight: "bold",
+                  color: theme.palette.mode === "dark" ? "#f87171" : "#d32f2f",
+                  fontSize: "1.2rem",
+                }}
+              >
                 {dislike}
               </Typography>
             </motion.div>
@@ -103,10 +131,22 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
                 startIcon={<ThumbDownIcon />}
                 sx={{
                   borderRadius: 20,
-                  padding: "8px 15px",
+                  padding: "10px 18px",
                   fontWeight: "bold",
                   opacity: 1,
-                  backgroundColor: clicked === "dislike" ? "red" : undefined,
+                  background:
+                    clicked === "dislike"
+                      ? "linear-gradient(45deg, #dc2626 30%, #ef4444 90%)"
+                      : theme.palette.mode === "dark"
+                        ? "linear-gradient(45deg, #ef4444 30%, #f87171 90%)"
+                        : undefined,
+                  boxShadow: theme.palette.mode === "dark" ? "0 4px 15px rgba(239, 68, 68, 0.4)" : undefined,
+                  "&:hover": {
+                    background:
+                      theme.palette.mode === "dark" ? "linear-gradient(45deg, #dc2626 30%, #ef4444 90%)" : undefined,
+                    boxShadow: theme.palette.mode === "dark" ? "0 6px 20px rgba(239, 68, 68, 0.6)" : undefined,
+                    transform: "translateY(-2px)",
+                  },
                 }}
                 onClick={() => handleClick("dislike")}
               >

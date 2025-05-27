@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Box, TextField, Button, Typography, Avatar, Alert, Pagination } from "@mui/material";
+import { Box, TextField, Button, Typography, Avatar, Alert, Pagination, useTheme } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -35,6 +35,7 @@ const CommentsView = () => {
   const { showMessage } = useMessage((state) => state);
   const { data: session, status } = useSession();
   const queryClient = useQueryClient(); // queryClient 추가
+  const theme = useTheme();
   // 댓글 작성 내용
   const [content, setContent] = useState("");
   // 현재 열려 있는 답글 대상 ID 관리
@@ -339,6 +340,7 @@ const CommentsView = () => {
     const [localReplyContent, setLocalReplyContent] = useState("");
     const [editCommentId, setEditCommentId] = useState<number | null>(null);
     const [editContent, setEditContent] = useState<string>("");
+    const theme = useTheme();
 
     return (
       <Box>
@@ -349,11 +351,18 @@ const CommentsView = () => {
             sx={{
               display: "flex",
               flexDirection: "column",
-              border: "1px solid #ddd",
+              border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid #ddd",
+              backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#ffffff",
               ml: `${Math.min(comment.depth || 0, MAX_DEPTH) * 30}px`,
               p: 1,
               mb: 1,
               transition: "all 0.3s ease",
+              borderRadius: 2,
+              "&:hover": {
+                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.5)" : "1px solid #bbb",
+                boxShadow:
+                  theme.palette.mode === "dark" ? "0 4px 15px rgba(139, 92, 246, 0.1)" : "0 2px 8px rgba(0, 0, 0, 0.1)",
+              },
             }}
           >
             {/* 댓글 헤더 */}
@@ -361,18 +370,32 @@ const CommentsView = () => {
               sx={{
                 display: "flex",
                 alignItems: "center",
-                backgroundColor: "#e6e6ff",
+                backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.15)" : "#e6e6ff",
                 p: 0.5,
+                borderRadius: 1,
+                mb: 1,
               }}
             >
               <Avatar
                 src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`}
                 sx={{ width: 32, height: 32, mr: 1 }}
               />
-              <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+              <Typography
+                variant="body2"
+                sx={{
+                  fontWeight: "bold",
+                  color: theme.palette.mode === "dark" ? "#a78bfa" : "#4f46e5",
+                }}
+              >
                 {comment.nickname}
               </Typography>
-              <Typography variant="caption" sx={{ ml: "auto", color: "gray" }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  ml: "auto",
+                  color: theme.palette.mode === "dark" ? "#94a3b8" : "gray",
+                }}
+              >
                 {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
               </Typography>
             </Box>
@@ -412,16 +435,26 @@ const CommentsView = () => {
                 </Box>
               </Box>
             ) : (
-              <Typography variant="body1" sx={{ mt: 1 }}>
+              <Typography
+                variant="body1"
+                sx={{
+                  mt: 1,
+                  color: theme.palette.mode === "dark" ? "#e2e8f0" : "#1e293b",
+                  lineHeight: 1.6,
+                }}
+              >
                 {comment.parentNickname && (
                   <Box
                     component="span"
                     sx={{
                       fontWeight: "bold",
-                      backgroundColor: "#FFEB3B",
-                      padding: "2px 6px",
-                      borderRadius: "4px",
+                      backgroundColor: theme.palette.mode === "dark" ? "rgba(6, 182, 212, 0.8)" : "#FFEB3B",
+                      color: theme.palette.mode === "dark" ? "#0f0f23" : "#1e293b",
+                      padding: "2px 8px",
+                      borderRadius: "6px",
                       mr: 1,
+                      fontSize: "0.875rem",
+                      boxShadow: theme.palette.mode === "dark" ? "0 0 8px rgba(6, 182, 212, 0.3)" : "none",
                     }}
                   >
                     @{comment.parentNickname}
@@ -506,7 +539,19 @@ const CommentsView = () => {
   };
 
   return (
-    <Box sx={{ width: "100%", border: "1px solid #ddd", padding: 2, mt: 2, mb: 2 }}>
+    <Box
+      sx={{
+        width: "100%",
+        border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid #ddd",
+        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.5)" : "#ffffff",
+        padding: 2,
+        mt: 2,
+        mb: 2,
+        borderRadius: 3,
+        boxShadow:
+          theme.palette.mode === "dark" ? "0 4px 20px rgba(139, 92, 246, 0.1)" : "0 2px 8px rgba(0, 0, 0, 0.1)",
+      }}
+    >
       {isLoading && <Loading />}
       {isError && <Alert severity="error">댓글을 불러오는 중 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</Alert>}
       {openConfirmDialog && (
@@ -520,7 +565,14 @@ const CommentsView = () => {
           cancelText="취소"
         />
       )}
-      <Typography variant="h6" gutterBottom>
+      <Typography
+        variant="h6"
+        gutterBottom
+        sx={{
+          color: theme.palette.mode === "dark" ? "#a78bfa" : "#1e293b",
+          fontWeight: 700,
+        }}
+      >
         댓글
       </Typography>
       {comments.length === 0 && !isLoading && (
@@ -542,11 +594,14 @@ const CommentsView = () => {
         <Box
           sx={{
             width: "100%",
-            border: "1px solid #ddd",
-            borderRadius: "4px",
+            border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid #ddd",
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#ffffff",
+            borderRadius: "8px",
             padding: 2,
             display: "flex",
             flexDirection: "column",
+            boxShadow:
+              theme.palette.mode === "dark" ? "0 4px 15px rgba(139, 92, 246, 0.15)" : "0 2px 8px rgba(0, 0, 0, 0.1)",
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
@@ -556,7 +611,13 @@ const CommentsView = () => {
                 sx={{ width: 40, height: 40, marginRight: 1 }}
               />
             )}
-            <Typography variant="body1" sx={{ fontWeight: "bold" }}>
+            <Typography
+              variant="body1"
+              sx={{
+                fontWeight: "bold",
+                color: theme.palette.mode === "dark" ? "#a78bfa" : "#4f46e5",
+              }}
+            >
               {session?.user?.nickname}
             </Typography>
           </Box>
@@ -571,22 +632,40 @@ const CommentsView = () => {
             sx={{ marginBottom: 1 }}
           />
           <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-            <Typography variant="body2" sx={{ color: "gray", marginBottom: 2 }}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: theme.palette.mode === "dark" ? "#94a3b8" : "gray",
+                marginBottom: 2,
+              }}
+            >
               내 마음에 안들면 댓글 삭제
             </Typography>
-            <button
+            <Button
               onClick={handleSubmit}
-              style={{
-                backgroundColor: "#007BFF",
+              variant="contained"
+              sx={{
+                background:
+                  theme.palette.mode === "dark" ? "linear-gradient(45deg, #8b5cf6 30%, #06b6d4 90%)" : "#007BFF",
                 color: "white",
                 padding: "8px 16px",
-                borderRadius: "4px",
+                borderRadius: "8px",
                 border: "none",
                 cursor: "pointer",
+                fontWeight: 600,
+                "&:hover": {
+                  background:
+                    theme.palette.mode === "dark" ? "linear-gradient(45deg, #7c3aed 30%, #0891b2 90%)" : "#0056b3",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 6px 20px rgba(139, 92, 246, 0.4)"
+                      : "0 4px 12px rgba(0, 123, 255, 0.3)",
+                  transform: "translateY(-1px)",
+                },
               }}
             >
               댓글 작성
-            </button>
+            </Button>
           </Box>
         </Box>
       )}

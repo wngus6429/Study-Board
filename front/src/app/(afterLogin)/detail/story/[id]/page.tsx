@@ -15,6 +15,7 @@ import {
   Tooltip,
   Typography,
   Zoom,
+  useTheme,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -44,6 +45,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
+  const theme = useTheme();
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
   const { openCloseComments } = useComment();
@@ -515,20 +517,28 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  background: "linear-gradient(135deg, #FFE08A, #FFC547)", // 부드러운 골드 그라데이션
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
+                      : "linear-gradient(135deg, #FFE08A, #FFC547)",
                   borderRadius: "12px",
-                  boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)", // 그림자 효과
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0px 4px 15px rgba(139, 92, 246, 0.3)"
+                      : "0px 4px 10px rgba(0, 0, 0, 0.2)",
                   padding: "6px 12px",
                   width: 100,
+                  border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "none",
                 }}
               >
                 <Typography
                   variant="h6"
                   sx={{
                     fontWeight: "bold",
-                    color: "#4A4A4A",
-                    textTransform: "none", // 텍스트 변환 없음
+                    color: theme.palette.mode === "dark" ? "#ffffff" : "#4A4A4A",
+                    textTransform: "none",
                     fontSize: "16px",
+                    textShadow: theme.palette.mode === "dark" ? "0 0 8px rgba(255, 255, 255, 0.3)" : "none",
                   }}
                 >
                   추천
@@ -536,8 +546,9 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 <Typography
                   sx={{
                     fontWeight: "bold",
-                    color: "#4A4A4A",
+                    color: theme.palette.mode === "dark" ? "#ffffff" : "#4A4A4A",
                     fontSize: "16px",
+                    textShadow: theme.palette.mode === "dark" ? "0 0 8px rgba(255, 255, 255, 0.3)" : "none",
                   }}
                 >
                   {likeCalculate}

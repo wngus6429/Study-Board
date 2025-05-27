@@ -14,6 +14,7 @@ import { useMessage } from "../store/messageStore";
 import { useUserImage } from "../store/userImageStore";
 import usePageStore from "../store/pageStore";
 import NotificationDropdown from "./NotificationDropdown";
+import DarkModeToggle from "./DarkModeToggle";
 
 // const SearchBox = styled("div")(({ theme }) => ({
 //   position: "relative",
@@ -120,7 +121,7 @@ export default function MenuBar() {
       <nav className={styles.nav}>
         {/* 로그인한 사용자에게만 알림 아이콘 표시 */}
         {user?.user && <NotificationDropdown />}
-        
+
         {!user?.user && (
           <Button size="medium" variant="contained" onClick={() => router.push("/login")} color="info">
             로그인
@@ -148,6 +149,10 @@ export default function MenuBar() {
             프로필
           </Button>
         )}
+
+        {/* 다크모드 토글 버튼 */}
+        <DarkModeToggle />
+
         {/* 오른쪽 메뉴: 프로필 관련 */}
         <Box sx={{ flexGrow: 1 }} />
         <IconButton size="large" edge="end" aria-label="account of current user" aria-haspopup="true" color="inherit">

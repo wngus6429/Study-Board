@@ -64,5 +64,6 @@ export const useStories = ({
     enabled: viewMode === "table",
     // 서버에서 전달받은 초기 데이터를 사용하여 초기 렌더링 시 바로 데이터를 표시
     initialData: initialData,
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
 };

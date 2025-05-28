@@ -68,8 +68,8 @@ function UserProfileEdit() {
     // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
     // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
     enabled: status === "authenticated",
-    staleTime: 1000 * 60 * 1,
-    gcTime: 1000 * 10 * 1,
+    staleTime: 1000 * 10, // 10초간 캐시 유지 (게시판 실시간성 고려)
+    gcTime: 1000 * 30, // 30초간 가비지 컬렉션 방지
   });
 
   const [storyCurrentPage, setStoryCurrentPage] = useState<number>(1);
@@ -102,8 +102,8 @@ function UserProfileEdit() {
     enabled: status === "authenticated",
     retry: 1,
     retryDelay: () => 2000,
-    staleTime: 1000 * 60 * 3, // 3분간 캐시 유지
-    gcTime: 1000 * 60 * 6, // 6분간 가비지 컬렉션 방지
+    staleTime: 1000 * 10, // 10초간 캐시 유지 (게시판 실시간성 고려)
+    gcTime: 1000 * 30, // 30초간 가비지 컬렉션 방지
     placeholderData: (previousData) => previousData, // 이전 데이터 유지로 깜빡임 방지
     refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
@@ -133,8 +133,8 @@ function UserProfileEdit() {
     retry: 1,
     retryDelay: () => 2000,
     enabled: status === "authenticated",
-    staleTime: 1000 * 60 * 3, // 3분간 캐시 유지
-    gcTime: 1000 * 60 * 6, // 6분간 가비지 컬렉션 방지
+    staleTime: 1000 * 10, // 10초간 캐시 유지 (게시판 실시간성 고려)
+    gcTime: 1000 * 30, // 30초간 가비지 컬렉션 방지
     placeholderData: (previousData) => previousData, // 이전 데이터 유지로 깜빡임 방지
     refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });

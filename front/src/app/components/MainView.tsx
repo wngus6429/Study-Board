@@ -2,7 +2,6 @@
 import { ReactNode, useEffect, useState, useMemo } from "react";
 import CustomizedTables from "./table/CustomizedTables";
 import axios from "axios";
-import { useQuery } from "@tanstack/react-query";
 import { Box, Button, FormControl, IconButton, MenuItem, Select, SelectChangeEvent, Tab, Tabs } from "@mui/material";
 import Loading from "./common/Loading";
 import { useSession } from "next-auth/react";
@@ -57,8 +56,6 @@ const MainView = ({
   // 테마 훅 추가
   const theme = useTheme();
 
-  console.log("씨발user", user);
-
   // 초기 페이지 번호를 store에 설정 (컴포넌트 마운트 시)
   useEffect(() => {
     console.log("setCurrentPage", initialCurrentPage);
@@ -88,8 +85,6 @@ const MainView = ({
     viewMode,
   });
 
-  // 데이터 변경 시 이전 데이터를 유지하여 로딩 중에도 기존 데이터가 보이도록 함
-  const [previousData, setPreviousData] = useState<ApiResponse | null>(initialData);
   const [suggestionData, setSuggestionData] = useState<ApiResponse | null>(initialData);
 
   useEffect(() => {
@@ -119,15 +114,9 @@ const MainView = ({
     }
   }, [categoryValue, currentPage, viewCount, user?.user?.id]);
 
-  useEffect(() => {
-    if (data) {
-      setPreviousData(data);
-    }
-  }, [data]);
-
   // 현재 보여줄 테이블 데이터와 총 게시글 수 계산
-  const tableData = data?.results || previousData?.results || [];
-  const total = data?.total || previousData?.total || 0;
+  const tableData = data?.results || [];
+  const total = data?.total || 0;
 
   // 탭(카테고리) 변경 시 호출되는 함수
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
@@ -257,9 +246,6 @@ const MainView = ({
       }));
   }, [tableData, sortOrder, recommendRankingMode]);
 
-  // const [cardData, setCardData] = useState<any>(); // 카드 모드 전용 이전 데이터 상태 선언
-  const [previousCardData, setPreviousCardData] = useState<ApiResponse | null>();
-
   const {
     data: getCardData,
     error: cardError,
@@ -273,16 +259,9 @@ const MainView = ({
     initialData,
     viewMode,
   });
-  // const cardResultData = getCardData?.results || previousData?.results || [];
-  const cardResultData = getCardData?.results || previousCardData?.results || [];
-  const cardResultTotal = getCardData?.total || previousCardData?.total || 0;
 
-  useEffect(() => {
-    if (viewMode === "card" && getCardData != null) {
-      console.log("API 카드데이터", getCardData);
-      setPreviousCardData(getCardData);
-    }
-  }, [viewMode, getCardData]);
+  const cardResultData = getCardData?.results || [];
+  const cardResultTotal = getCardData?.total || 0;
 
   // 카드 테이블에 뿌리는 데이터를 만듬
   const sortedCardTableData = useMemo(() => {
@@ -301,6 +280,10 @@ const MainView = ({
         isRecommendRanking: recommendRankingMode,
       }));
   }, [cardResultData, sortOrder, viewMode, recommendRankingMode]);
+
+  // 뷰 모드에 따른 현재 total과 loading 상태 결정
+  const currentTotal = viewMode === "card" ? cardResultTotal : total;
+  const currentLoading = viewMode === "card" ? cardLoading : isLoading;
 
   // 새로고침시 움직임
   useEffect(() => {
@@ -421,7 +404,7 @@ const MainView = ({
 
       {categoryValue === "suggestion" ? (
         suggestionData?.results && <CustomizedSuggestionTable tableData={suggestionData.results} />
-      ) : isLoading && !previousData && !previousCardData ? (
+      ) : currentLoading ? (
         <Loading />
       ) : viewMode === "card" ? (
         <CustomizedCardView tableData={sortedCardTableData} />
@@ -478,7 +461,7 @@ const MainView = ({
         {/* 가운데 영역: 페이지네이션 */}
         <Box sx={{ display: "flex", justifyContent: "center", flex: 1 }}>
           <Pagination
-            pageCount={Math.ceil(total / viewCount)}
+            pageCount={Math.ceil(currentTotal / viewCount)}
             onPageChange={handlePageClick}
             currentPage={currentPage}
           />

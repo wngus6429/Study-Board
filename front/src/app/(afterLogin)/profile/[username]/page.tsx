@@ -64,8 +64,8 @@ export default function UserProfileDetail() {
     retry: 1,
     retryDelay: () => 2000,
     enabled: !!username,
-    staleTime: 1000 * 20 * 1,
-    gcTime: 1000 * 20 * 1,
+    staleTime: 1000 * 10, // 10초간 캐시 유지 (게시판 실시간성 고려)
+    gcTime: 1000 * 30, // 30초간 가비지 컬렉션 방지
   });
 
   // 사용자 작성 글 조회 (페이지네이션)
@@ -94,8 +94,8 @@ export default function UserProfileDetail() {
     enabled: !!username,
     retry: 1,
     retryDelay: () => 2000,
-    staleTime: 1000 * 60 * 3, // 3분간 캐시 유지
-    gcTime: 1000 * 60 * 6, // 6분간 가비지 컬렉션 방지
+    staleTime: 1000 * 10, // 10초간 캐시 유지 (게시판 실시간성 고려)
+    gcTime: 1000 * 30, // 30초간 가비지 컬렉션 방지
     placeholderData: (previousData) => previousData, // 이전 데이터 유지로 깜빡임 방지
     refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
@@ -126,8 +126,8 @@ export default function UserProfileDetail() {
     enabled: !!username,
     retry: 1,
     retryDelay: () => 2000,
-    staleTime: 1000 * 60 * 3, // 3분간 캐시 유지
-    gcTime: 1000 * 60 * 6, // 6분간 가비지 컬렉션 방지
+    staleTime: 1000 * 10, // 10초간 캐시 유지 (게시판 실시간성 고려)
+    gcTime: 1000 * 30, // 30초간 가비지 컬렉션 방지
     placeholderData: (previousData) => previousData, // 이전 데이터 유지로 깜빡임 방지
     refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });

@@ -64,5 +64,6 @@ export const useCardStories = ({
     // TODO 삭제 플래그 두고 true false로 하면 될거 같은데
     // 삭제시에는 staleTime 잠시 무효화 시켜서 바로 최신꺼 제거된거 받아오게끔
     enabled: viewMode === "card",
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
 };

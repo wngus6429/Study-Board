@@ -73,16 +73,17 @@ const LoginPage = () => {
       >
         <Box
           sx={{
-            backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "white",
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
             padding: 4,
             borderRadius: 2,
             boxShadow:
               theme.palette.mode === "dark"
                 ? "0px 8px 32px rgba(139, 92, 246, 0.3)"
-                : "0px 4px 20px rgba(0, 0, 0, 0.1)",
+                : "0px 8px 24px rgba(0, 0, 0, 0.15)",
             maxWidth: 400,
             width: "100%",
-            border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "none",
+            border:
+              theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid rgba(0, 0, 0, 0.1)",
           }}
         >
           <Typography
@@ -91,8 +92,10 @@ const LoginPage = () => {
             textAlign="center"
             gutterBottom
             sx={{
-              color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+              color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
               textShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.5)" : "none",
+              fontWeight: "bold",
+              mb: 3,
             }}
           >
             로그인
@@ -111,22 +114,25 @@ const LoginPage = () => {
               onChange={(e) => setEmail(e.target.value)}
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                  backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                   "& fieldset": {
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(0, 0, 0, 0.2)",
                   },
                   "&:hover fieldset": {
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
                   },
                   "&.Mui-focused fieldset": {
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
                   },
                 },
                 "& .MuiInputLabel-root": {
-                  color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                  color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+                  "&.Mui-focused": {
+                    color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
+                  },
                 },
                 "& .MuiOutlinedInput-input": {
-                  color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                  color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
                 },
               }}
             />
@@ -143,26 +149,33 @@ const LoginPage = () => {
               onChange={(e) => setPassword(e.target.value)}
               sx={{
                 "& .MuiOutlinedInput-root": {
-                  backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                  backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                   "& fieldset": {
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(0, 0, 0, 0.2)",
                   },
                   "&:hover fieldset": {
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
                   },
                   "&.Mui-focused fieldset": {
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
                   },
                 },
                 "& .MuiInputLabel-root": {
-                  color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                  color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+                  "&.Mui-focused": {
+                    color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
+                  },
                 },
                 "& .MuiOutlinedInput-input": {
-                  color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                  color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
                 },
               }}
             />
-            {error && <Alert severity="error">{error}</Alert>}
+            {error && (
+              <Alert severity="error" sx={{ mt: 2 }}>
+                {error}
+              </Alert>
+            )}
             <Button
               type="submit"
               fullWidth
@@ -170,17 +183,25 @@ const LoginPage = () => {
               sx={{
                 mt: 3,
                 mb: 2,
+                py: 1.5,
+                fontSize: "1.1rem",
+                fontWeight: "bold",
                 background:
                   theme.palette.mode === "dark"
                     ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
-                    : "inherit",
+                    : "linear-gradient(135deg, #1976d2, #42a5f5)",
                 "&:hover": {
                   background:
                     theme.palette.mode === "dark"
                       ? "linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(6, 182, 212, 1))"
-                      : "inherit",
+                      : "linear-gradient(135deg, #1565c0, #1976d2)",
+                  transform: "translateY(-1px)",
                 },
-                boxShadow: theme.palette.mode === "dark" ? "0 0 20px rgba(139, 92, 246, 0.4)" : "inherit",
+                boxShadow:
+                  theme.palette.mode === "dark"
+                    ? "0 0 20px rgba(139, 92, 246, 0.4)"
+                    : "0 4px 12px rgba(25, 118, 210, 0.3)",
+                transition: "all 0.2s ease-in-out",
               }}
             >
               로그인

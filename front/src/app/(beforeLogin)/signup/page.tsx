@@ -40,6 +40,9 @@ const SignupPage = (): ReactNode => {
   const [nickname, setNickname] = useState<string>("");
   const [error, setError] = useState<string>("");
 
+  // 비밀번호 일치 여부 확인
+  const isPasswordMismatch = password !== "" && rePassword !== "" && password !== rePassword;
+
   // form 전송
   const handleSubmit = async (e: any): Promise<void> => {
     e.preventDefault();
@@ -104,29 +107,35 @@ const SignupPage = (): ReactNode => {
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "white",
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
             padding: 4,
             borderRadius: 2,
             boxShadow:
               theme.palette.mode === "dark"
                 ? "0px 8px 32px rgba(139, 92, 246, 0.3)"
-                : "0px 4px 20px rgba(0, 0, 0, 0.1)",
-            border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "none",
+                : "0px 8px 24px rgba(0, 0, 0, 0.15)",
+            border:
+              theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid rgba(0, 0, 0, 0.1)",
           }}
         >
           <Avatar
             sx={{
               m: 1,
-              bgcolor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "primary.main",
-              boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.5)" : "none",
+              bgcolor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "0 0 15px rgba(139, 92, 246, 0.5)"
+                  : "0 4px 12px rgba(25, 118, 210, 0.3)",
             }}
           />
           <Typography
             component="h1"
             variant="h5"
             sx={{
-              color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+              color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
               textShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.5)" : "none",
+              fontWeight: "bold",
+              mb: 3,
             }}
           >
             회원가입
@@ -147,22 +156,25 @@ const SignupPage = (): ReactNode => {
                     onChange={(e) => setEmail(e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                         "& fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(0, 0, 0, 0.2)",
                         },
                         "&:hover fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
                         },
                       },
                       "& .MuiInputLabel-root": {
-                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+                        "&.Mui-focused": {
+                          color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
+                        },
                       },
                       "& .MuiOutlinedInput-input": {
-                        color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                        color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
                       },
                     }}
                   />
@@ -180,22 +192,25 @@ const SignupPage = (): ReactNode => {
                     onChange={(e) => setNickname(e.target.value)}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                         "& fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(0, 0, 0, 0.2)",
                         },
                         "&:hover fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
                         },
                       },
                       "& .MuiInputLabel-root": {
-                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
+                        "&.Mui-focused": {
+                          color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
+                        },
                       },
                       "& .MuiOutlinedInput-input": {
-                        color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                        color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
                       },
                     }}
                   />
@@ -210,24 +225,59 @@ const SignupPage = (): ReactNode => {
                     label="비밀번호 (숫자+영문자+특수문자 8자리 이상)"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    error={isPasswordMismatch}
+                    // helperText={isPasswordMismatch ? "비밀번호가 일치하지 않습니다" : ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                         "& fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                          borderColor: isPasswordMismatch
+                            ? "#f44336"
+                            : theme.palette.mode === "dark"
+                              ? "rgba(139, 92, 246, 0.5)"
+                              : "rgba(0, 0, 0, 0.2)",
                         },
                         "&:hover fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                          borderColor: isPasswordMismatch
+                            ? "#f44336"
+                            : theme.palette.mode === "dark"
+                              ? "rgba(139, 92, 246, 0.8)"
+                              : "#1976d2",
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                          borderColor: isPasswordMismatch
+                            ? "#f44336"
+                            : theme.palette.mode === "dark"
+                              ? "rgba(139, 92, 246, 1)"
+                              : "#1976d2",
+                        },
+                        "&.Mui-error fieldset": {
+                          borderColor: "#f44336",
                         },
                       },
                       "& .MuiInputLabel-root": {
-                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                        color: isPasswordMismatch
+                          ? "#f44336"
+                          : theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.7)"
+                            : "rgba(0, 0, 0, 0.6)",
+                        "&.Mui-focused": {
+                          color: isPasswordMismatch
+                            ? "#f44336"
+                            : theme.palette.mode === "dark"
+                              ? "rgba(139, 92, 246, 1)"
+                              : "#1976d2",
+                        },
+                        "&.Mui-error": {
+                          color: "#f44336",
+                        },
                       },
                       "& .MuiOutlinedInput-input": {
-                        color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                        color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
+                      },
+                      "& .MuiFormHelperText-root": {
+                        color: "#f44336",
+                        fontWeight: "500",
                       },
                     }}
                   />
@@ -242,24 +292,59 @@ const SignupPage = (): ReactNode => {
                     label="비밀번호 재입력"
                     value={rePassword}
                     onChange={(e) => setRePassword(e.target.value)}
+                    error={isPasswordMismatch}
+                    // helperText={isPasswordMismatch ? "비밀번호가 일치하지 않습니다" : ""}
                     sx={{
                       "& .MuiOutlinedInput-root": {
-                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                         "& fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                          borderColor: isPasswordMismatch
+                            ? "#f44336"
+                            : theme.palette.mode === "dark"
+                              ? "rgba(139, 92, 246, 0.5)"
+                              : "rgba(0, 0, 0, 0.2)",
                         },
                         "&:hover fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                          borderColor: isPasswordMismatch
+                            ? "#f44336"
+                            : theme.palette.mode === "dark"
+                              ? "rgba(139, 92, 246, 0.8)"
+                              : "#1976d2",
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                          borderColor: isPasswordMismatch
+                            ? "#f44336"
+                            : theme.palette.mode === "dark"
+                              ? "rgba(139, 92, 246, 1)"
+                              : "#1976d2",
+                        },
+                        "&.Mui-error fieldset": {
+                          borderColor: "#f44336",
                         },
                       },
                       "& .MuiInputLabel-root": {
-                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                        color: isPasswordMismatch
+                          ? "#f44336"
+                          : theme.palette.mode === "dark"
+                            ? "rgba(255, 255, 255, 0.7)"
+                            : "rgba(0, 0, 0, 0.6)",
+                        "&.Mui-focused": {
+                          color: isPasswordMismatch
+                            ? "#f44336"
+                            : theme.palette.mode === "dark"
+                              ? "rgba(139, 92, 246, 1)"
+                              : "#1976d2",
+                        },
+                        "&.Mui-error": {
+                          color: "#f44336",
+                        },
                       },
                       "& .MuiOutlinedInput-input": {
-                        color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                        color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
+                      },
+                      "& .MuiFormHelperText-root": {
+                        color: "#f44336",
+                        fontWeight: "500",
                       },
                     }}
                   />
@@ -270,9 +355,9 @@ const SignupPage = (): ReactNode => {
                       <Checkbox
                         onChange={handleAgree}
                         sx={{
-                          color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.7)" : "primary.main",
+                          color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.7)" : "#1976d2",
                           "&.Mui-checked": {
-                            color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "primary.main",
+                            color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
                           },
                         }}
                       />
@@ -280,13 +365,18 @@ const SignupPage = (): ReactNode => {
                     label="회원가입 약관에 동의합니다."
                     sx={{
                       "& .MuiFormControlLabel-label": {
-                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.8)" : "inherit",
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)",
+                        fontWeight: "500",
                       },
                     }}
                   />
                 </Grid>
               </Grid>
-              {error && <Alert severity="error">{error}</Alert>}
+              {error && (
+                <Alert severity="error" sx={{ mt: 2 }}>
+                  {error}
+                </Alert>
+              )}
               <Button
                 type="submit"
                 fullWidth
@@ -294,20 +384,29 @@ const SignupPage = (): ReactNode => {
                 sx={{
                   mt: 1,
                   mb: 2,
+                  py: 1.5,
+                  fontSize: "1.1rem",
+                  fontWeight: "bold",
                   background:
                     theme.palette.mode === "dark"
                       ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
-                      : "inherit",
+                      : "linear-gradient(135deg, #1976d2, #42a5f5)",
                   "&:hover": {
                     background:
                       theme.palette.mode === "dark"
                         ? "linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(6, 182, 212, 1))"
-                        : "inherit",
+                        : "linear-gradient(135deg, #1565c0, #1976d2)",
+                    transform: "translateY(-1px)",
                   },
                   "&:disabled": {
-                    background: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "inherit",
+                    background: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(25, 118, 210, 0.3)",
+                    color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.7)",
                   },
-                  boxShadow: theme.palette.mode === "dark" ? "0 0 20px rgba(139, 92, 246, 0.4)" : "inherit",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 0 20px rgba(139, 92, 246, 0.4)"
+                      : "0 4px 12px rgba(25, 118, 210, 0.3)",
+                  transition: "all 0.2s ease-in-out",
                 }}
                 disabled={!checked}
                 size="large"

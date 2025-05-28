@@ -12,6 +12,7 @@ import {
   Typography,
   Container,
   Alert,
+  useTheme,
 } from "@mui/material/";
 import Grid from "@mui/material/Grid2";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
@@ -23,7 +24,7 @@ import { useMessage } from "@/app/store/messageStore";
 // 회원가입 화면
 const SignupPage = (): ReactNode => {
   const router = useRouter();
-  const theme = createTheme();
+  const theme = useTheme();
   const { update } = useSession();
   const [checked, setChecked] = useState(false);
 
@@ -95,98 +96,229 @@ const SignupPage = (): ReactNode => {
 
   return (
     <>
-      <ThemeProvider theme={theme}>
-        <Container component="main" maxWidth="xs">
-          <CssBaseline />
-          <Box
+      <Container component="main" maxWidth="xs">
+        <CssBaseline />
+        <Box
+          sx={{
+            marginTop: 8,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "white",
+            padding: 4,
+            borderRadius: 2,
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0px 8px 32px rgba(139, 92, 246, 0.3)"
+                : "0px 4px 20px rgba(0, 0, 0, 0.1)",
+            border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "none",
+          }}
+        >
+          <Avatar
             sx={{
-              marginTop: 8,
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
+              m: 1,
+              bgcolor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "primary.main",
+              boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.5)" : "none",
+            }}
+          />
+          <Typography
+            component="h1"
+            variant="h5"
+            sx={{
+              color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+              textShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.5)" : "none",
             }}
           >
-            <Avatar sx={{ m: 1, bgcolor: "primary.main" }} />
-            <Typography component="h1" variant="h5">
-              회원가입
-            </Typography>
-            <Box component="form" noValidate sx={{ mt: 1 }}>
-              <FormControl component="fieldset" variant="standard">
-                <Grid container spacing={1}>
-                  <Grid size={12}>
-                    <TextField
-                      required
-                      autoFocus
-                      fullWidth
-                      type="email"
-                      id="email"
-                      name="email"
-                      label="이메일 주소"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </Grid>
-                  <Grid size={12}>
-                    <TextField
-                      required
-                      autoFocus
-                      fullWidth
-                      type="text"
-                      id="nickname"
-                      name="nickname"
-                      label="닉네임"
-                      value={nickname}
-                      onChange={(e) => setNickname(e.target.value)}
-                    />
-                  </Grid>
-                  <Grid size={12}>
-                    <TextField
-                      required
-                      fullWidth
-                      type="password"
-                      id="password"
-                      name="password"
-                      label="비밀번호 (숫자+영문자+특수문자 8자리 이상)"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                    />
-                  </Grid>
-                  <Grid size={12}>
-                    <TextField
-                      required
-                      fullWidth
-                      type="password"
-                      id="rePassword"
-                      name="rePassword"
-                      label="비밀번호 재입력"
-                      value={rePassword}
-                      onChange={(e) => setRePassword(e.target.value)}
-                    />
-                  </Grid>
-                  <Grid size={12}>
-                    <FormControlLabel
-                      control={<Checkbox onChange={handleAgree} color="primary" />}
-                      label="회원가입 약관에 동의합니다."
-                    />
-                  </Grid>
+            회원가입
+          </Typography>
+          <Box component="form" noValidate sx={{ mt: 1 }}>
+            <FormControl component="fieldset" variant="standard">
+              <Grid container spacing={1}>
+                <Grid size={12}>
+                  <TextField
+                    required
+                    autoFocus
+                    fullWidth
+                    type="email"
+                    id="email"
+                    name="email"
+                    label="이메일 주소"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                        "& fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                      },
+                    }}
+                  />
                 </Grid>
-                {error && <Alert severity="error">{error}</Alert>}
-                <Button
-                  type="submit"
-                  fullWidth
-                  variant="contained"
-                  sx={{ mt: 1, mb: 2 }}
-                  disabled={!checked}
-                  size="large"
-                  onClick={handleSubmit}
-                >
-                  회원가입
-                </Button>
-              </FormControl>
-            </Box>
+                <Grid size={12}>
+                  <TextField
+                    required
+                    autoFocus
+                    fullWidth
+                    type="text"
+                    id="nickname"
+                    name="nickname"
+                    label="닉네임"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                        "& fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid size={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    type="password"
+                    id="password"
+                    name="password"
+                    label="비밀번호 (숫자+영문자+특수문자 8자리 이상)"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                        "& fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid size={12}>
+                  <TextField
+                    required
+                    fullWidth
+                    type="password"
+                    id="rePassword"
+                    name="rePassword"
+                    label="비밀번호 재입력"
+                    value={rePassword}
+                    onChange={(e) => setRePassword(e.target.value)}
+                    sx={{
+                      "& .MuiOutlinedInput-root": {
+                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "inherit",
+                        "& fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "inherit",
+                        },
+                        "&:hover fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "inherit",
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "inherit",
+                        },
+                      },
+                      "& .MuiInputLabel-root": {
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "inherit",
+                      },
+                      "& .MuiOutlinedInput-input": {
+                        color: theme.palette.mode === "dark" ? "#ffffff" : "inherit",
+                      },
+                    }}
+                  />
+                </Grid>
+                <Grid size={12}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        onChange={handleAgree}
+                        sx={{
+                          color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.7)" : "primary.main",
+                          "&.Mui-checked": {
+                            color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "primary.main",
+                          },
+                        }}
+                      />
+                    }
+                    label="회원가입 약관에 동의합니다."
+                    sx={{
+                      "& .MuiFormControlLabel-label": {
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.8)" : "inherit",
+                      },
+                    }}
+                  />
+                </Grid>
+              </Grid>
+              {error && <Alert severity="error">{error}</Alert>}
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                sx={{
+                  mt: 1,
+                  mb: 2,
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
+                      : "inherit",
+                  "&:hover": {
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(6, 182, 212, 1))"
+                        : "inherit",
+                  },
+                  "&:disabled": {
+                    background: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "inherit",
+                  },
+                  boxShadow: theme.palette.mode === "dark" ? "0 0 20px rgba(139, 92, 246, 0.4)" : "inherit",
+                }}
+                disabled={!checked}
+                size="large"
+                onClick={handleSubmit}
+              >
+                회원가입
+              </Button>
+            </FormControl>
           </Box>
-        </Container>
-      </ThemeProvider>
+        </Box>
+      </Container>
     </>
   );
 };

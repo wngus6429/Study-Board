@@ -473,10 +473,12 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                bgcolor: "grey.100",
+                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "grey.100",
                 p: 1,
                 borderRadius: 1,
                 mb: 3,
+                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+                boxShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.2)" : "none",
               }}
             >
               <LocalOfferIcon fontSize="small" />
@@ -568,11 +570,12 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               color="text.primary"
               sx={{
                 lineHeight: 1.7,
-                bgcolor: "grey.50",
+                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
                 p: 2,
                 borderRadius: 1,
-                boxShadow: 1,
+                boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
                 mb: 3,
+                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
               }}
             >
               {detail.content}

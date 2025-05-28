@@ -18,6 +18,7 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import { useTheme } from "@mui/material/styles";
 
 // 추가 아이콘 import
 import ForumIcon from "@mui/icons-material/Forum";
@@ -31,33 +32,38 @@ dayjs.extend(relativeTime);
 
 const StyledTableCell = styled(TableCell)(({ theme }) => ({
   [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
+    backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : theme.palette.common.black,
     color: theme.palette.common.white,
+    fontWeight: 600,
   },
   [`&.${tableCellClasses.body}`]: {
     fontSize: 14,
     height: "60px", // 모든 행의 높이를 일정하게 설정
+    color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
   },
 }));
 
 const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
+    backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.5)" : theme.palette.action.hover,
+  },
+  "&:nth-of-type(even)": {
+    backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.3)" : "transparent",
   },
   "&:last-child td, &:last-child th": {
     border: 0,
   },
   "&:hover": {
-    backgroundColor: "#ffdef0",
+    backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "#ffdef0",
     transition: "background-color 0.3s ease",
   },
   height: "60px", // 모든 행의 높이를 일정하게 설정
 }));
 
 const NoticeRow = styled(TableRow)(({ theme }) => ({
-  backgroundColor: "#fff8e1",
+  backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.2)" : "#fff8e1",
   "&:hover": {
-    backgroundColor: "#ffecb3",
+    backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "#ffecb3",
     transition: "background-color 0.3s ease",
   },
   "&:last-child td, &:last-child th": {
@@ -72,6 +78,7 @@ interface CustomizedTablesProps {
 
 const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
   const router = useRouter();
+  const theme = useTheme();
 
   // 카테고리별 Chip을 렌더링하는 헬퍼 함수
   const getCategoryChip = (category: string) => {
@@ -95,7 +102,15 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
 
   return (
     <>
-      <TableContainer component={Paper} sx={{ boxShadow: 3, borderRadius: 2 }}>
+      <TableContainer
+        component={Paper}
+        sx={{
+          boxShadow: theme.palette.mode === "dark" ? "0 8px 25px rgba(139, 92, 246, 0.15)" : 3,
+          borderRadius: 2,
+          backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "background.paper",
+          border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+        }}
+      >
         <Table aria-label="customized table">
           <TableHead>
             <TableRow>

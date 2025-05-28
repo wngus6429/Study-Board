@@ -21,6 +21,7 @@ import { useStories } from "./api/useStories";
 import CustomizedCardView from "./table/CustomizedCardView";
 import { useCardStories } from "./api/useCardStories";
 import NoticesDropdown from "./NoticesDropdown";
+import { useTheme } from "@mui/material/styles";
 
 // API 응답 타입
 interface ApiResponse {
@@ -53,6 +54,8 @@ const MainView = ({
   const { currentPage, setCurrentPage } = usePageStore();
   // 서버에서 전달받은 초기 카테고리 값을 상태로 저장
   const [categoryValue, setCategoryValue] = useState(initialCategory);
+  // 테마 훅 추가
+  const theme = useTheme();
 
   console.log("씨발user", user);
 
@@ -322,9 +325,11 @@ const MainView = ({
           alignItems: "center",
           width: "100%",
           borderRadius: 2,
-          boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+          boxShadow:
+            theme.palette.mode === "dark" ? "0 4px 20px rgba(139, 92, 246, 0.15)" : "0 4px 12px rgba(0,0,0,0.08)",
           overflow: "hidden",
-          bgcolor: "background.paper",
+          bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "background.paper",
+          border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
         }}
       >
         <Tabs
@@ -343,12 +348,13 @@ const MainView = ({
               py: 2,
               px: 3,
               transition: "all 0.2s ease",
+              color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
               "&:hover": {
-                backgroundColor: "rgba(156, 39, 176, 0.04)",
-                color: "secondary.dark",
+                backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(156, 39, 176, 0.04)",
+                color: theme.palette.mode === "dark" ? "#a78bfa" : "secondary.dark",
               },
               "&.Mui-selected": {
-                color: "secondary.main",
+                color: theme.palette.mode === "dark" ? "#a78bfa" : "secondary.main",
                 fontWeight: 700,
               },
             },
@@ -356,6 +362,7 @@ const MainView = ({
               height: 3,
               borderTopLeftRadius: 3,
               borderTopRightRadius: 3,
+              backgroundColor: theme.palette.mode === "dark" ? "#8b5cf6" : undefined,
             },
           }}
         >
@@ -444,14 +451,23 @@ const MainView = ({
             variant="contained"
             startIcon={<EmojiEventsIcon sx={{ fontSize: 24, color: "rgba(255, 255, 255, 0.8)" }} />}
             sx={{
-              backgroundImage: "linear-gradient(45deg, #ff9800, #f77d58)",
+              backgroundImage:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
+                  : "linear-gradient(45deg, #ff9800, #f77d58)",
               color: "white",
               fontWeight: "bold",
               borderRadius: "8px",
               padding: "8px 16px",
-              boxShadow: "0px 4px 10px rgba(0,0,0,0.2)",
+              boxShadow:
+                theme.palette.mode === "dark" ? "0px 4px 15px rgba(139, 92, 246, 0.4)" : "0px 4px 10px rgba(0,0,0,0.2)",
               "&:hover": {
-                backgroundImage: "linear-gradient(45deg, #e65100, #bf360c)",
+                backgroundImage:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(45deg, #7c3aed, #0891b2)"
+                    : "linear-gradient(45deg, #e65100, #bf360c)",
+                boxShadow: theme.palette.mode === "dark" ? "0px 6px 20px rgba(139, 92, 246, 0.6)" : undefined,
+                transform: theme.palette.mode === "dark" ? "translateY(-1px)" : undefined,
               },
             }}
             onClick={toggleRecommendRanking}

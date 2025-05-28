@@ -5,7 +5,7 @@
 
 .nav_display {
   width: 7%; /* 왼쪽 메뉴 7% */
-  border-right: 1px solid #ddd; /*메뉴와 컨텐츠 구분선*/
+  /* border-right: 1px solid #ddd; 메뉴와 컨텐츠 구분선 제거 */
   /* border-left 대신, 여기서 구분선 주면 가운데 침범 문제 줄어듦 */
 }
 

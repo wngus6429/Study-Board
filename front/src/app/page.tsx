@@ -83,16 +83,15 @@ export default async function Home({
 
   console.log("서버 컴포넌트에서의 로그: searchParams =", searchParams);
 
+  /* 초기 데이터와 초기 상태(카테고리, 페이지, 추천 랭킹 모드)를 MainView에 전달 */
+
   return (
-    <div style={{ backgroundColor: "white" }}>
-      {/* 초기 데이터와 초기 상태(카테고리, 페이지, 추천 랭킹 모드)를 MainView에 전달 */}
-      <MainView
-        initialData={initialData}
-        initialCategory={category}
-        initialCurrentPage={currentPage}
-        initialRecommendRankingMode={recommendRankingMode}
-        initialSortOrder={sortOrder}
-      />
-    </div>
+    <MainView
+      initialData={initialData}
+      initialCategory={category}
+      initialCurrentPage={currentPage}
+      initialRecommendRankingMode={recommendRankingMode}
+      initialSortOrder={sortOrder}
+    />
   );
 }

@@ -95,3 +95,41 @@ await queryClient.prefetchQuery 랑 const dehydratedState = dehydrate(queryClien
 
 5. refresh-token 이게 뭐임
    https://www.inflearn.com/community/questions/1291603/%EC%84%9C%EB%B2%84-%EB%A1%9C%EA%B7%B8%EC%9D%B8-%EB%B0%A9%EC%8B%9D%EA%B3%BC-%EA%B2%B0%ED%95%A9?srsltid=AfmBOorFPvfwaxD9Y-oRMTKVZikGZpp-_O5SuxRnwsYEZcGedTIVKUer
+
+현재 AI가 잘하는 것들:
+반복적인 코딩: CRUD, 스타일링, 간단한 로직
+문법/구문 수정: 린터 에러, 타입 에러 해결
+패턴 기반 작업: 컴포넌트 생성, API 연동
+문서화: 주석, README 작성
+개발자가 더 집중해야 할 영역:
+
+1. 아키텍처 설계
+   시스템 전체 구조 설계
+   마이크로서비스 분리 전략
+   데이터베이스 스키마 설계
+   확장성/성능 고려사항
+2. 인프라/DevOps
+   AWS/GCP/Azure 클라우드 설계
+   CI/CD 파이프라인 구축
+   모니터링/로깅 시스템
+   보안 정책 수립
+3. 비즈니스 이해
+   요구사항 분석 및 해석
+   사용자 경험(UX) 설계
+   비즈니스 로직의 핵심 판단
+   제품 전략 수립
+4. 고급 문제 해결
+   복잡한 성능 최적화
+   대용량 데이터 처리
+   분산 시스템 설계
+   장애 대응 및 트러블슈팅
+5. 팀 리딩/협업
+   코드 리뷰 및 품질 관리
+   기술 스택 선택
+   팀원 멘토링
+   프로젝트 관리
+   실제로 지금도:
+   주니어 개발자: AI 도구 활용해서 생산성 크게 향상
+   시니어 개발자: 설계/아키텍처에 더 많은 시간 투자
+   테크리드: 기술 전략과 팀 관리에 집중
+   결국 "코딩하는 사람"에서 "시스템을 설계하고 문제를 해결하는 사람"으로 역할이 진화하는 것 같아요. AI는 도구일 뿐, 핵심적인 사고와 판단은 여전히 사람의 영역이죠!

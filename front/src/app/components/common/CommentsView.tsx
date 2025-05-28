@@ -571,6 +571,7 @@ const CommentsView = () => {
         sx={{
           color: theme.palette.mode === "dark" ? "#a78bfa" : "#1e293b",
           fontWeight: 700,
+          ml: 1,
         }}
       >
         댓글

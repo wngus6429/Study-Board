@@ -11,6 +11,7 @@ type MenuItem = {
 
 const menuItems: MenuItem[] = [
   { name: "Home", path: "/" },
+  { name: "채널", path: "/channels" },
   { name: "스카이림스카이림", path: "/skyrim" },
   { name: "Contact", path: "/contact" },
 ];

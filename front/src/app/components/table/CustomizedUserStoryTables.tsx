@@ -36,9 +36,9 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   "&:last-child td, &:last-child th": {
     border: 0,
   },
-  // 마우스 호버 효과 추가
+  // 마우스 호버 효과 추가 - 테마에 맞게 수정
   "&:hover": {
-    backgroundColor: "#ffdef0",
+    backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.15)" : "#ffdef0",
   },
 }));
 interface CustomizedTablesProps {

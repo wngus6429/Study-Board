@@ -1,6 +1,6 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
-import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress } from "@mui/material";
+import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress, useTheme } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -29,6 +29,7 @@ function UserProfileEdit() {
   const [profileImage, setProfileImage] = useState<any>(null);
   const [previewImage, setPreviewImage] = useState<any>(null);
   const { showMessage } = useMessage((state) => state);
+  const theme = useTheme();
 
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -344,11 +345,17 @@ function UserProfileEdit() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                bgcolor: "rgba(255, 255, 255, 0.8)",
+                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.8)",
                 zIndex: 1,
+                borderRadius: 2,
               }}
             >
-              <CircularProgress size={40} />
+              <CircularProgress
+                size={40}
+                sx={{
+                  color: theme.palette.mode === "dark" ? "#a78bfa" : "primary.main",
+                }}
+              />
             </Box>
           )}
           <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
@@ -522,11 +529,17 @@ function UserProfileEdit() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                bgcolor: "rgba(255, 255, 255, 0.8)",
+                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.8)",
                 zIndex: 1,
+                borderRadius: 2,
               }}
             >
-              <CircularProgress size={40} />
+              <CircularProgress
+                size={40}
+                sx={{
+                  color: theme.palette.mode === "dark" ? "#a78bfa" : "primary.main",
+                }}
+              />
             </Box>
           )}
           <CustomizedUserCommentsTables tableData={UserComments?.CommentsResults || []} commentsFlag={false} />

@@ -10,7 +10,7 @@ import { USER_TABLE_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import CustomizedUserTables from "@/app/components/table/CustomizedUserStoryTables";
 import CustomizedUserCommentsTables from "@/app/components/table/CustomizedUserCommentsTables";
 import ProfilePagination from "@/app/components/common/ProfilePagination";
-import { Avatar, Box, Container, Typography, CircularProgress } from "@mui/material";
+import { Avatar, Box, Container, Typography, CircularProgress, useTheme } from "@mui/material";
 
 interface ApiStoryResponse {
   StoryResults: any[];
@@ -30,6 +30,7 @@ export default function UserProfileDetail() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showMessage } = useMessage((state) => state);
+  const theme = useTheme();
 
   console.log("Raw username:", rawUsername);
   console.log("Decoded username:", username);
@@ -195,11 +196,17 @@ export default function UserProfileDetail() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    bgcolor: "rgba(255, 255, 255, 0.8)",
+                    bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.8)",
                     zIndex: 1,
+                    borderRadius: 2,
                   }}
                 >
-                  <CircularProgress size={40} />
+                  <CircularProgress
+                    size={40}
+                    sx={{
+                      color: theme.palette.mode === "dark" ? "#a78bfa" : "primary.main",
+                    }}
+                  />
                 </Box>
               )}
               <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
@@ -274,11 +281,17 @@ export default function UserProfileDetail() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    bgcolor: "rgba(255, 255, 255, 0.8)",
+                    bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.8)",
                     zIndex: 1,
+                    borderRadius: 2,
                   }}
                 >
-                  <CircularProgress size={40} />
+                  <CircularProgress
+                    size={40}
+                    sx={{
+                      color: theme.palette.mode === "dark" ? "#a78bfa" : "primary.main",
+                    }}
+                  />
                 </Box>
               )}
               <CustomizedUserCommentsTables tableData={UserComments?.CommentsResults || []} commentsFlag={true} />

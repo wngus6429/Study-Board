@@ -10,7 +10,7 @@ import { USER_TABLE_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import CustomizedUserTables from "@/app/components/table/CustomizedUserStoryTables";
 import CustomizedUserCommentsTables from "@/app/components/table/CustomizedUserCommentsTables";
 import ProfilePagination from "@/app/components/common/ProfilePagination";
-import { Avatar, Box, Container, Typography } from "@mui/material";
+import { Avatar, Box, Container, Typography, CircularProgress } from "@mui/material";
 
 interface ApiStoryResponse {
   StoryResults: any[];
@@ -24,10 +24,15 @@ interface ApiCommentsResponse {
 
 export default function UserProfileDetail() {
   const params = useParams();
-  const username = params?.username as string;
+  const rawUsername = params?.username as string;
+  // URL 인코딩된 username을 디코딩
+  const username = rawUsername ? decodeURIComponent(rawUsername) : "";
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showMessage } = useMessage((state) => state);
+
+  console.log("Raw username:", rawUsername);
+  console.log("Decoded username:", username);
 
   const [storyCurrentPage, setStoryCurrentPage] = useState<number>(1);
   const [commentsCurrentPage, setCommentsCurrentPage] = useState<number>(1);
@@ -68,6 +73,8 @@ export default function UserProfileDetail() {
     data: UserStory,
     error: UserTableError,
     isLoading: UserStoryIsLoading,
+    isFetching: UserStoryIsFetching,
+    isPlaceholderData: UserStoryIsPlaceholderData,
   } = useQuery<ApiStoryResponse>({
     queryKey: ["userProfile", "stories", username, storyCurrentPage],
     queryFn: async () => {
@@ -87,6 +94,10 @@ export default function UserProfileDetail() {
     enabled: !!username,
     retry: 1,
     retryDelay: () => 2000,
+    staleTime: 1000 * 60 * 3, // 3분간 캐시 유지
+    gcTime: 1000 * 60 * 6, // 6분간 가비지 컬렉션 방지
+    placeholderData: (previousData) => previousData, // 이전 데이터 유지로 깜빡임 방지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
 
   // 사용자 작성 댓글 조회 (페이지네이션)
@@ -94,6 +105,8 @@ export default function UserProfileDetail() {
     data: UserComments,
     error: UserCommentsTableError,
     isLoading: UserCommentsIsLoading,
+    isFetching: UserCommentsIsFetching,
+    isPlaceholderData: UserCommentsIsPlaceholderData,
   } = useQuery<ApiCommentsResponse>({
     queryKey: ["userProfile", "comments", username, commentsCurrentPage],
     queryFn: async () => {
@@ -113,6 +126,10 @@ export default function UserProfileDetail() {
     enabled: !!username,
     retry: 1,
     retryDelay: () => 2000,
+    staleTime: 1000 * 60 * 3, // 3분간 캐시 유지
+    gcTime: 1000 * 60 * 6, // 6분간 가비지 컬렉션 방지
+    placeholderData: (previousData) => previousData, // 이전 데이터 유지로 깜빡임 방지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
 
   const handleStoryPageClick = (selectedItem: { selected: number }) => {
@@ -163,8 +180,28 @@ export default function UserProfileDetail() {
                 boxShadow: 2,
                 borderRadius: 2,
                 p: 3,
+                position: "relative",
+                minHeight: "400px", // 최소 높이 설정으로 레이아웃 안정성 확보
               }}
             >
+              {UserStoryIsFetching && !UserStoryIsPlaceholderData && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "rgba(255, 255, 255, 0.8)",
+                    zIndex: 1,
+                  }}
+                >
+                  <CircularProgress size={40} />
+                </Box>
+              )}
               <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
               <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                 <ProfilePagination
@@ -222,8 +259,28 @@ export default function UserProfileDetail() {
                 boxShadow: 2,
                 borderRadius: 2,
                 p: 3,
+                position: "relative",
+                minHeight: "400px", // 최소 높이 설정으로 레이아웃 안정성 확보
               }}
             >
+              {UserCommentsIsFetching && !UserCommentsIsPlaceholderData && (
+                <Box
+                  sx={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    bgcolor: "rgba(255, 255, 255, 0.8)",
+                    zIndex: 1,
+                  }}
+                >
+                  <CircularProgress size={40} />
+                </Box>
+              )}
               <CustomizedUserCommentsTables tableData={UserComments?.CommentsResults || []} commentsFlag={true} />
               <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
                 <ProfilePagination

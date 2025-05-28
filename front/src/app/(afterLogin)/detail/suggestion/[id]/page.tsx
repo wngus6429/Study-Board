@@ -180,7 +180,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 />
                 <Box>
                   <Typography variant="subtitle1" sx={{ fontWeight: "bold", cursor: "pointer" }}>
-                    <Link href={`/profile/${detail.User.nickname}`} passHref>
+                    <Link href={`/profile/${encodeURIComponent(detail.User.nickname)}`} passHref>
                       작성자: {detail.User.nickname}
                     </Link>
                   </Typography>

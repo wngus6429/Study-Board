@@ -1,6 +1,6 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
-import { TextField, Button, Avatar, Typography, Box, Container } from "@mui/material";
+import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -81,6 +81,8 @@ function UserProfileEdit() {
     data: UserStory,
     error: UserTableError,
     isLoading: UserStoryIsLoading,
+    isFetching: UserStoryIsFetching,
+    isPlaceholderData: UserStoryIsPlaceholderData,
   } = useQuery<ApiStoryResponse>({
     queryKey: ["user", "stories", storyCurrentPage],
     queryFn: async () => {
@@ -98,12 +100,20 @@ function UserProfileEdit() {
       return response.data;
     },
     enabled: status === "authenticated",
+    retry: 1,
+    retryDelay: () => 2000,
+    staleTime: 1000 * 60 * 3, // 3분간 캐시 유지
+    gcTime: 1000 * 60 * 6, // 6분간 가비지 컬렉션 방지
+    placeholderData: (previousData) => previousData, // 이전 데이터 유지로 깜빡임 방지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
 
   const {
     data: UserComments,
     error: UserCommentsTableError,
     isLoading: UserCommentsIsLoading,
+    isFetching: UserCommentsIsFetching,
+    isPlaceholderData: UserCommentsIsPlaceholderData,
   } = useQuery<ApiCommentsResponse>({
     queryKey: ["user", "comments", commentsCurrentPage],
     queryFn: async () => {
@@ -123,6 +133,10 @@ function UserProfileEdit() {
     retry: 1,
     retryDelay: () => 2000,
     enabled: status === "authenticated",
+    staleTime: 1000 * 60 * 3, // 3분간 캐시 유지
+    gcTime: 1000 * 60 * 6, // 6분간 가비지 컬렉션 방지
+    placeholderData: (previousData) => previousData, // 이전 데이터 유지로 깜빡임 방지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
 
   useEffect(() => {
@@ -315,8 +329,28 @@ function UserProfileEdit() {
             boxShadow: 2,
             borderRadius: 2,
             p: 3,
+            position: "relative",
+            minHeight: "400px", // 최소 높이 설정으로 레이아웃 안정성 확보
           }}
         >
+          {UserStoryIsFetching && !UserStoryIsPlaceholderData && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "rgba(255, 255, 255, 0.8)",
+                zIndex: 1,
+              }}
+            >
+              <CircularProgress size={40} />
+            </Box>
+          )}
           <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <ProfilePagination
@@ -473,8 +507,28 @@ function UserProfileEdit() {
             boxShadow: 2,
             borderRadius: 2,
             p: 3,
+            position: "relative",
+            minHeight: "400px", // 최소 높이 설정으로 레이아웃 안정성 확보
           }}
         >
+          {UserCommentsIsFetching && !UserCommentsIsPlaceholderData && (
+            <Box
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                bgcolor: "rgba(255, 255, 255, 0.8)",
+                zIndex: 1,
+              }}
+            >
+              <CircularProgress size={40} />
+            </Box>
+          )}
           <CustomizedUserCommentsTables tableData={UserComments?.CommentsResults || []} commentsFlag={false} />
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <ProfilePagination

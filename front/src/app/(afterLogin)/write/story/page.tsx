@@ -1,5 +1,5 @@
 "use client";
-import { TextField, Box, Typography, Paper, Button, CircularProgress, Divider } from "@mui/material";
+import { TextField, Box, Typography, Paper, Button, CircularProgress, Divider, useTheme } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
@@ -36,6 +36,8 @@ const commonButtonStyles = {
 export default function StoryWrite() {
   const router = useRouter();
   const { showMessage } = useMessage((state) => state);
+  const theme = useTheme();
+  const isDarkMode = theme.palette.mode === "dark";
 
   // 제목 변수
   const [title, setTitle] = useState<string>("");
@@ -107,11 +109,11 @@ export default function StoryWrite() {
         mt: { xs: 3, sm: 4, md: 5 },
         mb: 5,
         borderRadius: "16px",
-        boxShadow: "0 10px 40px rgba(0, 0, 0, 0.07)",
-        background: "#ffffff",
+        boxShadow: isDarkMode ? "0 10px 40px rgba(0, 0, 0, 0.4)" : "0 10px 40px rgba(0, 0, 0, 0.07)",
+        background: isDarkMode ? "rgba(30, 32, 38, 0.95)" : "#ffffff",
         position: "relative",
         overflow: "hidden",
-        border: "1px solid rgba(0, 0, 0, 0.2)",
+        border: isDarkMode ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid rgba(0, 0, 0, 0.2)",
       }}
     >
       <Box
@@ -136,6 +138,12 @@ export default function StoryWrite() {
           background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
+          // 다크모드에서 텍스트가 보이지 않는 경우를 위한 fallback
+          ...(isDarkMode && {
+            color: "#fff",
+            background: "none",
+            WebkitTextFillColor: "unset",
+          }),
         }}
       >
         스토리 작성
@@ -149,7 +157,7 @@ export default function StoryWrite() {
         />
       </Box>
 
-      <Divider sx={{ mb: 2, opacity: 0.8 }} />
+      <Divider sx={{ mb: 2, opacity: isDarkMode ? 0.3 : 0.8 }} />
 
       <Box
         component="form"
@@ -171,26 +179,35 @@ export default function StoryWrite() {
           sx={{
             "& .MuiOutlinedInput-root": {
               borderRadius: "12px",
-              backgroundColor: "rgba(249, 250, 251, 0.8)",
+              backgroundColor: isDarkMode ? "rgba(45, 48, 56, 0.8)" : "rgba(249, 250, 251, 0.8)",
+              color: isDarkMode ? "#ffffff" : "inherit",
               transition: "all 0.3s ease",
               "&:hover": {
-                backgroundColor: "rgba(245, 247, 250, 1)",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+                backgroundColor: isDarkMode ? "rgba(50, 53, 61, 1)" : "rgba(245, 247, 250, 1)",
+                boxShadow: isDarkMode ? "0 2px 8px rgba(0, 0, 0, 0.3)" : "0 2px 8px rgba(0, 0, 0, 0.04)",
               },
               "&.Mui-focused": {
-                backgroundColor: "#ffffff",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
+                backgroundColor: isDarkMode ? "rgba(55, 58, 66, 1)" : "#ffffff",
+                boxShadow: isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.4)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
                 "& fieldset": {
                   borderColor: "#e94057",
                   borderWidth: "2px",
                 },
               },
+              "& fieldset": {
+                borderColor: isDarkMode ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.23)",
+              },
             },
             "& .MuiInputLabel-root": {
               fontWeight: 500,
+              color: isDarkMode ? "rgba(255, 255, 255, 0.7)" : "inherit",
             },
             "& .MuiInputLabel-root.Mui-focused": {
               color: "#e94057",
+            },
+            "& .MuiOutlinedInput-input::placeholder": {
+              color: isDarkMode ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.6)",
+              opacity: 1,
             },
           }}
           onChange={(e) => setTitle(e.target.value)}
@@ -207,26 +224,35 @@ export default function StoryWrite() {
           sx={{
             "& .MuiOutlinedInput-root": {
               borderRadius: "12px",
-              backgroundColor: "rgba(249, 250, 251, 0.8)",
+              backgroundColor: isDarkMode ? "rgba(45, 48, 56, 0.8)" : "rgba(249, 250, 251, 0.8)",
+              color: isDarkMode ? "#ffffff" : "inherit",
               transition: "all 0.3s ease",
               "&:hover": {
-                backgroundColor: "rgba(245, 247, 250, 1)",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+                backgroundColor: isDarkMode ? "rgba(50, 53, 61, 1)" : "rgba(245, 247, 250, 1)",
+                boxShadow: isDarkMode ? "0 2px 8px rgba(0, 0, 0, 0.3)" : "0 2px 8px rgba(0, 0, 0, 0.04)",
               },
               "&.Mui-focused": {
-                backgroundColor: "#ffffff",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
+                backgroundColor: isDarkMode ? "rgba(55, 58, 66, 1)" : "#ffffff",
+                boxShadow: isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.4)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
                 "& fieldset": {
                   borderColor: "#e94057",
                   borderWidth: "2px",
                 },
               },
+              "& fieldset": {
+                borderColor: isDarkMode ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.23)",
+              },
             },
             "& .MuiInputLabel-root": {
               fontWeight: 500,
+              color: isDarkMode ? "rgba(255, 255, 255, 0.7)" : "inherit",
             },
             "& .MuiInputLabel-root.Mui-focused": {
               color: "#e94057",
+            },
+            "& .MuiOutlinedInput-input::placeholder": {
+              color: isDarkMode ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.6)",
+              opacity: 1,
             },
           }}
           onChange={(e) => setContent(e.target.value)}
@@ -234,7 +260,7 @@ export default function StoryWrite() {
 
         <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
 
-        <Divider sx={{ opacity: 0.9 }} />
+        <Divider sx={{ opacity: isDarkMode ? 0.3 : 0.9 }} />
 
         <Box
           sx={{
@@ -253,20 +279,20 @@ export default function StoryWrite() {
               fontWeight: 600,
               letterSpacing: "0.5px",
               background: "linear-gradient(135deg, #2196f3, #21cbf3)",
-              boxShadow: "0 6px 15px rgba(33, 150, 243, 0.3)",
+              boxShadow: isDarkMode ? "0 6px 15px rgba(33, 150, 243, 0.5)" : "0 6px 15px rgba(33, 150, 243, 0.3)",
               transition: "all 0.3s ease",
               "&:hover": {
-                boxShadow: "0 8px 20px rgba(33, 150, 243, 0.4)",
+                boxShadow: isDarkMode ? "0 8px 20px rgba(33, 150, 243, 0.6)" : "0 8px 20px rgba(33, 150, 243, 0.4)",
                 transform: "translateY(-2px)",
                 background: "linear-gradient(135deg, #1976d2, #1e88e5)",
               },
               "&:active": {
                 transform: "translateY(0)",
-                boxShadow: "0 4px 10px rgba(33, 150, 243, 0.3)",
+                boxShadow: isDarkMode ? "0 4px 10px rgba(33, 150, 243, 0.5)" : "0 4px 10px rgba(33, 150, 243, 0.3)",
               },
               "&:disabled": {
-                background: "#e0e0e0",
-                color: "#a0a0a0",
+                background: isDarkMode ? "#333" : "#e0e0e0",
+                color: isDarkMode ? "#666" : "#a0a0a0",
                 boxShadow: "none",
               },
               borderRadius: "12px 0 0 12px",
@@ -287,20 +313,20 @@ export default function StoryWrite() {
               fontWeight: 600,
               letterSpacing: "0.5px",
               background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
-              boxShadow: "0 6px 15px rgba(233, 64, 87, 0.3)",
+              boxShadow: isDarkMode ? "0 6px 15px rgba(233, 64, 87, 0.5)" : "0 6px 15px rgba(233, 64, 87, 0.3)",
               transition: "all 0.3s ease",
               "&:hover": {
-                boxShadow: "0 8px 20px rgba(233, 64, 87, 0.4)",
+                boxShadow: isDarkMode ? "0 8px 20px rgba(233, 64, 87, 0.6)" : "0 8px 20px rgba(233, 64, 87, 0.4)",
                 transform: "translateY(-2px)",
                 background: "linear-gradient(135deg, #7a1d77, #d93a4f, #e2671e)",
               },
               "&:active": {
                 transform: "translateY(0)",
-                boxShadow: "0 4px 10px rgba(233, 64, 87, 0.3)",
+                boxShadow: isDarkMode ? "0 4px 10px rgba(233, 64, 87, 0.5)" : "0 4px 10px rgba(233, 64, 87, 0.3)",
               },
               "&:disabled": {
-                background: "#e0e0e0",
-                color: "#a0a0a0",
+                background: isDarkMode ? "#333" : "#e0e0e0",
+                color: isDarkMode ? "#666" : "#a0a0a0",
                 boxShadow: "none",
               },
               borderRadius: "0 12px 12px 0",

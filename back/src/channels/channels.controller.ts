@@ -8,6 +8,7 @@ import {
   Request,
   HttpStatus,
   HttpCode,
+  Body,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -36,6 +37,17 @@ export class ChannelsController {
   @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
   async findOne(@Param('id') id: string) {
     return this.channelsService.findOne(+id);
+  }
+
+  @Post('create')
+  @ApiOperation({ summary: '새 채널 생성' })
+  @ApiResponse({ status: 201, description: '채널 생성 성공' })
+  async createChannel(@Body() body: { channelName: string }) {
+    const channel = await this.channelsService.createChannel(body.channelName);
+    return {
+      message: '새 채널이 생성되었습니다.',
+      channel,
+    };
   }
 
   @Post(':id/subscribe')

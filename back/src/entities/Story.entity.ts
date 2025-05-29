@@ -18,6 +18,8 @@ import { Comments } from './Comments.entity';
 import { User } from './User.entity';
 // Likes 엔티티: 게시글에 달린 추천(또는 비추천) 정보를 담는 엔티티
 import { Likes } from './Likes.entity';
+// Channels 엔티티: 채널 정보를 담는 엔티티
+import { Channels } from './Channels.entity';
 
 @Entity() // 이 클래스가 데이터베이스의 엔티티임을 선언합니다.
 export class Story {
@@ -111,6 +113,6 @@ export class Story {
   @OneToMany(() => Likes, (like) => like.Story)
   Likes: Likes[];
 
-  //   @ManyToOne(() => Channel, (channel) => channel.Stories)
-  // Channel: Channel;
+  @ManyToOne(() => Channels, (channel) => channel.Stories)
+  Channel: Channels;
 }

@@ -153,4 +153,15 @@ export class ChannelsService {
       await this.channelsRepository.save(channel);
     }
   }
+
+  // 새 채널 생성
+  async createChannel(channelName: string): Promise<Channels> {
+    const channel = this.channelsRepository.create({
+      ChannelName: channelName,
+      StoryCount: 0,
+      SubscriberCount: 0,
+    });
+
+    return await this.channelsRepository.save(channel);
+  }
 }

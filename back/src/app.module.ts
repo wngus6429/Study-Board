@@ -10,6 +10,7 @@ import { Today } from './common/helper/today';
 import { SuggestionModule } from './suggestion/suggestion.module';
 import { CommentModule } from './comment/comment.module';
 import { NotificationModule } from './notification/notification.module';
+import { ChannelsModule } from './channels/channels.module';
 
 //어플리케이션의 루트 모듈이 있는 파일
 @Module({
@@ -61,6 +62,7 @@ import { NotificationModule } from './notification/notification.module';
     SuggestionModule,
     CommentModule,
     NotificationModule,
+    ChannelsModule,
   ],
 })
 export class AppModule {}

@@ -14,7 +14,8 @@ import { Story } from './Story.entity';
 import { Comments } from './Comments.entity';
 import { Likes } from './Likes.entity';
 import { Suggestion } from './Suggestion.entity';
-import { Notification } from './Notification.entity'; 
+import { Notification } from './Notification.entity';
+import { Subscription } from './Subscription.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -40,8 +41,15 @@ export class User extends BaseEntity {
   @OneToMany(() => Comments, (comment) => comment.User)
   Comments: Comments[];
 
-  @OneToMany(() => Notification, (notification) => notification.recipient)  // ← 추가
-  Notifications: Notification[];  // ← 추가
+  @OneToMany(() => Notification, (notification) => notification.recipient)
+  Notifications: Notification[];
+
+  @OneToMany(() => Suggestion, (suggestion) => suggestion.User)
+  Suggestion: Suggestion[];
+
+  // Subscription 엔티티와 1:N 관계 설정
+  @OneToMany(() => Subscription, (subscription) => subscription.User)
+  Subscriptions: Subscription[];
 
   @CreateDateColumn()
   created_at: Date;
@@ -53,8 +61,5 @@ export class User extends BaseEntity {
   deleted_at: Date | null;
 
   @OneToMany(() => Likes, (like) => like.User)
-  Likes: Likes[]; // 유저가 남긴 추천/비추천
-
-  @OneToMany(() => Suggestion, (suggestion) => suggestion.User)
-  Suggestion: Suggestion[]; // 유저가 남긴 추천/비추천
+  Likes: Likes[];
 }

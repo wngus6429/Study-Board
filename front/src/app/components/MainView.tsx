@@ -2,7 +2,22 @@
 import { ReactNode, useEffect, useState, useMemo } from "react";
 import CustomizedTables from "./table/CustomizedTables";
 import axios from "axios";
-import { Box, Button, FormControl, IconButton, MenuItem, Select, SelectChangeEvent, Tab, Tabs } from "@mui/material";
+import {
+  Box,
+  Button,
+  FormControl,
+  IconButton,
+  MenuItem,
+  Select,
+  SelectChangeEvent,
+  Tab,
+  Tabs,
+  Typography,
+  Card,
+  CardContent,
+  Avatar,
+  Chip,
+} from "@mui/material";
 import Loading from "./common/Loading";
 import { useSession } from "next-auth/react";
 import CreateIcon from "@mui/icons-material/Create";
@@ -21,6 +36,11 @@ import CustomizedCardView from "./table/CustomizedCardView";
 import { useCardStories } from "./api/useCardStories";
 import NoticesDropdown from "./NoticesDropdown";
 import { useTheme } from "@mui/material/styles";
+import PeopleIcon from "@mui/icons-material/People";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import NotificationsOffIcon from "@mui/icons-material/NotificationsOff";
+import VerifiedIcon from "@mui/icons-material/Verified";
+import PersonIcon from "@mui/icons-material/Person";
 
 // API 응답 타입
 interface ApiResponse {
@@ -36,6 +56,34 @@ interface MainViewProps {
   initialRecommendRankingMode: boolean;
   initialSortOrder: "recent" | "view" | "recommend";
 }
+
+// 채널 mockData 타입 정의
+interface ChannelInfo {
+  id: number;
+  name: string;
+  description: string;
+  subscriberCount: number;
+  creatorName: string;
+  creatorAvatar?: string;
+  isSubscribed: boolean;
+  isVerified: boolean;
+  category: string;
+  storyCount: number;
+}
+
+// 채널 mockData
+const mockChannelData: ChannelInfo = {
+  id: 1,
+  name: "개발자 커뮤니티",
+  description:
+    "프로그래밍과 개발에 관한 모든 이야기를 나누는 공간입니다. 질문, 팁, 프로젝트 공유 등 자유롭게 소통해요! 🚀",
+  subscriberCount: 1543,
+  creatorName: "김개발",
+  isSubscribed: true,
+  isVerified: true,
+  category: "개발",
+  storyCount: 2847,
+};
 
 // 서버에서 전달받은 초기 데이터(initialData)와 초기 상태(카테고리, 페이지, 추천 랭킹 모드)를 기반으로 렌더링
 const MainView = ({
@@ -55,6 +103,28 @@ const MainView = ({
   const [categoryValue, setCategoryValue] = useState(initialCategory);
   // 테마 훅 추가
   const theme = useTheme();
+
+  // 채널 구독 상태 관리 (mockData용)
+  const [channelInfo, setChannelInfo] = useState<ChannelInfo>(mockChannelData);
+
+  // 구독 토글 함수
+  const handleSubscriptionToggle = () => {
+    setChannelInfo((prev) => ({
+      ...prev,
+      isSubscribed: !prev.isSubscribed,
+      subscriberCount: prev.isSubscribed ? prev.subscriberCount - 1 : prev.subscriberCount + 1,
+    }));
+  };
+
+  // 구독자 수 포맷팅 함수
+  const formatSubscriberCount = (count: number) => {
+    if (count >= 1000000) {
+      return `${(count / 1000000).toFixed(1)}M`;
+    } else if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    }
+    return count.toString();
+  };
 
   // 초기 페이지 번호를 store에 설정 (컴포넌트 마운트 시)
   useEffect(() => {
@@ -301,6 +371,201 @@ const MainView = ({
 
   return (
     <>
+      {/* 채널 정보 표시 영역 */}
+      <Card
+        sx={{
+          mb: 3,
+          borderRadius: "16px",
+          background:
+            theme.palette.mode === "dark"
+              ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(45, 48, 71, 0.95) 100%)"
+              : "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+          border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.2)" : "1px solid rgba(0, 0, 0, 0.08)",
+          boxShadow:
+            theme.palette.mode === "dark" ? "0 8px 32px rgba(139, 92, 246, 0.15)" : "0 8px 24px rgba(0, 0, 0, 0.08)",
+          position: "relative",
+          overflow: "hidden",
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: "4px",
+            background: "linear-gradient(90deg, #8b5cf6, #06b6d4, #10b981)",
+          },
+        }}
+      >
+        <CardContent sx={{ p: 3 }}>
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            {/* 왼쪽: 채널 정보 */}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Avatar
+                sx={{
+                  width: 64,
+                  height: 64,
+                  background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
+                  fontSize: "1.5rem",
+                  fontWeight: "bold",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 4px 20px rgba(139, 92, 246, 0.3)"
+                      : "0 4px 12px rgba(139, 92, 246, 0.2)",
+                }}
+              >
+                {channelInfo.name.charAt(0)}
+              </Avatar>
+
+              <Box>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: 700,
+                      background:
+                        theme.palette.mode === "dark"
+                          ? "linear-gradient(135deg, #a78bfa, #22d3ee)"
+                          : "linear-gradient(135deg, #8b5cf6, #06b6d4)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                      backgroundClip: "text",
+                    }}
+                  >
+                    {channelInfo.name}
+                  </Typography>
+                  {channelInfo.isVerified && (
+                    <VerifiedIcon
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "#22d3ee" : "#06b6d4",
+                        fontSize: 20,
+                      }}
+                    />
+                  )}
+                  <Chip
+                    label={channelInfo.category}
+                    size="small"
+                    sx={{
+                      background: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.2)" : "rgba(139, 92, 246, 0.1)",
+                      color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                      fontWeight: 600,
+                      fontSize: "0.75rem",
+                    }}
+                  />
+                </Box>
+
+                <Typography
+                  variant="body2"
+                  sx={{
+                    color: theme.palette.mode === "dark" ? "#cbd5e1" : "text.secondary",
+                    mb: 1,
+                    maxWidth: "500px",
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {channelInfo.description}
+                </Typography>
+
+                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <PeopleIcon
+                      sx={{
+                        fontSize: 16,
+                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
+                      }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
+                        fontWeight: 600,
+                      }}
+                    >
+                      구독자 {formatSubscriberCount(channelInfo.subscriberCount)}명
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <PersonIcon
+                      sx={{
+                        fontSize: 16,
+                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
+                      }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
+                      }}
+                    >
+                      채널 생성자: {channelInfo.creatorName}
+                    </Typography>
+                  </Box>
+
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
+                    }}
+                  >
+                    게시글 {channelInfo.storyCount.toLocaleString()}개
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+
+            {/* 오른쪽: 구독 버튼 */}
+            {user?.user && (
+              <Button
+                variant={channelInfo.isSubscribed ? "outlined" : "contained"}
+                onClick={handleSubscriptionToggle}
+                startIcon={
+                  channelInfo.isSubscribed ? (
+                    <NotificationsOffIcon sx={{ fontSize: 20 }} />
+                  ) : (
+                    <NotificationsIcon sx={{ fontSize: 20 }} />
+                  )
+                }
+                sx={{
+                  borderRadius: "12px",
+                  fontWeight: 600,
+                  px: 3,
+                  py: 1.5,
+                  transition: "all 0.3s ease",
+                  ...(channelInfo.isSubscribed
+                    ? {
+                        color: theme.palette.mode === "dark" ? "#f87171" : "#dc2626",
+                        borderColor: theme.palette.mode === "dark" ? "#f87171" : "#dc2626",
+                        "&:hover": {
+                          background:
+                            theme.palette.mode === "dark" ? "rgba(248, 113, 113, 0.1)" : "rgba(220, 38, 38, 0.1)",
+                          borderColor: theme.palette.mode === "dark" ? "#dc2626" : "#991b1b",
+                          transform: "translateY(-1px)",
+                        },
+                      }
+                    : {
+                        background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
+                        boxShadow:
+                          theme.palette.mode === "dark"
+                            ? "0 4px 15px rgba(139, 92, 246, 0.4)"
+                            : "0 4px 12px rgba(139, 92, 246, 0.3)",
+                        "&:hover": {
+                          background: "linear-gradient(135deg, #7c3aed, #0891b2)",
+                          boxShadow:
+                            theme.palette.mode === "dark"
+                              ? "0 6px 20px rgba(139, 92, 246, 0.5)"
+                              : "0 6px 16px rgba(139, 92, 246, 0.4)",
+                          transform: "translateY(-2px)",
+                        },
+                      }),
+                }}
+              >
+                {channelInfo.isSubscribed ? "구독 취소" : "구독하기"}
+              </Button>
+            )}
+          </Box>
+        </CardContent>
+      </Card>
+
       {/* 탭 UI 영역 */}
       <Box
         sx={{

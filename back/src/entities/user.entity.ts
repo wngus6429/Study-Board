@@ -16,6 +16,7 @@ import { Likes } from './Likes.entity';
 import { Suggestion } from './Suggestion.entity';
 import { Notification } from './Notification.entity';
 import { Subscription } from './Subscription.entity';
+import { Channels } from './Channels.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -50,6 +51,10 @@ export class User extends BaseEntity {
   // Subscription 엔티티와 1:N 관계 설정
   @OneToMany(() => Subscription, (subscription) => subscription.User)
   Subscriptions: Subscription[];
+
+  // 사용자가 생성한 채널들과의 관계
+  @OneToMany(() => Channels, (channel) => channel.creator)
+  createdChannels: Channels[];
 
   @CreateDateColumn()
   created_at: Date;

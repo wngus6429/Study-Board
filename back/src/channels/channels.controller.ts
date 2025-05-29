@@ -9,6 +9,9 @@ import {
   HttpStatus,
   HttpCode,
   Body,
+  UsePipes,
+  ValidationPipe,
+  ParseIntPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,33 +20,55 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { ChannelsService } from './channels.service';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('channels')
-@Controller('channels')
+@Controller('api/channels')
 export class ChannelsController {
   constructor(private readonly channelsService: ChannelsService) {}
 
   @Get()
   @ApiOperation({ summary: '모든 채널 조회' })
   @ApiResponse({ status: 200, description: '채널 목록 조회 성공' })
-  async findAll() {
-    return this.channelsService.findAll();
+  async findAllChannels() {
+    console.log('채널 목록 조회');
+    return await this.channelsService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: '특정 채널 조회' })
   @ApiResponse({ status: 200, description: '채널 조회 성공' })
   @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
-  async findOne(@Param('id') id: string) {
-    return this.channelsService.findOne(+id);
+  async findOneChannel(@Param('id', ParseIntPipe) id: number) {
+    console.log('채널 상세 조회:', id);
+    return await this.channelsService.findOne(id);
   }
 
-  @Post('create')
+  @Post('/create')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
   @ApiOperation({ summary: '새 채널 생성' })
   @ApiResponse({ status: 201, description: '채널 생성 성공' })
-  async createChannel(@Body() body: { channelName: string }) {
-    const channel = await this.channelsService.createChannel(body.channelName);
+  async createChannel(
+    @Body('channelName') channelName: string,
+    @Request() req,
+  ) {
+    console.log(
+      '채널 생성 API 실행:',
+      'channelName:',
+      channelName,
+      '생성자:',
+      req.user.id,
+    );
+
+    if (!channelName || channelName.trim() === '') {
+      throw new Error('채널 이름이 필요합니다.');
+    }
+
+    const channel = await this.channelsService.createChannel(
+      channelName.trim(),
+      req.user.id,
+    );
     return {
       message: '새 채널이 생성되었습니다.',
       channel,
@@ -51,35 +76,44 @@ export class ChannelsController {
   }
 
   @Post(':id/subscribe')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard())
   @ApiBearerAuth()
   @ApiOperation({ summary: '채널 구독' })
   @ApiResponse({ status: 201, description: '구독 성공' })
   @ApiResponse({ status: 404, description: '채널 또는 유저를 찾을 수 없음' })
   @HttpCode(HttpStatus.OK)
-  async subscribe(@Param('id') id: string, @Request() req) {
-    await this.channelsService.subscribe(+id, req.user.id);
+  async subscribeChannel(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req,
+  ) {
+    console.log('채널 구독:', id, '사용자:', req.user.id);
+    await this.channelsService.subscribe(id, req.user.id);
     return { message: '구독되었습니다.' };
   }
 
   @Delete(':id/subscribe')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard())
   @ApiBearerAuth()
   @ApiOperation({ summary: '채널 구독 취소' })
   @ApiResponse({ status: 200, description: '구독 취소 성공' })
   @HttpCode(HttpStatus.OK)
-  async unsubscribe(@Param('id') id: string, @Request() req) {
-    await this.channelsService.unsubscribe(+id, req.user.id);
+  async unsubscribeChannel(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req,
+  ) {
+    console.log('채널 구독 취소:', id, '사용자:', req.user.id);
+    await this.channelsService.unsubscribe(id, req.user.id);
     return { message: '구독이 취소되었습니다.' };
   }
 
   @Get('user/subscriptions')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard())
   @ApiBearerAuth()
   @ApiOperation({ summary: '유저가 구독한 채널 목록' })
   @ApiResponse({ status: 200, description: '구독 채널 목록 조회 성공' })
   async getUserSubscriptions(@Request() req) {
-    return this.channelsService.getUserSubscriptions(req.user.id);
+    console.log('사용자 구독 채널 조회:', req.user.id);
+    return await this.channelsService.getUserSubscriptions(req.user.id);
   }
 
   @Post('initialize')
@@ -87,7 +121,22 @@ export class ChannelsController {
   @ApiResponse({ status: 201, description: '초기 데이터 생성 성공' })
   @HttpCode(HttpStatus.OK)
   async initializeChannels() {
+    console.log('초기 채널 데이터 생성 실행');
     await this.channelsService.createInitialChannels();
     return { message: '초기 채널 데이터가 생성되었습니다.' };
+  }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '채널 삭제 (생성자만 가능)' })
+  @ApiResponse({ status: 200, description: '채널 삭제 성공' })
+  @ApiResponse({ status: 403, description: '삭제 권한 없음' })
+  @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
+  @HttpCode(HttpStatus.OK)
+  async deleteChannel(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    console.log('채널 삭제 API:', { channelId: id, userId: req.user.id });
+    await this.channelsService.deleteChannel(id, req.user.id);
+    return { message: '채널이 삭제되었습니다.' };
   }
 }

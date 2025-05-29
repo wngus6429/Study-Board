@@ -23,7 +23,7 @@ export class Subscription {
   User: User;
 
   // 구독된 채널
-  @ManyToOne(() => Channels, (channel) => channel.Subscriptions, {
+  @ManyToOne(() => Channels, (channel) => channel.subscriptions, {
     nullable: false,
     onDelete: 'CASCADE',
   })

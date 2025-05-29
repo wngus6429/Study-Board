@@ -1,10 +1,18 @@
+import axios from "axios";
+
+// 채널 타입 정의
 export interface Channel {
   id: number;
-  ChannelName: string;
-  StoryCount: number;
-  SubscriberCount: number;
+  channel_name: string;
+  story_count: number;
+  subscriber_count: number;
   created_at: string;
   updated_at: string;
+  creator: {
+    id: string;
+    nickname: string;
+    user_email: string;
+  };
 }
 
 export interface ChannelSubscription {
@@ -16,84 +24,76 @@ export interface ChannelSubscription {
 
 // 모든 채널 조회
 export const getChannels = async (): Promise<Channel[]> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/channels`, {
-    method: "GET",
-    credentials: "include",
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels`, {
+    withCredentials: true,
   });
-
-  if (!response.ok) {
-    throw new Error("채널 목록을 가져오는데 실패했습니다.");
-  }
-
-  return response.json();
+  return response.data;
 };
 
 // 특정 채널 조회
 export const getChannel = async (id: number): Promise<Channel> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/channels/${id}`, {
-    method: "GET",
-    credentials: "include",
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${id}`, {
+    withCredentials: true,
   });
-
-  if (!response.ok) {
-    throw new Error("채널 정보를 가져오는데 실패했습니다.");
-  }
-
-  return response.json();
+  return response.data;
 };
 
 // 채널 구독
 export const subscribeChannel = async (id: number): Promise<{ message: string }> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/channels/${id}/subscribe`, {
-    method: "POST",
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error("구독에 실패했습니다.");
-  }
-
-  return response.json();
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${id}/subscribe`,
+    {},
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
 };
 
 // 채널 구독 취소
 export const unsubscribeChannel = async (id: number): Promise<{ message: string }> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/channels/${id}/subscribe`, {
-    method: "DELETE",
-    credentials: "include",
+  const response = await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${id}/subscribe`, {
+    withCredentials: true,
   });
-
-  if (!response.ok) {
-    throw new Error("구독 취소에 실패했습니다.");
-  }
-
-  return response.json();
+  return response.data;
 };
 
 // 유저가 구독한 채널 목록
 export const getUserSubscriptions = async (): Promise<Channel[]> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/channels/user/subscriptions`, {
-    method: "GET",
-    credentials: "include",
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/user/subscriptions`, {
+    withCredentials: true,
   });
+  return response.data;
+};
 
-  if (!response.ok) {
-    throw new Error("구독 채널 목록을 가져오는데 실패했습니다.");
-  }
+// 채널 생성
+export const createChannel = async (channelName: string): Promise<{ message: string; channel: Channel }> => {
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/create`,
+    { channelName },
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+};
 
-  return response.json();
+// 채널 삭제 (생성자만 가능)
+export const deleteChannel = async (id: number): Promise<{ message: string }> => {
+  const response = await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${id}`, {
+    withCredentials: true,
+  });
+  return response.data;
 };
 
 // 초기 채널 데이터 생성
 export const initializeChannels = async (): Promise<{ message: string }> => {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/channels/initialize`, {
-    method: "POST",
-    credentials: "include",
-  });
-
-  if (!response.ok) {
-    throw new Error("초기 데이터 생성에 실패했습니다.");
-  }
-
-  return response.json();
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/initialize`,
+    {},
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
 };

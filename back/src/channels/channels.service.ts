@@ -16,47 +16,70 @@ export class ChannelsService {
     private userRepository: Repository<User>,
   ) {}
 
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 모든 채널 조회
   async findAll(): Promise<Channels[]> {
-    console.log('얼findAll');
-    return this.channelsRepository.find({
-      relations: ['Subscriptions'],
+    console.log('모든 채널 데이터 조회');
+    return await this.channelsRepository.find({
+      order: { id: 'ASC' },
+      relations: ['creator'],
     });
   }
 
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 특정 채널 조회
   async findOne(id: number): Promise<Channels> {
+    console.log('채널 상세 데이터 조회:', id);
     const channel = await this.channelsRepository.findOne({
       where: { id },
-      relations: ['Subscriptions', 'Stories'],
+      relations: ['subscriptions', 'Stories', 'creator'],
     });
 
     if (!channel) {
-      throw new NotFoundException(`Channel with ID ${id} not found`);
+      throw new NotFoundException(
+        `ID ${id}에 해당하는 채널을 찾을 수 없습니다.`,
+      );
     }
 
     return channel;
   }
 
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 채널 구독
   async subscribe(channelId: number, userId: string): Promise<void> {
-    const channel = await this.findOne(channelId);
-    const user = await this.userRepository.findOne({ where: { id: userId } });
+    console.log('채널 구독 처리:', { channelId, userId });
 
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
+    // 채널 존재 확인
+    const channel = await this.channelsRepository.findOne({
+      where: { id: channelId },
+    });
+    if (!channel) {
+      throw new NotFoundException(
+        `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
+      );
     }
 
-    // 이미 구독했는지 확인
+    // 사용자 존재 확인
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException(
+        `ID ${userId}에 해당하는 사용자를 찾을 수 없습니다.`,
+      );
+    }
+
+    // 기존 구독 확인
     const existingSubscription = await this.subscriptionRepository.findOne({
       where: { Channel: { id: channelId }, User: { id: userId } },
     });
 
     if (existingSubscription) {
-      return; // 이미 구독 중
+      console.log('이미 구독된 채널입니다.');
+      return;
     }
 
-    // 구독 생성
+    // 새 구독 생성
     const subscription = this.subscriptionRepository.create({
       Channel: channel,
       User: user,
@@ -64,104 +87,173 @@ export class ChannelsService {
 
     await this.subscriptionRepository.save(subscription);
 
-    // 채널 구독자 수 증가
-    await this.channelsRepository.update(channelId, {
-      SubscriberCount: channel.SubscriberCount + 1,
-    });
+    // 채널의 구독자 수 증가
+    await this.channelsRepository.increment(
+      { id: channelId },
+      'subscriber_count',
+      1,
+    );
+
+    console.log('채널 구독 완료');
   }
 
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 채널 구독 취소
   async unsubscribe(channelId: number, userId: string): Promise<void> {
+    console.log('채널 구독 취소 처리:', { channelId, userId });
+
     const subscription = await this.subscriptionRepository.findOne({
       where: { Channel: { id: channelId }, User: { id: userId } },
     });
 
     if (!subscription) {
-      return; // 구독하지 않았음
+      throw new NotFoundException('구독 정보를 찾을 수 없습니다.');
     }
 
     await this.subscriptionRepository.remove(subscription);
 
-    // 채널 구독자 수 감소
-    const channel = await this.findOne(channelId);
-    await this.channelsRepository.update(channelId, {
-      SubscriberCount: Math.max(0, channel.SubscriberCount - 1),
-    });
+    // 채널의 구독자 수 감소
+    await this.channelsRepository.decrement(
+      { id: channelId },
+      'subscriber_count',
+      1,
+    );
+
+    console.log('채널 구독 취소 완료');
   }
 
-  // 유저가 구독한 채널 목록
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 사용자 구독 채널 목록
   async getUserSubscriptions(userId: string): Promise<Channels[]> {
+    console.log('사용자 구독 채널 목록 조회:', userId);
+
     const subscriptions = await this.subscriptionRepository.find({
       where: { User: { id: userId } },
       relations: ['Channel'],
     });
 
-    return subscriptions.map((sub) => sub.Channel);
+    return subscriptions.map((subscription) => subscription.Channel);
   }
 
-  // 스토리 카운트 증가
-  async incrementStoryCount(channelId: number): Promise<void> {
-    await this.channelsRepository.increment({ id: channelId }, 'StoryCount', 1);
-  }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 새 채널 생성
+  async createChannel(
+    channelName: string,
+    creatorId: string,
+  ): Promise<Channels> {
+    console.log('새 채널 생성:', { channelName, creatorId });
 
-  // 스토리 카운트 감소
-  async decrementStoryCount(channelId: number): Promise<void> {
-    const channel = await this.findOne(channelId);
-    await this.channelsRepository.update(channelId, {
-      StoryCount: Math.max(0, channel.StoryCount - 1),
+    // 생성자 사용자 존재 확인
+    const creator = await this.userRepository.findOne({
+      where: { id: creatorId },
     });
+    if (!creator) {
+      throw new NotFoundException(
+        `ID ${creatorId}에 해당하는 사용자를 찾을 수 없습니다.`,
+      );
+    }
+
+    const channel = this.channelsRepository.create({
+      channel_name: channelName,
+      story_count: 0,
+      subscriber_count: 0,
+      creator: creator,
+    });
+
+    const savedChannel = await this.channelsRepository.save(channel);
+    console.log('채널 생성 완료:', {
+      id: savedChannel.id,
+      creator: creator.nickname,
+    });
+
+    return savedChannel;
   }
 
-  // 초기 데이터 생성
-  async createInitialChannels(): Promise<void> {
-    const existingChannels = await this.channelsRepository.count();
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 채널 스토리 카운트 증가
+  async incrementStoryCount(channelId: number): Promise<void> {
+    console.log('채널 스토리 카운트 증가:', channelId);
+    await this.channelsRepository.increment(
+      { id: channelId },
+      'story_count',
+      1,
+    );
+  }
 
-    if (existingChannels > 0) {
-      return; // 이미 데이터가 있으면 생성하지 않음
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 채널 스토리 카운트 감소
+  async decrementStoryCount(channelId: number): Promise<void> {
+    console.log('채널 스토리 카운트 감소:', channelId);
+    await this.channelsRepository.decrement(
+      { id: channelId },
+      'story_count',
+      1,
+    );
+  }
+
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 초기 채널 데이터 생성
+  async createInitialChannels(): Promise<void> {
+    console.log('초기 채널 데이터 생성 시작');
+
+    // 기존 채널 개수 확인
+    const existingChannelsCount = await this.channelsRepository.count();
+
+    if (existingChannelsCount > 0) {
+      console.log('이미 채널 데이터가 존재합니다. 초기화를 건너뜁니다.');
+      return;
     }
 
     const initialChannels = [
-      {
-        ChannelName: '게임 토론',
-        StoryCount: 0,
-        SubscriberCount: 0,
-      },
-      {
-        ChannelName: '애니메이션',
-        StoryCount: 0,
-        SubscriberCount: 0,
-      },
-      {
-        ChannelName: '만화',
-        StoryCount: 0,
-        SubscriberCount: 0,
-      },
-      {
-        ChannelName: '프로그래밍',
-        StoryCount: 0,
-        SubscriberCount: 0,
-      },
-      {
-        ChannelName: '요리 레시피',
-        StoryCount: 0,
-        SubscriberCount: 0,
-      },
+      { channel_name: '게임 토론', story_count: 0, subscriber_count: 0 },
+      { channel_name: '애니메이션', story_count: 0, subscriber_count: 0 },
+      { channel_name: '만화', story_count: 0, subscriber_count: 0 },
+      { channel_name: '프로그래밍', story_count: 0, subscriber_count: 0 },
+      { channel_name: '요리 레시피', story_count: 0, subscriber_count: 0 },
     ];
 
     for (const channelData of initialChannels) {
       const channel = this.channelsRepository.create(channelData);
       await this.channelsRepository.save(channel);
+      console.log(`초기 채널 생성 완료: ${channelData.channel_name}`);
     }
+
+    console.log('모든 초기 채널 데이터 생성 완료');
   }
 
-  // 새 채널 생성
-  async createChannel(channelName: string): Promise<Channels> {
-    const channel = this.channelsRepository.create({
-      ChannelName: channelName,
-      StoryCount: 0,
-      SubscriberCount: 0,
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 채널 삭제 (생성자만 가능)
+  async deleteChannel(channelId: number, userId: string): Promise<void> {
+    console.log('채널 삭제 요청:', { channelId, userId });
+
+    // 채널 존재 확인 및 생성자 정보 조회
+    const channel = await this.channelsRepository.findOne({
+      where: { id: channelId },
+      relations: ['creator'],
     });
 
-    return await this.channelsRepository.save(channel);
+    if (!channel) {
+      throw new NotFoundException(
+        `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
+      );
+    }
+
+    // 생성자 권한 확인
+    if (channel.creator.id !== userId) {
+      throw new NotFoundException(
+        '채널을 삭제할 권한이 없습니다. 채널 생성자만 삭제할 수 있습니다.',
+      );
+    }
+
+    // 관련된 구독 정보 먼저 삭제
+    await this.subscriptionRepository.delete({ Channel: { id: channelId } });
+
+    // 채널 삭제
+    await this.channelsRepository.remove(channel);
+
+    console.log('채널 삭제 완료:', {
+      channelId,
+      channelName: channel.channel_name,
+    });
   }
 }

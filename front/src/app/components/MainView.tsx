@@ -374,7 +374,6 @@ const MainView = ({
       {/* 채널 정보 표시 영역 */}
       <Card
         sx={{
-          mb: 3,
           borderRadius: "16px",
           background:
             theme.palette.mode === "dark"

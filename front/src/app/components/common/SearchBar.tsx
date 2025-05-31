@@ -1,11 +1,15 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { TextField, IconButton, Box, Select, MenuItem, FormControl } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import CloseIcon from "@mui/icons-material/Close";
 import { useTheme } from "@mui/material/styles";
 
 interface SearchBarProps {
   onSearch: (searchParams: { category: string; query: string }) => void;
+  onClearSearch?: () => void; // 검색 초기화 콜백 추가
+  currentQuery?: string; // 현재 검색어 상태
+  currentCategory?: string; // 현재 검색 카테고리 상태
 }
 
 const SEARCH_OPTIONS = [
@@ -17,14 +21,34 @@ const SEARCH_OPTIONS = [
   { label: "댓글", value: "comment" },
 ];
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("all"); // 기본값: 전체 검색
+const SearchBar: React.FC<SearchBarProps> = ({
+  onSearch,
+  onClearSearch,
+  currentQuery = "",
+  currentCategory = "all",
+}) => {
+  const [query, setQuery] = useState(currentQuery);
+  const [category, setCategory] = useState(currentCategory);
   const theme = useTheme();
+
+  // 외부에서 전달받은 검색 상태가 변경되면 내부 상태도 업데이트
+  useEffect(() => {
+    setQuery(currentQuery);
+    setCategory(currentCategory);
+  }, [currentQuery, currentCategory]);
 
   // 검색 실행 함수
   const handleSearch = () => {
     onSearch({ category, query });
+  };
+
+  // 검색 초기화 함수
+  const handleClearSearch = () => {
+    setQuery("");
+    setCategory("all");
+    if (onClearSearch) {
+      onClearSearch();
+    }
   };
 
   // Enter키 입력 시 검색 실행
@@ -97,17 +121,36 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
         }}
         InputProps={{
           endAdornment: (
-            <IconButton
-              onClick={handleSearch}
-              sx={{
-                color: theme.palette.mode === "dark" ? "#a78bfa" : "inherit",
-                "&:hover": {
-                  backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(0, 0, 0, 0.04)",
-                },
-              }}
-            >
-              <SearchIcon />
-            </IconButton>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {/* 검색어가 있을 때만 X 버튼 표시 */}
+              {query && (
+                <IconButton
+                  onClick={handleClearSearch}
+                  sx={{
+                    color: theme.palette.mode === "dark" ? "#ef4444" : "#dc2626",
+                    "&:hover": {
+                      backgroundColor:
+                        theme.palette.mode === "dark" ? "rgba(239, 68, 68, 0.1)" : "rgba(220, 38, 38, 0.1)",
+                    },
+                    padding: "4px",
+                  }}
+                >
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              )}
+              {/* 검색 버튼 */}
+              <IconButton
+                onClick={handleSearch}
+                sx={{
+                  color: theme.palette.mode === "dark" ? "#a78bfa" : "inherit",
+                  "&:hover": {
+                    backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(0, 0, 0, 0.04)",
+                  },
+                }}
+              >
+                <SearchIcon />
+              </IconButton>
+            </Box>
           ),
         }}
       />

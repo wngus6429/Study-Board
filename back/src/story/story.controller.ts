@@ -82,6 +82,7 @@ export class StoryController {
     @Query('limit') limit = 10,
     @Query('type') type: string = 'all', // 검색 타입: all, title_content, title, content, author, comment 등
     @Query('query') query: string, // 실제 검색어
+    @Query('category') category?: string, // 카테고리 필터 추가
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -90,7 +91,13 @@ export class StoryController {
     })[];
     total: number;
   }> {
-    return await this.storyService.searchStory(offset, limit, type, query);
+    return await this.storyService.searchStory(
+      offset,
+      limit,
+      type,
+      query,
+      category,
+    );
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
@@ -100,6 +107,7 @@ export class StoryController {
     @Query('limit') limit = 10,
     @Query('type') type: string = 'all', // 검색 타입: all, title_content, title, content, author, comment 등
     @Query('query') query: string, // 실제 검색어
+    @Query('category') category?: string, // 카테고리 필터 추가
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -108,7 +116,13 @@ export class StoryController {
     })[];
     total: number;
   }> {
-    return await this.storyService.cardSearchStory(offset, limit, type, query);
+    return await this.storyService.cardSearchStory(
+      offset,
+      limit,
+      type,
+      query,
+      category,
+    );
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세페이지

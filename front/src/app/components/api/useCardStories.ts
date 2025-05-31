@@ -50,6 +50,10 @@ export const useCardStories = ({
       if (searchParamsState && searchParamsState.query.trim() !== "") {
         params.type = searchParamsState.type;
         params.query = searchParamsState.query;
+        // 검색 시에도 category 파라미터 전달 (전체가 아닌 경우에만)
+        if (category !== "all") {
+          params.category = category;
+        }
         const response = await axios.get<ApiResponse>(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/cardSearch`, {
           params,
         });

@@ -46,6 +46,10 @@ export default async function Home({
   if (search.type && search.query && search.query.trim() !== "") {
     params.set("type", search.type);
     params.set("query", search.query);
+    // 검색 시에도 category 파라미터 전달 (전체가 아닌 경우에만)
+    if (category !== "all") {
+      params.set("category", category);
+    }
     apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/search?${params.toString()}`;
   } else {
     // 검색 옵션이 없으면 기본 페이지 데이터 API 호출

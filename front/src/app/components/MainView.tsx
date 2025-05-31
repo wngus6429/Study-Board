@@ -143,6 +143,19 @@ const MainView = ({
   // 뷰 모드 토글: "table" (기존 테이블)와 "card" (이미지+제목 카드) 중 선택
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
 
+  // URL 파라미터에서 검색 상태 초기화
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const searchType = urlParams.get("searchType");
+      const searchQuery = urlParams.get("searchQuery");
+
+      if (searchType && searchQuery) {
+        setSearchParamsState({ type: searchType, query: searchQuery });
+      }
+    }
+  }, []);
+
   // react-query를 이용해 API를 호출합니다.
   // initialData를 hydration하여 클라이언트에서 첫 렌더링 시 사용합니다.
   const { data, error, isLoading } = useStories({
@@ -190,8 +203,8 @@ const MainView = ({
 
   // 탭(카테고리) 변경 시 호출되는 함수
   const handleChange = (event: React.SyntheticEvent, newValue: string) => {
-    // 탭 전환 시 검색 상태 초기화
-    setSearchParamsState(null);
+    // 탭 전환 시 검색 상태 초기화 제거 - 검색 상태 유지
+    // setSearchParamsState(null); // 이 줄을 제거
     // 선택한 탭 값 업데이트
     setCategoryValue(newValue);
     // 페이지 번호 초기화
@@ -200,6 +213,12 @@ const MainView = ({
     // URL 쿼리 파라미터 구성
     const params = new URLSearchParams();
     params.set("category", newValue);
+
+    // 검색 상태가 있으면 URL에 유지
+    if (searchParamsState) {
+      params.set("searchType", searchParamsState.type);
+      params.set("searchQuery", searchParamsState.query);
+    }
 
     // 추천 랭킹 모드 상태 유지 (탭 변경에도 유지)
     params.set("recommendRanking", recommendRankingMode.toString());
@@ -273,6 +292,17 @@ const MainView = ({
     // 검색 시 추천 랭킹 모드도 반영
     params.set("recommendRanking", recommendRankingMode.toString());
     // 현재 뷰 모드 상태 유지
+    params.set("viewMode", viewMode);
+    Router.push(`?${params.toString()}`, { scroll: false });
+  };
+
+  // 검색 초기화 함수
+  const handleClearSearch = () => {
+    setSearchParamsState(null);
+    setCurrentPage(1);
+    const params = new URLSearchParams();
+    params.set("category", categoryValue);
+    params.set("recommendRanking", recommendRankingMode.toString());
     params.set("viewMode", viewMode);
     Router.push(`?${params.toString()}`, { scroll: false });
   };
@@ -748,7 +778,12 @@ const MainView = ({
       </Box>
       {/* 하단 검색바 영역 */}
       <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 2 }}>
-        <SearchBar onSearch={handleSearch} />
+        <SearchBar
+          onSearch={handleSearch}
+          onClearSearch={handleClearSearch}
+          currentQuery={searchParamsState?.query || ""}
+          currentCategory={searchParamsState?.type || "all"}
+        />
       </Box>
     </>
   );

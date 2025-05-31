@@ -174,6 +174,20 @@ export class StoryController {
     return this.storyService.create(createStoryDto, userData, files);
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 공지사항 작성
+  @Post('/notice/create')
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  @UseInterceptors(FilesInterceptor('images'))
+  async createNotice(
+    @Body() createStoryDto: CreateStoryDto,
+    @GetUser() userData: User,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    console.log('공지사항 작성', createStoryDto, userData, files);
+    return this.storyService.createNotice(createStoryDto, userData, files);
+  }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 수정
   @Post('/update/:id') // 수정 작업을 POST 요청으로 처리
   @UseGuards(AuthGuard())
@@ -232,5 +246,14 @@ export class StoryController {
     // 데이터 마이그레이션 서비스 호출
     const migrated = await this.storyService.migrateToRecommendRanking();
     return { success: true, migrated };
+  }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 공지사항 목록 가져오기
+  @Get('/notices')
+  async getNotices(
+    @Query('limit') limit = 10,
+  ): Promise<{ results: Partial<Story>[]; total: number }> {
+    console.log('공지사항 목록 가져오기');
+    return await this.storyService.findNotices(limit);
   }
 }

@@ -42,28 +42,27 @@ export class StoryService {
     results: Partial<Story & { recommendationCount: number }>[];
     total: number;
   }> {
-    // 카테고리 필터 조건 설정
-    const whereCondition = category && category !== 'all' ? { category } : {};
+    // 카테고리 필터 조건 설정 + 공지사항 제외
+    const whereCondition: any = { isNotice: false }; // 공지사항이 아닌 것만
+    if (category && category !== 'all') {
+      whereCondition.category = category;
+    }
     const isAllCategory = !category || category === 'all';
 
-    // 전체 게시글 수 조회 (페이지네이션 계산용)
+    // 전체 게시글 수 조회 (페이지네이션 계산용) - 공지사항 제외
     const regularTotal = await this.storyRepository.count({
-      where: {
-        ...whereCondition,
-      },
+      where: whereCondition,
     });
 
     // 페이지네이션 계산을 위한 로직
     let effectiveOffset = Number(offset);
     let effectiveLimit = Number(limit);
 
-    // 게시글 조회
+    // 게시글 조회 - 공지사항 제외
     const regularPosts = await this.storyRepository.find({
       relations: ['User'],
       // relations: ['User', 'Likes'],
-      where: {
-        ...whereCondition,
-      },
+      where: whereCondition,
       order: { id: 'DESC' },
       skip: Math.max(0, effectiveOffset), // 음수가 되지 않도록 보정
       take: effectiveLimit,
@@ -100,27 +99,26 @@ export class StoryService {
     results: Partial<Story & { recommendationCount: number }>[];
     total: number;
   }> {
-    // 카테고리 필터 조건 설정
-    const whereCondition = category && category !== 'all' ? { category } : {};
+    // 카테고리 필터 조건 설정 + 공지사항 제외
+    const whereCondition: any = { isNotice: false }; // 공지사항이 아닌 것만
+    if (category && category !== 'all') {
+      whereCondition.category = category;
+    }
 
     // # 나중에 데이터 count만 채널이랑 엮어놓은 테이블 만들 예정
-    // 2. 전체 일반 게시글 수 조회 (페이지네이션 계산용)
+    // 2. 전체 일반 게시글 수 조회 (페이지네이션 계산용) - 공지사항 제외
     const regularTotal = await this.storyRepository.count({
-      where: {
-        ...whereCondition,
-      },
+      where: whereCondition,
     });
 
     // // 3. 페이지네이션 정확한 계산을 위한 로직
     let effectiveOffset = Number(offset);
     let effectiveLimit = Number(limit);
 
-    // 4. 일반 게시글 조회 (조정된 offset과 limit 사용)
+    // 4. 일반 게시글 조회 (조정된 offset과 limit 사용) - 공지사항 제외
     const regularPosts = await this.storyRepository.find({
       relations: ['User', 'StoryImage'],
-      where: {
-        ...whereCondition,
-      },
+      where: whereCondition,
       order: { id: 'DESC' },
       skip: Math.max(0, effectiveOffset), // 음수가 되지 않도록 보정
       take: effectiveLimit,
@@ -196,26 +194,26 @@ export class StoryService {
     if (type === 'title_content' || type === 'all') {
       // 제목 OR 내용 검색 조건
       baseConditions = [
-        { title: ILike(likeQuery) },
-        { content: ILike(likeQuery) },
+        { title: ILike(likeQuery), isNotice: false },
+        { content: ILike(likeQuery), isNotice: false },
       ];
     } else if (type === 'title') {
       // 제목 검색 조건
-      baseConditions = { title: ILike(likeQuery) };
+      baseConditions = { title: ILike(likeQuery), isNotice: false };
     } else if (type === 'content') {
       // 내용 검색 조건
-      baseConditions = { content: ILike(likeQuery) };
+      baseConditions = { content: ILike(likeQuery), isNotice: false };
     } else if (type === 'author') {
       // 작성자(User.name) 검색 조건
-      baseConditions = { User: { name: ILike(likeQuery) } };
+      baseConditions = { User: { name: ILike(likeQuery) }, isNotice: false };
     } else if (type === 'comment') {
       // 댓글 검색은 기본 find 옵션으로는 처리하기 어려움
       throw new Error('댓글 검색은 QueryBuilder를 사용해야 합니다.');
     } else {
       // 정의되지 않은 타입의 경우 기본적으로 제목과 내용 조건 사용
       baseConditions = [
-        { title: ILike(likeQuery) },
-        { content: ILike(likeQuery) },
+        { title: ILike(likeQuery), isNotice: false },
+        { content: ILike(likeQuery), isNotice: false },
       ];
     }
 
@@ -343,26 +341,26 @@ export class StoryService {
     if (type === 'title_content' || type === 'all') {
       // 제목 OR 내용 검색 조건
       baseConditions = [
-        { title: ILike(likeQuery) },
-        { content: ILike(likeQuery) },
+        { title: ILike(likeQuery), isNotice: false },
+        { content: ILike(likeQuery), isNotice: false },
       ];
     } else if (type === 'title') {
       // 제목 검색 조건
-      baseConditions = { title: ILike(likeQuery) };
+      baseConditions = { title: ILike(likeQuery), isNotice: false };
     } else if (type === 'content') {
       // 내용 검색 조건
-      baseConditions = { content: ILike(likeQuery) };
+      baseConditions = { content: ILike(likeQuery), isNotice: false };
     } else if (type === 'author') {
       // 작성자(User.name) 검색 조건
-      baseConditions = { User: { name: ILike(likeQuery) } };
+      baseConditions = { User: { name: ILike(likeQuery) }, isNotice: false };
     } else if (type === 'comment') {
       // 댓글 검색은 기본 find 옵션으로는 처리하기 어려움
       throw new Error('댓글 검색은 QueryBuilder를 사용해야 합니다.');
     } else {
       // 정의되지 않은 타입의 경우 기본적으로 제목과 내용 조건 사용
       baseConditions = [
-        { title: ILike(likeQuery) },
-        { content: ILike(likeQuery) },
+        { title: ILike(likeQuery), isNotice: false },
+        { content: ILike(likeQuery), isNotice: false },
       ];
     }
 
@@ -554,6 +552,44 @@ export class StoryService {
     });
 
     console.log('글작성 저장 전 이미지 엔티티:', imageEntities);
+    await this.imageRepository.save(imageEntities);
+
+    return savedStory;
+  }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 공지사항 작성
+  async createNotice(
+    createStoryDto: CreateStoryDto,
+    userData: User,
+    files: Express.Multer.File[],
+  ): Promise<Story> {
+    const { title, content } = createStoryDto;
+    // 이미지를 업로드 하는지 확인
+    const imageFlag = files && files.length > 0;
+    // Story 엔티티 생성 (공지사항은 category를 "notice"로 고정, isNotice를 true로 설정)
+    const story = this.storyRepository.create({
+      category: 'notice',
+      title,
+      content,
+      User: userData,
+      imageFlag,
+      isNotice: true, // 공지사항 플래그 설정
+    });
+
+    const savedStory = await this.storyRepository.save(story);
+
+    console.log('공지사항 작성 이미지', files);
+
+    // 이미지 파일을 ImageEntity로 변환 후 저장
+    const imageEntities = files.map((file) => {
+      const image = new StoryImage();
+      image.image_name = file.filename;
+      image.link = `/upload/${file.filename}`; // 저장 경로 설정
+      image.Story = savedStory;
+      return image;
+    });
+
+    console.log('공지사항 작성 저장 전 이미지 엔티티:', imageEntities);
     await this.imageRepository.save(imageEntities);
 
     return savedStory;
@@ -900,5 +936,30 @@ export class StoryService {
       console.error('추천 랭킹 마이그레이션 중 오류 발생:', error);
       throw new Error('추천 랭킹 마이그레이션에 실패했습니다.');
     }
+  }
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 공지사항 목록 가져오기
+  async findNotices(limit = 10): Promise<{
+    results: Partial<Story>[];
+    total: number;
+  }> {
+    // 공지사항만 가져오기 (isNotice가 true인 것만)
+    const [notices, total] = await this.storyRepository.findAndCount({
+      where: { isNotice: true },
+      relations: ['User'],
+      order: { id: 'DESC' },
+      take: limit,
+    });
+
+    // 결과 데이터 가공
+    const results = notices.map((notice) => {
+      const { User, ...rest } = notice;
+      return {
+        ...rest,
+        nickname: User.nickname,
+      };
+    });
+
+    return { results, total };
   }
 }

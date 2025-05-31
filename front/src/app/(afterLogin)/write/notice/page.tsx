@@ -4,10 +4,8 @@ import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
-import CustomSelect from "@/app/components/common/CustomSelect";
 import InputFileUpload from "@/app/components/common/InputFileUpload";
 import { useMessage } from "@/app/store/messageStore";
-import { DEFAULT_FEEDBACK_OPTION, FEEDBACK_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 
 const commonButtonStyles = {
   fontSize: { xs: "0.95rem", sm: "1rem" },
@@ -33,50 +31,60 @@ const commonButtonStyles = {
   },
 };
 
-export default function FeedbackWrite() {
+export default function NoticeWrite() {
   const router = useRouter();
   const { showMessage } = useMessage((state) => state);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
 
-  // 상태 관리
+  // 제목 변수
   const [title, setTitle] = useState<string>("");
+  // 내용 변수
   const [content, setContent] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_FEEDBACK_OPTION);
+  // 이미지 변수
   const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
+  // 로딩
   const [loading, setLoading] = useState<boolean>(false);
 
+  // useMutation 훅 사용
   const mutation = useMutation({
     mutationFn: async (e: FormEvent) => {
-      e.preventDefault();
       if (title.length > 2 && content.length > 2) {
         setLoading(true);
+        e.preventDefault();
+
+        // FormData 객체 생성
         const formData = new FormData();
-        formData.append("category", selectedCategory);
+        formData.append("category", "notice");
         formData.append("title", title);
         formData.append("content", content);
+
+        // preview의 각 파일을 'images' 키로 추가
         preview.forEach((item) => {
           if (item?.file) {
-            formData.append("images", item.file);
+            formData.append("images", item.file); // 'images'는 서버의 FilesInterceptor와 일치해야 합니다.
           }
         });
-        return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/suggestion/create`, formData, {
+
+        return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/notice/create`, formData, {
           withCredentials: true,
-          headers: { "Content-Type": "multipart/form-data" },
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
         });
       } else {
         showMessage("제목과 내용을 3글자 이상 입력해주세요", "error");
       }
     },
-    retry: 1,
-    retryDelay: () => 2000,
+    retry: 1, // 1회 재시도
+    retryDelay: () => 2000, // 매 재시도마다 2초(2000ms) 지연
     onSuccess: (data) => {
       setLoading(false);
-      showMessage("글 작성 완료", "info");
+      showMessage("공지사항 작성 완료", "info");
       router.push("/");
     },
     onError: (error) => {
-      showMessage("글 작성 실패, 이전 화면으로 이동합니다", "error");
+      showMessage("공지사항 작성 실패, 이전 화면으로 이동합니다", "error");
       console.error(error);
       router.back();
     },
@@ -134,16 +142,8 @@ export default function FeedbackWrite() {
           }),
         }}
       >
-        건의하기
+        공지사항 작성
       </Typography>
-
-      <Box>
-        <CustomSelect
-          selectArray={FEEDBACK_SELECT_OPTIONS}
-          defaultValue={DEFAULT_FEEDBACK_OPTION}
-          setSelectedCategory={setSelectedCategory}
-        />
-      </Box>
 
       <Divider sx={{ mb: 2, opacity: isDarkMode ? 0.3 : 0.8 }} />
 
@@ -159,9 +159,9 @@ export default function FeedbackWrite() {
       >
         <TextField
           required
-          id="title-input"
+          id="filled-required"
           label="제목"
-          placeholder="건의사항의 제목을 입력해주세요 (3글자 이상)"
+          placeholder="공지사항의 제목을 입력해주세요 (3글자 이상)"
           variant="outlined"
           fullWidth
           sx={{
@@ -202,9 +202,9 @@ export default function FeedbackWrite() {
         />
 
         <TextField
-          id="content-input"
+          id="filled-multiline-flexible"
           label="내용"
-          placeholder="건의사항 내용을 자유롭게 작성해주세요 (3글자 이상)"
+          placeholder="공지사항 내용을 자유롭게 작성해주세요 (3글자 이상)"
           multiline
           rows={6}
           variant="outlined"
@@ -323,7 +323,7 @@ export default function FeedbackWrite() {
             }}
             startIcon={loading ? <CircularProgress size={20} color="inherit" /> : null}
           >
-            {loading ? "등록 중..." : "건의하기"}
+            {loading ? "공지사항 등록 중..." : "작성하기"}
           </Button>
         </Box>
       </Box>

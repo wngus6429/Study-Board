@@ -1,7 +1,7 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
 import { StoryImageType } from "@/app/types/imageTypes";
-import { Avatar, Box, Button, Card, CardContent, CircularProgress, Typography } from "@mui/material";
+import { Avatar, Box, Button, Card, CardContent, CircularProgress, Typography, useTheme } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -23,6 +23,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
+  const theme = useTheme();
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
   const { openCloseComments } = useComment();
@@ -133,8 +134,8 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       {openConfirmDialog && (
         <ConfirmDialog
           open={openConfirmDialog}
-          title="글 삭제"
-          description="글을 삭제하시겠습니까? 삭제된 글은 복구할 수 없습니다."
+          title="공지사항 삭제"
+          description="이 공지사항을 삭제하시겠습니까? 삭제된 공지사항은 복구할 수 없습니다."
           onConfirm={confirmDelete}
           onCancel={cancelDelete}
           confirmText="삭제"
@@ -148,37 +149,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               <Typography variant="h4" component="div" sx={{ fontWeight: "bold" }}>
                 {notice.title}
               </Typography>
-              {notice?.isNotice === false &&
-                notice?.category !== "question" &&
-                notice.User?.id === session?.user?.id && (
-                  <Box display="flex" gap={1}>
-                    <Button
-                      size="medium"
-                      variant="outlined"
-                      color="warning"
-                      onClick={(e) => {
-                        setEditFlag(true);
-                        e.preventDefault();
-                        router.push(`/edit/${notice.id}`);
-                      }}
-                      disabled={editFlag}
-                      startIcon={editFlag ? <CircularProgress size={20} /> : null}
-                    >
-                      수정
-                    </Button>
-                    <Button
-                      size="medium"
-                      variant="outlined"
-                      color="error"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleDeleteClick(notice.id);
-                      }}
-                    >
-                      삭제
-                    </Button>
-                  </Box>
-                )}
+              {/* 공지사항에서는 수정/삭제 버튼을 일반적으로 제공하지 않습니다 */}
             </Box>
             <Typography
               variant="subtitle2"
@@ -187,14 +158,16 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                bgcolor: "grey.100",
+                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "grey.100",
                 p: 1,
                 borderRadius: 1,
                 mb: 3,
+                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+                boxShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.2)" : "none",
               }}
             >
               <LocalOfferIcon fontSize="small" />
-              종류: 공지
+              종류: 공지사항
             </Typography>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
               <Box display="flex" alignItems="center" gap={2}>
@@ -227,11 +200,12 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               color="text.primary"
               sx={{
                 lineHeight: 1.7,
-                bgcolor: "grey.50",
+                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
                 p: 2,
                 borderRadius: 1,
-                boxShadow: 1,
+                boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
                 mb: 3,
+                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
               }}
             >
               {notice.content}

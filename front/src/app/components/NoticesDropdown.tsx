@@ -1,24 +1,33 @@
 "use client";
 import React, { useState, MouseEvent } from "react";
-import { Menu, MenuItem } from "@mui/material";
+import { Menu, MenuItem, Divider } from "@mui/material";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import EditIcon from "@mui/icons-material/Edit";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
 interface NoticeItem {
   id: number;
   title: string;
 }
 
-const NOTICE_ITEMS: NoticeItem[] = [
-  { id: 1, title: "새로운 기능 업데이트 안내" },
-  { id: 2, title: "서비스 점검 예정 공지" },
-  { id: 3, title: "이벤트 당첨자 발표" },
-  { id: 4, title: "[필독] 커뮤니티 이용 규칙" },
-];
-
 const NoticesDropdown = () => {
   const router = useRouter();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+
+  // 공지사항 데이터 가져오기
+  const { data: noticesData, isLoading } = useQuery({
+    queryKey: ["notices"],
+    queryFn: async () => {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/notices?limit=10`);
+      return response.data;
+    },
+    staleTime: 1000 * 60 * 5, // 5분간 캐시
+    gcTime: 1000 * 60 * 10, // 10분간 가비지 컬렉션 방지
+  });
+
+  const notices: NoticeItem[] = noticesData?.results || [];
 
   const handleOpen = (event: MouseEvent<HTMLImageElement>) => {
     setAnchorEl(event.currentTarget);
@@ -30,6 +39,11 @@ const NoticesDropdown = () => {
 
   const handleNoticeClick = (id: number) => {
     router.push(`/notice/${id}`);
+    handleClose();
+  };
+
+  const handleWriteNotice = () => {
+    router.push("/write/notice");
     handleClose();
   };
 
@@ -95,11 +109,31 @@ const NoticesDropdown = () => {
           },
         }}
       >
-        {NOTICE_ITEMS.map((notice) => (
-          <MenuItem key={notice.id} onClick={() => handleNoticeClick(notice.id)}>
-            {notice.title}
-          </MenuItem>
-        ))}
+        <MenuItem
+          onClick={handleWriteNotice}
+          sx={{
+            color: "#e94057",
+            fontWeight: "bold",
+            "&:hover": {
+              backgroundColor: "rgba(233, 64, 87, 0.1)",
+            },
+          }}
+        >
+          <EditIcon sx={{ mr: 1, fontSize: "1.2rem" }} />
+          공지사항 작성하기
+        </MenuItem>
+        <Divider />
+        {isLoading ? (
+          <MenuItem disabled>로딩 중...</MenuItem>
+        ) : notices.length > 0 ? (
+          notices.map((notice) => (
+            <MenuItem key={notice.id} onClick={() => handleNoticeClick(notice.id)}>
+              {notice.title}
+            </MenuItem>
+          ))
+        ) : (
+          <MenuItem disabled>등록된 공지사항이 없습니다.</MenuItem>
+        )}
       </Menu>
     </>
   );

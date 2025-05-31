@@ -79,7 +79,7 @@ const mockChannelData: ChannelInfo = {
     "프로그래밍과 개발에 관한 모든 이야기를 나누는 공간입니다. 질문, 팁, 프로젝트 공유 등 자유롭게 소통해요! 🚀",
   subscriberCount: 1543,
   creatorName: "김개발",
-  isSubscribed: true,
+  isSubscribed: false,
   isVerified: true,
   category: "개발",
   storyCount: 2847,

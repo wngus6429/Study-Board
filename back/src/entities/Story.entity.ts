@@ -90,6 +90,12 @@ export class Story {
   @Column({ default: false })
   imageFlag: boolean; // 이미지 존재 여부 플래그
 
+  @ApiProperty({
+    description: '공지사항 여부',
+  })
+  @Column({ default: false })
+  isNotice: boolean; // 공지사항 여부 플래그
+
   // 게시글이 생성될 때 자동으로 날짜를 기록하는 필드입니다.
   @ApiProperty({
     description: '작성일',

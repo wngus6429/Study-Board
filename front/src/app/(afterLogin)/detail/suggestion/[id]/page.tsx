@@ -1,6 +1,6 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { Avatar, Box, Button, Card, CardContent, CircularProgress, Typography } from "@mui/material";
+import { Avatar, Box, Button, Card, CardContent, CircularProgress, Typography, useTheme } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -13,6 +13,7 @@ import ErrorView from "@/app/components/common/ErrorView";
 import Link from "next/link";
 import ImageCard from "@/app/components/ImageCard";
 import { SuggestionImageType } from "@/app/types/imageTypes";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 // MODIFIED: SuggestionType 타입 사용 (건의사항 상세 데이터)
 // import { SuggestionType } from "@/app/types/suggestionDetailType";
 
@@ -21,6 +22,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const router = useRouter();
   const { data: session } = useSession();
   const queryClient = useQueryClient();
+  const theme = useTheme();
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false);
 
@@ -169,7 +171,22 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 </Box>
               )}
             </Box>
-            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography
+              variant="subtitle2"
+              color="text.secondary"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "grey.100",
+                p: 1,
+                borderRadius: 1,
+                mb: 3,
+                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+                boxShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.2)" : "none",
+              }}
+            >
+              <LocalOfferIcon fontSize="small" />
               종류: {detail.category}
             </Typography>
             <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -201,7 +218,15 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
             <Typography
               variant="body1"
               color="text.primary"
-              sx={{ lineHeight: 1.7, bgcolor: "grey.50", p: 2, borderRadius: 1, boxShadow: 1, mb: 3 }}
+              sx={{
+                lineHeight: 1.7,
+                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
+                p: 2,
+                borderRadius: 1,
+                boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
+                mb: 3,
+                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+              }}
             >
               {detail.content}
             </Typography>

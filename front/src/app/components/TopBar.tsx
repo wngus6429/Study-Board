@@ -1,9 +1,9 @@
 "use client";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
-import AccountCircle from "@mui/icons-material/AccountCircle";
-import { Avatar, Button } from "@mui/material";
+import Settings from "@mui/icons-material/Settings";
+import { Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
 import { useRouter } from "next/navigation";
 import axios from "@/app/api/axios";
 import styles from "./style/TopBar.module.css";
@@ -15,6 +15,8 @@ import { useUserImage } from "../store/userImageStore";
 import usePageStore from "../store/pageStore";
 import NotificationDropdown from "./NotificationDropdown";
 import DarkModeToggle from "./DarkModeToggle";
+import DisplaySettingsIcon from "@mui/icons-material/DisplaySettings";
+import MessageIcon from "@mui/icons-material/Message";
 
 // const SearchBox = styled("div")(({ theme }) => ({
 //   position: "relative",
@@ -50,6 +52,7 @@ export default function MenuBar() {
   const { showMessage } = useMessage((state) => state);
   const { setUserImageUrl, TopBarImageDelete } = useUserImage();
   const { setCurrentPage } = usePageStore();
+  const [settingsMenuAnchor, setSettingsMenuAnchor] = useState<null | HTMLElement>(null);
 
   const {
     data: userImage,
@@ -105,6 +108,26 @@ export default function MenuBar() {
     }
   }, [userImage]);
 
+  const handleSettingsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setSettingsMenuAnchor(event.currentTarget);
+  };
+
+  const handleSettingsMenuClose = () => {
+    setSettingsMenuAnchor(null);
+  };
+
+  const handleDisplaySettings = () => {
+    handleSettingsMenuClose();
+    // 표시설정 페이지로 이동 로직 추가
+    console.log("표시설정 클릭됨");
+  };
+
+  const handleMessages = () => {
+    handleSettingsMenuClose();
+    // 쪽지 페이지로 이동 로직 추가
+    console.log("쪽지 클릭됨");
+  };
+
   return (
     <div className={styles.container}>
       <Link href="/" aria-label="Home" className={styles.title} onClick={() => setCurrentPage(1)}>
@@ -153,11 +176,51 @@ export default function MenuBar() {
         {/* 다크모드 토글 버튼 */}
         <DarkModeToggle />
 
-        {/* 오른쪽 메뉴: 프로필 관련 */}
-        <Box sx={{ flexGrow: 1 }} />
-        <IconButton size="large" edge="end" aria-label="account of current user" aria-haspopup="true" color="inherit">
-          <AccountCircle />
+        {/* 설정 메뉴 */}
+        <IconButton
+          size="large"
+          edge="end"
+          aria-label="settings menu"
+          aria-haspopup="true"
+          color="inherit"
+          sx={{
+            color: "white",
+            "&:hover": {
+              backgroundColor: (theme) => theme.palette.action.hover,
+            },
+          }}
+          onClick={handleSettingsMenuOpen}
+        >
+          <Settings />
         </IconButton>
+
+        {/* 설정 드롭다운 메뉴 */}
+        <Menu
+          anchorEl={settingsMenuAnchor}
+          open={Boolean(settingsMenuAnchor)}
+          onClose={handleSettingsMenuClose}
+          anchorOrigin={{
+            vertical: "bottom",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "top",
+            horizontal: "right",
+          }}
+        >
+          <MenuItem onClick={handleDisplaySettings}>
+            <ListItemIcon>
+              <DisplaySettingsIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>표시설정</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleMessages}>
+            <ListItemIcon>
+              <MessageIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>쪽지</ListItemText>
+          </MenuItem>
+        </Menu>
       </nav>
     </div>
   );

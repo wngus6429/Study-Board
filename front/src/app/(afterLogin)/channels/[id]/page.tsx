@@ -34,7 +34,7 @@ import {
   Person as PersonIcon,
 } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import usePageStore from "@/app/store/pageStore";
@@ -48,19 +48,9 @@ import Loading from "@/app/components/common/Loading";
 import ErrorView from "@/app/components/common/ErrorView";
 // API 함수들 import
 import { getChannel, subscribeChannel, unsubscribeChannel, Channel } from "@/app/api/channelsApi";
-
-// 채널별 게시글 API 호출 함수 (임시)
-const getChannelPosts = async (channelId: number, page: number = 1, limit: number = 10) => {
-  const offset = (page - 1) * limit;
-  // 나중에 실제 채널별 게시글 API로 변경 필요
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData?offset=${offset}&limit=${limit}`,
-    {
-      credentials: "include",
-    }
-  );
-  return response.json();
-};
+// 새로운 커스텀 훅들 import
+import { useChannelStories } from "@/app/components/api/useChannelStories";
+import { useChannelCardStories } from "@/app/components/api/useChannelCardStories";
 
 const ChannelDetailPage = () => {
   const theme = useTheme();
@@ -143,43 +133,41 @@ const ChannelDetailPage = () => {
     retry: 2,
   });
 
-  // 채널별 게시글 API 호출 함수 (카테고리 필터 추가)
-  const getChannelPostsByCategory = async (
-    channelId: number,
-    category: string,
-    page: number = 1,
-    limit: number = 10
-  ) => {
-    const offset = (page - 1) * limit;
-    const params = new URLSearchParams({
-      offset: offset.toString(),
-      limit: limit.toString(),
-    });
-
-    // 카테고리가 'all'이 아닌 경우 카테고리 필터 추가
-    if (category !== "all") {
-      params.set("category", category);
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData?${params.toString()}`, {
-      credentials: "include",
-    });
-    return response.json();
-  };
-
-  // 채널 게시글 조회 (카테고리별)
+  // 채널 테이블 데이터 조회 (새로운 커스텀 훅 사용)
   const {
-    data: postsData,
-    isLoading: postsLoading,
-    isError: postsError,
-    error: postsApiError,
-  } = useQuery({
-    queryKey: ["channelPosts", channelId, currentTab, currentPage, searchParamsState, recommendRankingMode],
-    queryFn: () => getChannelPostsByCategory(channelId, currentTab, currentPage, viewCount),
-    enabled: !!channelId,
-    staleTime: 1000 * 60 * 2,
-    retry: 2,
+    data: tableData,
+    error: tableError,
+    isLoading: tableLoading,
+  } = useChannelStories({
+    channelId,
+    category: currentTab,
+    currentPage,
+    searchParamsState,
+    recommendRankingMode,
+    viewCount,
+    viewMode,
   });
+
+  // 채널 카드 데이터 조회 (새로운 커스텀 훅 사용)
+  const {
+    data: cardData,
+    error: cardError,
+    isLoading: cardLoading,
+  } = useChannelCardStories({
+    channelId,
+    category: currentTab,
+    currentPage,
+    searchParamsState,
+    recommendRankingMode,
+    viewCount,
+    viewMode,
+  });
+
+  // MainView 스타일로 데이터 처리
+  const currentData = viewMode === "card" ? cardData : tableData;
+  const currentError = viewMode === "card" ? cardError : tableError;
+  const currentLoading = viewMode === "card" ? cardLoading : tableLoading;
+  const currentTotal = currentData?.total || 0;
 
   // 구독 mutation
   const subscribeMutation = useMutation({
@@ -215,11 +203,11 @@ const ChannelDetailPage = () => {
       console.error("채널 조회 실패:", channelApiError);
       showMessage("채널을 불러오는데 실패했습니다.", "error");
     }
-    if (postsError) {
-      console.error("게시글 조회 실패:", postsApiError);
+    if (currentError) {
+      console.error("게시글 조회 실패:", currentError);
       showMessage("게시글을 불러오는데 실패했습니다.", "error");
     }
-  }, [channelError, postsError, channelApiError, postsApiError, showMessage]);
+  }, [channelError, currentError, channelApiError, showMessage]);
 
   // 초기 페이지 설정
   useEffect(() => {
@@ -394,8 +382,8 @@ const ChannelDetailPage = () => {
 
   // 정렬된 테이블 데이터
   const sortedTableData = useMemo(() => {
-    if (!postsData?.results) return [];
-    return [...postsData.results]
+    if (!currentData) return [];
+    return [...currentData.results]
       .sort((a, b) => {
         if (sortOrder === "view") {
           return b.read_count - a.read_count;
@@ -408,7 +396,7 @@ const ChannelDetailPage = () => {
         ...item,
         isRecommendRanking: recommendRankingMode,
       }));
-  }, [postsData?.results, sortOrder, recommendRankingMode]);
+  }, [currentData, sortOrder, recommendRankingMode]);
 
   // 로딩 처리
   if (channelLoading) {
@@ -464,7 +452,7 @@ const ChannelDetailPage = () => {
             theme.palette.mode === "dark" ? "0 8px 32px rgba(139, 92, 246, 0.15)" : "0 8px 24px rgba(0, 0, 0, 0.08)",
           position: "relative",
           overflow: "hidden",
-          marginBottom: 3,
+          // marginBottom: 3,
           "&::before": {
             content: '""',
             position: "absolute",
@@ -800,7 +788,7 @@ const ChannelDetailPage = () => {
           overflow: "hidden",
           bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "background.paper",
           border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
-          marginBottom: 3,
+          // marginBottom: 3,
         }}
       >
         <Tabs
@@ -927,12 +915,21 @@ const ChannelDetailPage = () => {
       {/* 탭 컨텐츠 - 모든 탭에서 게시글 표시 */}
       <>
         {/* 게시글 목록 */}
-        {postsLoading ? (
+        {currentLoading && !currentData ? (
           <Loading />
         ) : viewMode === "card" ? (
           <CustomizedCardView tableData={sortedTableData} />
         ) : (
           <CustomizedTables tableData={sortedTableData} />
+        )}
+
+        {/* 로딩 인디케이터 (데이터가 있을 때는 작은 로딩 표시) */}
+        {currentLoading && currentData && (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+              데이터 업데이트 중...
+            </Typography>
+          </Box>
         )}
 
         {/* 하단 컨트롤 영역 (MainView 스타일) */}
@@ -988,7 +985,7 @@ const ChannelDetailPage = () => {
           {/* 가운데: 페이지네이션 */}
           <Box sx={{ display: "flex", justifyContent: "center", flex: 1 }}>
             <Pagination
-              pageCount={Math.ceil((postsData?.total || 0) / viewCount)}
+              pageCount={Math.ceil(currentTotal / viewCount)}
               onPageChange={handlePageClick}
               currentPage={currentPage}
             />

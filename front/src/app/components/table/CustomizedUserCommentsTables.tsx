@@ -120,7 +120,29 @@ const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps
                   )}
                 </StyledTableCell>
                 <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
-                  {dayjs(row.updated_at).format("YYYY.MM.DD HH:mm")}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "flex-end",
+                      gap: 0.2,
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ fontSize: "0.8rem", lineHeight: 1 }}>
+                      {dayjs(row.updated_at).format("YYYY.MM.DD")}
+                    </Typography>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontSize: "0.75rem",
+                        lineHeight: 1,
+                        color: "text.secondary",
+                        opacity: 0.8,
+                      }}
+                    >
+                      {dayjs(row.updated_at).format("HH:mm")}
+                    </Typography>
+                  </Box>
                 </StyledTableCell>
               </StyledTableRow>
             ))

@@ -957,6 +957,7 @@ export class StoryService {
       return {
         ...rest,
         nickname: User.nickname,
+        created_at: notice.created_at, // created_at 필드 명시적으로 포함
       };
     });
 

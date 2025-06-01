@@ -724,6 +724,39 @@ const ChannelDetailPage = () => {
         </CardContent>
       </Card>
 
+      {/* 공지사항 모달 */}
+      {showNotice && (
+        <Card
+          sx={{
+            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
+            border:
+              theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid rgba(0, 0, 0, 0.1)",
+            borderRadius: 3,
+            p: 4,
+          }}
+        >
+          <Typography
+            variant="h6"
+            sx={{
+              color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
+              textAlign: "center",
+            }}
+          >
+            공지사항
+          </Typography>
+          <Typography
+            variant="body2"
+            sx={{
+              color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.7)",
+              textAlign: "center",
+              mt: 2,
+            }}
+          >
+            아직 등록된 공지사항이 없습니다.
+          </Typography>
+        </Card>
+      )}
+
       {/* 채널 정보 모달 */}
       {showChannelInfo && (
         <Card
@@ -877,40 +910,6 @@ const ChannelDetailPage = () => {
           </Button>
         )}
       </Box>
-
-      {/* 공지사항 모달 */}
-      {showNotice && (
-        <Card
-          sx={{
-            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
-            border:
-              theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid rgba(0, 0, 0, 0.1)",
-            borderRadius: 3,
-            p: 4,
-            mb: 3,
-          }}
-        >
-          <Typography
-            variant="h6"
-            sx={{
-              color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
-              textAlign: "center",
-            }}
-          >
-            공지사항
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.7)",
-              textAlign: "center",
-              mt: 2,
-            }}
-          >
-            아직 등록된 공지사항이 없습니다.
-          </Typography>
-        </Card>
-      )}
 
       {/* 탭 컨텐츠 - 모든 탭에서 게시글 표시 */}
       <>

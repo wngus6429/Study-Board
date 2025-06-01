@@ -436,7 +436,7 @@ const ChannelDetailPage = () => {
           theme.palette.mode === "dark"
             ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(16, 16, 32, 0.98))"
             : "linear-gradient(135deg, #f8f9fa, #e9ecef)",
-        padding: 3,
+        // padding: 1,
       }}
     >
       {/* 채널 정보 헤더 (MainView 스타일) */}

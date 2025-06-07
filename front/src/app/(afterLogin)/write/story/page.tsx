@@ -1,13 +1,14 @@
 "use client";
 import { TextField, Box, Typography, Paper, Button, CircularProgress, Divider, useTheme } from "@mui/material";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useRouter } from "next/navigation";
-import React, { FormEvent, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import React, { FormEvent, useState, useEffect } from "react";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import InputFileUpload from "@/app/components/common/InputFileUpload";
 import { useMessage } from "@/app/store/messageStore";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
+import { getChannel } from "@/app/api/channelsApi";
 
 const commonButtonStyles = {
   fontSize: { xs: "0.95rem", sm: "1rem" },
@@ -35,9 +36,13 @@ const commonButtonStyles = {
 
 export default function StoryWrite() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { showMessage } = useMessage((state) => state);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
+
+  // 채널 ID 가져오기
+  const channelId = searchParams?.get("channel");
 
   // 제목 변수
   const [title, setTitle] = useState<string>("");
@@ -49,6 +54,14 @@ export default function StoryWrite() {
   const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
   // 로딩
   const [loading, setLoading] = useState<boolean>(false);
+
+  // 채널 정보 조회 (channelId가 있는 경우에만)
+  const { data: channelData } = useQuery({
+    queryKey: ["channel", channelId],
+    queryFn: () => getChannel(Number(channelId)),
+    enabled: !!channelId && channelId !== "0",
+    staleTime: 1000 * 60 * 5, // 5분간 캐시
+  });
 
   // useMutation 훅 사용
   const mutation = useMutation({
@@ -62,6 +75,11 @@ export default function StoryWrite() {
         formData.append("category", selectedCategory);
         formData.append("title", title);
         formData.append("content", content);
+
+        // 채널 ID가 있으면 추가
+        if (channelId) {
+          formData.append("channelId", channelId);
+        }
 
         // preview의 각 파일을 'images' 키로 추가
         preview.forEach((item) => {
@@ -85,7 +103,13 @@ export default function StoryWrite() {
     onSuccess: (data) => {
       setLoading(false);
       showMessage("글쓰기 완료", "info");
-      router.push("/");
+
+      // 채널 페이지로 이동 (channelData가 있으면 채널 페이지로, 없으면 메인 페이지로)
+      if (channelData?.slug) {
+        router.push(`/channels/${channelData.slug}`);
+      } else {
+        router.push("/");
+      }
     },
     onError: (error) => {
       showMessage("글쓰기 실패, 이전 화면으로 이동합니다", "error");
@@ -132,7 +156,7 @@ export default function StoryWrite() {
         sx={{
           fontWeight: 700,
           textAlign: "center",
-          mb: 2,
+          mb: 1,
           mt: 1,
           letterSpacing: "-0.5px",
           background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
@@ -148,6 +172,21 @@ export default function StoryWrite() {
       >
         스토리 작성
       </Typography>
+
+      {/* 채널 정보 표시 */}
+      {channelData && (
+        <Typography
+          variant="subtitle1"
+          sx={{
+            textAlign: "center",
+            mb: 2,
+            color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+            fontWeight: 600,
+          }}
+        >
+          📢 {channelData.channel_name} 채널에 작성
+        </Typography>
+      )}
 
       <Box>
         <CustomSelect

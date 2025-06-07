@@ -309,7 +309,7 @@ const ChannelDetailPage = () => {
     if (typeof window !== "undefined") {
       sessionStorage.setItem("previousMainPageUrl", window.location.href);
     }
-    router.push(`/detail/${postId}`);
+    router.push(`/channels/${channelSlug}/detail/story/${postId}`);
   };
 
   // 글쓰기 핸들러
@@ -476,7 +476,7 @@ const ChannelDetailPage = () => {
   };
 
   const handleNoticeClick = (noticeId: number) => {
-    router.push(`/notice/${noticeId}`);
+    router.push(`/channels/${channelSlug}/detail/suggestion/${noticeId}`);
     setShowNotice(false);
   };
 
@@ -1373,9 +1373,9 @@ const ChannelDetailPage = () => {
         {currentLoading && !currentData ? (
           <Loading />
         ) : viewMode === "card" ? (
-          <CustomizedCardView tableData={sortedTableData} />
+          <CustomizedCardView tableData={sortedTableData} onRowClick={handlePostClick} />
         ) : (
-          <CustomizedTables tableData={sortedTableData} />
+          <CustomizedTables tableData={sortedTableData} onRowClick={handlePostClick} />
         )}
 
         {/* 로딩 인디케이터 (데이터가 있을 때는 작은 로딩 표시) */}

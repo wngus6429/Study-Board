@@ -74,9 +74,10 @@ const NoticeRow = styled(TableRow)(({ theme }) => ({
 
 interface CustomizedTablesProps {
   tableData: any;
+  onRowClick?: (postId: number) => void;
 }
 
-const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode => {
+const CustomizedTables = ({ tableData, onRowClick }: CustomizedTablesProps): React.ReactNode => {
   const router = useRouter();
   const theme = useTheme();
 
@@ -153,7 +154,12 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                     if (typeof window !== "undefined") {
                       sessionStorage.setItem("previousMainPageUrl", window.location.href);
                     }
-                    router.push(`/channels/[slug]/detail/story/${row.id}`);
+                    if (onRowClick) {
+                      onRowClick(row.id);
+                    } else {
+                      // 기본 동작 (메인 페이지에서 사용될 때)
+                      router.push(`/detail/${row.id}`);
+                    }
                   }}
                   sx={{ cursor: "pointer" }}
                 >

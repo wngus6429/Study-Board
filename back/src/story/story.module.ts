@@ -14,6 +14,7 @@ import { User } from 'src/entities/User.entity';
 import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
+import { Channels } from 'src/entities/Channels.entity';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
       Comments,
       Likes,
       RecommendRanking,
+      Channels,
     ]),
     AuthModule,
   ],

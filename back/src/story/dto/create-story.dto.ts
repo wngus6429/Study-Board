@@ -1,5 +1,11 @@
 // dto/create-story.dto.ts
-import { IsNotEmpty, IsOptional, Max, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  Max,
+  MaxLength,
+  IsNumberString,
+} from 'class-validator';
 
 export class CreateStoryDto {
   @IsNotEmpty()
@@ -12,6 +18,10 @@ export class CreateStoryDto {
 
   @IsNotEmpty()
   category: string;
+
+  @IsOptional()
+  @IsNumberString()
+  channelId?: string;
 
   @IsOptional()
   preview: { dataUrl: string; fileName: string }[];

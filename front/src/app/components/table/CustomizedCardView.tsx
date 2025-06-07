@@ -27,9 +27,10 @@ interface TableRowData {
 
 interface CustomizedCardViewProps {
   tableData: TableRowData[];
+  onRowClick?: (postId: number) => void;
 }
 
-const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.ReactElement => {
+const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps): React.ReactElement => {
   const router = useRouter();
   return (
     <>
@@ -66,7 +67,12 @@ const CustomizedCardView = ({ tableData }: CustomizedCardViewProps): React.React
                   if (typeof window !== "undefined") {
                     sessionStorage.setItem("previousMainPageUrl", window.location.href);
                   }
-                  router.push(`/detail/story/${row.id}`);
+                  if (onRowClick) {
+                    onRowClick(row.id);
+                  } else {
+                    // 기본 동작 (메인 페이지에서 사용될 때)
+                    router.push(`/detail/${row.id}`);
+                  }
                 }}
                 sx={{
                   borderRadius: 2,

@@ -16,6 +16,7 @@ import { UpdateStoryDto } from './dto/update-story.dto';
 import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
+import { Channels } from 'src/entities/Channels.entity';
 import { MIN_RECOMMEND_COUNT } from 'src/common/constants/app.constants';
 
 @Injectable()
@@ -32,6 +33,8 @@ export class StoryService {
     @InjectRepository(Likes) private likeRepository: Repository<Likes>,
     @InjectRepository(RecommendRanking)
     private recommendRankingRepository: Repository<RecommendRanking>,
+    @InjectRepository(Channels)
+    private channelsRepository: Repository<Channels>,
   ) {}
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async findStory(
@@ -578,9 +581,25 @@ export class StoryService {
     userData: User,
     files: Express.Multer.File[],
   ): Promise<Story> {
-    const { title, content, category } = createStoryDto;
+    const { title, content, category, channelId } = createStoryDto;
+
+    // 채널 ID가 있는 경우 채널 정보 조회
+    let channel: Channels | null = null;
+    if (channelId) {
+      channel = await this.channelsRepository.findOne({
+        where: { id: Number(channelId) },
+      });
+
+      if (!channel) {
+        throw new NotFoundException(
+          `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
+        );
+      }
+    }
+
     // 이미지를 업로드 하는지 확인
     const imageFlag = files && files.length > 0;
+
     // Story 엔티티 생성
     const story = this.storyRepository.create({
       category,
@@ -588,9 +607,19 @@ export class StoryService {
       content,
       User: userData, // 유저데이터를 통으로 넣음
       imageFlag,
+      Channel: channel, // 채널 정보 추가
     });
 
     const savedStory = await this.storyRepository.save(story);
+
+    // 채널의 스토리 카운트 증가
+    if (channel) {
+      await this.channelsRepository.increment(
+        { id: channel.id },
+        'story_count',
+        1,
+      );
+    }
 
     console.log('글 작성 이미지', files);
 

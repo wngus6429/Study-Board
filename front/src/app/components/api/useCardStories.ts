@@ -74,8 +74,10 @@ export const useCardStories = ({
     },
     // TODO 삭제 플래그 두고 true false로 하면 될거 같은데
     // 삭제시에는 staleTime 잠시 무효화 시켜서 바로 최신꺼 제거된거 받아오게끔
-    enabled: viewMode === "card",
-    placeholderData: keepPreviousData, // 이전 데이터 유지하여 깜빡임 방지
+    enabled: viewMode === "card" && (channelId === undefined || channelId > 0),
+    // 페이지네이션 깜빡임 방지: 채널 페이지에서는 항상 이전 데이터 유지
+    placeholderData: keepPreviousData,
+    // staleTime: 1000 * 30, // 30초간 데이터를 fresh로 간주 (페이지네이션 시 캐시 활용)
     refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
 };

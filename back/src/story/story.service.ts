@@ -53,8 +53,14 @@ export class StoryService {
     }
     // 채널 필터 조건 추가
     if (channelId) {
-      whereCondition.Channel = { id: channelId };
+      whereCondition.Channel = { id: Number(channelId) };
     }
+
+    console.log('🔍 findStory whereCondition:', {
+      whereCondition,
+      channelId: channelId ? Number(channelId) : null,
+      typeof_channelId: typeof channelId,
+    });
     const isAllCategory = !category || category === 'all';
 
     // 전체 게시글 수 조회 (페이지네이션 계산용) - 공지사항 제외
@@ -94,6 +100,8 @@ export class StoryService {
       };
     });
 
+    console.log('modifiedPosts', modifiedPosts, 'regularTotal', regularTotal);
+
     return {
       results: modifiedPosts,
       total: regularTotal,
@@ -116,8 +124,14 @@ export class StoryService {
     }
     // 채널 필터 조건 추가
     if (channelId) {
-      whereCondition.Channel = { id: channelId };
+      whereCondition.Channel = { id: Number(channelId) };
     }
+
+    console.log('🔍 findCardStory whereCondition:', {
+      whereCondition,
+      channelId: channelId ? Number(channelId) : null,
+      typeof_channelId: typeof channelId,
+    });
 
     // # 나중에 데이터 count만 채널이랑 엮어놓은 테이블 만들 예정
     // 2. 전체 일반 게시글 수 조회 (페이지네이션 계산용) - 공지사항 제외

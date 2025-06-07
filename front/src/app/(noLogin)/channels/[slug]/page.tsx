@@ -107,6 +107,14 @@ const ChannelDetailPage = () => {
   // 채널 ID 가져오기 (채널 데이터가 로드된 후)
   const channelId = channelData?.id || 0;
 
+  console.log("🔍 채널 페이지 상태:", {
+    channelSlug,
+    channelData,
+    channelId,
+    channelLoading,
+    channelError,
+  });
+
   // 현재 채널의 구독 상태
   const isSubscribed = checkIsSubscribed(channelId);
 

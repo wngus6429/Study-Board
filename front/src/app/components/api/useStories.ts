@@ -30,10 +30,10 @@ export const useStories = ({
   channelId,
 }: UseStoriesProps) => {
   return useQuery<ApiResponse>({
-    // queryKey는 검색 옵션, 카테고리, 페이지, 추천 랭킹 모드 등에 따라 달라집니다.
+    // queryKey는 검색 옵션, 카테고리, 페이지, 추천 랭킹 모드, 채널 ID 등에 따라 달라집니다.
     queryKey: searchParamsState
-      ? ["stories", category, currentPage, searchParamsState, recommendRankingMode]
-      : ["stories", category, currentPage, recommendRankingMode],
+      ? ["stories", category, currentPage, searchParamsState, recommendRankingMode, channelId]
+      : ["stories", category, currentPage, recommendRankingMode, channelId],
     // API 호출 함수 (axios를 사용하여 데이터 fetch)
     queryFn: async () => {
       console.log("테이블 데이터 호출");
@@ -44,10 +44,11 @@ export const useStories = ({
         limit: viewCount,
         category: category !== "all" ? category : undefined,
       };
-      // 채널 ID가 있으면 추가
-      if (channelId) {
+      // 채널 ID가 있으면 추가 (0은 제외하고 유효한 숫자만)
+      if (channelId && channelId > 0) {
         params.channelId = channelId;
       }
+      console.log("🔍 useStories API 호출 파라미터:", params, "원본 channelId:", channelId);
       // 추천 랭킹 모드가 활성화되면 최소 추천수 설정
       if (recommendRankingMode) {
         params.minRecommend = MIN_RECOMMEND_COUNT;

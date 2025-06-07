@@ -8,6 +8,7 @@ import TopBar from "./components/TopBar";
 import AuthSession from "./components/common/AuthSessionCom";
 import MessageView from "./components/common/MessageView";
 import RightView from "./components/common/RightView";
+import SubscriptionProvider from "./components/common/SubscriptionProvider";
 import style from "./layout.module.css";
 import ScrollUpButton from "./components/common/ScrollUpButton";
 import ThemeProvider from "./components/ThemeProvider";
@@ -41,26 +42,28 @@ export default function RootLayout({
         <ThemeProvider>
           <RQProvider>
             <AuthSession>
-              {/* 상단 바 */}
-              <TopBar />
-              <div style={{ width: "90%", maxWidth: "1600px", margin: "0 auto" }}>
-                <div className={style.main_container}>
-                  <div className={style.nav_display}>
-                    {/* 왼쪽 메뉴 */}
-                    <NavMenuBar />
-                  </div>
-                  <div className={style.content_wrapper}>
-                    {/* 가운데 데이터 */}
-                    <div className={style.main_content}>{children}</div>
-                    {/* 광고 및 댓글부분 */}
-                    <div className={style.right_view}>
-                      <RightView />
+              <SubscriptionProvider>
+                {/* 상단 바 */}
+                <TopBar />
+                <div style={{ width: "90%", maxWidth: "1600px", margin: "0 auto" }}>
+                  <div className={style.main_container}>
+                    <div className={style.nav_display}>
+                      {/* 왼쪽 메뉴 */}
+                      <NavMenuBar />
                     </div>
+                    <div className={style.content_wrapper}>
+                      {/* 가운데 데이터 */}
+                      <div className={style.main_content}>{children}</div>
+                      {/* 광고 및 댓글부분 */}
+                      <div className={style.right_view}>
+                        <RightView />
+                      </div>
+                    </div>
+                    <MessageView />
                   </div>
-                  <MessageView />
                 </div>
-              </div>
-              <ScrollUpButton />
+                <ScrollUpButton />
+              </SubscriptionProvider>
             </AuthSession>
           </RQProvider>
         </ThemeProvider>

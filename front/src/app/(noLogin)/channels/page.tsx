@@ -67,7 +67,7 @@ const ChannelsPage = () => {
 
   // 채널 생성 mutation
   const createChannelMutation = useMutation({
-    mutationFn: createChannel,
+    mutationFn: ({ channelName, slug }: { channelName: string; slug: string }) => createChannel(channelName, slug),
     onSuccess: (data) => {
       showMessage("채널이 성공적으로 생성되었습니다!", "success");
       setOpenCreateDialog(false);
@@ -98,9 +98,33 @@ const ChannelsPage = () => {
     return matchesSearch;
   });
 
+  // slug 자동 생성 함수
+  const generateSlug = (name: string): string => {
+    return (
+      name
+        .toLowerCase()
+        .replace(/[^a-z0-9가-힣\s]/g, "") // 특수문자 제거
+        .replace(/\s+/g, "-") // 공백을 하이픈으로
+        .replace(/게임/g, "game")
+        .replace(/개발/g, "dev")
+        .replace(/프로그래밍/g, "programming")
+        .replace(/애니메이션/g, "animation")
+        .replace(/만화/g, "comic")
+        .replace(/음식/g, "food")
+        .replace(/요리/g, "cooking")
+        .replace(/영화/g, "movie")
+        .replace(/음악/g, "music")
+        .replace(/스포츠/g, "sports")
+        .replace(/뉴스/g, "news")
+        .replace(/일반/g, "general")
+        .replace(/자유/g, "free")
+        .replace(/토론/g, "discussion") || `channel-${Date.now()}`
+    );
+  };
+
   // 채널 클릭 핸들러
-  const handleChannelClick = (channelId: number) => {
-    router.push(`/channels/${channelId}`);
+  const handleChannelClick = (slug: string) => {
+    router.push(`/channels/${slug}`);
   };
 
   // 채널 생성 핸들러
@@ -129,7 +153,12 @@ const ChannelsPage = () => {
       return;
     }
 
-    createChannelMutation.mutate(newChannelName.trim());
+    // slug 자동 생성
+    const generatedSlug = generateSlug(newChannelName.trim());
+    createChannelMutation.mutate({
+      channelName: newChannelName.trim(),
+      slug: generatedSlug,
+    });
   };
 
   // 채널 생성 취소 핸들러
@@ -292,7 +321,7 @@ const ChannelsPage = () => {
                       : "1px solid rgba(25, 118, 210, 0.3)",
                 },
               }}
-              onClick={() => handleChannelClick(channel.id)}
+              onClick={() => handleChannelClick(channel.slug)}
             >
               {/* 채널 이미지 */}
               <Box sx={{ position: "relative" }}>

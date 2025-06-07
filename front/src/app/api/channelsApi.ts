@@ -4,6 +4,7 @@ import axios from "axios";
 export interface Channel {
   id: number;
   channel_name: string;
+  slug: string;
   story_count: number;
   subscriber_count: number;
   created_at: string;
@@ -38,6 +39,14 @@ export const getChannel = async (id: number): Promise<Channel> => {
   return response.data;
 };
 
+// 슬러그로 채널 조회
+export const getChannelBySlug = async (slug: string): Promise<Channel> => {
+  const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/slug/${slug}`, {
+    withCredentials: true,
+  });
+  return response.data;
+};
+
 // 채널 구독
 export const subscribeChannel = async (id: number): Promise<{ message: string }> => {
   const response = await axios.post(
@@ -67,10 +76,13 @@ export const getUserSubscriptions = async (): Promise<Channel[]> => {
 };
 
 // 채널 생성
-export const createChannel = async (channelName: string): Promise<{ message: string; channel: Channel }> => {
+export const createChannel = async (
+  channelName: string,
+  slug: string
+): Promise<{ message: string; channel: Channel }> => {
   const response = await axios.post(
     `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/create`,
-    { channelName },
+    { channelName, slug },
     {
       withCredentials: true,
     }
@@ -86,14 +98,14 @@ export const deleteChannel = async (id: number): Promise<{ message: string }> =>
   return response.data;
 };
 
-// 초기 채널 데이터 생성
-export const initializeChannels = async (): Promise<{ message: string }> => {
-  const response = await axios.post(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/initialize`,
-    {},
-    {
-      withCredentials: true,
-    }
-  );
-  return response.data;
-};
+// // 초기 채널 데이터 생성
+// export const initializeChannels = async (): Promise<{ message: string }> => {
+//   const response = await axios.post(
+//     `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/initialize`,
+//     {},
+//     {
+//       withCredentials: true,
+//     }
+//   );
+//   return response.data;
+// };

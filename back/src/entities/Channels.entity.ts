@@ -6,6 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { Story } from './Story.entity';
 import { Subscription } from './Subscription.entity';
@@ -18,6 +19,9 @@ export class Channels {
 
   @Column() // 채널 이름
   channel_name: string;
+
+  @Column({ unique: true }) // URL에 표시될 영어 슬러그 (유니크)
+  slug: string;
 
   @Column() // 게시글 갯수 카운트 (페이지네이션을 위해)
   story_count: number;

@@ -45,6 +45,24 @@ export class ChannelsService {
   }
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 슬러그로 채널 조회
+  async findBySlug(slug: string): Promise<Channels> {
+    console.log('채널 슬러그 데이터 조회:', slug);
+    const channel = await this.channelsRepository.findOne({
+      where: { slug },
+      relations: ['subscriptions', 'Stories', 'creator'],
+    });
+
+    if (!channel) {
+      throw new NotFoundException(
+        `슬러그 ${slug}에 해당하는 채널을 찾을 수 없습니다.`,
+      );
+    }
+
+    return channel;
+  }
+
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 채널 구독
   async subscribe(channelId: number, userId: string): Promise<void> {
     console.log('채널 구독 처리:', { channelId, userId });
@@ -139,9 +157,10 @@ export class ChannelsService {
   // 새 채널 생성
   async createChannel(
     channelName: string,
+    slug: string,
     creatorId: string,
   ): Promise<Channels> {
-    console.log('새 채널 생성:', { channelName, creatorId });
+    console.log('새 채널 생성:', { channelName, slug, creatorId });
 
     // 생성자 사용자 존재 확인
     const creator = await this.userRepository.findOne({
@@ -153,8 +172,19 @@ export class ChannelsService {
       );
     }
 
+    // 슬러그 중복 확인
+    const existingChannel = await this.channelsRepository.findOne({
+      where: { slug },
+    });
+    if (existingChannel) {
+      throw new NotFoundException(
+        `슬러그 "${slug}"는 이미 사용 중입니다. 다른 슬러그를 선택해주세요.`,
+      );
+    }
+
     const channel = this.channelsRepository.create({
       channel_name: channelName,
+      slug: slug,
       story_count: 0,
       subscriber_count: 0,
       creator: creator,
@@ -163,6 +193,7 @@ export class ChannelsService {
     const savedChannel = await this.channelsRepository.save(channel);
     console.log('채널 생성 완료:', {
       id: savedChannel.id,
+      slug: savedChannel.slug,
       creator: creator.nickname,
     });
 
@@ -189,36 +220,6 @@ export class ChannelsService {
       'story_count',
       1,
     );
-  }
-
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 초기 채널 데이터 생성
-  async createInitialChannels(): Promise<void> {
-    console.log('초기 채널 데이터 생성 시작');
-
-    // 기존 채널 개수 확인
-    const existingChannelsCount = await this.channelsRepository.count();
-
-    if (existingChannelsCount > 0) {
-      console.log('이미 채널 데이터가 존재합니다. 초기화를 건너뜁니다.');
-      return;
-    }
-
-    const initialChannels = [
-      { channel_name: '게임 토론', story_count: 0, subscriber_count: 0 },
-      { channel_name: '애니메이션', story_count: 0, subscriber_count: 0 },
-      { channel_name: '만화', story_count: 0, subscriber_count: 0 },
-      { channel_name: '프로그래밍', story_count: 0, subscriber_count: 0 },
-      { channel_name: '요리 레시피', story_count: 0, subscriber_count: 0 },
-    ];
-
-    for (const channelData of initialChannels) {
-      const channel = this.channelsRepository.create(channelData);
-      await this.channelsRepository.save(channel);
-      console.log(`초기 채널 생성 완료: ${channelData.channel_name}`);
-    }
-
-    console.log('모든 초기 채널 데이터 생성 완료');
   }
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ

@@ -44,6 +44,15 @@ export class ChannelsController {
     return await this.channelsService.findOne(id);
   }
 
+  @Get('slug/:slug')
+  @ApiOperation({ summary: '슬러그로 채널 조회' })
+  @ApiResponse({ status: 200, description: '채널 조회 성공' })
+  @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
+  async findChannelBySlug(@Param('slug') slug: string) {
+    console.log('채널 슬러그 조회:', slug);
+    return await this.channelsService.findBySlug(slug);
+  }
+
   @Post('/create')
   @UseGuards(AuthGuard())
   @ApiBearerAuth()
@@ -51,12 +60,15 @@ export class ChannelsController {
   @ApiResponse({ status: 201, description: '채널 생성 성공' })
   async createChannel(
     @Body('channelName') channelName: string,
+    @Body('slug') slug: string,
     @Request() req,
   ) {
     console.log(
       '채널 생성 API 실행:',
       'channelName:',
       channelName,
+      'slug:',
+      slug,
       '생성자:',
       req.user.id,
     );
@@ -65,8 +77,21 @@ export class ChannelsController {
       throw new Error('채널 이름이 필요합니다.');
     }
 
+    if (!slug || slug.trim() === '') {
+      throw new Error('채널 슬러그가 필요합니다.');
+    }
+
+    // 슬러그 유효성 검사 (영어, 숫자, 하이픈만 허용)
+    const slugPattern = /^[a-z0-9-]+$/;
+    if (!slugPattern.test(slug.trim())) {
+      throw new Error(
+        '슬러그는 영어 소문자, 숫자, 하이픈(-)만 사용할 수 있습니다.',
+      );
+    }
+
     const channel = await this.channelsService.createChannel(
       channelName.trim(),
+      slug.trim().toLowerCase(),
       req.user.id,
     );
     return {
@@ -114,16 +139,6 @@ export class ChannelsController {
   async getUserSubscriptions(@Request() req) {
     console.log('사용자 구독 채널 조회:', req.user.id);
     return await this.channelsService.getUserSubscriptions(req.user.id);
-  }
-
-  @Post('initialize')
-  @ApiOperation({ summary: '초기 채널 데이터 생성' })
-  @ApiResponse({ status: 201, description: '초기 데이터 생성 성공' })
-  @HttpCode(HttpStatus.OK)
-  async initializeChannels() {
-    console.log('초기 채널 데이터 생성 실행');
-    await this.channelsService.createInitialChannels();
-    return { message: '초기 채널 데이터가 생성되었습니다.' };
   }
 
   @Delete(':id')

@@ -1,5 +1,5 @@
 "use client";
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect } from "react";
 import Link from "next/link";
 import {
   Box,
@@ -14,7 +14,7 @@ import {
   CircularProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { getUserSubscriptions, Channel } from "../api/channelsApi";
+import { useSubscriptionStore } from "../store/subscriptionStore";
 
 type MenuItem = {
   name: string;
@@ -30,24 +30,11 @@ const menuItems: MenuItem[] = [
 
 const NavMenuBar: FC = () => {
   const theme = useTheme();
-  const [subscribedChannels, setSubscribedChannels] = useState<Channel[]>([]);
-  const [loading, setLoading] = useState(false);
+  const { subscribedChannels, loading, error, loadSubscriptions } = useSubscriptionStore();
 
   useEffect(() => {
-    loadSubscribedChannels();
-  }, []);
-
-  const loadSubscribedChannels = async () => {
-    try {
-      setLoading(true);
-      const channels = await getUserSubscriptions();
-      setSubscribedChannels(channels);
-    } catch (err) {
-      console.error("구독 채널 목록을 불러오는데 실패했습니다:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    loadSubscriptions();
+  }, [loadSubscriptions]);
 
   return (
     <Box
@@ -146,7 +133,7 @@ const NavMenuBar: FC = () => {
                         : "linear-gradient(135deg, #1976d2, #42a5f5)",
                   }}
                 >
-                  {channel.ChannelName.charAt(0)}
+                  {channel.channel_name.charAt(0)}
                 </Avatar>
                 <Box sx={{ flex: 1, minWidth: 0 }}>
                   <Typography
@@ -159,7 +146,7 @@ const NavMenuBar: FC = () => {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    {channel.ChannelName}
+                    {channel.channel_name}
                   </Typography>
                   <Typography
                     variant="caption"
@@ -167,7 +154,7 @@ const NavMenuBar: FC = () => {
                       color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)",
                     }}
                   >
-                    {channel.StoryCount}개 글
+                    {channel.story_count}개 글
                   </Typography>
                 </Box>
               </ListItemButton>

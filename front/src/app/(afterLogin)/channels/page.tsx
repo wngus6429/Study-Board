@@ -1,4 +1,5 @@
 "use client";
+// 채널 리스트 페이지
 import React, { useState, useEffect } from "react";
 import {
   Box,

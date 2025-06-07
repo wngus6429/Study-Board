@@ -130,7 +130,7 @@ export default function MenuBar() {
 
   return (
     <div className={styles.container}>
-      <Link href="/" aria-label="Home" className={styles.title} onClick={() => setCurrentPage(1)}>
+      <Link href="/channels" aria-label="Home" className={styles.title} onClick={() => setCurrentPage(1)}>
         🍔Live Board
       </Link>
       <Box sx={{ width: 56, height: 56 }}>

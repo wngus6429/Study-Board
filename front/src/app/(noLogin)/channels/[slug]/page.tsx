@@ -57,9 +57,9 @@ import Loading from "@/app/components/common/Loading";
 import ErrorView from "@/app/components/common/ErrorView";
 // API 함수들 import
 import { getChannel, getChannelBySlug, subscribeChannel, unsubscribeChannel, Channel } from "@/app/api/channelsApi";
-// 새로운 커스텀 훅들 import
-import { useChannelStories } from "@/app/components/api/useChannelStories";
-import { useChannelCardStories } from "@/app/components/api/useChannelCardStories";
+// 기존 커스텀 훅들 import
+import { useStories } from "@/app/components/api/useStories";
+import { useCardStories } from "@/app/components/api/useCardStories";
 
 const ChannelDetailPage = () => {
   const theme = useTheme();
@@ -154,34 +154,34 @@ const ChannelDetailPage = () => {
     }
   }, [setCurrentPage]);
 
-  // 채널 테이블 데이터 조회 (새로운 커스텀 훅 사용)
+  // 채널 테이블 데이터 조회 (기존 커스텀 훅 사용)
   const {
     data: tableData,
     error: tableError,
     isLoading: tableLoading,
-  } = useChannelStories({
-    channelId,
+  } = useStories({
     category: currentTab,
     currentPage,
     searchParamsState,
     recommendRankingMode,
     viewCount,
     viewMode,
+    channelId, // 채널 ID 추가
   });
 
-  // 채널 카드 데이터 조회 (새로운 커스텀 훅 사용)
+  // 채널 카드 데이터 조회 (기존 커스텀 훅 사용)
   const {
     data: cardData,
     error: cardError,
     isLoading: cardLoading,
-  } = useChannelCardStories({
-    channelId,
+  } = useCardStories({
     category: currentTab,
     currentPage,
     searchParamsState,
     recommendRankingMode,
     viewCount,
     viewMode,
+    channelId, // 채널 ID 추가
   });
 
   // MainView 스타일로 데이터 처리

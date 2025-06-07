@@ -38,6 +38,7 @@ export class StoryService {
     offset = 0,
     limit = 10,
     category?: string,
+    channelId?: number,
   ): Promise<{
     results: Partial<Story & { recommendationCount: number }>[];
     total: number;
@@ -47,11 +48,16 @@ export class StoryService {
     if (category && category !== 'all') {
       whereCondition.category = category;
     }
+    // 채널 필터 조건 추가
+    if (channelId) {
+      whereCondition.Channel = { id: channelId };
+    }
     const isAllCategory = !category || category === 'all';
 
     // 전체 게시글 수 조회 (페이지네이션 계산용) - 공지사항 제외
     const regularTotal = await this.storyRepository.count({
       where: whereCondition,
+      relations: channelId ? ['Channel'] : [],
     });
 
     // 페이지네이션 계산을 위한 로직
@@ -60,7 +66,7 @@ export class StoryService {
 
     // 게시글 조회 - 공지사항 제외
     const regularPosts = await this.storyRepository.find({
-      relations: ['User'],
+      relations: channelId ? ['User', 'Channel'] : ['User'],
       // relations: ['User', 'Likes'],
       where: whereCondition,
       order: { id: 'DESC' },
@@ -76,7 +82,7 @@ export class StoryService {
       //   return acc;
       // }, 0);
 
-      const { Likes, StoryImage, User, ...rest } = story;
+      const { Likes, StoryImage, User, Channel, ...rest } = story;
       return {
         ...rest,
         recommend_Count: story.like_count,
@@ -90,11 +96,12 @@ export class StoryService {
       total: regularTotal,
     };
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async findCardStory(
     offset = 0,
     limit = 10,
     category?: string,
+    channelId?: number,
   ): Promise<{
     results: Partial<Story & { recommendationCount: number }>[];
     total: number;
@@ -104,11 +111,16 @@ export class StoryService {
     if (category && category !== 'all') {
       whereCondition.category = category;
     }
+    // 채널 필터 조건 추가
+    if (channelId) {
+      whereCondition.Channel = { id: channelId };
+    }
 
     // # 나중에 데이터 count만 채널이랑 엮어놓은 테이블 만들 예정
     // 2. 전체 일반 게시글 수 조회 (페이지네이션 계산용) - 공지사항 제외
     const regularTotal = await this.storyRepository.count({
       where: whereCondition,
+      relations: channelId ? ['Channel'] : [],
     });
 
     // // 3. 페이지네이션 정확한 계산을 위한 로직
@@ -117,7 +129,9 @@ export class StoryService {
 
     // 4. 일반 게시글 조회 (조정된 offset과 limit 사용) - 공지사항 제외
     const regularPosts = await this.storyRepository.find({
-      relations: ['User', 'StoryImage'],
+      relations: channelId
+        ? ['User', 'StoryImage', 'Channel']
+        : ['User', 'StoryImage'],
       where: whereCondition,
       order: { id: 'DESC' },
       skip: Math.max(0, effectiveOffset), // 음수가 되지 않도록 보정
@@ -125,7 +139,7 @@ export class StoryService {
     });
 
     const modifiedPosts = regularPosts.map((story) => {
-      const { Likes, StoryImage, User, ...rest } = story;
+      const { Likes, StoryImage, User, Channel, ...rest } = story;
       return {
         ...rest,
         recommend_Count: story.like_count,
@@ -148,12 +162,13 @@ export class StoryService {
     limit = 10,
     category?: string,
     minRecommend: number = 0,
+    channelId?: number,
   ): Promise<{
     results: Partial<Story>[];
     total: number;
   }> {
     // RecommendRanking 테이블에서 데이터 가져오기
-    return this.getRecommendRankings(offset, limit, category);
+    return this.getRecommendRankings(offset, limit, category, channelId);
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 새로 추가: 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 사용)
@@ -163,12 +178,13 @@ export class StoryService {
     limit = 10,
     category?: string,
     minRecommend: number = 0,
+    channelId?: number,
   ): Promise<{
     results: Partial<Story>[];
     total: number;
   }> {
     // RecommendRanking 테이블에서 데이터 가져오기
-    return this.getRecommendRankings(offset, limit, category);
+    return this.getRecommendRankings(offset, limit, category, channelId);
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
@@ -178,6 +194,7 @@ export class StoryService {
     type: string = 'all',
     query: string,
     category?: string, // 카테고리 필터 (전체 검색이 아닐 경우)
+    channelId?: number, // 채널 필터 추가
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -231,10 +248,26 @@ export class StoryService {
       }
     }
 
+    // 채널 필터 병합: channelId 값이 있을 경우 조건에 추가
+    if (channelId) {
+      if (Array.isArray(baseConditions)) {
+        // 배열인 경우, 각 조건에 Channel 필드 추가
+        baseConditions = baseConditions.map((condition) => ({
+          ...condition,
+          Channel: { id: channelId },
+        }));
+      } else {
+        // 단일 객체인 경우
+        baseConditions = { ...baseConditions, Channel: { id: channelId } };
+      }
+    }
+
     // 조건에 따른 데이터와 총 개수 조회 (동일 조건 적용)
     const [resultsTemp, total] = await Promise.all([
       this.storyRepository.find({
-        relations: ['User', 'Likes', 'StoryImage'],
+        relations: channelId
+          ? ['User', 'Likes', 'StoryImage', 'Channel']
+          : ['User', 'Likes', 'StoryImage'],
         where: baseConditions,
         order: { id: 'DESC' },
         skip: offset,
@@ -242,6 +275,7 @@ export class StoryService {
       }),
       this.storyRepository.count({
         where: baseConditions,
+        relations: channelId ? ['Channel'] : [],
       }),
     ]);
 
@@ -325,6 +359,7 @@ export class StoryService {
     type: string = 'all',
     query: string,
     category?: string, // 카테고리 필터 (전체 검색이 아닐 경우)
+    channelId?: number, // 채널 필터 추가
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -378,10 +413,26 @@ export class StoryService {
       }
     }
 
+    // 채널 필터 병합: channelId 값이 있을 경우 조건에 추가
+    if (channelId) {
+      if (Array.isArray(baseConditions)) {
+        // 배열인 경우, 각 조건에 Channel 필드 추가
+        baseConditions = baseConditions.map((condition) => ({
+          ...condition,
+          Channel: { id: channelId },
+        }));
+      } else {
+        // 단일 객체인 경우
+        baseConditions = { ...baseConditions, Channel: { id: channelId } };
+      }
+    }
+
     // 조건에 따른 데이터와 총 개수 조회 (동일 조건 적용)
     const [resultsTemp, total] = await Promise.all([
       this.storyRepository.find({
-        relations: ['User', 'Likes', 'StoryImage'],
+        relations: channelId
+          ? ['User', 'Likes', 'StoryImage', 'Channel']
+          : ['User', 'Likes', 'StoryImage'],
         where: baseConditions,
         order: { id: 'DESC' },
         skip: offset,
@@ -389,6 +440,7 @@ export class StoryService {
       }),
       this.storyRepository.count({
         where: baseConditions,
+        relations: channelId ? ['Channel'] : [],
       }),
     ]);
 
@@ -838,6 +890,7 @@ export class StoryService {
     offset = 0,
     limit = 10,
     category?: string,
+    channelId?: number,
   ): Promise<{
     results: Partial<Story>[];
     total: number;
@@ -855,6 +908,11 @@ export class StoryService {
     // 카테고리 필터링 적용
     if (category && category !== 'all') {
       query.andWhere('story.category = :category', { category });
+    }
+
+    // 채널 필터 적용
+    if (channelId) {
+      query.andWhere('story.Channel = :channelId', { channelId });
     }
 
     // 쿼리 실행

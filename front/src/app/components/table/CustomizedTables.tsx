@@ -153,7 +153,7 @@ const CustomizedTables = ({ tableData }: CustomizedTablesProps): React.ReactNode
                     if (typeof window !== "undefined") {
                       sessionStorage.setItem("previousMainPageUrl", window.location.href);
                     }
-                    router.push(`/detail/story/${row.id}`);
+                    router.push(`/channels/[slug]/detail/story/${row.id}`);
                   }}
                   sx={{ cursor: "pointer" }}
                 >

@@ -37,9 +37,10 @@ export class StoryController {
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
     @Query('category') category?: string, // ✅ category 추가
+    @Query('channel') channelId?: number, // ✅ channel 필터 추가
     @Query('minRecommend') minRecommend?: number, // ✅ 추천 랭킹 모드: 최소 추천 수 필터
   ): Promise<{ results: Partial<Story>[]; total: number }> {
-    console.log('테이블 데이터 가져옴');
+    console.log('테이블 데이터 가져옴', { category, channelId, minRecommend });
     // 추천 랭킹 모드가 활성화되면 minRecommend 값으로 필터링된 결과를 반환
     if (minRecommend) {
       return await this.storyService.findStoryWithMinRecommend(
@@ -47,10 +48,16 @@ export class StoryController {
         limit,
         category,
         minRecommend,
+        channelId,
       );
     }
     // 기본 페이지 데이터 조회
-    return await this.storyService.findStory(offset, limit, category);
+    return await this.storyService.findStory(
+      offset,
+      limit,
+      category,
+      channelId,
+    );
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 카드 게시글 가져오기 API - 카테고리별 글 가져오기
@@ -59,9 +66,14 @@ export class StoryController {
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
     @Query('category') category?: string, // ✅ category 추가
+    @Query('channel') channelId?: number, // ✅ channel 필터 추가
     @Query('minRecommend') minRecommend?: number, // ✅ 추천 랭킹 모드: 최소 추천 수 필터
   ): Promise<{ results: Partial<Story>[]; total: number }> {
-    console.log('카드 테이블 데이터 가져옴');
+    console.log('카드 테이블 데이터 가져옴', {
+      category,
+      channelId,
+      minRecommend,
+    });
     // 추천 랭킹 모드가 활성화되면 minRecommend 값으로 필터링된 결과를 반환
     if (minRecommend) {
       return await this.storyService.findCardStoryWithMinRecommend(
@@ -69,10 +81,16 @@ export class StoryController {
         limit,
         category,
         minRecommend,
+        channelId,
       );
     }
     // 기본 페이지 데이터 조회
-    return await this.storyService.findCardStory(offset, limit, category);
+    return await this.storyService.findCardStory(
+      offset,
+      limit,
+      category,
+      channelId,
+    );
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
@@ -83,6 +101,7 @@ export class StoryController {
     @Query('type') type: string = 'all', // 검색 타입: all, title_content, title, content, author, comment 등
     @Query('query') query: string, // 실제 검색어
     @Query('category') category?: string, // 카테고리 필터 추가
+    @Query('channel') channelId?: number, // ✅ channel 필터 추가
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -97,6 +116,7 @@ export class StoryController {
       type,
       query,
       category,
+      channelId,
     );
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -108,6 +128,7 @@ export class StoryController {
     @Query('type') type: string = 'all', // 검색 타입: all, title_content, title, content, author, comment 등
     @Query('query') query: string, // 실제 검색어
     @Query('category') category?: string, // 카테고리 필터 추가
+    @Query('channel') channelId?: number, // ✅ channel 필터 추가
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -122,6 +143,7 @@ export class StoryController {
       type,
       query,
       category,
+      channelId,
     );
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ

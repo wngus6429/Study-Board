@@ -97,15 +97,3 @@ export const deleteChannel = async (id: number): Promise<{ message: string }> =>
   });
   return response.data;
 };
-
-// // 초기 채널 데이터 생성
-// export const initializeChannels = async (): Promise<{ message: string }> => {
-//   const response = await axios.post(
-//     `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/initialize`,
-//     {},
-//     {
-//       withCredentials: true,
-//     }
-//   );
-//   return response.data;
-// };

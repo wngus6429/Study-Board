@@ -15,26 +15,24 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useSubscriptionStore } from "../store/subscriptionStore";
-
-type MenuItem = {
-  name: string;
-  path: string;
-};
-
-const menuItems: MenuItem[] = [
-  { name: "Home", path: "/" },
-  { name: "채널", path: "/channels" },
-  { name: "스카이림스카이림", path: "/skyrim" },
-  { name: "Contact", path: "/contact" },
-];
+import { useSession } from "next-auth/react";
 
 const NavMenuBar: FC = () => {
   const theme = useTheme();
-  const { subscribedChannels, loading, error, loadSubscriptions } = useSubscriptionStore();
+  const { subscribedChannels, loading, error, loadSubscriptions, clearSubscriptions } = useSubscriptionStore();
+  const { data: session } = useSession();
 
   useEffect(() => {
     loadSubscriptions();
   }, [loadSubscriptions]);
+
+  useEffect(() => {
+    if (session?.user) {
+      loadSubscriptions();
+    } else {
+      clearSubscriptions(); // 로그아웃시 데이터 clear
+    }
+  }, [session, loadSubscriptions, clearSubscriptions]);
 
   return (
     <Box
@@ -54,41 +52,6 @@ const NavMenuBar: FC = () => {
         zIndex: 1000, // 다른 요소보다 위에 표시
       }}
     >
-      {/* 메뉴 항목들 */}
-      <List>
-        {menuItems.map((item) => (
-          <ListItem key={item.path} disablePadding>
-            <ListItemButton
-              component={Link}
-              href={item.path}
-              sx={{
-                borderRadius: 1,
-                "&:hover": {
-                  backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(0, 0, 0, 0.04)",
-                },
-              }}
-            >
-              <ListItemText
-                primary={item.name}
-                sx={{
-                  "& .MuiTypography-root": {
-                    color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
-                    fontWeight: 500,
-                  },
-                }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
-      </List>
-
-      <Divider
-        sx={{
-          my: 2,
-          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(0, 0, 0, 0.12)",
-        }}
-      />
-
       {/* 구독한 채널 섹션 */}
       <Typography
         variant="subtitle2"

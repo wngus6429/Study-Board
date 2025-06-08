@@ -8,8 +8,8 @@
 
 .pagination li {
   padding: 0; /* 내부 여백 제거 */
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  border: 1px solid #666;
+  border-radius: 2px;
   overflow: hidden; /* 자식 요소가 부모를 넘지 않도록 */
   cursor: pointer;
 }

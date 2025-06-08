@@ -38,6 +38,8 @@ import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import { TransitionProps } from "@mui/material/transitions";
+import UserMenuPopover from "@/app/components/common/UserMenuPopover";
+import SendMessageModal from "@/app/components/common/SendMessageModal";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -60,6 +62,11 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
 
   // handleImageClick 함수 근처에 줌 관련 상태와 함수 추가
   const [zoomLevel, setZoomLevel] = useState<number>(1);
+
+  // 사용자 메뉴 관련 상태
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<HTMLElement | null>(null);
+  const [selectedUserNickname, setSelectedUserNickname] = useState<string>("");
+  const [sendMessageModalOpen, setSendMessageModalOpen] = useState<boolean>(false);
 
   //! 상세 데이터 가져오기
   const {
@@ -412,6 +419,29 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     router.push("/");
   };
 
+  // 사용자 메뉴 관련 핸들러
+  const handleUserNicknameClick = (event: React.MouseEvent<HTMLElement>, nickname: string) => {
+    console.log("상세페이지 - 클릭한 닉네임:", nickname);
+    console.log("상세페이지 - 앵커 엘리먼트:", event.currentTarget);
+    event.preventDefault();
+    event.stopPropagation();
+    setUserMenuAnchorEl(event.currentTarget);
+    setSelectedUserNickname(nickname);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchorEl(null);
+    setSelectedUserNickname("");
+  };
+
+  const handleSendMessageClick = () => {
+    setSendMessageModalOpen(true);
+  };
+
+  const handleSendMessageModalClose = () => {
+    setSendMessageModalOpen(false);
+  };
+
   // ★ 조건부 return은 훅 선언 이후에 배치합니다.
   if (isLoading) return <Loading />;
   if (isError) return <ErrorView />;
@@ -491,10 +521,12 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                   sx={{ width: 50, height: 50, boxShadow: 2 }}
                 />
                 <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", cursor: "pointer" }}>
-                    <Link href={`/profile/${encodeURIComponent(detail.User.nickname)}`} passHref>
-                      작성자: {detail.User.nickname}
-                    </Link>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{ fontWeight: "bold", cursor: "pointer" }}
+                    onClick={(e) => handleUserNicknameClick(e, detail.User.nickname)}
+                  >
+                    작성자: {detail.User.nickname}
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
                     <Button onClick={() => router.back()} size="small" variant="contained" color="primary">
@@ -765,6 +797,22 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
           )}
         </Box>
       </Dialog>
+
+      {/* 사용자 메뉴 팝오버 */}
+      <UserMenuPopover
+        open={Boolean(userMenuAnchorEl)}
+        anchorEl={userMenuAnchorEl}
+        onClose={handleUserMenuClose}
+        nickname={selectedUserNickname}
+        onSendMessage={handleSendMessageClick}
+      />
+
+      {/* 쪽지 보내기 모달 */}
+      <SendMessageModal
+        open={sendMessageModalOpen}
+        onClose={handleSendMessageModalClose}
+        receiverNickname={selectedUserNickname}
+      />
     </Box>
   );
 }

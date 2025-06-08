@@ -293,6 +293,12 @@ const MessagesPage = () => {
     return null;
   }
 
+  const [receiver, setReceiver] = useState(receiverNickname);
+
+  useEffect(() => {
+    setReceiver(receiverNickname);
+  }, [receiverNickname]);
+
   return (
     <Box
       sx={{
@@ -556,14 +562,7 @@ const MessagesPage = () => {
                 새 쪽지 작성
               </Typography>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                <TextField
-                  label="받는 사람 닉네임"
-                  value={receiverNickname}
-                  onChange={(e) => setReceiverNickname(e.target.value)}
-                  fullWidth
-                  placeholder="홍길동"
-                  variant="outlined"
-                />
+                <TextField label="받는 사람" value={receiver} disabled fullWidth variant="outlined" size="small" />
                 <TextField
                   label="제목"
                   value={messageTitle}

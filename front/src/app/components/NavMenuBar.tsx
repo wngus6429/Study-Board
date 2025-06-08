@@ -75,7 +75,7 @@ const NavMenuBar: FC = () => {
             <ListItem key={channel.id} disablePadding>
               <ListItemButton
                 component={Link}
-                href={`/channels/${channel.id}`}
+                href={`/channels/${channel.slug}`}
                 sx={{
                   borderRadius: 1,
                   py: 0.5,

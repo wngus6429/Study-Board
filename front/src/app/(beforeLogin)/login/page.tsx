@@ -50,7 +50,7 @@ const LoginPage = () => {
       // 세션 업데이트 및 페이지 이동
       await update();
       router.refresh();
-      router.push("/");
+      router.push("/channels");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         setError(error.response.data.data);

@@ -842,7 +842,7 @@ const ChannelDetailPage = () => {
               theme.palette.mode === "dark" ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid rgba(0, 0, 0, 0.05)",
             position: "relative",
             overflow: "hidden",
-            mb: 3,
+            // mb: 3,
             "&::after": {
               content: '""',
               position: "absolute",
@@ -1071,110 +1071,25 @@ const ChannelDetailPage = () => {
             채널 정보
           </Typography>
 
-          {/* 2열 그리드 레이아웃 */}
-          <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3 }}>
-            {/* 왼쪽 열 */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: "bold",
-                    mb: 0.5,
-                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                  }}
-                >
-                  📝 채널 이름
-                </Typography>
-                <Typography variant="body2" sx={{ color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151" }}>
-                  {channelData.channel_name}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: "bold",
-                    mb: 0.5,
-                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                  }}
-                >
-                  👤 생성자
-                </Typography>
-                <Typography variant="body2" sx={{ color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151" }}>
-                  {channelData.creator?.nickname || "알수없음"}
-                </Typography>
-              </Box>
-            </Box>
-
-            {/* 오른쪽 열 */}
-            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: "bold",
-                    mb: 0.5,
-                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                  }}
-                >
-                  📅 생성일
-                </Typography>
-                <Typography variant="body2" sx={{ color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151" }}>
-                  {new Date(channelData.created_at).toLocaleDateString("ko-KR", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </Typography>
-              </Box>
-
-              <Box>
-                <Typography
-                  variant="subtitle2"
-                  sx={{
-                    fontWeight: "bold",
-                    mb: 0.5,
-                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                  }}
-                >
-                  📊 통계
-                </Typography>
-                <Typography variant="body2" sx={{ color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151" }}>
-                  구독자 {channelData.subscriber_count.toLocaleString()}명 · 게시글{" "}
-                  {channelData.story_count.toLocaleString()}개
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* 하단 추가 정보 */}
-          <Box
+          {/* 한 줄로 간격을 띄워서 표시 */}
+          <Typography
+            variant="body1"
             sx={{
-              mt: 2,
-              pt: 2,
-              borderTop: `1px solid ${theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)"}`,
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 2,
+              color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
+              textAlign: "center",
+              lineHeight: 1.6,
             }}
           >
-            {channelData.story_count > 50 && (
-              <Chip
-                icon={<TrendingUpIcon />}
-                label="인기 채널"
-                size="small"
-                sx={{
-                  background: "linear-gradient(135deg, #ff6b6b, #ff8e53)",
-                  color: "#ffffff",
-                  fontWeight: "bold",
-                  fontSize: "0.75rem",
-                }}
-              />
-            )}
-          </Box>
+            📅 생성일:{" "}
+            {new Date(channelData.created_at).toLocaleDateString("ko-KR", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
+            &nbsp;&nbsp;&nbsp;&nbsp; 👤 생성자: {channelData.creator?.nickname || "알수없음"}
+            &nbsp;&nbsp;&nbsp;&nbsp; 📊 통계: 구독자 {channelData.subscriber_count.toLocaleString()}명 · 게시글{" "}
+            {channelData.story_count.toLocaleString()}개
+          </Typography>
         </Card>
       )}
 

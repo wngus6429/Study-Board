@@ -124,8 +124,8 @@ export default function MenuBar() {
 
   const handleMessages = () => {
     handleSettingsMenuClose();
-    // 쪽지 페이지로 이동 로직 추가
-    console.log("쪽지 클릭됨");
+    // 쪽지 페이지로 이동
+    router.push("/messages");
   };
 
   return (

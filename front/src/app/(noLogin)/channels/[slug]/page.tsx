@@ -670,6 +670,28 @@ const ChannelDetailPage = () => {
                     >
                       생성자: {channelData.creator?.nickname || "알수없음"}
                     </Typography>
+                    {/* 생성자에게 쪽지 보내기 버튼 */}
+                    {session?.user && channelData.creator?.nickname && session.user.id !== channelData.creator.id && (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={() => router.push(`/messages?to=${channelData.creator.nickname}`)}
+                        sx={{
+                          ml: 1,
+                          fontSize: "0.7rem",
+                          padding: "2px 8px",
+                          minWidth: "auto",
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "#8b5cf6",
+                          color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                          "&:hover": {
+                            backgroundColor:
+                              theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(139, 92, 246, 0.05)",
+                          },
+                        }}
+                      >
+                        쪽지
+                      </Button>
+                    )}
                   </Box>
 
                   <Typography

@@ -17,6 +17,7 @@ import { Suggestion } from './Suggestion.entity';
 import { Notification } from './Notification.entity';
 import { Subscription } from './Subscription.entity';
 import { Channels } from './Channels.entity';
+import { Message } from './Message.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -55,6 +56,14 @@ export class User extends BaseEntity {
   // 사용자가 생성한 채널들과의 관계
   @OneToMany(() => Channels, (channel) => channel.creator)
   createdChannels: Channels[];
+
+  // 보낸 쪽지들
+  @OneToMany(() => Message, (message) => message.sender)
+  sentMessages: Message[];
+
+  // 받은 쪽지들
+  @OneToMany(() => Message, (message) => message.receiver)
+  receivedMessages: Message[];
 
   @CreateDateColumn()
   created_at: Date;

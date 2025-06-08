@@ -11,6 +11,8 @@ import { SuggestionModule } from './suggestion/suggestion.module';
 import { CommentModule } from './comment/comment.module';
 import { NotificationModule } from './notification/notification.module';
 import { ChannelsModule } from './channels/channels.module';
+import { MessagesModule } from './messages/messages.module';
+import { UsersModule } from './users/users.module';
 
 //어플리케이션의 루트 모듈이 있는 파일
 @Module({
@@ -63,6 +65,8 @@ import { ChannelsModule } from './channels/channels.module';
     CommentModule,
     NotificationModule,
     ChannelsModule,
+    MessagesModule,
+    UsersModule,
   ],
 })
 export class AppModule {}

@@ -1145,7 +1145,7 @@ const ChannelDetailPage = () => {
           구독 취소 확인
         </DialogTitle>
 
-        <DialogContent sx={{ py: 3 }}>
+        <DialogContent sx={{ mt: 1, mb: -1 }}>
           <Typography
             variant="body1"
             sx={{

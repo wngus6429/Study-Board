@@ -147,11 +147,10 @@ const ChannelDetailPage = () => {
         setSortOrder(sortOrderParam as "recent" | "view" | "recommend");
       }
 
-      // 페이지 초기화
+      // 페이지 초기화 - URL에 페이지 파라미터가 있으면 사용, 없으면 1로 설정
       const pageParam = urlParams.get("page");
-      if (pageParam) {
-        setCurrentPage(Number(pageParam));
-      }
+      const pageNumber = pageParam ? Number(pageParam) : 1;
+      setCurrentPage(pageNumber);
 
       // 검색 상태 초기화
       const searchType = urlParams.get("searchType");
@@ -160,7 +159,7 @@ const ChannelDetailPage = () => {
         setSearchParamsState({ type: searchType, query: searchQuery });
       }
     }
-  }, [setCurrentPage]);
+  }, [channelSlug, setCurrentPage]); // channelSlug 의존성 추가
 
   // 채널 테이블 데이터 조회 (기존 커스텀 훅 사용)
   const {
@@ -240,9 +239,17 @@ const ChannelDetailPage = () => {
     }
   }, [channelError, currentError, channelApiError, showMessage]);
 
-  // 초기 페이지 설정
+  // 초기 페이지 설정 - channelId가 변경될 때만 URL에 페이지 파라미터가 없는 경우에만 1로 설정
   useEffect(() => {
-    setCurrentPage(1);
+    if (channelId && typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const pageParam = urlParams.get("page");
+
+      // URL에 페이지 파라미터가 없는 경우에만 1로 설정
+      if (!pageParam) {
+        setCurrentPage(1);
+      }
+    }
   }, [channelId, setCurrentPage]);
 
   // 구독 데이터 로드

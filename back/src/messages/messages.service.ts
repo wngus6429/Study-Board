@@ -87,9 +87,7 @@ export class MessagesService {
       content: message.content,
       isRead: message.isRead,
       sender: {
-        id: message.sender.id,
         nickname: message.sender.nickname,
-        user_email: message.sender.user_email,
       },
       createdAt: message.createdAt,
     }));
@@ -120,9 +118,7 @@ export class MessagesService {
       content: message.content,
       isRead: message.isRead,
       receiver: {
-        id: message.receiver.id,
         nickname: message.receiver.nickname,
-        user_email: message.receiver.user_email,
       },
       createdAt: message.createdAt,
     }));

@@ -458,15 +458,16 @@ const MessagesPage = () => {
                           </Box>
                         }
                         secondary={
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">
+                          <Box component="div">
+                            <Typography variant="body2" color="text.secondary" component="div">
                               보낸이: {message.sender.nickname}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography variant="caption" color="text.secondary" component="div">
                               {formatTime(message.createdAt)}
                             </Typography>
                           </Box>
                         }
+                        secondaryTypographyProps={{ component: "div" }}
                       />
                     </ListItem>
                   ))}
@@ -531,15 +532,16 @@ const MessagesPage = () => {
                           </Typography>
                         }
                         secondary={
-                          <Box>
-                            <Typography variant="body2" color="text.secondary">
+                          <Box component="div">
+                            <Typography variant="body2" color="text.secondary" component="div">
                               받는이: {message.receiver.nickname}
                             </Typography>
-                            <Typography variant="caption" color="text.secondary">
+                            <Typography variant="caption" color="text.secondary" component="div">
                               {formatTime(message.createdAt)}
                             </Typography>
                           </Box>
                         }
+                        secondaryTypographyProps={{ component: "div" }}
                       />
                     </ListItem>
                   ))}
@@ -607,7 +609,7 @@ const MessagesPage = () => {
       <Dialog
         open={openDetailDialog}
         onClose={() => setOpenDetailDialog(false)}
-        maxWidth="md"
+        maxWidth="sm"
         fullWidth
         PaperProps={{
           sx: {
@@ -633,18 +635,13 @@ const MessagesPage = () => {
                 {selectedMessage.title}
               </Box>
             </DialogTitle>
-            <DialogContent sx={{ py: 3 }}>
-              <Box sx={{ mb: 3 }}>
+            <DialogContent sx={{ py: 2 }}>
+              <Box sx={{ mb: 2, mt: 2 }}>
                 <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                   {currentTab === 0 ? "보낸이" : "받는이"}:{" "}
                   {currentTab === 0
                     ? selectedMessage.sender?.nickname || "알 수 없음"
-                    : selectedMessage.receiver?.nickname || "알 수 없음"}{" "}
-                  (
-                  {currentTab === 0
-                    ? selectedMessage.sender?.user_email || ""
-                    : selectedMessage.receiver?.user_email || ""}
-                  )
+                    : selectedMessage.receiver?.nickname || "알 수 없음"}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   {formatTime(selectedMessage.createdAt)}

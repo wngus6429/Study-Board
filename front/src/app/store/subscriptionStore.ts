@@ -5,6 +5,7 @@ interface SubscriptionState {
   subscribedChannels: Channel[];
   loading: boolean;
   error: string | null;
+  isInitialized: boolean; // 한 번 로드되었는지 확인
 
   // Actions
   loadSubscriptions: () => Promise<void>;
@@ -18,12 +19,20 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   subscribedChannels: [],
   loading: false,
   error: null,
+  isInitialized: false,
 
   loadSubscriptions: async () => {
+    const { isInitialized } = get();
+
+    // 이미 한 번 로드되었으면 스킵
+    if (isInitialized) {
+      return;
+    }
+
     try {
       set({ loading: true, error: null });
       const channels = await getUserSubscriptions();
-      set({ subscribedChannels: channels, loading: false });
+      set({ subscribedChannels: channels, loading: false, isInitialized: true });
     } catch (error) {
       console.error("구독 채널 목록을 불러오는데 실패했습니다:", error);
       set({
@@ -55,6 +64,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   },
 
   clearSubscriptions: () => {
-    set({ subscribedChannels: [], error: null });
+    set({ subscribedChannels: [], error: null, isInitialized: false });
   },
 }));

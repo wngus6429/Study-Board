@@ -23,16 +23,12 @@ const NavMenuBar: FC = () => {
   const { data: session } = useSession();
 
   useEffect(() => {
-    loadSubscriptions();
-  }, [loadSubscriptions]);
-
-  useEffect(() => {
     if (session?.user) {
       loadSubscriptions();
     } else {
       clearSubscriptions(); // 로그아웃시 데이터 clear
     }
-  }, [session, loadSubscriptions, clearSubscriptions]);
+  }, [session?.user, loadSubscriptions, clearSubscriptions]);
 
   return (
     <Box

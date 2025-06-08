@@ -55,7 +55,13 @@ export class NotificationService {
         recipient: { id: userId },
         isRead: false,
       },
-      relations: ['comment', 'comment.User', 'comment.Story', 'post'],
+      relations: [
+        'comment',
+        'comment.User',
+        'comment.Story',
+        'comment.Story.Channel',
+        'post',
+      ],
       order: {
         createdAt: 'DESC',
       },
@@ -78,6 +84,7 @@ export class NotificationService {
               nickname: notif.comment.User.nickname,
             },
             storyId: notif.comment.Story.id,
+            channelSlug: notif.comment.Story.Channel?.slug || null,
           }
         : null,
       // 게시글 정보 (추가 가능)
@@ -97,7 +104,13 @@ export class NotificationService {
         where: {
           recipient: { id: userId },
         },
-        relations: ['comment', 'comment.User', 'comment.Story', 'post'],
+        relations: [
+          'comment',
+          'comment.User',
+          'comment.Story',
+          'comment.Story.Channel',
+          'post',
+        ],
         order: {
           createdAt: 'DESC',
         },
@@ -122,6 +135,7 @@ export class NotificationService {
               nickname: notif.comment.User.nickname,
             },
             storyId: notif.comment.Story.id,
+            channelSlug: notif.comment.Story.Channel?.slug || null,
           }
         : null,
       // 게시글 정보

@@ -1,7 +1,7 @@
 // 알림 타입 정의
 export interface INotification {
   id: number;
-  type: 'comment' | 'reply'; // 댓글 또는 대댓글
+  type: "comment" | "reply"; // 댓글 또는 대댓글
   message: string;
   isRead: boolean;
   createdAt: string;
@@ -13,6 +13,7 @@ export interface INotification {
       nickname: string;
     };
     storyId: number;
+    channelSlug: string | null;
   };
   post?: {
     id: number;
@@ -27,4 +28,4 @@ export interface INotificationListResponse {
   page: number;
   limit: number;
   totalPages: number;
-} 
+}

@@ -58,8 +58,8 @@ const NotificationDropdown = () => {
     }
 
     // 해당 게시글로 이동 (댓글 ID를 해시로 포함)
-    if (notification.comment?.storyId) {
-      const url = `/detail/story/${notification.comment.storyId}#comment-${notification.comment.id}`;
+    if (notification.comment?.storyId && notification.comment?.channelSlug) {
+      const url = `/channels/${notification.comment.channelSlug}/detail/story/${notification.comment.storyId}#comment-${notification.comment.id}`;
       router.push(url);
     }
 

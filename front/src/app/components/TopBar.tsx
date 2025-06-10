@@ -17,6 +17,7 @@ import NotificationDropdown from "./NotificationDropdown";
 import DarkModeToggle from "./DarkModeToggle";
 import DisplaySettingsIcon from "@mui/icons-material/DisplaySettings";
 import MessageIcon from "@mui/icons-material/Message";
+import HistoryIcon from "@mui/icons-material/History";
 
 // const SearchBox = styled("div")(({ theme }) => ({
 //   position: "relative",
@@ -128,6 +129,12 @@ export default function MenuBar() {
     router.push("/messages");
   };
 
+  const handleRecentViews = () => {
+    handleSettingsMenuClose();
+    // 최근에 봤던 게시물 페이지로 이동
+    router.push("/recent-views");
+  };
+
   return (
     <div className={styles.container}>
       <Link href="/channels" aria-label="Home" className={styles.title} onClick={() => setCurrentPage(1)}>
@@ -176,23 +183,25 @@ export default function MenuBar() {
         {/* 다크모드 토글 버튼 */}
         <DarkModeToggle />
 
-        {/* 설정 메뉴 */}
-        <IconButton
-          size="large"
-          edge="end"
-          aria-label="settings menu"
-          aria-haspopup="true"
-          color="inherit"
-          sx={{
-            color: "white",
-            "&:hover": {
-              backgroundColor: (theme) => theme.palette.action.hover,
-            },
-          }}
-          onClick={handleSettingsMenuOpen}
-        >
-          <Settings />
-        </IconButton>
+        {/* 설정 메뉴 - 로그인한 사용자에게만 표시 */}
+        {user?.user && (
+          <IconButton
+            size="large"
+            edge="end"
+            aria-label="settings menu"
+            aria-haspopup="true"
+            color="inherit"
+            sx={{
+              color: "white",
+              "&:hover": {
+                backgroundColor: (theme) => theme.palette.action.hover,
+              },
+            }}
+            onClick={handleSettingsMenuOpen}
+          >
+            <Settings />
+          </IconButton>
+        )}
 
         {/* 설정 드롭다운 메뉴 */}
         <Menu
@@ -208,17 +217,23 @@ export default function MenuBar() {
             horizontal: "right",
           }}
         >
-          <MenuItem onClick={handleDisplaySettings}>
+          {/* <MenuItem onClick={handleDisplaySettings}>
             <ListItemIcon>
               <DisplaySettingsIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>표시설정</ListItemText>
-          </MenuItem>
+          </MenuItem> */}
           <MenuItem onClick={handleMessages}>
             <ListItemIcon>
               <MessageIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>쪽지</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleRecentViews}>
+            <ListItemIcon>
+              <HistoryIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>최근에 봤던 게시물</ListItemText>
           </MenuItem>
         </Menu>
       </nav>

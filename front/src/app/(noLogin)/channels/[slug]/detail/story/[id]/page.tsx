@@ -40,8 +40,9 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import { TransitionProps } from "@mui/material/transitions";
 import UserMenuPopover from "@/app/components/common/UserMenuPopover";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
+import { useRecentViews } from "@/app/store/recentViewsStore";
 
-export default function page({ params }: { params: { id: string } }): ReactNode {
+export default function page({ params }: { params: { id: string; slug: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
   const { showMessage } = useMessage((state) => state);
   const router = useRouter();
@@ -67,6 +68,9 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedUserNickname, setSelectedUserNickname] = useState<string>("");
   const [sendMessageModalOpen, setSendMessageModalOpen] = useState<boolean>(false);
+
+  // 최근 본 게시물 관리
+  const { addRecentView } = useRecentViews();
 
   //! 상세 데이터 가져오기
   const {
@@ -94,11 +98,22 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       document.title = `${detail.title}`;
       openCloseComments(true);
       setLikeCalculate(detail.like_count + -detail.dislike_count);
+
+      // 로그인한 사용자의 경우 최근 본 게시물에 추가
+      if (session?.user) {
+        addRecentView({
+          id: detail.id,
+          title: detail.title,
+          category: detail.category,
+          created_at: detail.created_at,
+          channelSlug: params.slug,
+        });
+      }
     }
     return () => {
       openCloseComments(false);
     };
-  }, [detail]);
+  }, [detail, session, addRecentView]);
 
   // URL 해시 변경 감지 및 댓글 스크롤 처리
   useEffect(() => {

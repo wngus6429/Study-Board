@@ -75,7 +75,7 @@ export class MessagesService {
   ) {
     const [messages, total] = await this.messageRepository.findAndCount({
       where: { receiver: { id: userId } },
-      relations: ['sender'],
+      relations: ['sender', 'sender.UserImage'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
@@ -87,7 +87,10 @@ export class MessagesService {
       content: message.content,
       isRead: message.isRead,
       sender: {
+        // id: message.sender.id,
         nickname: message.sender.nickname,
+        // user_email: message.sender.user_email,
+        profileImage: message.sender.UserImage?.link || null,
       },
       createdAt: message.createdAt,
     }));
@@ -106,7 +109,7 @@ export class MessagesService {
   async getSentMessages(userId: string, page: number = 1, limit: number = 20) {
     const [messages, total] = await this.messageRepository.findAndCount({
       where: { sender: { id: userId } },
-      relations: ['receiver'],
+      relations: ['receiver', 'receiver.UserImage'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
@@ -118,7 +121,10 @@ export class MessagesService {
       content: message.content,
       isRead: message.isRead,
       receiver: {
+        // id: message.receiver.id,
         nickname: message.receiver.nickname,
+        // user_email: message.receiver.user_email,
+        profileImage: message.receiver.UserImage?.link || null,
       },
       createdAt: message.createdAt,
     }));
@@ -191,17 +197,29 @@ export class MessagesService {
 
     const updatedMessage = await this.messageRepository.findOne({
       where: { id: messageId },
-      relations: ['sender', 'receiver'],
+      relations: [
+        'sender',
+        'sender.UserImage',
+        'receiver',
+        'receiver.UserImage',
+      ],
     });
 
     return {
       id: updatedMessage.id,
       title: updatedMessage.title,
       content: updatedMessage.content,
+      sender: {
+        // id: updatedMessage.sender.id,
+        nickname: updatedMessage.sender.nickname,
+        // user_email: updatedMessage.sender.user_email,
+        profileImage: updatedMessage.sender.UserImage?.link || null,
+      },
       receiver: {
-        id: updatedMessage.receiver.id,
+        // id: updatedMessage.receiver.id,
         nickname: updatedMessage.receiver.nickname,
-        user_email: updatedMessage.receiver.user_email,
+        // user_email: updatedMessage.receiver.user_email,
+        profileImage: updatedMessage.receiver.UserImage?.link || null,
       },
       createdAt: updatedMessage.createdAt,
     };
@@ -237,6 +255,7 @@ export class MessagesService {
 
     const users = await this.userRepository.find({
       where: { nickname: ILike(`%${query}%`) },
+      relations: ['UserImage'],
       select: ['id', 'nickname', 'user_email'],
       take: 10,
     });
@@ -245,6 +264,7 @@ export class MessagesService {
       id: user.id,
       nickname: user.nickname,
       user_email: user.user_email,
+      profileImage: user.UserImage?.link || null,
     }));
   }
 

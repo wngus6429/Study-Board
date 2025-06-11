@@ -94,6 +94,14 @@ const MessagesPage = () => {
   const [editTitle, setEditTitle] = useState("");
   const [editContent, setEditContent] = useState("");
 
+  // 받는 사람 상태 (hooks 규칙에 따라 최상단에 배치)
+  const [receiver, setReceiver] = useState(receiverNickname);
+
+  // receiverNickname이 변경될 때 receiver 상태 업데이트
+  useEffect(() => {
+    setReceiver(receiverNickname);
+  }, [receiverNickname]);
+
   // 받은 쪽지 목록 조회
   const {
     data: receivedMessagesData,
@@ -104,6 +112,8 @@ const MessagesPage = () => {
     queryFn: () => getReceivedMessages(1, 20),
     enabled: !!session?.user,
   });
+
+  console.log("받은 쪽지 데이터", receivedMessagesData);
 
   // 보낸 쪽지 목록 조회
   const {
@@ -121,6 +131,7 @@ const MessagesPage = () => {
     mutationFn: (messageData: SendMessageRequest) => sendMessage(messageData),
     onSuccess: () => {
       showMessage("쪽지가 성공적으로 전송되었습니다!", "success");
+      setReceiver("");
       setReceiverNickname("");
       setMessageTitle("");
       setMessageContent("");
@@ -196,7 +207,7 @@ const MessagesPage = () => {
 
   // 쪽지 보내기 핸들러
   const handleSendMessage = () => {
-    if (!receiverNickname.trim()) {
+    if (!receiver.trim()) {
       showMessage("받는 사람의 닉네임을 입력해주세요.", "warning");
       return;
     }
@@ -210,7 +221,7 @@ const MessagesPage = () => {
     }
 
     sendMessageMutation.mutate({
-      receiverNickname: receiverNickname.trim(),
+      receiverNickname: receiver.trim(),
       title: messageTitle.trim(),
       content: messageContent.trim(),
     });
@@ -292,12 +303,6 @@ const MessagesPage = () => {
   if (!session?.user) {
     return null;
   }
-
-  const [receiver, setReceiver] = useState(receiverNickname);
-
-  useEffect(() => {
-    setReceiver(receiverNickname);
-  }, [receiverNickname]);
 
   return (
     <Box
@@ -433,13 +438,16 @@ const MessagesPage = () => {
                     >
                       <ListItemIcon>
                         <Avatar
+                          src={`${process.env.NEXT_PUBLIC_BASE_URL}${message.sender.profileImage}`}
                           sx={{
                             width: 40,
                             height: 40,
-                            background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
+                            background: message.sender.profileImage
+                              ? "transparent"
+                              : "linear-gradient(135deg, #8b5cf6, #06b6d4)",
                           }}
                         >
-                          {message.sender.nickname.charAt(0)}
+                          {!message.sender.profileImage && <PersonIcon />}
                         </Avatar>
                       </ListItemIcon>
                       <ListItemText
@@ -522,13 +530,16 @@ const MessagesPage = () => {
                     >
                       <ListItemIcon>
                         <Avatar
+                          src={`${process.env.NEXT_PUBLIC_BASE_URL}${message.receiver.profileImage}`}
                           sx={{
                             width: 40,
                             height: 40,
-                            background: "linear-gradient(135deg, #06b6d4, #8b5cf6)",
+                            background: message.receiver.profileImage
+                              ? "transparent"
+                              : "linear-gradient(135deg, #06b6d4, #8b5cf6)",
                           }}
                         >
-                          {message.receiver.nickname.charAt(0)}
+                          {!message.receiver.profileImage && <PersonIcon />}
                         </Avatar>
                       </ListItemIcon>
                       <ListItemText
@@ -562,7 +573,14 @@ const MessagesPage = () => {
                 새 쪽지 작성
               </Typography>
               <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                <TextField label="받는 사람" value={receiver} disabled fullWidth variant="outlined" size="small" />
+                <TextField
+                  label="받는 사람"
+                  value={receiver}
+                  onChange={(e) => setReceiver(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                />
                 <TextField
                   label="제목"
                   value={messageTitle}

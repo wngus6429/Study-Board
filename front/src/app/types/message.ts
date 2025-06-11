@@ -3,6 +3,7 @@ export interface User {
   id: string;
   nickname: string;
   user_email: string;
+  profileImage?: string;
 }
 
 export interface Message {

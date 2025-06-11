@@ -14,6 +14,13 @@ export interface Channel {
     nickname: string;
     user_email: string;
   };
+  // 채널 대표 이미지 (옵셔널)
+  ChannelImage?: {
+    id: number;
+    image_name: string;
+    link: string;
+    created_at: string;
+  };
 }
 
 export interface ChannelSubscription {
@@ -93,6 +100,35 @@ export const createChannel = async (
 // 채널 삭제 (생성자만 가능)
 export const deleteChannel = async (id: number): Promise<{ message: string }> => {
   const response = await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${id}`, {
+    withCredentials: true,
+  });
+  return response.data;
+};
+
+// 채널 이미지 업로드 (채널 생성자만 가능)
+export const uploadChannelImage = async (
+  channelId: number,
+  imageFile: File
+): Promise<{ message: string; image: { id: number; link: string; imageName: string; uploadedAt: string } }> => {
+  const formData = new FormData();
+  formData.append("channelImage", imageFile); // 'channelImage'는 백엔드에서 기대하는 필드명
+
+  const response = await axios.post(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${channelId}/upload-image`,
+    formData,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+      withCredentials: true,
+    }
+  );
+  return response.data;
+};
+
+// 채널 이미지 삭제 (채널 생성자만 가능)
+export const deleteChannelImage = async (channelId: number): Promise<{ message: string }> => {
+  const response = await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${channelId}/image`, {
     withCredentials: true,
   });
   return response.data;

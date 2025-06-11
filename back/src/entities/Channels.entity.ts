@@ -4,6 +4,7 @@ import {
   Entity,
   ManyToOne,
   OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   Index,
@@ -11,6 +12,7 @@ import {
 import { Story } from './Story.entity';
 import { Subscription } from './Subscription.entity';
 import { User } from './User.entity';
+import { ChannelImage } from './ChannelImage.entity';
 
 @Entity() // 이 클래스가 데이터베이스의 엔티티임을 선언합니다.
 export class Channels {
@@ -31,6 +33,12 @@ export class Channels {
 
   @ManyToOne(() => User, (user) => user.createdChannels, { nullable: false })
   creator: User;
+
+  // 채널 대표 이미지 (OneToOne 관계)
+  @OneToOne(() => ChannelImage, (channelImage) => channelImage.Channel, {
+    cascade: true, // 채널 저장 시 이미지도 함께 저장
+  })
+  ChannelImage: ChannelImage;
 
   @OneToMany(() => Story, (story) => story.Channel)
   Stories: Story[];

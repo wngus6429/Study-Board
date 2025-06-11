@@ -12,13 +12,17 @@ import {
   UsePipes,
   ValidationPipe,
   ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiConsumes,
 } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ChannelsService } from './channels.service';
 import { AuthGuard } from '@nestjs/passport';
 
@@ -153,5 +157,87 @@ export class ChannelsController {
     console.log('채널 삭제 API:', { channelId: id, userId: req.user.id });
     await this.channelsService.deleteChannel(id, req.user.id);
     return { message: '채널이 삭제되었습니다.' };
+  }
+
+  // 채널 이미지 업로드 API
+  @Post(':id/upload-image')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @UseInterceptors(FileInterceptor('channelImage')) // 'channelImage'는 프론트엔드에서 보낼 필드명
+  @ApiOperation({ summary: '채널 대표 이미지 업로드 (채널 생성자만 가능)' })
+  @ApiConsumes('multipart/form-data')
+  @ApiResponse({ status: 201, description: '이미지 업로드 성공' })
+  @ApiResponse({ status: 403, description: '업로드 권한 없음' })
+  @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
+  @HttpCode(HttpStatus.CREATED)
+  async uploadChannelImage(
+    @Param('id', ParseIntPipe) channelId: number,
+    @UploadedFile() imageFile: Express.Multer.File,
+    @Request() req,
+  ) {
+    console.log('채널 이미지 업로드 API:', {
+      channelId,
+      userId: req.user.id,
+      fileName: imageFile?.filename,
+    });
+
+    if (!imageFile) {
+      throw new Error('이미지 파일이 필요합니다.');
+    }
+
+    // 이미지 파일 타입 검증
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    if (!allowedTypes.includes(imageFile.mimetype)) {
+      throw new Error(
+        '지원하지 않는 이미지 형식입니다. (JPG, PNG, GIF, WEBP만 지원)',
+      );
+    }
+
+    // 파일 크기 검증 (5MB 제한)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (imageFile.size > maxSize) {
+      throw new Error('이미지 파일 크기는 5MB를 초과할 수 없습니다.');
+    }
+
+    const savedImage = await this.channelsService.uploadChannelImage(
+      channelId,
+      req.user.id,
+      imageFile,
+    );
+
+    return {
+      message: '채널 이미지가 업로드되었습니다.',
+      image: {
+        id: savedImage.id,
+        link: savedImage.link,
+        imageName: savedImage.image_name,
+        uploadedAt: savedImage.created_at,
+      },
+    };
+  }
+
+  // 채널 이미지 삭제 API
+  @Delete(':id/image')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '채널 대표 이미지 삭제 (채널 생성자만 가능)' })
+  @ApiResponse({ status: 200, description: '이미지 삭제 성공' })
+  @ApiResponse({ status: 403, description: '삭제 권한 없음' })
+  @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
+  @HttpCode(HttpStatus.OK)
+  async deleteChannelImage(
+    @Param('id', ParseIntPipe) channelId: number,
+    @Request() req,
+  ) {
+    console.log('채널 이미지 삭제 API:', {
+      channelId,
+      userId: req.user.id,
+    });
+
+    await this.channelsService.deleteChannelImage(channelId, req.user.id);
+
+    return {
+      message: '채널 이미지가 삭제되었습니다.',
+    };
   }
 }

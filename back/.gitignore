@@ -5,6 +5,7 @@
 /upload
 /userUpload
 /suggestionUpload
+/channelUpload
 
 # Logs
 logs

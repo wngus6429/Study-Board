@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Channels } from '../entities/Channels.entity';
+import { ChannelImage } from '../entities/ChannelImage.entity';
 import { Subscription } from '../entities/Subscription.entity';
 import { User } from '../entities/User.entity';
 
@@ -10,6 +11,8 @@ export class ChannelsService {
   constructor(
     @InjectRepository(Channels)
     private channelsRepository: Repository<Channels>,
+    @InjectRepository(ChannelImage)
+    private channelImageRepository: Repository<ChannelImage>,
     @InjectRepository(Subscription)
     private subscriptionRepository: Repository<Subscription>,
     @InjectRepository(User)
@@ -17,22 +20,22 @@ export class ChannelsService {
   ) {}
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 모든 채널 조회
+  // 모든 채널 조회 (채널 이미지 포함)
   async findAll(): Promise<Channels[]> {
     console.log('모든 채널 데이터 조회');
     return await this.channelsRepository.find({
       order: { id: 'ASC' },
-      relations: ['creator'],
+      relations: ['creator', 'ChannelImage'], // 채널 이미지도 함께 조회
     });
   }
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 특정 채널 조회
+  // 특정 채널 조회 (채널 이미지 포함)
   async findOne(id: number): Promise<Channels> {
     console.log('채널 상세 데이터 조회:', id);
     const channel = await this.channelsRepository.findOne({
       where: { id },
-      relations: ['subscriptions', 'Stories', 'creator'],
+      relations: ['subscriptions', 'Stories', 'creator', 'ChannelImage'], // 채널 이미지도 함께 조회
     });
 
     if (!channel) {
@@ -45,12 +48,12 @@ export class ChannelsService {
   }
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 슬러그로 채널 조회
+  // 슬러그로 채널 조회 (채널 이미지 포함)
   async findBySlug(slug: string): Promise<Channels> {
     console.log('채널 슬러그 데이터 조회:', slug);
     const channel = await this.channelsRepository.findOne({
       where: { slug },
-      relations: ['subscriptions', 'Stories', 'creator'],
+      relations: ['subscriptions', 'Stories', 'creator', 'ChannelImage'], // 채널 이미지도 함께 조회
     });
 
     if (!channel) {
@@ -198,6 +201,101 @@ export class ChannelsService {
     });
 
     return savedChannel;
+  }
+
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 채널 이미지 업로드/업데이트
+  async uploadChannelImage(
+    channelId: number,
+    userId: string,
+    imageFile: Express.Multer.File,
+  ): Promise<ChannelImage> {
+    console.log('채널 이미지 업로드:', {
+      channelId,
+      userId,
+      fileName: imageFile.filename,
+    });
+
+    // 채널 존재 확인 및 권한 확인
+    const channel = await this.channelsRepository.findOne({
+      where: { id: channelId },
+      relations: ['creator', 'ChannelImage'],
+    });
+
+    if (!channel) {
+      throw new NotFoundException(
+        `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
+      );
+    }
+
+    // 채널 소유자만 이미지 업로드 가능
+    if (channel.creator.id !== userId) {
+      throw new NotFoundException(
+        '채널 이미지를 업로드할 권한이 없습니다. 채널 생성자만 가능합니다.',
+      );
+    }
+
+    // 기존 이미지가 있으면 삭제
+    if (channel.ChannelImage) {
+      await this.channelImageRepository.remove(channel.ChannelImage);
+    }
+
+    // 새 이미지 생성 및 저장
+    const newChannelImage = this.channelImageRepository.create({
+      image_name: imageFile.filename,
+      link: `/channelUpload/${imageFile.filename}`,
+      Channel: channel,
+    });
+
+    const savedImage = await this.channelImageRepository.save(newChannelImage);
+
+    // 채널에 이미지 연결
+    channel.ChannelImage = savedImage;
+    await this.channelsRepository.save(channel);
+
+    console.log('채널 이미지 업로드 완료:', {
+      channelId,
+      imageId: savedImage.id,
+      imagePath: savedImage.link,
+    });
+
+    return savedImage;
+  }
+
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 채널 이미지 삭제
+  async deleteChannelImage(channelId: number, userId: string): Promise<void> {
+    console.log('채널 이미지 삭제:', { channelId, userId });
+
+    // 채널 존재 확인 및 권한 확인
+    const channel = await this.channelsRepository.findOne({
+      where: { id: channelId },
+      relations: ['creator', 'ChannelImage'],
+    });
+
+    if (!channel) {
+      throw new NotFoundException(
+        `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
+      );
+    }
+
+    // 채널 소유자만 이미지 삭제 가능
+    if (channel.creator.id !== userId) {
+      throw new NotFoundException(
+        '채널 이미지를 삭제할 권한이 없습니다. 채널 생성자만 가능합니다.',
+      );
+    }
+
+    // 이미지가 있으면 삭제
+    if (channel.ChannelImage) {
+      await this.channelImageRepository.remove(channel.ChannelImage);
+      console.log('채널 이미지 삭제 완료:', {
+        channelId,
+        deletedImageId: channel.ChannelImage.id,
+      });
+    } else {
+      console.log('삭제할 채널 이미지가 없습니다.');
+    }
   }
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ

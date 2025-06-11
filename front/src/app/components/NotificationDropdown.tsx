@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { IconButton, Badge, Menu, MenuItem, Typography, Box, Divider, Button, CircularProgress } from "@mui/material";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import { useRouter } from "next/navigation";
@@ -15,6 +15,8 @@ const NotificationDropdown = () => {
   const queryClient = useQueryClient();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const { data: session } = useSession();
+  const previousNotificationsRef = useRef<INotification[]>([]);
+  const isInitialLoadRef = useRef(true);
 
   // 읽지 않은 알림 조회
   const { data: notifications = [], isLoading } = useQuery({
@@ -23,6 +25,40 @@ const NotificationDropdown = () => {
     refetchInterval: 30000, // 30초마다 새로고침
     enabled: !!session?.user, // 로그인한 사용자만 조회
   });
+
+  // 새로운 알림 감지 및 브라우저 알림 표시
+  useEffect(() => {
+    if (!notifications || isInitialLoadRef.current) {
+      // 초기 로드시에는 브라우저 알림을 표시하지 않음
+      previousNotificationsRef.current = notifications;
+      isInitialLoadRef.current = false;
+      return;
+    }
+
+    const previousNotifications = previousNotificationsRef.current;
+    const newNotifications = notifications.filter(
+      (current) => !previousNotifications.some((prev) => prev.id === current.id)
+    );
+
+    // 새로운 알림이 있으면 브라우저 알림 표시
+    if (newNotifications.length > 0) {
+      newNotifications.forEach((notification) => {
+        const showCommentNotification = (window as any).showCommentNotification;
+        if (showCommentNotification && notification.comment) {
+          showCommentNotification({
+            authorName: notification.comment.author.nickname,
+            content: notification.comment.content,
+            storyId: notification.comment.storyId,
+            commentId: notification.comment.id,
+            channelSlug: notification.comment.channelSlug,
+          });
+        }
+      });
+    }
+
+    // 현재 알림 목록을 이전 알림으로 저장
+    previousNotificationsRef.current = notifications;
+  }, [notifications]);
 
   // 알림 읽음 처리 mutation
   const markAsReadMutation = useMutation({

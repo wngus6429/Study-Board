@@ -569,9 +569,9 @@ const ChannelsPage = () => {
                           ? "1px solid rgba(139, 92, 246, 0.3)"
                           : "1px solid rgba(25, 118, 210, 0.2)",
                     }}
-                    size="small"
+                    size="medium"
                   >
-                    <EditIcon fontSize="small" />
+                    <EditIcon fontSize="medium" />
                   </IconButton>
                 )}
                 {/* HOT 기능은 추후 추가 가능 */}
@@ -888,8 +888,9 @@ const ChannelsPage = () => {
               // 이미지 미리보기
               <Card
                 sx={{
-                  maxWidth: 200,
+                  maxWidth: 500,
                   mb: 2,
+                  margin: "0 auto",
                   background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                   border:
                     theme.palette.mode === "dark"
@@ -899,7 +900,7 @@ const ChannelsPage = () => {
               >
                 <CardMedia
                   component="img"
-                  height="120"
+                  height="300"
                   image={channelImagePreview}
                   alt="채널 이미지 미리보기"
                   sx={{ objectFit: "cover" }}
@@ -1033,18 +1034,10 @@ const ChannelsPage = () => {
             return (
               currentChannel?.ChannelImage?.link && (
                 <Box sx={{ mb: 3 }}>
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      mb: 1,
-                      color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
-                    }}
-                  >
-                    현재 이미지
-                  </Typography>
                   <Card
                     sx={{
-                      maxWidth: 200,
+                      maxWidth: 500,
+                      margin: "0 auto",
                       background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                       border:
                         theme.palette.mode === "dark"
@@ -1054,7 +1047,7 @@ const ChannelsPage = () => {
                   >
                     <CardMedia
                       component="img"
-                      height="120"
+                      height="300"
                       image={`${process.env.NEXT_PUBLIC_BASE_URL}${currentChannel.ChannelImage.link}`}
                       alt="현재 채널 이미지"
                       sx={{ objectFit: "cover" }}
@@ -1082,8 +1075,9 @@ const ChannelsPage = () => {
               // 새 이미지 미리보기
               <Card
                 sx={{
-                  maxWidth: 200,
+                  maxWidth: 500,
                   mb: 2,
+                  margin: "0 auto",
                   background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                   border:
                     theme.palette.mode === "dark"
@@ -1093,7 +1087,7 @@ const ChannelsPage = () => {
               >
                 <CardMedia
                   component="img"
-                  height="120"
+                  height="300"
                   image={editImagePreview}
                   alt="새 이미지 미리보기"
                   sx={{ objectFit: "cover" }}

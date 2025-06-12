@@ -41,6 +41,8 @@ import { TransitionProps } from "@mui/material/transitions";
 import UserMenuPopover from "@/app/components/common/UserMenuPopover";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
 import { useRecentViews } from "@/app/store/recentViewsStore";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 
 export default function page({ params }: { params: { id: string; slug: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -72,6 +74,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
   // 최근 본 게시물 관리
   const { addRecentView } = useRecentViews();
 
+  // 스크랩 관련 상태
+  const [isScraped, setIsScraped] = useState<boolean>(false);
+  const [scrapLoading, setScrapLoading] = useState<boolean>(false);
+
   //! 상세 데이터 가져오기
   const {
     data: detail,
@@ -91,6 +97,25 @@ export default function page({ params }: { params: { id: string; slug: string } 
     staleTime: 1000 * 60 * 4,
     gcTime: 1000 * 60 * 4,
   });
+
+  //! 스크랩 여부 확인
+  const { data: scrapStatus } = useQuery({
+    queryKey: ["scrap", "check", params?.id],
+    queryFn: async () => {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/scrap/check/${params?.id}`, {
+        withCredentials: true,
+      });
+      return response.data;
+    },
+    enabled: !!session?.user && !!params?.id && !isDeleted,
+    staleTime: 1000 * 60 * 2,
+  });
+
+  useEffect(() => {
+    if (scrapStatus) {
+      setIsScraped(scrapStatus.isScraped);
+    }
+  }, [scrapStatus]);
 
   useEffect(() => {
     if (detail != null) {
@@ -204,6 +229,42 @@ export default function page({ params }: { params: { id: string; slug: string } 
       } else {
         showMessage("삭제 중 오류가 발생했습니다.", "error");
       }
+    },
+  });
+
+  // 스크랩 추가/삭제 로직
+  const scrapMutation = useMutation({
+    mutationFn: async (action: "add" | "remove") => {
+      if (action === "add") {
+        console.log("스크랩 추가 요청 받음");
+        return await axios.post(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/scrap/${params?.id}`,
+          {},
+          { withCredentials: true }
+        );
+      } else {
+        return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/scrap/${params?.id}`, {
+          withCredentials: true,
+        });
+      }
+    },
+    onMutate: () => {
+      setScrapLoading(true);
+    },
+    onSuccess: (response, action) => {
+      setIsScraped(action === "add");
+      queryClient.invalidateQueries({ queryKey: ["scrap", "check", params?.id] });
+      showMessage(
+        action === "add" ? "스크랩되었습니다." : "스크랩이 취소되었습니다.",
+        action === "add" ? "success" : "info"
+      );
+    },
+    onError: (error: any) => {
+      console.error("스크랩 API 호출 실패", error);
+      showMessage(error.response?.data?.message || "스크랩 처리 중 오류가 발생했습니다.", "error");
+    },
+    onSettled: () => {
+      setScrapLoading(false);
     },
   });
 
@@ -457,6 +518,22 @@ export default function page({ params }: { params: { id: string; slug: string } 
     setSendMessageModalOpen(false);
   };
 
+  // 스크랩 버튼 클릭 핸들러
+  const handleScrapClick = () => {
+    if (!session?.user) {
+      showMessage("로그인이 필요합니다.", "warning");
+      return;
+    }
+
+    // 자신이 작성한 글인지 체크
+    if (detail?.User?.id === session?.user?.id) {
+      showMessage("자신이 작성한 글은 스크랩할 수 없습니다.", "warning");
+      return;
+    }
+
+    scrapMutation.mutate(isScraped ? "remove" : "add");
+  };
+
   // ★ 조건부 return은 훅 선언 이후에 배치합니다.
   if (isLoading) return <Loading />;
   if (isError) return <ErrorView />;
@@ -481,35 +558,62 @@ export default function page({ params }: { params: { id: string; slug: string } 
               <Typography variant="h4" component="div" sx={{ fontWeight: "bold" }}>
                 {detail.title}
               </Typography>
-              {detail?.category !== "question" && detail.User?.id === session?.user?.id && (
-                <Box display="flex" gap={1}>
-                  <Button
-                    size="medium"
-                    variant="outlined"
-                    color="warning"
-                    onClick={(e) => {
-                      setEditFlag(true);
-                      e.preventDefault();
-                      router.push(`/edit/story/${detail.id}`);
-                    }}
-                    disabled={editFlag}
-                    startIcon={editFlag ? <CircularProgress size={20} /> : null}
-                  >
-                    수정
-                  </Button>
-                  <Button
-                    size="medium"
-                    variant="outlined"
-                    color="error"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleDeleteClick(detail.id);
-                    }}
-                  >
-                    삭제
-                  </Button>
-                </Box>
-              )}
+              <Box display="flex" gap={1}>
+                {/* 스크랩 버튼 - 로그인한 사용자이고 자신의 글이 아닐 때만 표시 */}
+                {session?.user && detail.User?.id !== session?.user?.id && (
+                  <Tooltip title={isScraped ? "스크랩 취소" : "스크랩"}>
+                    <Button
+                      size="medium"
+                      variant={isScraped ? "contained" : "outlined"}
+                      color="primary"
+                      onClick={handleScrapClick}
+                      disabled={scrapLoading}
+                      startIcon={
+                        scrapLoading ? (
+                          <CircularProgress size={20} />
+                        ) : isScraped ? (
+                          <BookmarkIcon />
+                        ) : (
+                          <BookmarkBorderIcon />
+                        )
+                      }
+                    >
+                      {isScraped ? "스크랩 취소" : "스크랩"}
+                    </Button>
+                  </Tooltip>
+                )}
+
+                {/* 수정/삭제 버튼 - 자신의 글일 때만 표시 */}
+                {detail?.category !== "question" && detail.User?.id === session?.user?.id && (
+                  <>
+                    <Button
+                      size="medium"
+                      variant="outlined"
+                      color="warning"
+                      onClick={(e) => {
+                        setEditFlag(true);
+                        e.preventDefault();
+                        router.push(`/edit/story/${detail.id}`);
+                      }}
+                      disabled={editFlag}
+                      startIcon={editFlag ? <CircularProgress size={20} /> : null}
+                    >
+                      수정
+                    </Button>
+                    <Button
+                      size="medium"
+                      variant="outlined"
+                      color="error"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteClick(detail.id);
+                      }}
+                    >
+                      삭제
+                    </Button>
+                  </>
+                )}
+              </Box>
             </Box>
             <Typography
               variant="subtitle2"

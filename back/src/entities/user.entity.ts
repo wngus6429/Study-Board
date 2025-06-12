@@ -18,6 +18,7 @@ import { Notification } from './Notification.entity';
 import { Subscription } from './Subscription.entity';
 import { Channels } from './Channels.entity';
 import { Message } from './Message.entity';
+import { Scrap } from './Scrap.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -76,4 +77,7 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Likes, (like) => like.User)
   Likes: Likes[];
+
+  @OneToMany(() => Scrap, (scrap) => scrap.User)
+  Scraps: Scrap[];
 }

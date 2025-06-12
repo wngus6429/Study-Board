@@ -20,6 +20,7 @@ import { User } from './User.entity';
 import { Likes } from './Likes.entity';
 // Channels 엔티티: 채널 정보를 담는 엔티티
 import { Channels } from './Channels.entity';
+import { Scrap } from './Scrap.entity';
 
 @Entity() // 이 클래스가 데이터베이스의 엔티티임을 선언합니다.
 export class Story {
@@ -121,4 +122,7 @@ export class Story {
 
   @ManyToOne(() => Channels, (channel) => channel.Stories)
   Channel: Channels;
+
+  @OneToMany(() => Scrap, (scrap) => scrap.Story)
+  Scraps: Scrap[];
 }

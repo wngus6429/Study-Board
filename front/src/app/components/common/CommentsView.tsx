@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Box, TextField, Button, Typography, Avatar, Alert, Pagination, useTheme } from "@mui/material";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
@@ -112,17 +112,18 @@ const CommentsView = () => {
     isError,
     refetch,
   } = useQuery<CommentResponse>({
-    queryKey: ["story", "detail", "comments", storyId, currentPage, viewCount], // 페이지 정보를 쿼리 키에 추가
+    queryKey: ["story", "detail", "comments", storyId, currentPage, viewCount],
     queryFn: async () => {
-      // 서버에 현재 페이지와 페이지당 댓글 수 정보를 함께 전달
       const response = await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/comment/${storyId}`, {
-        page: currentPage, // 현재 페이지 정보 전달
-        limit: viewCount, // 페이지당 표시할 댓글 수 전달 (대댓글 포함)
+        page: currentPage,
+        limit: viewCount,
       });
       console.log("댓글 데이터 받아옴", storyId, "페이지:", currentPage);
       return response.data;
     },
-    enabled: !!storyId && status !== "loading", // storyId가 있으면 항상 활성화
+    enabled: !!storyId && status !== "loading",
+    placeholderData: keepPreviousData, // 페이지네이션 깜빡임 방지
+    refetchOnWindowFocus: false, // 윈도우 포커스 시 재요청 방지
   });
 
   // 댓글 데이터 업데이트 시 상태 업데이트

@@ -161,105 +161,116 @@ export default function UserProfileDetail() {
         <Box
           sx={{
             display: "flex",
-            flexDirection: "row", // 한 줄에 나란히 배치
-            alignItems: "flex-start", // 수직 정렬
+            flexDirection: "column",
+            alignItems: "center",
             mt: 3,
             minHeight: "75vh",
+            gap: 4,
           }}
         >
-          <Box>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
-            >
-              작성한 글
-            </Typography>
-            <Box
-              sx={{
-                bgcolor: "background.paper",
-                boxShadow: 2,
-                borderRadius: 2,
-                p: 3,
-                position: "relative",
-                minHeight: "400px", // 최소 높이 설정으로 레이아웃 안정성 확보
-              }}
-            >
-              {UserStoryIsFetching && !UserStoryIsPlaceholderData && (
-                <Box
-                  sx={{
-                    position: "absolute",
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.8)",
-                    zIndex: 1,
-                    borderRadius: 2,
-                  }}
+          {/* 첫 번째 행: 프로필 보기 + 작성한 글 테이블 */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              gap: 4,
+              width: "100%",
+              maxWidth: "1400px",
+              alignItems: "flex-start",
+            }}
+          >
+            {/* 왼쪽: 프로필 영역 */}
+            <Box sx={{ width: "400px", flexShrink: 0 }}>
+              <Box
+                sx={{
+                  bgcolor: "background.paper",
+                  boxShadow: 3,
+                  p: 3,
+                  borderRadius: 2,
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
                 >
-                  <CircularProgress
-                    size={40}
+                  프로필 보기
+                </Typography>
+                <Box display="flex" flexDirection="column" alignItems="center" sx={{ gap: 2 }}>
+                  <Avatar
+                    src={`${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.user.image?.link}`}
                     sx={{
-                      color: theme.palette.mode === "dark" ? "#a78bfa" : "primary.main",
+                      width: 120,
+                      height: 120,
+                      boxShadow: 2,
+                      border: "3px solid",
+                      borderColor: "primary.main",
                     }}
                   />
+                  <Typography variant="h6" sx={{ fontWeight: "bold", textAlign: "center" }}>
+                    {userDetail.user.nickname}
+                  </Typography>
                 </Box>
-              )}
-              <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
-              <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-                <ProfilePagination
-                  pageCount={Math.ceil((UserStory?.StoryTotal || 0) / viewCount)}
-                  onPageChange={handleStoryPageClick}
-                  currentPage={storyCurrentPage}
-                />
+              </Box>
+            </Box>
+
+            {/* 오른쪽: 작성한 글 테이블 */}
+            <Box sx={{ flexGrow: 1 }}>
+              <Box
+                sx={{
+                  bgcolor: "background.paper",
+                  boxShadow: 2,
+                  borderRadius: 2,
+                  p: 3,
+                  position: "relative",
+                  minHeight: "400px",
+                }}
+              >
+                <Typography
+                  variant="h6"
+                  gutterBottom
+                  sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
+                >
+                  작성한 글
+                </Typography>
+                {UserStoryIsFetching && !UserStoryIsPlaceholderData && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.8)",
+                      zIndex: 1,
+                      borderRadius: 2,
+                    }}
+                  >
+                    <CircularProgress
+                      size={40}
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "#a78bfa" : "primary.main",
+                      }}
+                    />
+                  </Box>
+                )}
+                <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
+                <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+                  <ProfilePagination
+                    pageCount={Math.ceil((UserStory?.StoryTotal || 0) / viewCount)}
+                    onPageChange={handleStoryPageClick}
+                    currentPage={storyCurrentPage}
+                  />
+                </Box>
               </Box>
             </Box>
           </Box>
 
-          <Container component="main" sx={{ mt: 8, width: "300px", marginLeft: "none", marginTop: "48px" }}>
-            <Box
-              display="flex"
-              flexDirection="column"
-              alignItems="center"
-              sx={{
-                bgcolor: "background.paper",
-                boxShadow: 3,
-                p: 3,
-                borderRadius: 2,
-              }}
-            >
-              <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 2 }}>
-                프로필 보기
-              </Typography>
-              <Avatar
-                src={`${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.user.image?.link}`}
-                sx={{
-                  width: 120,
-                  height: 120,
-                  mb: 2,
-                  boxShadow: 2,
-                  border: "3px solid",
-                  borderColor: "primary.main",
-                }}
-              />
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 1, textAlign: "center" }}>
-                {userDetail.user.nickname}
-              </Typography>
-            </Box>
-          </Container>
-
-          <Box>
-            <Typography
-              variant="h6"
-              gutterBottom
-              sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
-            >
-              작성한 댓글
-            </Typography>
+          {/* 두 번째 행: 작성한 댓글 테이블 (전체 너비) */}
+          <Box sx={{ width: "100%", maxWidth: "1400px" }}>
             <Box
               sx={{
                 bgcolor: "background.paper",
@@ -267,9 +278,16 @@ export default function UserProfileDetail() {
                 borderRadius: 2,
                 p: 3,
                 position: "relative",
-                minHeight: "400px", // 최소 높이 설정으로 레이아웃 안정성 확보
+                minHeight: "400px",
               }}
             >
+              <Typography
+                variant="h6"
+                gutterBottom
+                sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
+              >
+                작성한 댓글
+              </Typography>
               {UserCommentsIsFetching && !UserCommentsIsPlaceholderData && (
                 <Box
                   sx={{

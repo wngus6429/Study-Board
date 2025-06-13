@@ -310,204 +310,243 @@ function UserProfileEdit() {
     <Box
       sx={{
         display: "flex",
-        flexDirection: "row", // 한 줄에 나란히 배치
-        alignItems: "flex-start", // 수직 정렬
+        flexDirection: "column",
+        alignItems: "center",
         mt: 3,
         minHeight: "75vh",
+        gap: 4,
       }}
     >
-      <Box>
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
-        >
-          작성한 글
-        </Typography>
-        <Box
-          sx={{
-            bgcolor: "background.paper",
-            boxShadow: 2,
-            borderRadius: 2,
-            p: 3,
-            position: "relative",
-            minHeight: "400px", // 최소 높이 설정으로 레이아웃 안정성 확보
-          }}
-        >
-          {UserStoryIsFetching && !UserStoryIsPlaceholderData && (
-            <Box
-              sx={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.8)",
-                zIndex: 1,
-                borderRadius: 2,
-              }}
+      {/* 첫 번째 행: 프로필 수정 + 작성한 글 테이블 */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          gap: 4,
+          width: "100%",
+          maxWidth: "1400px",
+          alignItems: "flex-start",
+        }}
+      >
+        {/* 왼쪽: 프로필 수정 영역 */}
+        <Box sx={{ width: "400px", flexShrink: 0 }}>
+          <Box
+            sx={{
+              bgcolor: "background.paper",
+              boxShadow: 3,
+              p: 3,
+              borderRadius: 2,
+            }}
+          >
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
             >
-              <CircularProgress
-                size={40}
+              프로필 수정
+            </Typography>
+            {/* 프로필 사진과 입력 요소들을 한 줄로 배치 */}
+            <Box display="flex" flexDirection="row" alignItems="flex-start" sx={{ gap: 3, mb: 3 }}>
+              <Avatar
+                src={previewImage}
                 sx={{
-                  color: theme.palette.mode === "dark" ? "#a78bfa" : "primary.main",
+                  width: 120,
+                  height: 120,
+                  boxShadow: 2,
+                  border: "3px solid",
+                  borderColor: "primary.main",
+                  flexShrink: 0,
                 }}
               />
+              <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 2 }}>
+                <Box display="flex" gap={1}>
+                  <Button variant="outlined" component="label" color="primary" sx={{ flexGrow: 1 }}>
+                    사진 업로드
+                    <input type="file" hidden onChange={handleImageChange} accept="image/*" />
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => deleteProfileImageMutation.mutate()}
+                    sx={{ flexGrow: 1 }}
+                  >
+                    사진 삭제
+                  </Button>
+                </Box>
+                <TextField
+                  label="닉네임"
+                  value={nickname}
+                  onChange={handleNicknameChange}
+                  variant="outlined"
+                  fullWidth
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{ py: 1.5, fontWeight: "bold" }}
+                  onClick={mutation.mutate}
+                >
+                  저장하기
+                </Button>
+              </Box>
             </Box>
-          )}
-          <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-            <ProfilePagination
-              pageCount={Math.ceil((UserStory?.StoryTotal || 0) / viewCount)}
-              onPageChange={handleStoryPageClick}
-              currentPage={storyCurrentPage}
-            />
+
+            {/* 비밀번호 변경 버튼은 아래에 별도로 배치 */}
+            <Button
+              variant="contained"
+              color="error"
+              fullWidth
+              sx={{ py: 1.5, fontWeight: "bold" }}
+              onClick={() => setVerifyPassword(!verifyPassword)}
+            >
+              {verifyPassword ? "비밀번호 변경 취소" : "비밀번호 변경"}
+            </Button>
+
+            {verifyPassword && (
+              <Box
+                sx={{
+                  mt: 2,
+                  width: "100%",
+                  bgcolor: "background.paper",
+                  p: 2,
+                  borderRadius: 1,
+                  boxShadow: 2,
+                  border: 1,
+                  borderColor: "divider",
+                }}
+              >
+                <TextField
+                  label="원래 비밀번호"
+                  type="password"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                  onChange={(e) => setVerifyInputPassword(e.target.value)}
+                />
+                <Button
+                  variant="contained"
+                  color="warning"
+                  fullWidth
+                  sx={{ py: 1.5, fontWeight: "bold" }}
+                  onClick={() => handleVerifyCurrentPassword()}
+                >
+                  확인하기
+                </Button>
+              </Box>
+            )}
+            {isVerified && (
+              <Box
+                sx={{
+                  mt: 2,
+                  width: "100%",
+                  bgcolor: "background.paper",
+                  p: 2,
+                  borderRadius: 1,
+                  boxShadow: 2,
+                  border: 1,
+                  borderColor: "divider",
+                }}
+              >
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}>
+                  비밀번호 변경
+                </Typography>
+                <TextField
+                  label="새 비밀번호"
+                  type="password"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+                <TextField
+                  label="새 비밀번호 확인"
+                  type="password"
+                  fullWidth
+                  variant="outlined"
+                  sx={{ mb: 2 }}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+                <Button
+                  variant="contained"
+                  color="primary"
+                  fullWidth
+                  sx={{ py: 1.5, fontWeight: "bold", mb: 1 }}
+                  onClick={handlePasswordChange}
+                >
+                  비밀번호 변경
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  fullWidth
+                  sx={{ py: 1.5, fontWeight: "bold" }}
+                  onClick={() => setIsVerified(false)}
+                >
+                  비밀번호 변경 취소
+                </Button>
+              </Box>
+            )}
+          </Box>
+        </Box>
+
+        {/* 오른쪽: 작성한 글 테이블 */}
+        <Box sx={{ flexGrow: 1 }}>
+          <Box
+            sx={{
+              bgcolor: "background.paper",
+              boxShadow: 2,
+              borderRadius: 2,
+              p: 3,
+              position: "relative",
+              minHeight: "400px",
+            }}
+          >
+            <Typography
+              variant="h6"
+              gutterBottom
+              sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
+            >
+              작성한 글
+            </Typography>
+            {UserStoryIsFetching && !UserStoryIsPlaceholderData && (
+              <Box
+                sx={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.8)",
+                  zIndex: 1,
+                  borderRadius: 2,
+                }}
+              >
+                <CircularProgress
+                  size={40}
+                  sx={{
+                    color: theme.palette.mode === "dark" ? "#a78bfa" : "primary.main",
+                  }}
+                />
+              </Box>
+            )}
+            <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+              <ProfilePagination
+                pageCount={Math.ceil((UserStory?.StoryTotal || 0) / viewCount)}
+                onPageChange={handleStoryPageClick}
+                currentPage={storyCurrentPage}
+              />
+            </Box>
           </Box>
         </Box>
       </Box>
-      <Container component="main" sx={{ mt: 8, width: "300px", marginLeft: "none", marginTop: "48px" }}>
-        <Box
-          display="flex"
-          flexDirection="column"
-          alignItems="center"
-          sx={{
-            bgcolor: "background.paper",
-            boxShadow: 3,
-            p: 3,
-            borderRadius: 2,
-          }}
-        >
-          <Typography variant="h5" gutterBottom sx={{ fontWeight: "bold", mb: 2 }}>
-            프로필 수정
-          </Typography>
-          <Avatar
-            src={previewImage}
-            sx={{
-              width: 120,
-              height: 120,
-              mb: 2,
-              boxShadow: 2,
-              border: "3px solid",
-              borderColor: "primary.main",
-            }}
-          />
-          <Box display="flex" gap={1} sx={{ mb: 2, textAlign: "center" }}>
-            <Button variant="outlined" component="label" color="primary" sx={{ flexGrow: 1 }}>
-              사진 <br />
-              업로드
-              <input type="file" hidden onChange={handleImageChange} accept="image/*" />
-            </Button>
-            <Button
-              variant="outlined"
-              color="error"
-              onClick={() => deleteProfileImageMutation.mutate()}
-              sx={{ flexGrow: 1 }}
-            >
-              사진 <br />
-              삭제
-            </Button>
-          </Box>
-          <TextField
-            label="닉네임"
-            value={nickname}
-            onChange={handleNicknameChange}
-            variant="outlined"
-            fullWidth
-            sx={{ mb: 2 }}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            fullWidth
-            sx={{ mb: 2, py: 1.5, fontWeight: "bold" }}
-            onClick={mutation.mutate}
-          >
-            저장하기
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            fullWidth
-            sx={{ py: 1.5, fontWeight: "bold" }}
-            onClick={() => setVerifyPassword(!verifyPassword)}
-          >
-            {verifyPassword ? "비밀번호 변경 취소" : "비밀번호 변경"}
-          </Button>
-          {verifyPassword && (
-            <Box sx={{ mt: 2, width: "100%", bgcolor: "grey.100", p: 2, borderRadius: 1, boxShadow: 1 }}>
-              <TextField
-                label="원래 비밀번호"
-                type="password"
-                fullWidth
-                variant="outlined"
-                sx={{ mb: 2 }}
-                onChange={(e) => setVerifyInputPassword(e.target.value)}
-              />
-              <Button
-                variant="contained"
-                color="warning"
-                fullWidth
-                sx={{ py: 1.5, fontWeight: "bold" }}
-                onClick={() => handleVerifyCurrentPassword()}
-              >
-                확인하기
-              </Button>
-            </Box>
-          )}
-          {isVerified && (
-            <Box sx={{ mt: 2, width: "100%", bgcolor: "grey.100", p: 2, borderRadius: 1, boxShadow: 1 }}>
-              <Typography variant="h6" gutterBottom sx={{ fontWeight: "bold", mb: 2, textAlign: "center" }}>
-                비밀번호 변경
-              </Typography>
-              <TextField
-                label="새 비밀번호"
-                type="password"
-                fullWidth
-                variant="outlined"
-                sx={{ mb: 2 }}
-                onChange={(e) => setNewPassword(e.target.value)}
-              />
-              <TextField
-                label="새 비밀번호 확인"
-                type="password"
-                fullWidth
-                variant="outlined"
-                sx={{ mb: 2 }}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                sx={{ py: 1.5, fontWeight: "bold" }}
-                onClick={handlePasswordChange}
-              >
-                비밀번호 변경
-              </Button>
-              <Button
-                variant="contained"
-                color="primary"
-                fullWidth
-                sx={{ py: 1.5, fontWeight: "bold" }}
-                onClick={() => setIsVerified(false)}
-              >
-                비밀번호 변경 취소
-              </Button>
-            </Box>
-          )}
-        </Box>
-      </Container>
-      <Box>
-        <Typography
-          variant="h6"
-          gutterBottom
-          sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
-        >
-          작성한 댓글
-        </Typography>
+
+      {/* 두 번째 행: 작성한 댓글 테이블 (전체 너비) */}
+      <Box sx={{ width: "100%", maxWidth: "1400px" }}>
         <Box
           sx={{
             bgcolor: "background.paper",
@@ -515,9 +554,16 @@ function UserProfileEdit() {
             borderRadius: 2,
             p: 3,
             position: "relative",
-            minHeight: "400px", // 최소 높이 설정으로 레이아웃 안정성 확보
+            minHeight: "400px",
           }}
         >
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
+          >
+            작성한 댓글
+          </Typography>
           {UserCommentsIsFetching && !UserCommentsIsPlaceholderData && (
             <Box
               sx={{

@@ -43,6 +43,7 @@ import SendMessageModal from "@/app/components/common/SendMessageModal";
 import { useRecentViews } from "@/app/store/recentViewsStore";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
 
 export default function page({ params }: { params: { id: string; slug: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -274,7 +275,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
       console.log("좋아요 API 호출", storyId, vote);
       return await axios.put(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/likeOrUnlike/${storyId}`,
-        { userId: session?.user.id, vote },
+        { userId: session?.user.id, vote, minRecommend: MIN_RECOMMEND_COUNT },
         { withCredentials: true }
       );
     },

@@ -17,7 +17,6 @@ import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
 import { Channels } from 'src/entities/Channels.entity';
-import { MIN_RECOMMEND_COUNT } from 'src/common/constants/app.constants';
 import { ChannelNotificationService } from '../channel-notification/channel-notification.service';
 import { NotificationService } from '../notification/notification.service';
 
@@ -852,6 +851,7 @@ export class StoryService {
     storyId: number,
     userId: string,
     vote: 'like' | 'dislike',
+    minRecommend: number,
   ): Promise<{
     action: 'add' | 'remove' | 'change';
     vote: 'like' | 'dislike';
@@ -930,7 +930,7 @@ export class StoryService {
         });
 
         // 5) 추천 랭킹 테이블 관리
-        if (updatedStory.like_count >= MIN_RECOMMEND_COUNT) {
+        if (updatedStory.like_count >= minRecommend) {
           // 추천 수가 기준치 이상이면 랭킹 테이블에 추가/업데이트
           let rankingEntry = await rankingRepo.findOne({ where: { storyId } });
 
@@ -947,7 +947,7 @@ export class StoryService {
             });
             await rankingRepo.save(rankingEntry);
           }
-        } else if (updatedStory.like_count < MIN_RECOMMEND_COUNT) {
+        } else if (updatedStory.like_count < minRecommend) {
           // 추천 수가 기준치 미만이면 랭킹 테이블에서 제거
           const rankingEntry = await rankingRepo.findOne({
             where: { storyId },
@@ -1041,14 +1041,14 @@ export class StoryService {
   // 관리자 작업 수행 시 - 랭킹 데이터를 초기화하고 싶을 때
   // 이 함수는 관리자 권한을 가진 사용자만 API를 통해 실행할 수 있습니다. 일반 사용자는 실행할 수 없으며, 시스템 유지보수용 기능입니다.
   // 기존 스토리 데이터를 RecommendRanking 테이블로 마이그레이션
-  async migrateToRecommendRanking(): Promise<number> {
+  async migrateToRecommendRanking(minRecommend: number): Promise<number> {
     try {
       // 1. 모든 스토리 가져오기
       const stories = await this.storyRepository.find({
         relations: ['Likes'],
       });
 
-      // 2. 추천 수가 MIN_RECOMMEND_COUNT 이상인 스토리 필터링
+      // 2. 추천 수가 minRecommend 이상인 스토리 필터링
       const eligibleStories = stories.filter((story) => {
         // 각 스토리의 추천 수 계산 (좋아요 - 싫어요)
         const recommendCount = story.Likes.reduce((acc, curr) => {
@@ -1057,7 +1057,7 @@ export class StoryService {
           return acc;
         }, 0);
 
-        return recommendCount >= MIN_RECOMMEND_COUNT;
+        return recommendCount >= minRecommend;
       });
 
       // 3. 현재 RecommendRanking 테이블 비우기

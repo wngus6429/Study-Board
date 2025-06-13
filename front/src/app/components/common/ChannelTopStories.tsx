@@ -8,8 +8,7 @@ import { Favorite } from "@mui/icons-material";
 import axios from "axios";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import { CHANNEL_TOP_STORIES_COUNT } from "@/app/const/CHANNEL_SETTINGS";
-import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
+import { CHANNEL_TOP_STORIES_COUNT, MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
 
 dayjs.extend(relativeTime);
 

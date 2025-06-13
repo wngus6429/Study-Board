@@ -266,7 +266,8 @@ export class StoryController {
   @UseGuards(AuthGuard())
   async storyLikeOrNot(
     @Param('id') storyId: number,
-    @Body() body: { userId: string; vote: 'like' | 'dislike' },
+    @Body()
+    body: { userId: string; vote: 'like' | 'dislike'; minRecommend: number },
   ): Promise<{
     action: 'add' | 'remove' | 'change';
     vote: 'like' | 'dislike';
@@ -276,6 +277,7 @@ export class StoryController {
       storyId,
       body.userId,
       body.vote,
+      body.minRecommend,
     );
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -284,14 +286,17 @@ export class StoryController {
   @UseGuards(AuthGuard())
   async migrateToRecommendRanking(
     @GetUser() user: User,
+    @Body() body: { minRecommend: number },
   ): Promise<{ success: boolean; migrated: number }> {
-    // 관리자 권한 확인 (실제 프로덕션에서는 더 엄격한 권한 체크가 필요)
+    // 관리자 권한 확인 (실제 관리자 이메일로 변경하세요)
     if (!user || user.user_email !== 'admin@example.com') {
       throw new UnauthorizedException('관리자만 실행할 수 있는 기능입니다.');
     }
 
     // 데이터 마이그레이션 서비스 호출
-    const migrated = await this.storyService.migrateToRecommendRanking();
+    const migrated = await this.storyService.migrateToRecommendRanking(
+      body.minRecommend || 1,
+    );
     return { success: true, migrated };
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ

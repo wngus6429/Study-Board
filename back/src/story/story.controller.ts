@@ -194,6 +194,7 @@ export class StoryController {
   // 상세 페이지 수정시 데이터 받아옴
   @Get('/detail/edit/:id')
   @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
   async getStoryEditStory(
     @Param('id', ParseIntPipe) id: number,
     @Query('userId') userId: string,

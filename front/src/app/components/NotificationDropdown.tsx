@@ -43,15 +43,30 @@ const NotificationDropdown = () => {
     // 새로운 알림이 있으면 브라우저 알림 표시
     if (newNotifications.length > 0) {
       newNotifications.forEach((notification) => {
-        const showCommentNotification = (window as any).showCommentNotification;
-        if (showCommentNotification && notification.comment) {
-          showCommentNotification({
-            authorName: notification.comment.author.nickname,
-            content: notification.comment.content,
-            storyId: notification.comment.storyId,
-            commentId: notification.comment.id,
-            channelSlug: notification.comment.channelSlug,
-          });
+        if (notification.type === "comment" || notification.type === "reply") {
+          // 댓글/답글 알림
+          const showCommentNotification = (window as any).showCommentNotification;
+          if (showCommentNotification && notification.comment) {
+            showCommentNotification({
+              authorName: notification.comment.author.nickname,
+              content: notification.comment.content,
+              storyId: notification.comment.storyId,
+              commentId: notification.comment.id,
+              channelSlug: notification.comment.channelSlug,
+            });
+          }
+        } else if (notification.type === "channel_post") {
+          // 채널 새 게시글 알림
+          const showChannelPostNotification = (window as any).showChannelPostNotification;
+          if (showChannelPostNotification && notification.post) {
+            showChannelPostNotification({
+              authorName: notification.post.author?.nickname || "알수없음",
+              title: notification.post.title,
+              channelName: notification.post.channelName || "채널",
+              storyId: notification.post.id,
+              channelSlug: notification.post.channelSlug || "",
+            });
+          }
         }
       });
     }
@@ -93,10 +108,19 @@ const NotificationDropdown = () => {
       await markAsReadMutation.mutateAsync(notification.id);
     }
 
-    // 해당 게시글로 이동 (댓글 ID를 해시로 포함)
-    if (notification.comment?.storyId && notification.comment?.channelSlug) {
-      const url = `/channels/${notification.comment.channelSlug}/detail/story/${notification.comment.storyId}#comment-${notification.comment.id}`;
-      router.push(url);
+    // 알림 타입에 따라 이동
+    if (notification.type === "comment" || notification.type === "reply") {
+      // 댓글/답글 알림 - 댓글로 이동
+      if (notification.comment?.storyId && notification.comment?.channelSlug) {
+        const url = `/channels/${notification.comment.channelSlug}/detail/story/${notification.comment.storyId}#comment-${notification.comment.id}`;
+        router.push(url);
+      }
+    } else if (notification.type === "channel_post") {
+      // 채널 새 게시글 알림 - 게시글로 이동
+      if (notification.post?.id && notification.post?.channelSlug) {
+        const url = `/channels/${notification.post.channelSlug}/detail/story/${notification.post.id}`;
+        router.push(url);
+      }
     }
 
     handleClose();
@@ -117,14 +141,24 @@ const NotificationDropdown = () => {
 
   // 알림 메시지 포맷팅
   const formatNotificationMessage = (notification: INotification) => {
-    const author = notification.comment?.author.nickname || "알 수 없는 사용자";
-    const content = notification.comment?.content || "";
-    const preview = content.length > 50 ? content.substring(0, 50) + "..." : content;
-
     if (notification.type === "comment") {
+      const author = notification.comment?.author.nickname || "알 수 없는 사용자";
+      const content = notification.comment?.content || "";
+      const preview = content.length > 50 ? content.substring(0, 50) + "..." : content;
       return `${author}님이 회원님의 글에 댓글을 남겼습니다: "${preview}"`;
-    } else {
+    } else if (notification.type === "reply") {
+      const author = notification.comment?.author.nickname || "알 수 없는 사용자";
+      const content = notification.comment?.content || "";
+      const preview = content.length > 50 ? content.substring(0, 50) + "..." : content;
       return `${author}님이 회원님의 댓글에 답글을 남겼습니다: "${preview}"`;
+    } else if (notification.type === "channel_post") {
+      const author = notification.post?.author?.nickname || "알 수 없는 사용자";
+      const title = notification.post?.title || "";
+      const channelName = notification.post?.channelName || "채널";
+      const preview = title.length > 50 ? title.substring(0, 50) + "..." : title;
+      return `${channelName}에 ${author}님이 새 게시글을 올렸습니다: "${preview}"`;
+    } else {
+      return notification.message || "새로운 알림이 있습니다.";
     }
   };
 

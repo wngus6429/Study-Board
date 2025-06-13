@@ -127,10 +127,38 @@ const BrowserNotification: React.FC<BrowserNotificationProps> = ({ children }) =
     });
   };
 
+  // 채널 새 게시글 알림 생성 (다른 컴포넌트에서 호출 가능)
+  const showChannelPostNotification = (postData: {
+    authorName: string;
+    title: string;
+    channelName: string;
+    storyId: number;
+    channelSlug: string;
+  }) => {
+    const truncatedTitle = postData.title.length > 80 ? postData.title.substring(0, 80) + "..." : postData.title;
+
+    return showBrowserNotification({
+      title: `${postData.channelName} 채널에 새 게시글이 올라왔습니다`,
+      body: `${postData.authorName}: ${truncatedTitle}`,
+      icon: "/icon.png",
+      data: {
+        type: "channel_post",
+        storyId: postData.storyId,
+        channelSlug: postData.channelSlug,
+      },
+      onClick: () => {
+        // 해당 게시글로 이동
+        const url = `/channels/${postData.channelSlug}/detail/story/${postData.storyId}`;
+        window.location.href = url;
+      },
+    });
+  };
+
   // 전역적으로 사용할 수 있도록 window 객체에 함수 추가
   useEffect(() => {
     if (typeof window !== "undefined") {
       (window as any).showCommentNotification = showCommentNotification;
+      (window as any).showChannelPostNotification = showChannelPostNotification;
       (window as any).showBrowserNotification = showBrowserNotification;
     }
   }, [permission]);

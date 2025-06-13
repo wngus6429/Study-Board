@@ -102,9 +102,9 @@ export default function ChannelTopStories() {
   if (!topStories || topStories.length === 0) {
     return (
       <Card sx={{ mb: 2, boxShadow: 2 }}>
-        <CardContent sx={{ p: 2 }}>
+        <CardContent sx={{ p: 2, display: "flex", justifyContent: "center" }}>
           <Typography variant="h6" color="text.secondary">
-            📭 추천수 {MIN_RECOMMEND_COUNT}개 이상인 개념글이 없습니다
+            📭 추천 개념글이 없습니다
           </Typography>
         </CardContent>
       </Card>

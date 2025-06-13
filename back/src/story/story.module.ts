@@ -15,6 +15,8 @@ import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
 import { Channels } from 'src/entities/Channels.entity';
+import { ChannelNotificationModule } from '../channel-notification/channel-notification.module';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { Channels } from 'src/entities/Channels.entity';
       Channels,
     ]),
     AuthModule,
+    ChannelNotificationModule,
+    NotificationModule,
   ],
   controllers: [StoryController],
   providers: [StoryService],

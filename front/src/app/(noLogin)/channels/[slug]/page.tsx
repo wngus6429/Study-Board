@@ -47,6 +47,7 @@ import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import usePageStore from "@/app/store/pageStore";
 import { useSubscriptionStore } from "@/app/store/subscriptionStore";
+import { useChannelNotificationStore } from "@/app/store/channelNotificationStore";
 import { TABLE_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import { TAB_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import CustomizedTables from "@/app/components/table/CustomizedTables";
@@ -77,9 +78,10 @@ const ChannelDetailPage = () => {
     loadSubscriptions,
   } = useSubscriptionStore();
 
+  const { subscribeToChannel, unsubscribeFromChannel, isSubscribedToNotifications } = useChannelNotificationStore();
+
   // 상태 관리
   const [currentTab, setCurrentTab] = useState("all");
-  const [isNotificationEnabled, setIsNotificationEnabled] = useState(false);
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [sortOrder, setSortOrder] = useState<"recent" | "view" | "recommend">("recent");
   const [recommendRankingMode, setRecommendRankingMode] = useState(false);
@@ -117,6 +119,9 @@ const ChannelDetailPage = () => {
 
   // 현재 채널의 구독 상태
   const isSubscribed = checkIsSubscribed(channelId);
+
+  // 현재 채널의 알림 구독 상태
+  const isNotificationEnabled = isSubscribedToNotifications(channelId);
 
   // URL 파라미터에서 상태 초기화 (MainView 방식)
   useEffect(() => {
@@ -312,10 +317,57 @@ const ChannelDetailPage = () => {
     setShowUnsubscribeConfirm(false);
   };
 
+  // 채널 알림 구독 mutation
+  const notificationSubscribeMutation = useMutation({
+    mutationFn: async () => {
+      const { subscribeToChannelNotifications } = await import("@/app/api/channelNotificationApi");
+      return subscribeToChannelNotifications(channelId);
+    },
+    onSuccess: () => {
+      if (channelData) {
+        subscribeToChannel(channelId, channelData.channel_name, channelData.slug);
+      }
+      showMessage("채널 알림을 켰습니다!", "success");
+    },
+    onError: (error: any) => {
+      console.error("채널 알림 구독 실패:", error);
+      showMessage(error.response?.data?.message || "채널 알림 구독에 실패했습니다.", "error");
+    },
+  });
+
+  // 채널 알림 구독 해제 mutation
+  const notificationUnsubscribeMutation = useMutation({
+    mutationFn: async () => {
+      const { unsubscribeFromChannelNotifications } = await import("@/app/api/channelNotificationApi");
+      return unsubscribeFromChannelNotifications(channelId);
+    },
+    onSuccess: () => {
+      unsubscribeFromChannel(channelId);
+      showMessage("채널 알림을 끝습니다.", "info");
+    },
+    onError: (error: any) => {
+      console.error("채널 알림 구독 해제 실패:", error);
+      showMessage(error.response?.data?.message || "채널 알림 구독 해제에 실패했습니다.", "error");
+    },
+  });
+
   // 알림 토글 핸들러
   const handleNotificationToggle = () => {
-    setIsNotificationEnabled(!isNotificationEnabled);
-    showMessage(isNotificationEnabled ? "알림을 끄셨습니다." : "알림을 켜셨습니다.", "info");
+    if (!session?.user) {
+      showMessage("로그인이 필요합니다.", "warning");
+      return;
+    }
+
+    if (!channelData) {
+      showMessage("채널 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", "warning");
+      return;
+    }
+
+    if (isNotificationEnabled) {
+      notificationUnsubscribeMutation.mutate();
+    } else {
+      notificationSubscribeMutation.mutate();
+    }
   };
 
   // 게시글 클릭 핸들러
@@ -829,8 +881,17 @@ const ChannelDetailPage = () => {
                   {/* 알림받기 버튼 */}
                   <Button
                     variant="outlined"
-                    startIcon={isNotificationEnabled ? <NotificationsIcon /> : <NotificationsOffIcon />}
+                    startIcon={
+                      notificationSubscribeMutation.isPending || notificationUnsubscribeMutation.isPending ? (
+                        <CircularProgress size={16} sx={{ color: "inherit" }} />
+                      ) : isNotificationEnabled ? (
+                        <NotificationsIcon />
+                      ) : (
+                        <NotificationsOffIcon />
+                      )
+                    }
                     onClick={handleNotificationToggle}
+                    disabled={notificationSubscribeMutation.isPending || notificationUnsubscribeMutation.isPending}
                     sx={{
                       borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "#1976d2",
                       color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",

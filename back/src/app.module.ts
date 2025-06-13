@@ -14,6 +14,7 @@ import { ChannelsModule } from './channels/channels.module';
 import { MessagesModule } from './messages/messages.module';
 import { UsersModule } from './users/users.module';
 import { ScrapModule } from './scrap/scrap.module';
+import { ChannelNotificationModule } from './channel-notification/channel-notification.module';
 
 //어플리케이션의 루트 모듈이 있는 파일
 @Module({
@@ -69,6 +70,7 @@ import { ScrapModule } from './scrap/scrap.module';
     MessagesModule,
     UsersModule,
     ScrapModule,
+    ChannelNotificationModule,
   ],
 })
 export class AppModule {}

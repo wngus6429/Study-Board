@@ -19,6 +19,7 @@ import { Subscription } from './Subscription.entity';
 import { Channels } from './Channels.entity';
 import { Message } from './Message.entity';
 import { Scrap } from './Scrap.entity';
+import { ChannelNotificationSubscription } from './ChannelNotificationSubscription.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -80,4 +81,11 @@ export class User extends BaseEntity {
 
   @OneToMany(() => Scrap, (scrap) => scrap.User)
   Scraps: Scrap[];
+
+  // 채널 알림 구독 관계
+  @OneToMany(
+    () => ChannelNotificationSubscription,
+    (subscription) => subscription.User,
+  )
+  ChannelNotificationSubscriptions: ChannelNotificationSubscription[];
 }

@@ -18,6 +18,8 @@ import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
 import { Channels } from 'src/entities/Channels.entity';
 import { MIN_RECOMMEND_COUNT } from 'src/common/constants/app.constants';
+import { ChannelNotificationService } from '../channel-notification/channel-notification.service';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class StoryService {
@@ -35,6 +37,8 @@ export class StoryService {
     private recommendRankingRepository: Repository<RecommendRanking>,
     @InjectRepository(Channels)
     private channelsRepository: Repository<Channels>,
+    private channelNotificationService: ChannelNotificationService,
+    private notificationService: NotificationService,
   ) {}
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   async findStory(
@@ -648,6 +652,37 @@ export class StoryService {
 
     console.log('글작성 저장 전 이미지 엔티티:', imageEntities);
     await this.imageRepository.save(imageEntities);
+
+    // 채널에 게시글이 작성된 경우 알림 구독자들에게 알림 발송
+    if (channel) {
+      try {
+        // 해당 채널의 알림 구독자들 조회
+        const subscribers =
+          await this.channelNotificationService.getChannelSubscribers(
+            channel.id,
+          );
+
+        // 각 구독자에게 알림 생성
+        for (const subscriber of subscribers) {
+          // 자기 자신이 작성한 글에는 알림 보내지 않음
+          if (subscriber.id !== userData.id) {
+            await this.notificationService.createForChannelPost(
+              subscriber,
+              savedStory,
+              channel,
+              userData,
+            );
+          }
+        }
+
+        console.log(
+          `📢 채널 ${channel.channel_name}에 새 게시글 알림 발송 완료: ${subscribers.length}명의 구독자`,
+        );
+      } catch (error) {
+        console.error('채널 알림 발송 중 오류 발생:', error);
+        // 알림 발송 실패해도 게시글 작성은 성공 처리
+      }
+    }
 
     return savedStory;
   }

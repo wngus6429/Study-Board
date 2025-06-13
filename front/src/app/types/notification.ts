@@ -1,7 +1,7 @@
 // 알림 타입 정의
 export interface INotification {
   id: number;
-  type: "comment" | "reply"; // 댓글 또는 대댓글
+  type: "comment" | "reply" | "channel_post"; // 댓글, 대댓글, 채널 새 게시글
   message: string;
   isRead: boolean;
   createdAt: string;
@@ -18,6 +18,13 @@ export interface INotification {
   post?: {
     id: number;
     title: string;
+    author?: {
+      id: string;
+      nickname: string;
+    };
+    channelId?: number;
+    channelSlug?: string;
+    channelName?: string;
   };
 }
 

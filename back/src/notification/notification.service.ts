@@ -30,6 +30,28 @@ export class NotificationService {
     });
     return await this.notificationRepository.save(notif);
   }
+
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 채널 새 게시글 작성 시 알림 생성 (story.service에서 호출됨)
+  async createForChannelPost(
+    recipient: User,
+    story: any,
+    channel: any,
+    author: User,
+  ): Promise<Notification> {
+    const titlePreview =
+      story.title.length > 50
+        ? story.title.substring(0, 50) + '...'
+        : story.title;
+
+    const notif = this.notificationRepository.create({
+      recipient,
+      post: story,
+      type: 'channel_post',
+      message: `${channel.channel_name}에 ${author.nickname}님이 새 게시글을 올렸습니다: "${titlePreview}"`,
+    });
+    return await this.notificationRepository.save(notif);
+  }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 알림 메시지 생성
   private generateNotificationMessage(
@@ -61,6 +83,8 @@ export class NotificationService {
         'comment.Story',
         'comment.Story.Channel',
         'post',
+        'post.User',
+        'post.Channel',
       ],
       order: {
         createdAt: 'DESC',
@@ -87,11 +111,20 @@ export class NotificationService {
             channelSlug: notif.comment.Story.Channel?.slug || null,
           }
         : null,
-      // 게시글 정보 (추가 가능)
+      // 게시글 정보 (채널 새 게시글 알림용)
       post: notif.post
         ? {
             id: notif.post.id,
             title: notif.post.title,
+            author: notif.post.User
+              ? {
+                  id: notif.post.User.id,
+                  nickname: notif.post.User.nickname,
+                }
+              : null,
+            channelId: notif.post.Channel?.id || null,
+            channelSlug: notif.post.Channel?.slug || null,
+            channelName: notif.post.Channel?.channel_name || null,
           }
         : null,
     }));
@@ -110,6 +143,8 @@ export class NotificationService {
           'comment.Story',
           'comment.Story.Channel',
           'post',
+          'post.User',
+          'post.Channel',
         ],
         order: {
           createdAt: 'DESC',
@@ -138,11 +173,20 @@ export class NotificationService {
             channelSlug: notif.comment.Story.Channel?.slug || null,
           }
         : null,
-      // 게시글 정보
+      // 게시글 정보 (채널 새 게시글 알림용)
       post: notif.post
         ? {
             id: notif.post.id,
             title: notif.post.title,
+            author: notif.post.User
+              ? {
+                  id: notif.post.User.id,
+                  nickname: notif.post.User.nickname,
+                }
+              : null,
+            channelId: notif.post.Channel?.id || null,
+            channelSlug: notif.post.Channel?.slug || null,
+            channelName: notif.post.Channel?.channel_name || null,
           }
         : null,
     }));

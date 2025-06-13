@@ -13,6 +13,7 @@ import { Story } from './Story.entity';
 import { Subscription } from './Subscription.entity';
 import { User } from './User.entity';
 import { ChannelImage } from './ChannelImage.entity';
+import { ChannelNotificationSubscription } from './ChannelNotificationSubscription.entity';
 
 @Entity() // 이 클래스가 데이터베이스의 엔티티임을 선언합니다.
 export class Channels {
@@ -45,6 +46,13 @@ export class Channels {
 
   @OneToMany(() => Subscription, (subscription) => subscription.Channel)
   subscriptions: Subscription[];
+
+  // 채널 알림 구독 관계
+  @OneToMany(
+    () => ChannelNotificationSubscription,
+    (notificationSubscription) => notificationSubscription.Channel,
+  )
+  NotificationSubscriptions: ChannelNotificationSubscription[];
 
   @CreateDateColumn()
   created_at: Date;

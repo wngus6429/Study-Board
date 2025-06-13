@@ -61,7 +61,7 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
         >
           <TableHead>
             <TableRow>
-              <StyledTableCell sx={{ width: "120px" }}>채널</StyledTableCell>
+              <StyledTableCell sx={{ width: "120px", textAlign: "center" }}>채널</StyledTableCell>
               <StyledTableCell sx={{ width: "200px" }}>제목</StyledTableCell>
               <StyledTableCell sx={{ width: "150px", textAlign: "right" }}>등록일</StyledTableCell>
             </TableRow>

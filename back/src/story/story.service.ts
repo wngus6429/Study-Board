@@ -938,12 +938,24 @@ export class StoryService {
     results: Partial<Story>[];
     total: number;
   }> {
+    console.log(
+      '🔥 getRecommendRankings 호출됨 - channelId:',
+      channelId,
+      'category:',
+      category,
+      'offset:',
+      offset,
+      'limit:',
+      limit,
+    );
+
     // 1. 추천 랭킹 테이블에서 데이터 조회 (카테고리 필터링 포함)
     const query = this.recommendRankingRepository
       .createQueryBuilder('ranking')
       .leftJoinAndSelect('ranking.Story', 'story')
       .leftJoinAndSelect('story.User', 'user')
       .leftJoinAndSelect('story.StoryImage', 'image')
+      .leftJoinAndSelect('story.Channel', 'channel') // 채널 조인 추가
       .orderBy('ranking.recommendCount', 'DESC')
       .skip(offset)
       .take(limit);
@@ -953,9 +965,9 @@ export class StoryService {
       query.andWhere('story.category = :category', { category });
     }
 
-    // 채널 필터 적용
+    // 채널 필터 적용 - 수정된 조건
     if (channelId) {
-      query.andWhere('story.Channel = :channelId', { channelId });
+      query.andWhere('story.channelId = :channelId', { channelId });
     }
 
     // 쿼리 실행
@@ -975,6 +987,8 @@ export class StoryService {
             : null,
       };
     });
+
+    console.log('🔥 최종 반환할 데이터:', results, total);
 
     return { results, total };
   }

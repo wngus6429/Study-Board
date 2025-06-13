@@ -5,7 +5,6 @@ import { Channels } from '../entities/Channels.entity';
 import { ChannelImage } from '../entities/ChannelImage.entity';
 import { Subscription } from '../entities/Subscription.entity';
 import { User } from '../entities/User.entity';
-import { Story } from '../entities/Story.entity';
 
 @Injectable()
 export class ChannelsService {
@@ -18,8 +17,6 @@ export class ChannelsService {
     private subscriptionRepository: Repository<Subscription>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(Story)
-    private storyRepository: Repository<Story>,
   ) {}
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -321,46 +318,6 @@ export class ChannelsService {
       'story_count',
       1,
     );
-  }
-
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 채널별 개념글 조회 (좋아요가 많은 글)
-  async getTopStoriesByChannel(
-    slug: string,
-    limit: number = 5,
-  ): Promise<any[]> {
-    console.log('채널별 개념글 조회:', { slug, limit });
-
-    // 채널 존재 확인
-    const channel = await this.channelsRepository.findOne({
-      where: { slug },
-    });
-
-    if (!channel) {
-      throw new NotFoundException(
-        `슬러그 ${slug}에 해당하는 채널을 찾을 수 없습니다.`,
-      );
-    }
-
-    // 해당 채널의 스토리들을 좋아요 수 기준으로 정렬하여 조회
-    const topStories = await this.storyRepository.find({
-      where: { Channel: { id: channel.id } },
-      relations: ['User', 'Channel'],
-      order: { like_count: 'DESC', created_at: 'DESC' }, // 좋아요 수 내림차순, 같으면 최신순
-      take: limit,
-    });
-
-    // 필요한 필드만 반환
-    return topStories.map((story) => ({
-      id: story.id,
-      title: story.title,
-      like_count: story.like_count,
-      created_at: story.created_at,
-      category: story.category,
-      User: {
-        nickname: story.User.nickname,
-      },
-    }));
   }
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ

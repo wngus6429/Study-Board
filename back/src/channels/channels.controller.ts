@@ -14,7 +14,6 @@ import {
   ParseIntPipe,
   UseInterceptors,
   UploadedFile,
-  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -56,18 +55,6 @@ export class ChannelsController {
   async findChannelBySlug(@Param('slug') slug: string) {
     console.log('채널 슬러그 조회:', slug);
     return await this.channelsService.findBySlug(slug);
-  }
-
-  @Get('slug/:slug/top-stories')
-  @ApiOperation({ summary: '채널별 개념글 조회 (좋아요가 많은 글)' })
-  @ApiResponse({ status: 200, description: '개념글 조회 성공' })
-  @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
-  async getTopStoriesByChannel(
-    @Param('slug') slug: string,
-    @Query('limit') limit: number = 5,
-  ) {
-    console.log('채널별 개념글 조회:', { slug, limit });
-    return await this.channelsService.getTopStoriesByChannel(slug, limit);
   }
 
   @Post('/create')

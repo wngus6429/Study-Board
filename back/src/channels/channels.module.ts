@@ -9,7 +9,6 @@ import { Channels } from '../entities/Channels.entity';
 import { ChannelImage } from '../entities/ChannelImage.entity';
 import { Subscription } from '../entities/Subscription.entity';
 import { User } from '../entities/User.entity';
-import { Story } from '../entities/Story.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { Today } from 'src/common/helper/today';
 
@@ -29,13 +28,7 @@ import { Today } from 'src/common/helper/today';
         },
       }),
     }),
-    TypeOrmModule.forFeature([
-      Channels,
-      ChannelImage,
-      Subscription,
-      User,
-      Story,
-    ]),
+    TypeOrmModule.forFeature([Channels, ChannelImage, Subscription, User]),
     AuthModule,
   ],
   controllers: [ChannelsController],

@@ -61,14 +61,15 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
         >
           <TableHead>
             <TableRow>
+              <StyledTableCell sx={{ width: "120px" }}>채널</StyledTableCell>
               <StyledTableCell sx={{ width: "200px" }}>제목</StyledTableCell>
-              <StyledTableCell sx={{ width: "170px", textAlign: "right" }}>등록일</StyledTableCell>
+              <StyledTableCell sx={{ width: "150px", textAlign: "right" }}>등록일</StyledTableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {tableData.length === 0 ? (
               <StyledTableRow>
-                <StyledTableCell colSpan={2} align="center" sx={{ height: "100px" }}>
+                <StyledTableCell colSpan={3} align="center" sx={{ height: "100px" }}>
                   <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                     <Typography variant="h6">😊 작성한 게시글이 없습니다</Typography>
                   </Box>
@@ -83,10 +84,36 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
                     if (typeof window !== "undefined") {
                       sessionStorage.setItem("previousMainPageUrl", window.location.href);
                     }
-                    router.push(`/detail/story/${row.id}`);
+                    // 채널 슬러그가 있는 경우 채널 URL로, 없는 경우 기본 URL로 이동
+                    const targetUrl = row.channelSlug
+                      ? `/channels/${row.channelSlug}/detail/story/${row.id}`
+                      : `/detail/story/${row.id}`;
+                    router.push(targetUrl);
                   }}
                   sx={{ cursor: "pointer" }}
                 >
+                  <StyledTableCell sx={{ textAlign: "center" }}>
+                    {row.channelName ? (
+                      <Box
+                        sx={{
+                          display: "inline-block",
+                          bgcolor: "secondary.main",
+                          color: "secondary.contrastText",
+                          px: 1,
+                          py: 0.5,
+                          borderRadius: 1,
+                          fontSize: "0.8rem",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {row.channelName}
+                      </Box>
+                    ) : (
+                      <Typography variant="body2" color="text.secondary">
+                        -
+                      </Typography>
+                    )}
+                  </StyledTableCell>
                   <StyledTableCell
                     sx={{
                       display: "flex",
@@ -110,7 +137,7 @@ const CustomizedUserTables = ({ tableData }: CustomizedTablesProps): React.React
                         질문
                       </Box>
                     )}
-                    <Typography variant="body1" color="text.primary" noWrap>
+                    <Typography variant="body1" color="text.primary" noWrap sx={{ flex: 1 }}>
                       {row.title}
                     </Typography>
                   </StyledTableCell>

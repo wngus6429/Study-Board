@@ -50,6 +50,9 @@ interface CustomizedUserTablesDataProps {
   content: string;
   updated_at: string;
   storyId: number;
+  storyTitle?: string;
+  channelName?: string;
+  channelSlug?: string;
 }
 
 const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps): React.ReactNode => {
@@ -67,14 +70,15 @@ const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps
       >
         <TableHead>
           <TableRow>
-            <StyledTableCell sx={{ width: "200px" }}>제목</StyledTableCell>
-            <StyledTableCell sx={{ width: "170px", textAlign: "right" }}>등록일</StyledTableCell>
+            <StyledTableCell sx={{ width: "120px" }}>채널</StyledTableCell>
+            <StyledTableCell sx={{ width: "200px" }}>댓글 내용</StyledTableCell>
+            <StyledTableCell sx={{ width: "150px", textAlign: "right" }}>등록일</StyledTableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {tableData.length === 0 ? (
             <StyledTableRow>
-              <StyledTableCell colSpan={2} align="center" sx={{ height: "100px" }}>
+              <StyledTableCell colSpan={3} align="center" sx={{ height: "100px" }}>
                 <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                   <Typography variant="h6">
                     {commentsFlag ? "😊 작성한 댓글이 없습니다" : "😊 작성한 게시글이 없습니다"}
@@ -93,7 +97,11 @@ const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps
                     if (typeof window !== "undefined" && commentsFlag) {
                       sessionStorage.setItem("previousMainPageUrl", window.location.href);
                     }
-                    router.push(`/detail/story/${row.storyId}#comment-${row.id}`);
+                    // 채널 슬러그가 있는 경우 채널 URL로, 없는 경우 기본 URL로 이동
+                    const targetUrl = row.channelSlug
+                      ? `/channels/${row.channelSlug}/detail/story/${row.storyId}#comment-${row.id}`
+                      : `/detail/story/${row.storyId}#comment-${row.id}`;
+                    router.push(targetUrl);
                   } else {
                     console.warn("storyId가 없습니다:", row);
                   }
@@ -103,21 +111,51 @@ const CustomizedUserTables = ({ tableData, commentsFlag }: CustomizedTablesProps
                   opacity: row.storyId ? 1 : 0.6,
                 }}
               >
+                <StyledTableCell sx={{ textAlign: "center" }}>
+                  {row.channelName ? (
+                    <Box
+                      sx={{
+                        display: "inline-block",
+                        bgcolor: "secondary.main",
+                        color: "secondary.contrastText",
+                        px: 1,
+                        py: 0.5,
+                        borderRadius: 1,
+                        fontSize: "0.8rem",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {row.channelName}
+                    </Box>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      -
+                    </Typography>
+                  )}
+                </StyledTableCell>
                 <StyledTableCell
                   sx={{
                     display: "flex",
-                    alignItems: "center",
-                    gap: 1,
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                    gap: 0.5,
                   }}
                 >
-                  <Typography variant="body1" color="text.primary" noWrap>
-                    {row.content}
-                  </Typography>
-                  {!row.storyId && (
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      (삭제된 글)
+                  {row.storyTitle && (
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: "0.75rem", mb: 0.3 }}>
+                      [{row.storyTitle.length > 25 ? `${row.storyTitle.substring(0, 25)}...` : row.storyTitle}]
                     </Typography>
                   )}
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="body1" color="text.primary" noWrap>
+                      {row.content}
+                    </Typography>
+                    {!row.storyId && (
+                      <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                        (삭제된 글)
+                      </Typography>
+                    )}
+                  </Box>
                 </StyledTableCell>
                 <StyledTableCell sx={{ textAlign: "right", fontSize: "0.875rem", color: "text.secondary" }}>
                   <Box

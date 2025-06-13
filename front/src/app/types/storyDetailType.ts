@@ -17,4 +17,6 @@ export interface StoryType {
   updated_at: string;
   StoryImage: StoryImageType[]; // ImageType 배열로 설정
   User: UserType;
+  channelName?: string; // 채널 이름 추가
+  channelSlug?: string; // 채널 슬러그 추가
 }

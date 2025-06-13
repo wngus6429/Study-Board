@@ -94,9 +94,9 @@ export class AuthService {
     limit = 10,
     userId: string,
   ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
-    const [StoryResults, StoryTotal] = await Promise.all([
+    const [rawStories, StoryTotal] = await Promise.all([
       this.storyRepository.find({
-        relations: ['User'],
+        relations: ['User', 'Channel'],
         order: { id: 'DESC' },
         skip: offset,
         take: limit,
@@ -104,6 +104,17 @@ export class AuthService {
       }),
       this.storyRepository.count({ where: { User: { id: userId } } }), // 조건 추가
     ]);
+
+    // 필요한 필드만 추출합니다.
+    const StoryResults = rawStories.map((story) => ({
+      id: story.id,
+      title: story.title,
+      category: story.category,
+      created_at: story.created_at,
+      channelName: story.Channel?.channel_name,
+      channelSlug: story.Channel?.slug,
+    }));
+
     return { StoryResults, StoryTotal };
   }
   // 로그인 유저 프로필 댓글 가져오기
@@ -115,7 +126,7 @@ export class AuthService {
     // 전체 댓글 데이터를 가져옵니다.
     const [rawComments, CommentsTotal] = await Promise.all([
       this.commentRepository.find({
-        relations: ['Story'],
+        relations: ['Story', 'Story.Channel'],
         order: { id: 'DESC' },
         skip: offset,
         take: limit,
@@ -138,6 +149,9 @@ export class AuthService {
       content: comment.content,
       updated_at: comment.updated_at,
       storyId: comment.Story?.id, // Story 객체가 존재할 경우 id만 가져옵니다.
+      storyTitle: comment.Story?.title,
+      channelName: comment.Story?.Channel?.channel_name,
+      channelSlug: comment.Story?.Channel?.slug,
     }));
 
     return { CommentsResults, CommentsTotal };
@@ -315,7 +329,7 @@ export class AuthService {
     // 전체 스토리 데이터를 가져옵니다.
     const [rawStories, StoryTotal] = await Promise.all([
       this.storyRepository.find({
-        relations: ['User'],
+        relations: ['User', 'Channel'],
         order: { id: 'DESC' },
         skip: offset,
         take: limit,
@@ -336,6 +350,8 @@ export class AuthService {
       title: story.title,
       category: story.category,
       created_at: story.created_at,
+      channelName: story.Channel?.channel_name,
+      channelSlug: story.Channel?.slug,
     }));
 
     return { StoryResults, StoryTotal };
@@ -359,7 +375,7 @@ export class AuthService {
     // 전체 댓글 데이터를 가져옵니다.
     const [rawComments, CommentsTotal] = await Promise.all([
       this.commentRepository.find({
-        relations: ['Story'],
+        relations: ['Story', 'Story.Channel'],
         order: { id: 'DESC' },
         skip: offset,
         take: limit,
@@ -382,6 +398,9 @@ export class AuthService {
       content: comment.content,
       updated_at: comment.updated_at,
       storyId: comment.Story?.id, // Story 객체가 존재할 경우 id만 가져옵니다.
+      storyTitle: comment.Story?.title,
+      channelName: comment.Story?.Channel?.channel_name,
+      channelSlug: comment.Story?.Channel?.slug,
     }));
 
     return { CommentsResults, CommentsTotal };

@@ -14,6 +14,7 @@ import { Subscription } from './Subscription.entity';
 import { User } from './User.entity';
 import { ChannelImage } from './ChannelImage.entity';
 import { ChannelNotificationSubscription } from './ChannelNotificationSubscription.entity';
+import { ChannelChatMessage } from './ChannelChatMessage.entity';
 
 @Entity() // 이 클래스가 데이터베이스의 엔티티임을 선언합니다.
 export class Channels {
@@ -53,6 +54,10 @@ export class Channels {
     (notificationSubscription) => notificationSubscription.Channel,
   )
   NotificationSubscriptions: ChannelNotificationSubscription[];
+
+  // 채널 채팅 메시지 관계
+  @OneToMany(() => ChannelChatMessage, (chatMessage) => chatMessage.channel)
+  ChatMessages: ChannelChatMessage[];
 
   @CreateDateColumn()
   created_at: Date;

@@ -16,6 +16,7 @@ import { UsersModule } from './users/users.module';
 import { ScrapModule } from './scrap/scrap.module';
 import { ChannelNotificationModule } from './channel-notification/channel-notification.module';
 import { BlindModule } from './blind/blind.module';
+import { ChannelChatModule } from './channel-chat/channel-chat.module';
 
 //어플리케이션의 루트 모듈이 있는 파일
 @Module({
@@ -73,6 +74,7 @@ import { BlindModule } from './blind/blind.module';
     ScrapModule,
     ChannelNotificationModule,
     BlindModule,
+    ChannelChatModule,
   ],
 })
 export class AppModule {}

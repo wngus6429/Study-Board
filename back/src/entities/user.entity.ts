@@ -21,6 +21,7 @@ import { Message } from './Message.entity';
 import { Scrap } from './Scrap.entity';
 import { ChannelNotificationSubscription } from './ChannelNotificationSubscription.entity';
 import { Blind } from './Blind.entity';
+import { ChannelChatMessage } from './ChannelChatMessage.entity';
 
 @Entity()
 @Unique(['user_email', 'nickname'])
@@ -97,4 +98,7 @@ export class User extends BaseEntity {
   // 나를 블라인드한 사용자들
   @OneToMany(() => Blind, (blind) => blind.targetUser)
   BlindedBy: Blind[];
+
+  @OneToMany(() => ChannelChatMessage, (chatMessage) => chatMessage.user)
+  ChannelChatMessages: ChannelChatMessage[];
 }

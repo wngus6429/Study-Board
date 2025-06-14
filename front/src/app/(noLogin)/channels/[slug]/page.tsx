@@ -22,6 +22,13 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
+  InputAdornment,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Divider,
 } from "@mui/material";
 import {
   PersonAdd as PersonAddIcon,
@@ -40,6 +47,9 @@ import {
   Edit as EditIcon,
   Announcement as AnnouncementIcon,
   FiberNew as FiberNewIcon,
+  Chat as ChatIcon,
+  Send as SendIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
@@ -61,6 +71,19 @@ import { getChannel, getChannelBySlug, subscribeChannel, unsubscribeChannel, Cha
 // 기존 커스텀 훅들 import
 import { useStories } from "@/app/components/api/useStories";
 import { useCardStories } from "@/app/components/api/useCardStories";
+
+// 채팅 API import
+import {
+  getChannelChatMessages,
+  sendChannelChatMessage,
+  joinChannelChat,
+  leaveChannelChat,
+  ChannelChatMessage,
+  ChannelChatResponse,
+} from "@/app/api/channelChatApi";
+
+// 웹소켓 import
+import { ChannelChatWebSocket, WebSocketStatus } from "@/app/utils/websocket";
 
 const ChannelDetailPage = () => {
   const theme = useTheme();
@@ -89,6 +112,14 @@ const ChannelDetailPage = () => {
   const [showChannelInfo, setShowChannelInfo] = useState(false);
   const [showNotice, setShowNotice] = useState(false);
   const [showUnsubscribeConfirm, setShowUnsubscribeConfirm] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChannelChatMessage[]>([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [wsConnection, setWsConnection] = useState<ChannelChatWebSocket | null>(null);
+  const [wsStatus, setWsStatus] = useState<WebSocketStatus>("disconnected");
+  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+  const [typingUsers, setTypingUsers] = useState<{ id: string; nickname: string }[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<{ id: string; nickname: string }[]>([]);
 
   const viewCount = TABLE_VIEW_COUNT;
 
@@ -560,6 +591,264 @@ const ChannelDetailPage = () => {
     setShowNotice(false);
   };
 
+  // 채팅 토글 핸들러
+  const handleChatToggle = () => {
+    if (!session?.user) {
+      showMessage("로그인이 필요합니다.", "warning");
+      return;
+    }
+
+    if (showChat) {
+      // 채팅 종료 - 웹소켓 연결 해제
+      disconnectWebSocket();
+      setShowChat(false);
+    } else {
+      // 채팅 시작 - 메시지 로드 및 웹소켓 연결
+      setShowChat(true);
+      loadChatMessages();
+    }
+  };
+
+  // 컴포넌트 언마운트 시 웹소켓 정리
+  useEffect(() => {
+    return () => {
+      disconnectWebSocket();
+    };
+  }, []);
+
+  // 채널 변경 시 웹소켓 재연결
+  useEffect(() => {
+    if (showChat && channelId && wsConnection) {
+      disconnectWebSocket();
+      loadChatMessages();
+    }
+  }, [channelId]);
+
+  // 채팅 메시지 로드 및 웹소켓 연결
+  const loadChatMessages = async () => {
+    if (!channelId || !session?.user) return;
+
+    setIsLoadingMessages(true);
+
+    try {
+      // API로 기존 채팅 메시지 로드
+      console.log("📥 채팅 메시지 로드 시작");
+      const response = await getChannelChatMessages(channelId, 1, 50);
+      setChatMessages(response.messages);
+
+      // 채널 입장 알림
+      await joinChannelChat(channelId);
+
+      // 웹소켓 연결 설정
+      if (!wsConnection) {
+        setupWebSocketConnection();
+      }
+
+      console.log("✅ 채팅 로드 완료:", response.messages.length, "개 메시지");
+    } catch (error) {
+      console.error("❌ 채팅 메시지 로드 실패:", error);
+      showMessage("채팅을 불러오는데 실패했습니다.", "error");
+
+      // 에러 시 더미 데이터 표시 (개발용)
+      const dummyMessages: ChannelChatMessage[] = [
+        {
+          id: 1,
+          channel_id: channelId,
+          user_id: "1",
+          user: {
+            id: "1",
+            nickname: "김개발자",
+            user_email: "dev@example.com",
+            profile_image: "",
+          },
+          message: "안녕하세요! 이 채널 정말 유용하네요 👍",
+          created_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+          updated_at: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 2,
+          channel_id: channelId,
+          user_id: "2",
+          user: {
+            id: "2",
+            nickname: "박프론트",
+            user_email: "frontend@example.com",
+            profile_image: "",
+          },
+          message: "React 관련 질문이 있는데 괜찮을까요?",
+          created_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+          updated_at: new Date(Date.now() - 25 * 60 * 1000).toISOString(),
+        },
+      ];
+      setChatMessages(dummyMessages);
+    } finally {
+      setIsLoadingMessages(false);
+    }
+  };
+
+  // 웹소켓 연결 설정
+  const setupWebSocketConnection = () => {
+    if (!channelId || wsConnection || !session?.user) return;
+
+    console.log("🔌 웹소켓 연결 설정 시작");
+
+    const userInfo = {
+      id: session.user.id,
+      nickname: session.user.nickname || session.user.name || "사용자",
+    };
+
+    const ws = new ChannelChatWebSocket(
+      channelId,
+      {
+        onMessage: (message: ChannelChatMessage) => {
+          console.log("📨 새 메시지 수신:", message);
+          setChatMessages((prev) => {
+            // 중복 메시지 방지
+            const exists = prev.find((m) => m.id === message.id);
+            if (!exists) {
+              return [...prev, message];
+            }
+            return prev;
+          });
+        },
+
+        onUserJoined: (user) => {
+          console.log("👋 사용자 입장:", user);
+          setOnlineUsers((prev) => {
+            if (!prev.find((u) => u.id === user.id)) {
+              return [...prev, user];
+            }
+            return prev;
+          });
+          showMessage(`${user.nickname}님이 채팅에 참여했습니다.`, "info");
+        },
+
+        onUserLeft: (user) => {
+          console.log("👋 사용자 퇴장:", user);
+          setOnlineUsers((prev) => prev.filter((u) => u.id !== user.id));
+          showMessage(`${user.nickname}님이 채팅을 나갔습니다.`, "info");
+        },
+
+        onTyping: (user) => {
+          setTypingUsers((prev) => {
+            if (!prev.find((u) => u.id === user.id)) {
+              const newTyping = [...prev, user];
+              // 3초 후 타이핑 상태 제거
+              setTimeout(() => {
+                setTypingUsers((current) => current.filter((u) => u.id !== user.id));
+              }, 3000);
+              return newTyping;
+            }
+            return prev;
+          });
+        },
+
+        onStatusChange: (status) => {
+          console.log("🔄 웹소켓 상태 변경:", status);
+          setWsStatus(status);
+
+          // 연결 상태에 따른 사용자 피드백
+          switch (status) {
+            case "connecting":
+              showMessage("채팅 서버에 연결 중입니다...", "info");
+              break;
+            case "connected":
+              showMessage("채팅 서버에 연결되었습니다.", "success");
+              break;
+            case "disconnected":
+              showMessage("채팅 서버 연결이 끊어졌습니다.", "warning");
+              setOnlineUsers([]); // 연결 끊어지면 온라인 사용자 목록 초기화
+              break;
+            case "error":
+              showMessage("채팅 서버 연결에 문제가 발생했습니다.", "error");
+              break;
+          }
+        },
+
+        onError: (error) => {
+          console.error("❌ 웹소켓 에러:", error);
+          showMessage(error, "error");
+        },
+      },
+      userInfo
+    );
+
+    // 연결 시도
+    ws.connect();
+    setWsConnection(ws);
+
+    // 연결 상태 모니터링 (30초마다)
+    const connectionMonitor = setInterval(() => {
+      if (ws.isConnected()) {
+        console.log("✅ 웹소켓 연결 상태 양호");
+      } else {
+        console.warn("⚠️ 웹소켓 연결 끊어짐 - 재연결 시도");
+        if (ws.getStatus() !== "connecting") {
+          ws.connect();
+        }
+      }
+    }, 30000);
+
+    // 컴포넌트 언마운트 시 모니터링 정리
+    return () => {
+      clearInterval(connectionMonitor);
+    };
+  };
+
+  // 웹소켓 연결 해제
+  const disconnectWebSocket = async () => {
+    if (wsConnection) {
+      wsConnection.disconnect();
+      setWsConnection(null);
+    }
+
+    if (channelId) {
+      try {
+        await leaveChannelChat(channelId);
+      } catch (error) {
+        console.error("채널 나가기 실패:", error);
+      }
+    }
+
+    setOnlineUsers([]);
+    setTypingUsers([]);
+  };
+
+  // 채팅 메시지 전송
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !session?.user || !channelId) return;
+
+    try {
+      // 웹소켓으로 실시간 전송 (연결되어 있다면)
+      if (wsConnection && wsConnection.isConnected()) {
+        wsConnection.sendMessage(newMessage.trim());
+        setNewMessage("");
+        return;
+      }
+
+      // 웹소켓이 없으면 API로 전송
+      console.log("📤 API로 메시지 전송");
+      const response = await sendChannelChatMessage(channelId, newMessage.trim());
+
+      // 성공하면 로컬 상태에 추가
+      setChatMessages((prev) => [...prev, response.chatMessage]);
+      setNewMessage("");
+
+      console.log("✅ 메시지 전송 완료");
+    } catch (error) {
+      console.error("❌ 메시지 전송 실패:", error);
+      showMessage("메시지 전송에 실패했습니다.", "error");
+    }
+  };
+
+  // 채팅 메시지 입력 핸들러
+  const handleMessageKeyPress = (event: React.KeyboardEvent) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+      handleSendMessage();
+    }
+  };
+
   // 로딩 처리
   if (channelLoading) {
     return (
@@ -765,9 +1054,45 @@ const ChannelDetailPage = () => {
               </Box>
             </Box>
 
-            {/* 오른쪽: 버튼 그리드 (2x2) */}
+            {/* 오른쪽: 버튼 그리드 */}
             <Box sx={{ display: "flex", gap: 1.5 }}>
-              {/* 왼쪽 열: 공지사항, 채널정보 - 항상 표시 */}
+              {/* 왼쪽 열: 실시간 채팅 버튼 */}
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                {/* 실시간 채팅 버튼 */}
+                <Button
+                  variant={showChat ? "contained" : "outlined"}
+                  startIcon={<ChatIcon />}
+                  onClick={handleChatToggle}
+                  sx={{
+                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "#1976d2",
+                    color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
+                    minWidth: "120px",
+                    height: "95px",
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    borderRadius: "12px",
+                    transition: "all 0.3s ease",
+                    ...(showChat && {
+                      background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
+                      color: "white",
+                      "&:hover": {
+                        background: "linear-gradient(135deg, #7c3aed, #0891b2)",
+                      },
+                    }),
+                    ...(!showChat && {
+                      "&:hover": {
+                        transform: "translateY(-1px)",
+                        backgroundColor:
+                          theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(25, 118, 210, 0.1)",
+                      },
+                    }),
+                  }}
+                >
+                  {showChat ? "채팅종료" : "실시간채팅"}
+                </Button>
+              </Box>
+
+              {/* 가운데 열: 공지사항, 채널정보 - 항상 표시 */}
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 {/* 공지사항 버튼 */}
                 <Button
@@ -1278,201 +1603,551 @@ const ChannelDetailPage = () => {
         </DialogActions>
       </Dialog>
 
-      {/* 탭 네비게이션 (MainView 스타일 - TAB_SELECT_OPTIONS 사용) */}
-      <Box
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          width: "100%",
-          borderRadius: 2,
-          boxShadow:
-            theme.palette.mode === "dark" ? "0 4px 20px rgba(139, 92, 246, 0.15)" : "0 4px 12px rgba(0,0,0,0.08)",
-          overflow: "hidden",
-          bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "background.paper",
-          border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
-          // marginBottom: 3,
-        }}
-      >
-        <Tabs
-          value={currentTab}
-          onChange={handleTabChange}
-          textColor="secondary"
-          indicatorColor="secondary"
-          aria-label="channel tabs"
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            flexGrow: 1,
-            "& .MuiTab-root": {
-              fontWeight: 600,
-              fontSize: "1rem",
-              py: 2,
-              px: 3,
-              transition: "all 0.2s ease",
-              color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
-              "&:hover": {
-                backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(156, 39, 176, 0.04)",
-                color: theme.palette.mode === "dark" ? "#a78bfa" : "secondary.dark",
-              },
-              "&.Mui-selected": {
-                color: theme.palette.mode === "dark" ? "#a78bfa" : "secondary.main",
-                fontWeight: 700,
-              },
-            },
-            "& .MuiTabs-indicator": {
-              height: 3,
-              borderTopLeftRadius: 3,
-              borderTopRightRadius: 3,
-              backgroundColor: theme.palette.mode === "dark" ? "#8b5cf6" : undefined,
-            },
-          }}
-        >
-          {TAB_SELECT_OPTIONS.filter((option) => option.value !== "suggestion").map((option) => (
-            <Tab key={option.value} icon={option.icon} label={option.name} value={option.value} />
-          ))}
-        </Tabs>
-
-        {/* 뷰 모드 토글 버튼 - 모든 탭에서 표시 */}
-        <IconButton
-          onClick={() => handleViewModeChange("table")}
-          color={viewMode === "table" ? "primary" : "default"}
-          sx={{ ml: 2 }}
-          aria-label="table view"
-        >
-          <ViewListIcon sx={{ fontSize: 32 }} />
-        </IconButton>
-        <IconButton
-          onClick={() => handleViewModeChange("card")}
-          color={viewMode === "card" ? "primary" : "default"}
-          sx={{ ml: 1 }}
-          aria-label="card view"
-        >
-          <ViewModuleIcon sx={{ fontSize: 32 }} />
-        </IconButton>
-
-        {/* 글쓰기 버튼 */}
-        {session?.user && (
-          <Button
-            variant="contained"
-            startIcon={<CreateIcon />}
-            onClick={handleWritePost}
-            sx={{
-              background:
-                theme.palette.mode === "dark"
-                  ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
-                  : "linear-gradient(135deg, #1976d2, #42a5f5)",
-              "&:hover": {
-                background:
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(6, 182, 212, 1))"
-                    : "linear-gradient(135deg, #1565c0, #1976d2)",
-              },
-              boxShadow:
-                theme.palette.mode === "dark"
-                  ? "0 0 20px rgba(139, 92, 246, 0.4)"
-                  : "0 4px 12px rgba(25, 118, 210, 0.3)",
-              ml: 1,
-              mr: 2,
-            }}
-          >
-            글쓰기
-          </Button>
-        )}
-      </Box>
-
-      {/* 탭 컨텐츠 - 모든 탭에서 게시글 표시 */}
-      <>
-        {/* 게시글 목록 */}
-        {currentLoading && !currentData ? (
-          <Loading />
-        ) : viewMode === "card" ? (
-          <CustomizedCardView tableData={sortedTableData} onRowClick={handlePostClick} />
-        ) : (
-          <CustomizedTables tableData={sortedTableData} onRowClick={handlePostClick} />
-        )}
-
-        {/* 로딩 인디케이터 (데이터가 있을 때는 작은 로딩 표시) */}
-        {currentLoading && currentData && (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
-            <Typography variant="caption" sx={{ color: "text.secondary" }}>
-              데이터 업데이트 중...
-            </Typography>
-          </Box>
-        )}
-
-        {/* 하단 컨트롤 영역 (MainView 스타일) */}
+      {/* 탭 네비게이션 - 채팅 모드가 아닐 때만 표시 */}
+      {!showChat && (
         <Box
           sx={{
             display: "flex",
-            justifyContent: "space-between",
             alignItems: "center",
-            mt: 2,
-            height: "35px",
+            width: "100%",
+            borderRadius: 2,
+            boxShadow:
+              theme.palette.mode === "dark" ? "0 4px 20px rgba(139, 92, 246, 0.15)" : "0 4px 12px rgba(0,0,0,0.08)",
+            overflow: "hidden",
+            bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "background.paper",
+            border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+            // marginBottom: 3,
           }}
         >
-          {/* 왼쪽: 정렬 옵션과 추천 랭킹 버튼 */}
-          <Box sx={{ flex: 1, display: "flex", gap: 1 }}>
-            <FormControl size="small">
-              <Select value={sortOrder} onChange={handleSortChange}>
-                <MenuItem value="recent">최신순</MenuItem>
-                <MenuItem value="view">조회순</MenuItem>
-                <MenuItem value="recommend">추천순</MenuItem>
-              </Select>
-            </FormControl>
+          <Tabs
+            value={currentTab}
+            onChange={handleTabChange}
+            textColor="secondary"
+            indicatorColor="secondary"
+            aria-label="channel tabs"
+            variant="scrollable"
+            scrollButtons="auto"
+            sx={{
+              flexGrow: 1,
+              "& .MuiTab-root": {
+                fontWeight: 600,
+                fontSize: "1rem",
+                py: 2,
+                px: 3,
+                transition: "all 0.2s ease",
+                color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
+                "&:hover": {
+                  backgroundColor:
+                    theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(156, 39, 176, 0.04)",
+                  color: theme.palette.mode === "dark" ? "#a78bfa" : "secondary.dark",
+                },
+                "&.Mui-selected": {
+                  color: theme.palette.mode === "dark" ? "#a78bfa" : "secondary.main",
+                  fontWeight: 700,
+                },
+              },
+              "& .MuiTabs-indicator": {
+                height: 3,
+                borderTopLeftRadius: 3,
+                borderTopRightRadius: 3,
+                backgroundColor: theme.palette.mode === "dark" ? "#8b5cf6" : undefined,
+              },
+            }}
+          >
+            {TAB_SELECT_OPTIONS.filter((option) => option.value !== "suggestion").map((option) => (
+              <Tab key={option.value} icon={option.icon} label={option.name} value={option.value} />
+            ))}
+          </Tabs>
+
+          {/* 뷰 모드 토글 버튼 - 채팅 모드가 아닐 때만 표시 */}
+          {!showChat && (
+            <>
+              <IconButton
+                onClick={() => handleViewModeChange("table")}
+                color={viewMode === "table" ? "primary" : "default"}
+                sx={{ ml: 2 }}
+                aria-label="table view"
+              >
+                <ViewListIcon sx={{ fontSize: 32 }} />
+              </IconButton>
+              <IconButton
+                onClick={() => handleViewModeChange("card")}
+                color={viewMode === "card" ? "primary" : "default"}
+                sx={{ ml: 1 }}
+                aria-label="card view"
+              >
+                <ViewModuleIcon sx={{ fontSize: 32 }} />
+              </IconButton>
+            </>
+          )}
+
+          {/* 글쓰기 버튼 */}
+          {session?.user && (
             <Button
               variant="contained"
-              startIcon={<EmojiEventsIcon sx={{ fontSize: 24, color: "rgba(255, 255, 255, 0.8)" }} />}
+              startIcon={<CreateIcon />}
+              onClick={handleWritePost}
               sx={{
-                backgroundImage:
+                background:
                   theme.palette.mode === "dark"
-                    ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
-                    : "linear-gradient(45deg, #ff9800, #f77d58)",
-                color: "white",
-                fontWeight: "bold",
-                borderRadius: "8px",
-                padding: "8px 16px",
+                    ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
+                    : "linear-gradient(135deg, #1976d2, #42a5f5)",
+                "&:hover": {
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(6, 182, 212, 1))"
+                      : "linear-gradient(135deg, #1565c0, #1976d2)",
+                },
                 boxShadow:
                   theme.palette.mode === "dark"
-                    ? "0px 4px 15px rgba(139, 92, 246, 0.4)"
-                    : "0px 4px 10px rgba(0,0,0,0.2)",
-                "&:hover": {
-                  backgroundImage:
+                    ? "0 0 20px rgba(139, 92, 246, 0.4)"
+                    : "0 4px 12px rgba(25, 118, 210, 0.3)",
+                ml: 1,
+                mr: 2,
+              }}
+            >
+              글쓰기
+            </Button>
+          )}
+        </Box>
+      )}
+
+      {/* 메인 콘텐츠 - 채팅 모드와 기본 모드 전환 */}
+      {showChat ? (
+        /* 채팅 UI */
+        <Box
+          sx={{
+            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
+            border:
+              theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid rgba(0, 0, 0, 0.08)",
+            borderRadius: 2,
+            boxShadow:
+              theme.palette.mode === "dark" ? "0 4px 20px rgba(139, 92, 246, 0.15)" : "0 4px 12px rgba(0,0,0,0.08)",
+            height: "calc(100vh - 200px)",
+            display: "flex",
+            flexDirection: "column",
+            overflow: "hidden",
+          }}
+        >
+          {/* 채팅 헤더 */}
+          <Box
+            sx={{
+              p: 2,
+              borderBottom:
+                theme.palette.mode === "dark" ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid rgba(0, 0, 0, 0.08)",
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.1))"
+                  : "linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(6, 182, 212, 0.05))",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <ChatIcon
+              sx={{
+                color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                fontSize: 24,
+                mr: 1,
+              }}
+            />
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <Typography
+                variant="h6"
+                sx={{
+                  fontWeight: 700,
+                  background:
                     theme.palette.mode === "dark"
-                      ? "linear-gradient(45deg, #7c3aed, #0891b2)"
-                      : "linear-gradient(45deg, #e65100, #bf360c)",
-                  boxShadow: theme.palette.mode === "dark" ? "0px 6px 20px rgba(139, 92, 246, 0.6)" : undefined,
-                  transform: theme.palette.mode === "dark" ? "translateY(-1px)" : undefined,
+                      ? "linear-gradient(135deg, #a78bfa, #22d3ee)"
+                      : "linear-gradient(135deg, #8b5cf6, #06b6d4)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {channelData.channel_name} 채널 자유채팅
+              </Typography>
+
+              {/* 연결 상태 및 온라인 사용자 표시 */}
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 0.5 }}>
+                <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      backgroundColor:
+                        wsStatus === "connected" ? "#22c55e" : wsStatus === "connecting" ? "#f59e0b" : "#ef4444",
+                      boxShadow: `0 0 8px ${
+                        wsStatus === "connected" ? "#22c55e" : wsStatus === "connecting" ? "#f59e0b" : "#ef4444"
+                      }`,
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
+                      fontSize: "0.75rem",
+                    }}
+                  >
+                    {wsStatus === "connected"
+                      ? "실시간 연결됨"
+                      : wsStatus === "connecting"
+                        ? "연결 중..."
+                        : "연결 끊김"}
+                  </Typography>
+                </Box>
+
+                {onlineUsers.length > 0 && (
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
+                      fontSize: "0.75rem",
+                    }}
+                  >
+                    온라인: {onlineUsers.length}명
+                  </Typography>
+                )}
+              </Box>
+            </Box>
+          </Box>
+
+          {/* 채팅 메시지 목록 */}
+          <Box
+            sx={{
+              flexGrow: 1,
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+            }}
+          >
+            <List
+              sx={{
+                flexGrow: 1,
+                overflow: "auto",
+                py: 1,
+                px: 0,
+                "&::-webkit-scrollbar": {
+                  width: "6px",
+                },
+                "&::-webkit-scrollbar-track": {
+                  background: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.1)" : "rgba(0, 0, 0, 0.1)",
+                  borderRadius: "6px",
+                },
+                "&::-webkit-scrollbar-thumb": {
+                  background: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(139, 92, 246, 0.3)",
+                  borderRadius: "6px",
+                  "&:hover": {
+                    background: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.7)" : "rgba(139, 92, 246, 0.5)",
+                  },
                 },
               }}
-              onClick={toggleRecommendRanking}
             >
-              {recommendRankingMode ? "추천 랭킹 해제" : "추천 랭킹"}
-            </Button>
+              {chatMessages.length === 0 ? (
+                <Box sx={{ textAlign: "center", py: 6 }}>
+                  <ChatIcon
+                    sx={{
+                      fontSize: "4rem",
+                      color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.3)",
+                      mb: 2,
+                    }}
+                  />
+                  <Typography
+                    variant="h6"
+                    sx={{
+                      color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)",
+                      mb: 1,
+                      fontWeight: 600,
+                    }}
+                  >
+                    첫 메시지를 남겨보세요!
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.4)" : "rgba(0, 0, 0, 0.4)",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    이 채널의 다른 사용자들과 자유롭게 대화해보세요
+                  </Typography>
+                </Box>
+              ) : (
+                chatMessages.map((message, index) => (
+                  <React.Fragment key={message.id}>
+                    <ListItem
+                      alignItems="flex-start"
+                      sx={{
+                        px: 3,
+                        py: 2,
+                        transition: "all 0.2s ease",
+                        "&:hover": {
+                          backgroundColor:
+                            theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.02)",
+                        },
+                      }}
+                    >
+                      <ListItemAvatar sx={{ minWidth: 56 }}>
+                        <Avatar
+                          sx={{
+                            width: 44,
+                            height: 44,
+                            background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
+                            fontSize: "1rem",
+                            fontWeight: "bold",
+                            boxShadow:
+                              theme.palette.mode === "dark"
+                                ? "0 2px 8px rgba(139, 92, 246, 0.3)"
+                                : "0 2px 8px rgba(139, 92, 246, 0.2)",
+                          }}
+                          src={message.user.profile_image}
+                        >
+                          {message.user.nickname.charAt(0)}
+                        </Avatar>
+                      </ListItemAvatar>
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{
+                                fontWeight: 700,
+                                color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
+                                fontSize: "1rem",
+                              }}
+                            >
+                              {message.user.nickname}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
+                                fontSize: "0.8rem",
+                                backgroundColor:
+                                  theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+                                px: 1,
+                                py: 0.25,
+                                borderRadius: "8px",
+                              }}
+                            >
+                              {new Date(message.created_at).toLocaleTimeString("ko-KR", {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </Typography>
+                          </Box>
+                        }
+                        secondary={
+                          <Typography
+                            variant="body1"
+                            sx={{
+                              color: theme.palette.mode === "dark" ? "#cbd5e1" : "#4b5563",
+                              lineHeight: 1.5,
+                              wordBreak: "break-word",
+                              whiteSpace: "pre-wrap",
+                              fontSize: "0.95rem",
+                              mt: 0.5,
+                            }}
+                          >
+                            {message.message}
+                          </Typography>
+                        }
+                      />
+                    </ListItem>
+                    {index < chatMessages.length - 1 && (
+                      <Divider
+                        sx={{
+                          mx: 3,
+                          borderColor:
+                            theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
+                        }}
+                      />
+                    )}
+                  </React.Fragment>
+                ))
+              )}
+            </List>
+
+            {/* 메시지 입력 영역 */}
+            <Box
+              sx={{
+                p: 3,
+                borderTop:
+                  theme.palette.mode === "dark"
+                    ? "1px solid rgba(255, 255, 255, 0.1)"
+                    : "1px solid rgba(0, 0, 0, 0.08)",
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(6, 182, 212, 0.05))"
+                    : "linear-gradient(135deg, rgba(139, 92, 246, 0.02), rgba(6, 182, 212, 0.02))",
+              }}
+            >
+              <TextField
+                fullWidth
+                multiline
+                maxRows={4}
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyPress={handleMessageKeyPress}
+                placeholder="메시지를 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)"
+                variant="outlined"
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: "16px",
+                    background:
+                      theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(255, 255, 255, 0.9)",
+                    fontSize: "1rem",
+                    "& fieldset": {
+                      borderColor:
+                        theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(139, 92, 246, 0.2)",
+                    },
+                    "&:hover fieldset": {
+                      borderColor:
+                        theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(139, 92, 246, 0.4)",
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                      borderWidth: "2px",
+                    },
+                  },
+                  "& .MuiInputBase-input": {
+                    color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
+                    fontSize: "1rem",
+                    py: 1.5,
+                  },
+                  "& .MuiInputBase-input::placeholder": {
+                    color: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
+                    opacity: 1,
+                  },
+                }}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={handleSendMessage}
+                        disabled={!newMessage.trim()}
+                        sx={{
+                          color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                          background:
+                            theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(139, 92, 246, 0.05)",
+                          borderRadius: "12px",
+                          p: 1,
+                          "&:hover": {
+                            background:
+                              theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.2)" : "rgba(139, 92, 246, 0.1)",
+                            transform: "scale(1.05)",
+                          },
+                          "&:disabled": {
+                            color: theme.palette.mode === "dark" ? "#4a5568" : "#a0aec0",
+                            background: "transparent",
+                          },
+                        }}
+                      >
+                        <SendIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+          </Box>
+        </Box>
+      ) : (
+        /* 기본 탭 + 테이블 UI */
+        <>
+          {/* 게시글 목록 */}
+          {currentLoading && !currentData ? (
+            <Loading />
+          ) : viewMode === "card" ? (
+            <CustomizedCardView tableData={sortedTableData} onRowClick={handlePostClick} />
+          ) : (
+            <CustomizedTables tableData={sortedTableData} onRowClick={handlePostClick} />
+          )}
+
+          {/* 로딩 인디케이터 (데이터가 있을 때는 작은 로딩 표시) */}
+          {currentLoading && currentData && (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 1 }}>
+              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                데이터 업데이트 중...
+              </Typography>
+            </Box>
+          )}
+
+          {/* 하단 컨트롤 영역 (MainView 스타일) */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              mt: 2,
+              height: "35px",
+            }}
+          >
+            {/* 왼쪽: 정렬 옵션과 추천 랭킹 버튼 */}
+            <Box sx={{ flex: 1, display: "flex", gap: 1 }}>
+              <FormControl size="small">
+                <Select value={sortOrder} onChange={handleSortChange}>
+                  <MenuItem value="recent">최신순</MenuItem>
+                  <MenuItem value="view">조회순</MenuItem>
+                  <MenuItem value="recommend">추천순</MenuItem>
+                </Select>
+              </FormControl>
+              <Button
+                variant="contained"
+                startIcon={<EmojiEventsIcon sx={{ fontSize: 24, color: "rgba(255, 255, 255, 0.8)" }} />}
+                sx={{
+                  backgroundImage:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
+                      : "linear-gradient(45deg, #ff9800, #f77d58)",
+                  color: "white",
+                  fontWeight: "bold",
+                  borderRadius: "8px",
+                  padding: "8px 16px",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0px 4px 15px rgba(139, 92, 246, 0.4)"
+                      : "0px 4px 10px rgba(0,0,0,0.2)",
+                  "&:hover": {
+                    backgroundImage:
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(45deg, #7c3aed, #0891b2)"
+                        : "linear-gradient(45deg, #e65100, #bf360c)",
+                    boxShadow: theme.palette.mode === "dark" ? "0px 6px 20px rgba(139, 92, 246, 0.6)" : undefined,
+                    transform: theme.palette.mode === "dark" ? "translateY(-1px)" : undefined,
+                  },
+                }}
+                onClick={toggleRecommendRanking}
+              >
+                {recommendRankingMode ? "추천 랭킹 해제" : "추천 랭킹"}
+              </Button>
+            </Box>
+
+            {/* 가운데: 페이지네이션 */}
+            <Box sx={{ display: "flex", justifyContent: "center", flex: 1 }}>
+              <Pagination
+                pageCount={Math.ceil(currentTotal / viewCount)}
+                onPageChange={handlePageClick}
+                currentPage={currentPage}
+              />
+            </Box>
+
+            {/* 오른쪽: 여백 */}
+            <Box sx={{ flex: 1 }} />
           </Box>
 
-          {/* 가운데: 페이지네이션 */}
-          <Box sx={{ display: "flex", justifyContent: "center", flex: 1 }}>
-            <Pagination
-              pageCount={Math.ceil(currentTotal / viewCount)}
-              onPageChange={handlePageClick}
-              currentPage={currentPage}
+          {/* 검색바 */}
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 2 }}>
+            <SearchBar
+              onSearch={handleSearch}
+              onClearSearch={handleClearSearch}
+              currentQuery={searchParamsState?.query || ""}
+              currentCategory={searchParamsState?.type || "all"}
             />
           </Box>
-
-          {/* 오른쪽: 여백 */}
-          <Box sx={{ flex: 1 }} />
-        </Box>
-
-        {/* 검색바 */}
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 2 }}>
-          <SearchBar
-            onSearch={handleSearch}
-            onClearSearch={handleClearSearch}
-            currentQuery={searchParamsState?.query || ""}
-            currentCategory={searchParamsState?.type || "all"}
-          />
-        </Box>
-      </>
+        </>
+      )}
     </Box>
   );
 };

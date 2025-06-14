@@ -211,6 +211,9 @@ export class CommentService {
           parentNickname: comment.parent
             ? comment.parent.User?.nickname || null // 부모 댓글 작성자 닉네임
             : null,
+          parentUserId: comment.parent
+            ? comment.parent.User?.id || null // 부모 댓글 작성자 ID 추가
+            : null,
           children: [], // 자식 댓글 리스트
           isDeleted, // 삭제 여부 플래그
         };
@@ -351,6 +354,7 @@ export class CommentService {
           parentNickname: comment.parent
             ? comment.parent.User?.nickname || null
             : null,
+          parentUserId: comment.parent ? comment.parent.User?.id || null : null,
           children: [],
           isDeleted,
         };

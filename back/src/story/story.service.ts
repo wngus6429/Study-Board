@@ -99,6 +99,7 @@ export class StoryService {
         ...rest,
         recommend_Count: story.like_count,
         imageFlag: story.imageFlag,
+        userId: User.id,
         nickname: User.nickname,
       };
     });
@@ -164,6 +165,7 @@ export class StoryService {
         ...rest,
         recommend_Count: story.like_count,
         imageFlag: story.imageFlag,
+        userId: User.id,
         nickname: User.nickname,
         firstImage: StoryImage[0],
       };
@@ -310,7 +312,13 @@ export class StoryService {
 
       // Likes, StoryImage, User를 분리한 후 User 대신 nickname을 최상위 속성으로 반환
       const { Likes, StoryImage, User, ...rest } = story;
-      return { ...rest, recommend_Count, imageFlag, nickname: User.nickname };
+      return {
+        ...rest,
+        recommend_Count,
+        imageFlag,
+        userId: User.id,
+        nickname: User.nickname,
+      };
     });
 
     console.log('ddd', results, total);
@@ -475,7 +483,13 @@ export class StoryService {
 
       // Likes, StoryImage, User를 분리한 후 User 대신 nickname을 최상위 속성으로 반환
       const { Likes, StoryImage, User, ...rest } = story;
-      return { ...rest, recommend_Count, imageFlag, nickname: User.nickname };
+      return {
+        ...rest,
+        recommend_Count,
+        imageFlag,
+        userId: User.id,
+        nickname: User.nickname,
+      };
     });
 
     console.log('ddd', results, total);
@@ -1087,7 +1101,7 @@ export class StoryService {
       throw new Error('추천 랭킹 마이그레이션에 실패했습니다.');
     }
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 공지사항 목록 가져오기
   async findNotices(limit = 10): Promise<{
     results: Partial<Story>[];

@@ -10,11 +10,15 @@ import Loading from "./Loading";
 import ConfirmDialog from "./ConfirmDialog";
 import { useMessage } from "@/app/store/messageStore";
 import { COMMENT_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
+import BlindWrapper from "../BlindWrapper";
 
 interface Comment {
   id: number;
   content: string;
   nickname: string;
+  userId: string; // 블라인드 처리를 위한 userId 추가
+  parentNickname?: string; // 부모 댓글 작성자 닉네임
+  parentUserId?: string; // 부모 댓글 작성자 ID 추가
   avatarUrl?: string;
   parentId: number | null;
   createdAt: string;
@@ -461,7 +465,13 @@ const CommentsView = () => {
                     @{comment.parentNickname}
                   </Box>
                 )}
-                {comment.content}
+                {comment.userId ? (
+                  <BlindWrapper userId={comment.userId} type="comment">
+                    {comment.content}
+                  </BlindWrapper>
+                ) : (
+                  comment.content
+                )}
               </Typography>
             )}
 

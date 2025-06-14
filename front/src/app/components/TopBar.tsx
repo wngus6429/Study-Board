@@ -20,6 +20,7 @@ import DisplaySettingsIcon from "@mui/icons-material/DisplaySettings";
 import MessageIcon from "@mui/icons-material/Message";
 import HistoryIcon from "@mui/icons-material/History";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 // const SearchBox = styled("div")(({ theme }) => ({
 //   position: "relative",
@@ -143,6 +144,12 @@ export default function MenuBar() {
     router.push("/scraps");
   };
 
+  const handleBlinds = () => {
+    handleSettingsMenuClose();
+    // 블라인드 페이지로 이동
+    router.push("/blinds");
+  };
+
   return (
     <div className={styles.container}>
       <Link href="/channels" aria-label="Home" className={styles.title} onClick={() => setCurrentPage(1)}>
@@ -253,6 +260,12 @@ export default function MenuBar() {
               <BookmarkIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>스크랩</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleBlinds}>
+            <ListItemIcon>
+              <VisibilityOffIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>블라인드</ListItemText>
           </MenuItem>
         </Menu>
       </nav>

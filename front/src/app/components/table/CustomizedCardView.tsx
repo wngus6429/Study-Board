@@ -6,6 +6,10 @@ import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import relativeTime from "dayjs/plugin/relativeTime";
+import BlindWrapper from "../BlindWrapper";
+
+dayjs.extend(relativeTime);
 
 interface FirstImageData {
   id: number;
@@ -18,6 +22,7 @@ interface TableRowData {
   id: number;
   title: string;
   imageFlag: boolean;
+  userId?: string; // 사용자 ID 추가 (블라인드 처리용)
   nickname: string;
   created_at: string;
   recommend_Count: number; // 좋아요 카운트는 optional
@@ -98,7 +103,13 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                         />
                       )}
                       <Typography variant="h6" gutterBottom sx={{ wordBreak: "break-word" }}>
-                        {row.title}
+                        {row.userId ? (
+                          <BlindWrapper userId={row.userId} type="post">
+                            {row.title}
+                          </BlindWrapper>
+                        ) : (
+                          row.title
+                        )}
                       </Typography>
                     </Box>
                     <Box sx={{ display: "flex", alignItems: "center", ml: 1 }}>

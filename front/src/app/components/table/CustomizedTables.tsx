@@ -19,6 +19,7 @@ import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import VisibilityIcon from "@mui/icons-material/Visibility";
 import { useTheme } from "@mui/material/styles";
+import BlindWrapper from "../BlindWrapper";
 
 // 추가 아이콘 import
 import ForumIcon from "@mui/icons-material/Forum";
@@ -193,11 +194,19 @@ const CustomizedTables = ({ tableData, onRowClick }: CustomizedTablesProps): Rea
                           />
                         )}
                       </Typography>
-                      {row.title} {row.comment_count > 0 && `(${row.comment_count})`}
+                      {row.userId ? (
+                        <BlindWrapper userId={row.userId} type="post">
+                          {row.title} {row.comment_count > 0 && `(${row.comment_count})`}
+                        </BlindWrapper>
+                      ) : (
+                        <>
+                          {row.title} {row.comment_count > 0 && `(${row.comment_count})`}
+                        </>
+                      )}
                     </Box>
                   </StyledTableCell>
                   <StyledTableCell>
-                    {row.nickname.length > 6 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
+                    {row.nickname.length > 15 ? `${row.nickname.slice(0, 15)}...` : row.nickname}
                   </StyledTableCell>
                   <StyledTableCell sx={{ textAlign: "center" }}>
                     {dayjs(row.created_at).isSame(dayjs(), "day")

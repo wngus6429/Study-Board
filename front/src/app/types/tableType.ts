@@ -7,6 +7,7 @@ export interface TableStoryType {
   title: string;
   content: string;
   // User: Pick<UserType, "nickname">;
+  userId?: string; // 사용자 ID 추가 (블라인드 처리용)
   nickname: string;
   read_count: number;
   recommend_Count: number;

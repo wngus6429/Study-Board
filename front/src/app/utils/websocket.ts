@@ -32,11 +32,12 @@ export class ChannelChatWebSocket {
   private callbacks: Partial<WebSocketCallbacks>;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
-  private reconnectInterval = 3000;
+  private reconnectDelay = 1000;
   private status: WebSocketStatus = "disconnected";
   private userInfo?: { id: string; nickname: string };
   private heartbeatTimer?: NodeJS.Timeout;
   private lastPongTime = 0;
+  private isConnecting = false;
 
   constructor(channelId: number, callbacks: Partial<WebSocketCallbacks>, userInfo?: { id: string; nickname: string }) {
     this.channelId = channelId;
@@ -45,159 +46,175 @@ export class ChannelChatWebSocket {
   }
 
   // 웹소켓 연결
-  connect(): void {
-    if (this.socket && this.socket.connected) {
-      console.warn("Socket.IO is already connected");
-      return;
-    }
+  connect(): Promise<Socket> {
+    return new Promise((resolve, reject) => {
+      if (this.socket?.connected) {
+        console.log("✅ 이미 연결된 소켓 재사용");
+        this.joinChannel();
+        resolve(this.socket);
+        return;
+      }
 
-    this.setStatus("connecting");
+      if (this.isConnecting) {
+        console.log("⏳ 연결 시도 중...");
+        return;
+      }
 
-    // Socket.IO 서버 URL
-    const serverUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL || "http://localhost:3001";
+      this.isConnecting = true;
+      this.setStatus("connecting");
+      console.log("🔌 WebSocket 연결 시도 중...");
 
-    console.log("🔌 Socket.IO 연결 시도:", serverUrl);
+      // XHR Polling 문제 해결을 위한 설정
+      this.socket = io("http://localhost:9999", {
+        // 전송 방식 설정 - polling을 먼저 시도하고 websocket으로 업그레이드
+        transports: ["polling", "websocket"],
 
-    try {
-      // Socket.IO 클라이언트 설정
-      this.socket = io(serverUrl, {
-        // 자동 재연결 설정
-        autoConnect: true,
+        // 업그레이드 관련 설정
+        upgrade: true,
+        rememberUpgrade: true,
+
+        // 타임아웃 설정
+        timeout: 20000,
+
+        // 재연결 설정
         reconnection: true,
         reconnectionAttempts: this.maxReconnectAttempts,
-        reconnectionDelay: this.reconnectInterval,
-        reconnectionDelayMax: 10000,
+        reconnectionDelay: this.reconnectDelay,
+        reconnectionDelayMax: 5000,
+        randomizationFactor: 0.5,
 
-        // 연결 타임아웃 설정
-        timeout: 10000,
-
-        // 전송 방식 설정 (WebSocket 우선)
-        transports: ["websocket", "polling"],
-
-        // 업그레이드 허용
-        upgrade: true,
-
-        // 쿠키 및 헤더 설정
+        // CORS 설정
         withCredentials: false,
 
-        // 연결 상태 체크 설정
+        // 추가 설정
         forceNew: false,
+        multiplex: true,
+
+        // 쿼리 파라미터
+        query: {
+          channel_id: this.channelId.toString(),
+          timestamp: Date.now().toString(),
+        },
       });
 
-      this.setupEventListeners();
-    } catch (error) {
-      console.error("Socket.IO 연결 실패:", error);
-      this.setStatus("error");
-      this.callbacks.onError?.("웹소켓 연결에 실패했습니다.");
-      this.scheduleReconnect();
-    }
-  }
+      // 연결 성공
+      this.socket.on("connect", () => {
+        console.log("✅ WebSocket 연결 성공!");
+        console.log("🆔 Socket ID:", this.socket?.id);
+        console.log("🔗 전송 방식:", (this.socket as any)?.io?.engine?.transport?.name);
 
-  // 웹소켓 이벤트 리스너 설정
-  private setupEventListeners(): void {
-    if (!this.socket) return;
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+        this.setStatus("connected");
+        this.startHeartbeat();
 
-    // 연결 성공
-    this.socket.on("connect", () => {
-      console.log("✅ Socket.IO 연결 성공 - Socket ID:", this.socket?.id);
-      this.setStatus("connected");
-      this.reconnectAttempts = 0;
-      this.startHeartbeat();
+        // 채널 입장
+        this.joinChannel();
+        resolve(this.socket!);
+      });
 
-      // 채널 입장 메시지 전송
-      this.joinChannel();
-    });
+      // 연결 확인 메시지 수신
+      this.socket.on("connection_ack", (data) => {
+        console.log("📨 서버 연결 확인:", data);
+      });
 
-    // 연결 해제
-    this.socket.on("disconnect", (reason: string) => {
-      console.log("❌ Socket.IO 연결 해제:", reason);
-      this.setStatus("disconnected");
-      this.stopHeartbeat();
+      // 새 메시지 수신
+      this.socket.on("new_message", (data) => {
+        console.log("📨 새 메시지 수신:", data);
+        if (data.message) {
+          this.callbacks.onMessage?.(data.message);
+        }
+      });
 
-      // 서버에서 연결을 끊은 경우가 아니라면 재연결 시도
-      if (reason === "io server disconnect") {
-        // 서버에서 강제 연결 해제 - 재연결하지 않음
-        this.callbacks.onError?.("서버에서 연결을 해제했습니다.");
-      } else {
-        // 네트워크 등의 이유로 끊어진 경우 - 자동 재연결
-        console.log("🔄 자동 재연결 시도...");
-      }
-    });
+      // 사용자 입장
+      this.socket.on("user_joined", (data) => {
+        console.log("👋 사용자 입장:", data);
+        if (data.user) {
+          this.callbacks.onUserJoined?.(data.user);
+        }
+      });
 
-    // 재연결 시도
-    this.socket.on("reconnect_attempt", (attemptNumber: number) => {
-      console.log(`🔄 재연결 시도 ${attemptNumber}/${this.maxReconnectAttempts}`);
-      this.setStatus("connecting");
-    });
+      // 사용자 퇴장
+      this.socket.on("user_left", (data) => {
+        console.log("👋 사용자 퇴장:", data);
+        if (data.user) {
+          this.callbacks.onUserLeft?.(data.user);
+        }
+      });
 
-    // 재연결 성공
-    this.socket.on("reconnect", (attemptNumber: number) => {
-      console.log(`✅ 재연결 성공 (시도 ${attemptNumber}회)`);
-      this.setStatus("connected");
-      this.reconnectAttempts = 0;
-      this.joinChannel();
-    });
+      // 타이핑 상태
+      this.socket.on("user_typing", (data) => {
+        if (data.user) {
+          this.callbacks.onTyping?.(data.user);
+        }
+      });
 
-    // 재연결 실패
-    this.socket.on("reconnect_failed", () => {
-      console.error("❌ 재연결 실패");
-      this.setStatus("error");
-      this.callbacks.onError?.("연결을 복구할 수 없습니다. 페이지를 새로고침해주세요.");
-    });
+      // 연결 오류
+      this.socket.on("connect_error", (error) => {
+        console.error("❌ WebSocket 연결 오류:", error);
+        this.isConnecting = false;
+        this.setStatus("error");
+        this.callbacks.onError?.(`연결 오류: ${error.message}`);
 
-    // 연결 오류
-    this.socket.on("connect_error", (error: Error) => {
-      console.error("❌ 연결 오류:", error);
-      this.setStatus("error");
-      this.callbacks.onError?.(`연결 오류: ${error.message}`);
-    });
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.reconnectAttempts++;
+          console.log(`🔄 재연결 시도 ${this.reconnectAttempts}/${this.maxReconnectAttempts}`);
 
-    // 채팅 메시지 수신
-    this.socket.on("new_message", (data: any) => {
-      console.log("📨 새 메시지 수신:", data);
-      if (data.message) {
-        this.callbacks.onMessage?.(data.message);
-      }
-    });
+          setTimeout(() => {
+            this.connect().then(resolve).catch(reject);
+          }, this.reconnectDelay * this.reconnectAttempts);
+        } else {
+          reject(new Error(`연결 실패: ${error.message}`));
+        }
+      });
 
-    // 사용자 입장
-    this.socket.on("user_joined", (data: any) => {
-      console.log("👋 사용자 입장:", data);
-      if (data.user) {
-        this.callbacks.onUserJoined?.(data.user);
-      }
-    });
+      // 연결 해제
+      this.socket.on("disconnect", (reason) => {
+        console.log("🔌 WebSocket 연결 해제:", reason);
+        this.isConnecting = false;
+        this.setStatus("disconnected");
+        this.stopHeartbeat();
 
-    // 사용자 퇴장
-    this.socket.on("user_left", (data: any) => {
-      console.log("👋 사용자 퇴장:", data);
-      if (data.user) {
-        this.callbacks.onUserLeft?.(data.user);
-      }
-    });
+        // 자동 재연결이 아닌 경우에만 수동 재연결 시도
+        if (reason === "io server disconnect" || reason === "io client disconnect") {
+          console.log("🔄 수동 재연결 시도...");
+          setTimeout(() => {
+            this.connect();
+          }, this.reconnectDelay);
+        }
+      });
 
-    // 타이핑 상태
-    this.socket.on("typing", (data: any) => {
-      if (data.user) {
-        this.callbacks.onTyping?.(data.user);
-      }
-    });
+      // 재연결 시도
+      this.socket.on("reconnect_attempt", (attemptNumber) => {
+        console.log(`🔄 재연결 시도 ${attemptNumber}번째`);
+      });
 
-    // 연결 확인
-    this.socket.on("connection_ack", (data: any) => {
-      console.log("✅ 연결 확인:", data);
-    });
+      // 재연결 성공
+      this.socket.on("reconnect", (attemptNumber) => {
+        console.log(`✅ 재연결 성공 (${attemptNumber}번째 시도)`);
+        this.joinChannel();
+      });
 
-    // 에러 메시지
-    this.socket.on("error", (data: any) => {
-      console.error("❌ 서버 에러:", data);
-      this.callbacks.onError?.(data.data || "서버에서 오류가 발생했습니다.");
-    });
+      // 재연결 실패
+      this.socket.on("reconnect_failed", () => {
+        console.error("❌ 재연결 실패");
+        this.isConnecting = false;
+        reject(new Error("재연결 실패"));
+      });
 
-    // Ping-Pong 응답
-    this.socket.on("pong", () => {
-      this.lastPongTime = Date.now();
-      console.log("🏓 Pong 응답 수신");
+      // 일반 오류
+      this.socket.on("error", (error) => {
+        console.error("🚨 Socket 오류:", error);
+      });
+
+      // Ping/Pong 처리
+      this.socket.on("ping", () => {
+        console.log("🏓 Ping 수신");
+      });
+
+      this.socket.on("pong", (data) => {
+        console.log("🏓 Pong 수신:", data);
+      });
     });
   }
 
@@ -297,24 +314,6 @@ export class ChannelChatWebSocket {
     this.setStatus("disconnected");
   }
 
-  // 재연결 스케줄링
-  private scheduleReconnect(): void {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error("최대 재연결 시도 횟수 초과");
-      this.callbacks.onError?.("연결을 복구할 수 없습니다. 페이지를 새로고침해주세요.");
-      return;
-    }
-
-    this.reconnectAttempts++;
-    console.log(
-      `🔄 ${this.reconnectInterval}ms 후 재연결 시도 (${this.reconnectAttempts}/${this.maxReconnectAttempts})`
-    );
-
-    setTimeout(() => {
-      this.connect();
-    }, this.reconnectInterval);
-  }
-
   // 상태 변경
   private setStatus(status: WebSocketStatus): void {
     this.status = status;
@@ -330,4 +329,122 @@ export class ChannelChatWebSocket {
   isConnected(): boolean {
     return this.socket?.connected || false;
   }
+
+  // 연결 상태 테스트
+  testConnection() {
+    if (this.socket?.connected) {
+      console.log("🧪 연결 테스트 시작");
+      this.socket.emit("ping");
+    }
+  }
 }
+
+// 간단한 사용을 위한 매니저 인스턴스
+class WebSocketManager {
+  private socket: Socket | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+  private reconnectDelay = 1000;
+  private isConnecting = false;
+
+  connect(channelId: number): Promise<Socket> {
+    return new Promise((resolve, reject) => {
+      if (this.socket?.connected) {
+        console.log("✅ 이미 연결된 소켓 재사용");
+        this.joinChannel(channelId);
+        resolve(this.socket);
+        return;
+      }
+
+      if (this.isConnecting) {
+        console.log("⏳ 연결 시도 중...");
+        return;
+      }
+
+      this.isConnecting = true;
+      console.log("🔌 WebSocket 연결 시도 중...");
+
+      this.socket = io("http://localhost:9999", {
+        transports: ["polling", "websocket"],
+        timeout: 20000,
+        reconnection: true,
+        reconnectionAttempts: this.maxReconnectAttempts,
+        reconnectionDelay: this.reconnectDelay,
+        reconnectionDelayMax: 5000,
+        withCredentials: false,
+        forceNew: false,
+        query: {
+          channel_id: channelId.toString(),
+          timestamp: Date.now().toString(),
+        },
+      });
+
+      this.socket.on("connect", () => {
+        console.log("✅ WebSocket 연결 성공!");
+        this.isConnecting = false;
+        this.reconnectAttempts = 0;
+        this.joinChannel(channelId);
+        resolve(this.socket!);
+      });
+
+      this.socket.on("connect_error", (error) => {
+        console.error("❌ WebSocket 연결 오류:", error);
+        this.isConnecting = false;
+
+        if (this.reconnectAttempts < this.maxReconnectAttempts) {
+          this.reconnectAttempts++;
+          setTimeout(() => {
+            this.connect(channelId).then(resolve).catch(reject);
+          }, this.reconnectDelay * this.reconnectAttempts);
+        } else {
+          reject(new Error(`연결 실패: ${error.message}`));
+        }
+      });
+
+      this.socket.on("disconnect", (reason) => {
+        console.log("🔌 WebSocket 연결 해제:", reason);
+        this.isConnecting = false;
+      });
+    });
+  }
+
+  private joinChannel(channelId: number) {
+    if (this.socket?.connected) {
+      this.socket.emit("join_channel", {
+        channel_id: channelId,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  sendMessage(channelId: number, message: string) {
+    if (this.socket?.connected) {
+      this.socket.emit("send_message", {
+        channel_id: channelId,
+        message: message,
+        timestamp: new Date().toISOString(),
+      });
+    }
+  }
+
+  onMessage(callback: (data: any) => void) {
+    if (this.socket) {
+      this.socket.on("new_message", callback);
+    }
+  }
+
+  disconnect() {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+      this.isConnecting = false;
+      this.reconnectAttempts = 0;
+    }
+  }
+
+  isConnected(): boolean {
+    return this.socket?.connected || false;
+  }
+}
+
+export const webSocketManager = new WebSocketManager();

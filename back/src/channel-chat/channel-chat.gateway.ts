@@ -19,14 +19,13 @@ interface AuthenticatedSocket extends Socket {
 }
 
 @WebSocketGateway({
-  cors: {
-    origin: '*', // 개발 환경용, 운영에서는 정확한 도메인 설정
-    methods: ['GET', 'POST'],
-  },
   namespace: '/',
   // Socket.IO 서버 옵션 추가
   pingTimeout: 60000, // 60초 동안 응답 없으면 연결 종료
   pingInterval: 25000, // 25초마다 ping 전송
+  transports: ['polling', 'websocket'], // websocket 우선
+  allowEIO3: true, // Engine.IO v3 호환성
+  serveClient: false, // 클라이언트 파일 서빙 비활성화
 })
 export class ChannelChatGateway
   implements OnGatewayConnection, OnGatewayDisconnect

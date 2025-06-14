@@ -1,16 +1,16 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
 import { IconButton, Badge, Menu, MenuItem, Typography, Box, Divider, Button, CircularProgress } from "@mui/material";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+import FeedIcon from "@mui/icons-material/Feed";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getUnreadCommentNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "../api/notification";
+import { getUnreadChannelNotifications, markNotificationAsRead, markAllNotificationsAsRead } from "../api/notification";
 import { INotification } from "../types/notification";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
 import { useSession } from "next-auth/react";
 
-const NotificationDropdown = () => {
+const ChannelNotificationDropdown = () => {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
@@ -18,10 +18,10 @@ const NotificationDropdown = () => {
   const previousNotificationsRef = useRef<INotification[]>([]);
   const isInitialLoadRef = useRef(true);
 
-  // 읽지 않은 댓글/답글 알림 조회
+  // 읽지 않은 채널 알림 조회
   const { data: notifications = [], isLoading } = useQuery({
-    queryKey: ["unreadCommentNotifications"],
-    queryFn: getUnreadCommentNotifications,
+    queryKey: ["unreadChannelNotifications"],
+    queryFn: getUnreadChannelNotifications,
     refetchInterval: 15000, // 15초마다 새로고침
     enabled: !!session?.user, // 로그인한 사용자만 조회
   });
@@ -40,19 +40,19 @@ const NotificationDropdown = () => {
       (current) => !previousNotifications.some((prev) => prev.id === current.id)
     );
 
-    // 새로운 댓글/답글 알림이 있으면 브라우저 알림 표시
+    // 새로운 채널 알림이 있으면 브라우저 알림 표시
     if (newNotifications.length > 0) {
       newNotifications.forEach((notification) => {
-        if (notification.type === "comment" || notification.type === "reply") {
-          // 댓글/답글 알림
-          const showCommentNotification = (window as any).showCommentNotification;
-          if (showCommentNotification && notification.comment) {
-            showCommentNotification({
-              authorName: notification.comment.author.nickname,
-              content: notification.comment.content,
-              storyId: notification.comment.storyId,
-              commentId: notification.comment.id,
-              channelSlug: notification.comment.channelSlug,
+        if (notification.type === "channel_post") {
+          // 채널 새 게시글 알림
+          const showChannelPostNotification = (window as any).showChannelPostNotification;
+          if (showChannelPostNotification && notification.post) {
+            showChannelPostNotification({
+              authorName: notification.post.author?.nickname || "알수없음",
+              title: notification.post.title,
+              channelName: notification.post.channelName || "채널",
+              storyId: notification.post.id,
+              channelSlug: notification.post.channelSlug || "",
             });
           }
         }
@@ -67,7 +67,7 @@ const NotificationDropdown = () => {
   const markAsReadMutation = useMutation({
     mutationFn: markNotificationAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["unreadCommentNotifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unreadChannelNotifications"] });
     },
   });
 
@@ -75,7 +75,7 @@ const NotificationDropdown = () => {
   const markAllAsReadMutation = useMutation({
     mutationFn: markAllNotificationsAsRead,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["unreadCommentNotifications"] });
+      queryClient.invalidateQueries({ queryKey: ["unreadChannelNotifications"] });
     },
   });
 
@@ -96,10 +96,10 @@ const NotificationDropdown = () => {
       await markAsReadMutation.mutateAsync(notification.id);
     }
 
-    // 댓글/답글 알림 - 댓글로 이동
-    if (notification.type === "comment" || notification.type === "reply") {
-      if (notification.comment?.storyId && notification.comment?.channelSlug) {
-        const url = `/channels/${notification.comment.channelSlug}/detail/story/${notification.comment.storyId}#comment-${notification.comment.id}`;
+    // 채널 새 게시글 알림 - 게시글로 이동
+    if (notification.type === "channel_post") {
+      if (notification.post?.id && notification.post?.channelSlug) {
+        const url = `/channels/${notification.post.channelSlug}/detail/story/${notification.post.id}`;
         router.push(url);
       }
     }
@@ -122,24 +122,16 @@ const NotificationDropdown = () => {
 
   // 알림 메시지 포맷팅
   const formatNotificationMessage = (notification: INotification) => {
-    if (notification.type === "comment") {
-      const author = notification.comment?.author.nickname || "알 수 없는 사용자";
-      const content = notification.comment?.content || "";
-      const preview = content.length > 30 ? content.substring(0, 30) + "..." : content;
+    if (notification.type === "channel_post") {
+      const author = notification.post?.author?.nickname || "알 수 없는 사용자";
+      const title = notification.post?.title || "";
+      const channelName = notification.post?.channelName || "채널";
+      const preview = title.length > 30 ? title.substring(0, 30) + "..." : title;
+
+      // 줄바꿈을 위해 JSX 요소로 반환
       return (
         <>
-          {`${author}님이 회원님의 글에 댓글을 남겼습니다.`}
-          <br />
-          {preview}
-        </>
-      );
-    } else if (notification.type === "reply") {
-      const author = notification.comment?.author.nickname || "알 수 없는 사용자";
-      const content = notification.comment?.content || "";
-      const preview = content.length > 30 ? content.substring(0, 30) + "..." : content;
-      return (
-        <>
-          {`${author}님이 회원님의 댓글에 답글을 남겼습니다.`}
+          {channelName}에 {author}님이 새 게시글을 올렸습니다.
           <br />
           {preview}
         </>
@@ -151,25 +143,25 @@ const NotificationDropdown = () => {
 
   // 알림 페이지로 이동
   const handleMoveToNotificationPage = () => {
-    router.push("/notifications");
+    router.push("/channel-notifications");
   };
 
   return (
     <>
-      {/* 알림 아이콘 버튼 */}
+      {/* 채널 알림 아이콘 버튼 */}
       <IconButton
         size="large"
-        aria-label="댓글 알림"
+        aria-label="채널 알림"
         color="inherit"
         onClick={handleOpen}
         sx={{ mr: 1, color: "white" }}
       >
-        <Badge badgeContent={notifications.length} color="error">
-          <NotificationsIcon />
+        <Badge badgeContent={notifications.length} color="secondary">
+          <FeedIcon />
         </Badge>
       </IconButton>
 
-      {/* 알림 드롭다운 메뉴 */}
+      {/* 채널 알림 드롭다운 메뉴 */}
       <Menu
         anchorEl={anchorEl}
         open={Boolean(anchorEl)}
@@ -195,7 +187,7 @@ const NotificationDropdown = () => {
         {/* 헤더 */}
         <Box sx={{ px: 2, py: 1.5, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <Typography variant="h6" fontWeight="bold">
-            댓글 알림
+            채널 알림
           </Typography>
           {notifications.length > 0 && (
             <Button size="small" onClick={handleMarkAllAsRead} disabled={markAllAsReadMutation.isPending}>
@@ -203,7 +195,7 @@ const NotificationDropdown = () => {
             </Button>
           )}
           <Button size="small" onClick={handleMoveToNotificationPage} sx={{ fontSize: "16px" }}>
-            알림 페이지로 이동
+            채널 알림 페이지로 이동
           </Button>
         </Box>
         <Divider />
@@ -215,7 +207,7 @@ const NotificationDropdown = () => {
           </Box>
         ) : notifications.length === 0 ? (
           <Box sx={{ px: 2, py: 3, textAlign: "center" }}>
-            <Typography color="text.secondary">새로운 댓글 알림이 없습니다</Typography>
+            <Typography color="text.secondary">새로운 채널 알림이 없습니다</Typography>
           </Box>
         ) : (
           notifications.map((notification) => (
@@ -257,7 +249,7 @@ const NotificationDropdown = () => {
             <Divider />
             <MenuItem
               onClick={() => {
-                router.push("/notifications");
+                router.push("/channel-notifications");
                 handleClose();
               }}
               sx={{
@@ -266,7 +258,7 @@ const NotificationDropdown = () => {
                 color: "primary.main",
               }}
             >
-              <Typography variant="body2">모든 댓글 알림 보기</Typography>
+              <Typography variant="body2">모든 채널 알림 보기</Typography>
             </MenuItem>
           </>
         )}
@@ -275,4 +267,4 @@ const NotificationDropdown = () => {
   );
 };
 
-export default NotificationDropdown;
+export default ChannelNotificationDropdown;

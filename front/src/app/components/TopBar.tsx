@@ -14,6 +14,7 @@ import { useMessage } from "../store/messageStore";
 import { useUserImage } from "../store/userImageStore";
 import usePageStore from "../store/pageStore";
 import NotificationDropdown from "./NotificationDropdown";
+import ChannelNotificationDropdown from "./ChannelNotificationDropdown";
 import DarkModeToggle from "./DarkModeToggle";
 import DisplaySettingsIcon from "@mui/icons-material/DisplaySettings";
 import MessageIcon from "@mui/icons-material/Message";
@@ -157,7 +158,12 @@ export default function MenuBar() {
       </Box>
       <nav className={styles.nav}>
         {/* 로그인한 사용자에게만 알림 아이콘 표시 */}
-        {user?.user && <NotificationDropdown />}
+        {user?.user && (
+          <>
+            <NotificationDropdown />
+            <ChannelNotificationDropdown />
+          </>
+        )}
 
         {!user?.user && (
           <Button size="medium" variant="contained" onClick={() => router.push("/login")} color="info">

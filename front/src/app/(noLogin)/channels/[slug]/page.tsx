@@ -1874,98 +1874,278 @@ const ChannelDetailPage = () => {
                   </Typography>
                 </Box>
               ) : (
-                chatMessages.map((message, index) => (
-                  <React.Fragment key={message.id}>
-                    <ListItem
-                      alignItems="flex-start"
+                chatMessages.map((message, index) => {
+                  // 내가 보낸 메시지인지 확인
+                  const isMyMessage = message.user.id === session?.user?.id;
+
+                  return (
+                    <React.Fragment key={message.id}>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          justifyContent: isMyMessage ? "flex-end" : "flex-start",
+                          px: 3,
+                          py: 1.5,
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: isMyMessage ? "row-reverse" : "row",
+                            alignItems: "flex-start",
+                            gap: 1.5,
+                            maxWidth: "75%",
+                          }}
+                        >
+                          {/* 아바타 */}
+                          <Avatar
+                            sx={{
+                              width: 36,
+                              height: 36,
+                              background: isMyMessage
+                                ? "linear-gradient(135deg, #10b981, #059669)"
+                                : "linear-gradient(135deg, #8b5cf6, #06b6d4)",
+                              fontSize: "0.9rem",
+                              fontWeight: "bold",
+                              boxShadow: isMyMessage
+                                ? theme.palette.mode === "dark"
+                                  ? "0 2px 8px rgba(16, 185, 129, 0.3)"
+                                  : "0 2px 8px rgba(16, 185, 129, 0.2)"
+                                : theme.palette.mode === "dark"
+                                  ? "0 2px 8px rgba(139, 92, 246, 0.3)"
+                                  : "0 2px 8px rgba(139, 92, 246, 0.2)",
+                            }}
+                            src={message.user.profile_image}
+                          >
+                            {message.user.nickname.charAt(0)}
+                          </Avatar>
+
+                          {/* 메시지 내용 */}
+                          <Box
+                            sx={{
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: isMyMessage ? "flex-end" : "flex-start",
+                              gap: 0.5,
+                            }}
+                          >
+                            {/* 사용자 이름과 시간 */}
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 1,
+                                flexDirection: isMyMessage ? "row-reverse" : "row",
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  fontWeight: 600,
+                                  color: isMyMessage
+                                    ? theme.palette.mode === "dark"
+                                      ? "#34d399"
+                                      : "#059669"
+                                    : theme.palette.mode === "dark"
+                                      ? "#a78bfa"
+                                      : "#8b5cf6",
+                                  fontSize: "0.85rem",
+                                }}
+                              >
+                                {isMyMessage ? "나" : message.user.nickname}
+                              </Typography>
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
+                                  fontSize: "0.75rem",
+                                }}
+                              >
+                                {new Date(message.created_at).toLocaleTimeString("ko-KR", {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
+                              </Typography>
+                            </Box>
+
+                            {/* 메시지 버블 */}
+                            <Box
+                              sx={{
+                                background: isMyMessage
+                                  ? theme.palette.mode === "dark"
+                                    ? "linear-gradient(135deg, #10b981, #059669)"
+                                    : "linear-gradient(135deg, #34d399, #10b981)"
+                                  : theme.palette.mode === "dark"
+                                    ? "rgba(255, 255, 255, 0.08)"
+                                    : "rgba(0, 0, 0, 0.04)",
+                                color: isMyMessage ? "#ffffff" : theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
+                                px: 2,
+                                py: 1.5,
+                                borderRadius: isMyMessage ? "20px 20px 4px 20px" : "20px 20px 20px 4px",
+                                boxShadow: isMyMessage
+                                  ? theme.palette.mode === "dark"
+                                    ? "0 2px 12px rgba(16, 185, 129, 0.2)"
+                                    : "0 2px 12px rgba(16, 185, 129, 0.15)"
+                                  : theme.palette.mode === "dark"
+                                    ? "0 2px 8px rgba(0, 0, 0, 0.3)"
+                                    : "0 2px 8px rgba(0, 0, 0, 0.1)",
+                                border: isMyMessage
+                                  ? "none"
+                                  : theme.palette.mode === "dark"
+                                    ? "1px solid rgba(255, 255, 255, 0.1)"
+                                    : "1px solid rgba(0, 0, 0, 0.08)",
+                                position: "relative",
+                                "&::before": isMyMessage
+                                  ? {
+                                      content: '""',
+                                      position: "absolute",
+                                      bottom: 0,
+                                      right: -8,
+                                      width: 0,
+                                      height: 0,
+                                      borderLeft: "8px solid",
+                                      borderLeftColor: theme.palette.mode === "dark" ? "#059669" : "#10b981",
+                                      borderTop: "8px solid transparent",
+                                    }
+                                  : {
+                                      content: '""',
+                                      position: "absolute",
+                                      bottom: 0,
+                                      left: -8,
+                                      width: 0,
+                                      height: 0,
+                                      borderRight: "8px solid",
+                                      borderRightColor:
+                                        theme.palette.mode === "dark"
+                                          ? "rgba(255, 255, 255, 0.08)"
+                                          : "rgba(0, 0, 0, 0.04)",
+                                      borderTop: "8px solid transparent",
+                                    },
+                              }}
+                            >
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  lineHeight: 1.4,
+                                  wordBreak: "break-word",
+                                  whiteSpace: "pre-wrap",
+                                  fontSize: "0.9rem",
+                                  fontWeight: isMyMessage ? 500 : 400,
+                                }}
+                              >
+                                {message.message}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        </Box>
+                      </Box>
+
+                      {/* 메시지 간 간격 */}
+                      {index < chatMessages.length - 1 && <Box sx={{ height: 8 }} />}
+                    </React.Fragment>
+                  );
+                })
+              )}
+
+              {/* 타이핑 상태 표시 */}
+              {typingUsers.length > 0 && (
+                <Box
+                  sx={{
+                    px: 3,
+                    py: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1.5,
+                      maxWidth: "75%",
+                    }}
+                  >
+                    <Avatar
                       sx={{
-                        px: 3,
-                        py: 2,
-                        transition: "all 0.2s ease",
-                        "&:hover": {
-                          backgroundColor:
-                            theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.02)" : "rgba(0, 0, 0, 0.02)",
+                        width: 28,
+                        height: 28,
+                        background: "linear-gradient(135deg, #f59e0b, #d97706)",
+                        fontSize: "0.8rem",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {typingUsers[0].nickname.charAt(0)}
+                    </Avatar>
+                    <Box
+                      sx={{
+                        background: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)",
+                        px: 2,
+                        py: 1,
+                        borderRadius: "20px 20px 20px 4px",
+                        border:
+                          theme.palette.mode === "dark"
+                            ? "1px solid rgba(255, 255, 255, 0.1)"
+                            : "1px solid rgba(0, 0, 0, 0.08)",
+                        position: "relative",
+                        "&::before": {
+                          content: '""',
+                          position: "absolute",
+                          bottom: 0,
+                          left: -8,
+                          width: 0,
+                          height: 0,
+                          borderRight: "8px solid",
+                          borderRightColor:
+                            theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.04)",
+                          borderTop: "8px solid transparent",
                         },
                       }}
                     >
-                      <ListItemAvatar sx={{ minWidth: 56 }}>
-                        <Avatar
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                        <Typography
+                          variant="body2"
                           sx={{
-                            width: 44,
-                            height: 44,
-                            background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
-                            fontSize: "1rem",
-                            fontWeight: "bold",
-                            boxShadow:
-                              theme.palette.mode === "dark"
-                                ? "0 2px 8px rgba(139, 92, 246, 0.3)"
-                                : "0 2px 8px rgba(139, 92, 246, 0.2)",
+                            color: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
+                            fontSize: "0.85rem",
+                            fontStyle: "italic",
                           }}
-                          src={message.user.profile_image}
                         >
-                          {message.user.nickname.charAt(0)}
-                        </Avatar>
-                      </ListItemAvatar>
-                      <ListItemText
-                        primary={
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                            <Typography
-                              variant="subtitle1"
+                          {typingUsers.length === 1
+                            ? `${typingUsers[0].nickname}님이 입력 중`
+                            : `${typingUsers[0].nickname}님 외 ${typingUsers.length - 1}명이 입력 중`}
+                        </Typography>
+                        {/* 타이핑 애니메이션 점들 */}
+                        <Box sx={{ display: "flex", gap: 0.5 }}>
+                          {[0, 1, 2].map((i) => (
+                            <Box
+                              key={i}
                               sx={{
-                                fontWeight: 700,
-                                color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
-                                fontSize: "1rem",
+                                width: 4,
+                                height: 4,
+                                borderRadius: "50%",
+                                backgroundColor: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
+                                animation: "typing 1.4s infinite ease-in-out",
+                                animationDelay: `${i * 0.2}s`,
+                                "@keyframes typing": {
+                                  "0%, 80%, 100%": {
+                                    opacity: 0.3,
+                                    transform: "scale(0.8)",
+                                  },
+                                  "40%": {
+                                    opacity: 1,
+                                    transform: "scale(1)",
+                                  },
+                                },
                               }}
-                            >
-                              {message.user.nickname}
-                            </Typography>
-                            <Typography
-                              variant="caption"
-                              sx={{
-                                color: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
-                                fontSize: "0.8rem",
-                                backgroundColor:
-                                  theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
-                                px: 1,
-                                py: 0.25,
-                                borderRadius: "8px",
-                              }}
-                            >
-                              {new Date(message.created_at).toLocaleTimeString("ko-KR", {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </Typography>
-                          </Box>
-                        }
-                        secondary={
-                          <Typography
-                            variant="body1"
-                            sx={{
-                              color: theme.palette.mode === "dark" ? "#cbd5e1" : "#4b5563",
-                              lineHeight: 1.5,
-                              wordBreak: "break-word",
-                              whiteSpace: "pre-wrap",
-                              fontSize: "0.95rem",
-                              mt: 0.5,
-                            }}
-                          >
-                            {message.message}
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                    {index < chatMessages.length - 1 && (
-                      <Divider
-                        sx={{
-                          mx: 3,
-                          borderColor:
-                            theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.05)" : "rgba(0, 0, 0, 0.05)",
-                        }}
-                      />
-                    )}
-                  </React.Fragment>
-                ))
+                            />
+                          ))}
+                        </Box>
+                      </Box>
+                    </Box>
+                  </Box>
+                </Box>
               )}
             </List>
 
@@ -1988,7 +2168,14 @@ const ChannelDetailPage = () => {
                 multiline
                 maxRows={4}
                 value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
+                onChange={(e) => {
+                  setNewMessage(e.target.value);
+
+                  // 타이핑 상태 전송 (디바운싱)
+                  if (wsConnection && wsConnection.isConnected() && e.target.value.trim()) {
+                    wsConnection.sendTyping();
+                  }
+                }}
                 onKeyPress={handleMessageKeyPress}
                 placeholder="메시지를 입력하세요... (Enter: 전송, Shift+Enter: 줄바꿈)"
                 variant="outlined"

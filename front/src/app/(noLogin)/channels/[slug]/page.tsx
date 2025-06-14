@@ -714,19 +714,27 @@ const ChannelDetailPage = () => {
 
         onUserJoined: (user) => {
           console.log("👋 사용자 입장:", user);
-          setOnlineUsers((prev) => {
-            if (!prev.find((u) => u.id === user.id)) {
-              return [...prev, user];
-            }
-            return prev;
-          });
-          showMessage(`${user.nickname}님이 채팅에 참여했습니다.`, "info");
+
+          // 자신의 입장은 메시지로 표시하지 않음
+          if (user.id !== session?.user?.id) {
+            setOnlineUsers((prev) => {
+              if (!prev.find((u) => u.id === user.id)) {
+                return [...prev, user];
+              }
+              return prev;
+            });
+            showMessage(`${user.nickname}님이 채팅에 참여했습니다.`, "info");
+          }
         },
 
         onUserLeft: (user) => {
           console.log("👋 사용자 퇴장:", user);
-          setOnlineUsers((prev) => prev.filter((u) => u.id !== user.id));
-          showMessage(`${user.nickname}님이 채팅을 나갔습니다.`, "info");
+
+          // 자신의 퇴장은 메시지로 표시하지 않음
+          if (user.id !== session?.user?.id) {
+            setOnlineUsers((prev) => prev.filter((u) => u.id !== user.id));
+            showMessage(`${user.nickname}님이 채팅을 나갔습니다.`, "info");
+          }
         },
 
         onTyping: (user) => {
@@ -777,17 +785,21 @@ const ChannelDetailPage = () => {
     ws.connect();
     setWsConnection(ws);
 
-    // 연결 상태 모니터링 (30초마다)
+    // 연결 상태 모니터링 (60초마다, 더 안정적으로)
     const connectionMonitor = setInterval(() => {
-      if (ws.isConnected()) {
-        console.log("✅ 웹소켓 연결 상태 양호");
-      } else {
+      const status = ws.getStatus();
+      const isConnected = ws.isConnected();
+
+      console.log(`🔍 연결 상태 체크: ${status}, 연결됨: ${isConnected}`);
+
+      // 연결이 끊어져 있고, 재연결 시도 중이 아닐 때만 재연결
+      if (!isConnected && status !== "connecting" && status !== "error") {
         console.warn("⚠️ 웹소켓 연결 끊어짐 - 재연결 시도");
-        if (ws.getStatus() !== "connecting") {
-          ws.connect();
-        }
+        ws.connect().catch((error) => {
+          console.error("❌ 모니터링 재연결 실패:", error);
+        });
       }
-    }, 30000);
+    }, 60000); // 60초로 증가
 
     // 컴포넌트 언마운트 시 모니터링 정리
     return () => {

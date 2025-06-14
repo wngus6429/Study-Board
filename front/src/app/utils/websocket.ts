@@ -73,15 +73,15 @@ export class ChannelChatWebSocket {
         upgrade: true,
         rememberUpgrade: true,
 
-        // 타임아웃 설정
-        timeout: 20000,
+        // 타임아웃 설정 (더 안정적으로)
+        timeout: 30000, // 30초로 증가
 
-        // 재연결 설정
+        // 재연결 설정 (더 보수적으로)
         reconnection: true,
-        reconnectionAttempts: this.maxReconnectAttempts,
-        reconnectionDelay: this.reconnectDelay,
-        reconnectionDelayMax: 5000,
-        randomizationFactor: 0.5,
+        reconnectionAttempts: 3, // 3번으로 줄임
+        reconnectionDelay: 3000, // 3초로 증가
+        reconnectionDelayMax: 10000, // 10초로 증가
+        randomizationFactor: 0.3, // 랜덤 요소 줄임
 
         // CORS 설정
         withCredentials: false,
@@ -89,6 +89,9 @@ export class ChannelChatWebSocket {
         // 추가 설정
         forceNew: false,
         multiplex: true,
+
+        // 안정성 향상 설정
+        autoConnect: true,
 
         // 쿼리 파라미터
         query: {
@@ -175,12 +178,17 @@ export class ChannelChatWebSocket {
         this.setStatus("disconnected");
         this.stopHeartbeat();
 
-        // 자동 재연결이 아닌 경우에만 수동 재연결 시도
-        if (reason === "io server disconnect" || reason === "io client disconnect") {
-          console.log("🔄 수동 재연결 시도...");
+        // 의도적인 연결 해제가 아닌 경우에만 재연결 시도
+        // transport close, ping timeout 등은 자동 재연결 허용
+        if (reason !== "io client disconnect" && reason !== "io server disconnect") {
+          console.log(`🔄 네트워크 문제로 인한 연결 해제 (${reason}) - 5초 후 재연결 시도`);
           setTimeout(() => {
-            this.connect();
-          }, this.reconnectDelay);
+            if (!this.socket?.connected && !this.isConnecting) {
+              this.connect();
+            }
+          }, 5000); // 5초 후 재연결
+        } else {
+          console.log(`🛑 의도적인 연결 해제 (${reason}) - 재연결하지 않음`);
         }
       });
 

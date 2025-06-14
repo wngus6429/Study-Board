@@ -248,21 +248,34 @@ io.on('connection', (socket) => {
     console.log(`❌ ${socket.id} 연결 해제: ${reason}`);
     console.log(`📊 남은 연결 수: ${io.engine.clientsCount - 1}`);
 
-    // 모든 채널에서 사용자 퇴장 알림
-    socket.rooms.forEach((room) => {
-      if (room.startsWith('channel_')) {
-        const channelId = room.replace('channel_', '');
-        socket.to(room).emit('user_left', {
-          type: 'user_left',
-          channel_id: parseInt(channelId),
-          user: {
-            id: socket.id,
-            nickname: '익명 사용자',
-          },
-          timestamp: new Date().toISOString(),
+    // 의도적인 연결 해제나 일시적인 네트워크 문제가 아닌 경우에만 퇴장 알림
+    const shouldNotifyLeave =
+      reason !== 'transport close' &&
+      reason !== 'ping timeout' &&
+      reason !== 'transport error';
+
+    if (shouldNotifyLeave) {
+      // 모든 채널에서 사용자 퇴장 알림 (지연 처리)
+      setTimeout(() => {
+        socket.rooms.forEach((room) => {
+          if (room.startsWith('channel_')) {
+            const channelId = room.replace('channel_', '');
+            socket.to(room).emit('user_left', {
+              type: 'user_left',
+              channel_id: parseInt(channelId),
+              user: {
+                id: socket.id,
+                nickname: '익명 사용자',
+              },
+              timestamp: new Date().toISOString(),
+              reason: reason,
+            });
+          }
         });
-      }
-    });
+      }, 2000); // 2초 지연 - 재연결 시도를 기다림
+    } else {
+      console.log(`🔄 일시적인 연결 해제 (${reason}) - 퇴장 알림 생략`);
+    }
   });
 
   // 오류 처리

@@ -1,85 +1,85 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# 📚 Study Board Backend
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+Study Board는 학습 커뮤니티를 위한 종합 플랫폼의 백엔드 서버입니다.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
-
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## 🚀 빠른 시작
 
 ```bash
-$ npm install
+# 의존성 설치
+npm install
+
+# 개발 서버 실행
+npm run start:dev
+
+# 프로덕션 빌드
+npm run build
+npm run start:prod
 ```
 
-## Compile and run the project
+## 🌐 서버 정보
+
+- **백엔드 서버**: http://localhost:9999
+- **API 문서**: http://localhost:9999/api (Swagger UI)
+- **Socket.IO**: http://localhost:9999/socket.io/
+
+## 🏛️ 주요 기능
+
+- 📝 **게시글 시스템**: CRUD, 검색, 추천/비추천
+- 🏢 **채널 시스템**: 채널 생성/관리, 구독
+- 💬 **실시간 채팅**: WebSocket 기반 채널 채팅
+- 🔔 **알림 시스템**: 실시간 알림
+- 👤 **사용자 관리**: 인증/인가, 프로필 관리
+- 📨 **쪽지 시스템**: 1:1 개인 메시지
+
+## 🔧 기술 스택
+
+- **NestJS** - Node.js 백엔드 프레임워크
+- **TypeScript** - 정적 타입 언어
+- **MySQL** - 관계형 데이터베이스
+- **TypeORM** - ORM
+- **Socket.IO** - 실시간 통신
+
+## 📖 상세 문서
+
+전체 시스템 구조, API 명세, 설치 가이드 등 상세한 정보는 다음 문서를 참조하세요:
+
+**👉 [BACKEND_DOCUMENTATION.md](./BACKEND_DOCUMENTATION.md)**
+
+## 🛠️ 개발 명령어
 
 ```bash
-# development
-$ npm run start
+# 개발 서버 (자동 재시작)
+npm run start:dev
 
-# watch mode
-$ npm run start:dev
+# 코드 린팅
+npm run lint
 
-# production mode
-$ npm run start:prod
+# 코드 포맷팅
+npm run format
+
+# 테스트 실행
+npm run test
+
+# 테스트 커버리지
+npm run test:cov
 ```
 
-## Run tests
+## 📋 사전 요구사항
 
-```bash
-# unit tests
-$ npm run test
+- Node.js 20+
+- MySQL 8.0+
+- npm 또는 yarn
 
-# e2e tests
-$ npm run test:e2e
+## 🗄️ 데이터베이스 설정
 
-# test coverage
-$ npm run test:cov
+```sql
+-- MySQL에서 데이터베이스 생성
+CREATE DATABASE `board-study` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 ```
 
-## Resources
+`src/app.module.ts`에서 데이터베이스 연결 정보를 수정하세요.
 
-Check out a few resources that may come in handy when working with NestJS:
+---
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
-
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+**개발팀**: StudyBoard Team  
+**문서 업데이트**: 2024년

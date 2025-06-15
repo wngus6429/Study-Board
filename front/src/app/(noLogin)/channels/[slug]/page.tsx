@@ -1305,7 +1305,7 @@ const ChannelDetailPage = () => {
               </Box>
 
               {/* 오른쪽: 공지사항 작성 버튼 */}
-              {session?.user && (
+              {session?.user && channelData.creator?.id === session.user.id && (
                 <Button
                   onClick={handleWriteNotice}
                   variant="outlined"

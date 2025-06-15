@@ -34,7 +34,7 @@ import {
   Person as PersonIcon,
 } from "@mui/icons-material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMessage } from "../store/messageStore";
+import { useMessage } from "../../store/messageStore";
 import { useSession } from "next-auth/react";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
@@ -46,9 +46,9 @@ import {
   deleteMessage,
   updateMessage,
   searchUserByNickname,
-} from "../api/messagesApi";
-import { Message, SendMessageRequest } from "../types/message";
-import Loading from "../components/common/Loading";
+} from "../../api/messagesApi";
+import { Message, SendMessageRequest } from "../../types/message";
+import Loading from "../../components/common/Loading";
 
 const MessagesPage = () => {
   const theme = useTheme();

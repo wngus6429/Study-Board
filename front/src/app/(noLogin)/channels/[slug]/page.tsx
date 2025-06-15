@@ -1072,35 +1072,107 @@ const ChannelDetailPage = () => {
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 {/* 실시간 채팅 버튼 */}
                 <Button
-                  variant={showChat ? "contained" : "outlined"}
-                  startIcon={<ChatIcon />}
+                  variant="contained"
+                  startIcon={<ChatIcon sx={{ fontSize: 22 }} />}
                   onClick={handleChatToggle}
                   sx={{
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "#1976d2",
-                    color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
-                    minWidth: "120px",
+                    minWidth: "130px",
                     height: "95px",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    borderRadius: "12px",
-                    transition: "all 0.3s ease",
-                    ...(showChat && {
-                      background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
-                      color: "white",
-                      "&:hover": {
-                        background: "linear-gradient(135deg, #7c3aed, #0891b2)",
+                    fontSize: "0.95rem",
+                    fontWeight: 700,
+                    borderRadius: "16px",
+                    position: "relative",
+                    overflow: "hidden",
+                    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                    textTransform: "none",
+                    boxShadow: showChat
+                      ? theme.palette.mode === "dark"
+                        ? "0 8px 32px rgba(239, 68, 68, 0.4), 0 0 20px rgba(239, 68, 68, 0.3)"
+                        : "0 8px 28px rgba(239, 68, 68, 0.3), 0 0 16px rgba(239, 68, 68, 0.2)"
+                      : theme.palette.mode === "dark"
+                        ? "0 8px 32px rgba(34, 197, 94, 0.4), 0 0 20px rgba(34, 197, 94, 0.3)"
+                        : "0 8px 28px rgba(34, 197, 94, 0.3), 0 0 16px rgba(34, 197, 94, 0.2)",
+                    background: showChat
+                      ? "linear-gradient(135deg, #ef4444, #dc2626, #b91c1c)"
+                      : "linear-gradient(135deg, #22c55e, #16a34a, #15803d)",
+                    color: "white",
+                    border: showChat
+                      ? theme.palette.mode === "dark"
+                        ? "2px solid rgba(239, 68, 68, 0.6)"
+                        : "2px solid rgba(239, 68, 68, 0.4)"
+                      : theme.palette.mode === "dark"
+                        ? "2px solid rgba(34, 197, 94, 0.6)"
+                        : "2px solid rgba(34, 197, 94, 0.4)",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: "-100%",
+                      width: "100%",
+                      height: "100%",
+                      background: showChat
+                        ? "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)"
+                        : "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
+                      transition: "left 0.6s ease",
+                    },
+                    "&:hover": {
+                      transform: "translateY(-3px) scale(1.02)",
+                      background: showChat
+                        ? "linear-gradient(135deg, #dc2626, #b91c1c, #991b1b)"
+                        : "linear-gradient(135deg, #16a34a, #15803d, #166534)",
+                      boxShadow: showChat
+                        ? theme.palette.mode === "dark"
+                          ? "0 12px 40px rgba(239, 68, 68, 0.5), 0 0 25px rgba(239, 68, 68, 0.4)"
+                          : "0 12px 35px rgba(239, 68, 68, 0.4), 0 0 20px rgba(239, 68, 68, 0.3)"
+                        : theme.palette.mode === "dark"
+                          ? "0 12px 40px rgba(34, 197, 94, 0.5), 0 0 25px rgba(34, 197, 94, 0.4)"
+                          : "0 12px 35px rgba(34, 197, 94, 0.4), 0 0 20px rgba(34, 197, 94, 0.3)",
+                      "&::before": {
+                        left: "100%",
                       },
-                    }),
-                    ...(!showChat && {
-                      "&:hover": {
-                        transform: "translateY(-1px)",
-                        backgroundColor:
-                          theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(25, 118, 210, 0.1)",
-                      },
-                    }),
+                    },
+                    "&:active": {
+                      transform: "translateY(-1px) scale(0.98)",
+                    },
+                    "& .MuiButton-startIcon": {
+                      marginRight: "8px",
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                    },
                   }}
                 >
-                  {showChat ? "채팅종료" : "실시간채팅"}
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 0.5,
+                      position: "relative",
+                      zIndex: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: "1rem",
+                        textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      {showChat ? "채팅 종료" : "실시간 채팅"}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        fontSize: "0.7rem",
+                        opacity: 0.9,
+                        fontWeight: 600,
+                        textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
+                      }}
+                    >
+                      {showChat ? "클릭하여 나가기" : "지금 참여하기"}
+                    </Typography>
+                  </Box>
                 </Button>
               </Box>
 
@@ -1108,50 +1180,148 @@ const ChannelDetailPage = () => {
               <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 {/* 공지사항 버튼 */}
                 <Button
-                  variant="outlined"
-                  startIcon={<NotificationsIcon />}
+                  variant="contained"
+                  startIcon={<AnnouncementIcon sx={{ fontSize: 20 }} />}
                   onClick={() => setShowNotice(!showNotice)}
                   sx={{
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "#1976d2",
-                    color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
-                    minWidth: "100px",
+                    minWidth: "110px",
                     height: "60px",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
-                    borderRadius: "12px",
-                    transition: "all 0.3s ease",
+                    fontSize: "0.9rem",
+                    fontWeight: 700,
+                    borderRadius: "14px",
+                    position: "relative",
+                    overflow: "hidden",
+                    textTransform: "none",
+                    background: "linear-gradient(135deg, #f59e0b, #f97316, #ea580c)",
+                    color: "white",
+                    border:
+                      theme.palette.mode === "dark"
+                        ? "2px solid rgba(245, 158, 11, 0.5)"
+                        : "2px solid rgba(245, 158, 11, 0.3)",
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 6px 24px rgba(245, 158, 11, 0.4), 0 0 16px rgba(245, 158, 11, 0.2)"
+                        : "0 6px 20px rgba(245, 158, 11, 0.3), 0 0 12px rgba(245, 158, 11, 0.15)",
+                    transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: "-100%",
+                      width: "100%",
+                      height: "100%",
+                      background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)",
+                      transition: "left 0.5s ease",
+                    },
                     "&:hover": {
-                      transform: "translateY(-1px)",
-                      backgroundColor:
-                        theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(25, 118, 210, 0.1)",
+                      transform: "translateY(-2px) scale(1.05)",
+                      background: "linear-gradient(135deg, #f97316, #ea580c, #dc2626)",
+                      boxShadow:
+                        theme.palette.mode === "dark"
+                          ? "0 8px 32px rgba(245, 158, 11, 0.5), 0 0 20px rgba(245, 158, 11, 0.3)"
+                          : "0 8px 28px rgba(245, 158, 11, 0.4), 0 0 16px rgba(245, 158, 11, 0.2)",
+                      "&::before": {
+                        left: "100%",
+                      },
+                    },
+                    "&:active": {
+                      transform: "translateY(-1px) scale(1.02)",
+                    },
+                    "& .MuiButton-startIcon": {
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
                     },
                   }}
                 >
-                  공지사항
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.5,
+                      position: "relative",
+                      zIndex: 1,
+                    }}
+                  >
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: "0.9rem",
+                        textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                        letterSpacing: "0.3px",
+                      }}
+                    >
+                      공지사항
+                    </Typography>
+                  </Box>
                 </Button>
 
                 {/* 채널 정보 버튼 */}
                 <Button
-                  variant="outlined"
-                  startIcon={<PeopleIcon />}
+                  variant="contained"
+                  startIcon={<PeopleIcon sx={{ fontSize: 18 }} />}
                   onClick={() => setShowChannelInfo(!showChannelInfo)}
                   sx={{
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "#1976d2",
-                    color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
-                    minWidth: "100px",
+                    minWidth: "110px",
                     height: "35px",
-                    fontSize: "0.875rem",
-                    fontWeight: 600,
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
                     borderRadius: "12px",
-                    transition: "all 0.3s ease",
+                    position: "relative",
+                    overflow: "hidden",
+                    textTransform: "none",
+                    background: "linear-gradient(135deg, #0ea5e9, #0284c7, #0369a1)",
+                    color: "white",
+                    border:
+                      theme.palette.mode === "dark"
+                        ? "2px solid rgba(14, 165, 233, 0.5)"
+                        : "2px solid rgba(14, 165, 233, 0.3)",
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 4px 20px rgba(14, 165, 233, 0.4), 0 0 12px rgba(14, 165, 233, 0.2)"
+                        : "0 4px 16px rgba(14, 165, 233, 0.3), 0 0 8px rgba(14, 165, 233, 0.15)",
+                    transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: "-100%",
+                      width: "100%",
+                      height: "100%",
+                      background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)",
+                      transition: "left 0.5s ease",
+                    },
                     "&:hover": {
-                      transform: "translateY(-1px)",
-                      backgroundColor:
-                        theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(25, 118, 210, 0.1)",
+                      transform: "translateY(-2px) scale(1.05)",
+                      background: "linear-gradient(135deg, #0284c7, #0369a1, #075985)",
+                      boxShadow:
+                        theme.palette.mode === "dark"
+                          ? "0 6px 28px rgba(14, 165, 233, 0.5), 0 0 16px rgba(14, 165, 233, 0.3)"
+                          : "0 6px 24px rgba(14, 165, 233, 0.4), 0 0 12px rgba(14, 165, 233, 0.2)",
+                      "&::before": {
+                        left: "100%",
+                      },
+                    },
+                    "&:active": {
+                      transform: "translateY(-1px) scale(1.02)",
+                    },
+                    "& .MuiButton-startIcon": {
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
                     },
                   }}
                 >
-                  채널정보
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      fontWeight: 800,
+                      fontSize: "0.85rem",
+                      textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                      letterSpacing: "0.3px",
+                      position: "relative",
+                      zIndex: 1,
+                    }}
+                  >
+                    채널정보
+                  </Typography>
                 </Button>
               </Box>
 
@@ -1160,92 +1330,220 @@ const ChannelDetailPage = () => {
                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
                   {/* 구독하기 버튼 */}
                   <Button
-                    variant={isSubscribed ? "outlined" : "contained"}
+                    variant="contained"
                     onClick={handleSubscribeToggle}
                     disabled={subscribeMutation.isPending || unsubscribeMutation.isPending}
                     startIcon={
-                      isSubscribed ? <StarIcon sx={{ fontSize: 20 }} /> : <PersonAddIcon sx={{ fontSize: 20 }} />
+                      isSubscribed ? <StarIcon sx={{ fontSize: 22 }} /> : <PersonAddIcon sx={{ fontSize: 22 }} />
                     }
                     sx={{
-                      borderRadius: "12px",
-                      fontWeight: 600,
+                      borderRadius: "16px",
+                      fontWeight: 700,
                       px: 3,
                       py: 1.5,
-                      transition: "all 0.3s ease",
-                      minWidth: 140,
+                      minWidth: 150,
                       height: "60px",
                       fontSize: "1rem",
-                      ...(isSubscribed
-                        ? {
-                            color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                            borderColor: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                            "&:hover": {
-                              background:
-                                theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(139, 92, 246, 0.1)",
-                              transform: "translateY(-2px)",
-                              boxShadow:
-                                theme.palette.mode === "dark"
-                                  ? "0 6px 20px rgba(139, 92, 246, 0.3)"
-                                  : "0 6px 16px rgba(139, 92, 246, 0.3)",
-                            },
-                          }
-                        : {
-                            background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
-                            boxShadow:
-                              theme.palette.mode === "dark"
-                                ? "0 4px 15px rgba(139, 92, 246, 0.4)"
-                                : "0 4px 12px rgba(139, 92, 246, 0.3)",
-                            "&:hover": {
-                              background: "linear-gradient(135deg, #7c3aed, #0891b2)",
-                              boxShadow:
-                                theme.palette.mode === "dark"
-                                  ? "0 6px 20px rgba(139, 92, 246, 0.5)"
-                                  : "0 6px 16px rgba(139, 92, 246, 0.4)",
-                              transform: "translateY(-2px)",
-                            },
-                          }),
+                      position: "relative",
+                      overflow: "hidden",
+                      textTransform: "none",
+                      transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                      background: isSubscribed
+                        ? "linear-gradient(135deg, #ef4444, #dc2626, #b91c1c)"
+                        : "linear-gradient(135deg, #8b5cf6, #7c3aed, #6366f1)",
+                      color: "white",
+                      border: isSubscribed
+                        ? theme.palette.mode === "dark"
+                          ? "2px solid rgba(239, 68, 68, 0.6)"
+                          : "2px solid rgba(239, 68, 68, 0.4)"
+                        : theme.palette.mode === "dark"
+                          ? "2px solid rgba(139, 92, 246, 0.6)"
+                          : "2px solid rgba(139, 92, 246, 0.4)",
+                      boxShadow: isSubscribed
+                        ? theme.palette.mode === "dark"
+                          ? "0 6px 28px rgba(239, 68, 68, 0.4), 0 0 16px rgba(239, 68, 68, 0.3)"
+                          : "0 6px 24px rgba(239, 68, 68, 0.3), 0 0 12px rgba(239, 68, 68, 0.2)"
+                        : theme.palette.mode === "dark"
+                          ? "0 6px 28px rgba(139, 92, 246, 0.4), 0 0 16px rgba(139, 92, 246, 0.3)"
+                          : "0 6px 24px rgba(139, 92, 246, 0.3), 0 0 12px rgba(139, 92, 246, 0.2)",
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        top: 0,
+                        left: "-100%",
+                        width: "100%",
+                        height: "100%",
+                        background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
+                        transition: "left 0.6s ease",
+                      },
+                      "&:hover": {
+                        transform: "translateY(-3px) scale(1.02)",
+                        background: isSubscribed
+                          ? "linear-gradient(135deg, #dc2626, #b91c1c, #991b1b)"
+                          : "linear-gradient(135deg, #7c3aed, #6366f1, #4f46e5)",
+                        boxShadow: isSubscribed
+                          ? theme.palette.mode === "dark"
+                            ? "0 8px 35px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.4)"
+                            : "0 8px 30px rgba(239, 68, 68, 0.4), 0 0 16px rgba(239, 68, 68, 0.3)"
+                          : theme.palette.mode === "dark"
+                            ? "0 8px 35px rgba(139, 92, 246, 0.5), 0 0 20px rgba(139, 92, 246, 0.4)"
+                            : "0 8px 30px rgba(139, 92, 246, 0.4), 0 0 16px rgba(139, 92, 246, 0.3)",
+                        "&::before": {
+                          left: "100%",
+                        },
+                      },
+                      "&:active": {
+                        transform: "translateY(-1px) scale(0.98)",
+                      },
+                      "&:disabled": {
+                        background: isSubscribed
+                          ? "linear-gradient(135deg, rgba(239, 68, 68, 0.5), rgba(220, 38, 38, 0.5))"
+                          : "linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(124, 58, 237, 0.5))",
+                        transform: "none",
+                        boxShadow: "none",
+                      },
+                      "& .MuiButton-startIcon": {
+                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                      },
                     }}
                   >
-                    {subscribeMutation.isPending || unsubscribeMutation.isPending ? (
-                      <CircularProgress size={20} sx={{ color: "inherit" }} />
-                    ) : isSubscribed ? (
-                      "구독중"
-                    ) : (
-                      "구독하기"
-                    )}
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 0.5,
+                        position: "relative",
+                        zIndex: 1,
+                      }}
+                    >
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 800,
+                          fontSize: "1rem",
+                          textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        {subscribeMutation.isPending || unsubscribeMutation.isPending ? (
+                          <CircularProgress size={20} sx={{ color: "inherit" }} />
+                        ) : isSubscribed ? (
+                          "구독 중"
+                        ) : (
+                          "구독하기"
+                        )}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          fontSize: "0.7rem",
+                          opacity: 0.9,
+                          fontWeight: 600,
+                          textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
+                        }}
+                      >
+                        {isSubscribed ? "클릭하여 해제" : "새 글 알림받기"}
+                      </Typography>
+                    </Box>
                   </Button>
 
                   {/* 알림받기 버튼 */}
                   <Button
-                    variant="outlined"
+                    variant="contained"
                     startIcon={
                       notificationSubscribeMutation.isPending || notificationUnsubscribeMutation.isPending ? (
-                        <CircularProgress size={16} sx={{ color: "inherit" }} />
+                        <CircularProgress size={18} sx={{ color: "inherit" }} />
                       ) : isNotificationEnabled ? (
-                        <NotificationsIcon />
+                        <NotificationsIcon sx={{ fontSize: 20 }} />
                       ) : (
-                        <NotificationsOffIcon />
+                        <NotificationsOffIcon sx={{ fontSize: 20 }} />
                       )
                     }
                     onClick={handleNotificationToggle}
                     disabled={notificationSubscribeMutation.isPending || notificationUnsubscribeMutation.isPending}
                     sx={{
-                      borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "#1976d2",
-                      color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
-                      minWidth: 140,
+                      minWidth: 150,
                       height: "35px",
-                      fontSize: "0.875rem",
-                      fontWeight: 600,
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
                       borderRadius: "12px",
-                      transition: "all 0.3s ease",
+                      position: "relative",
+                      overflow: "hidden",
+                      textTransform: "none",
+                      transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                      background: isNotificationEnabled
+                        ? "linear-gradient(135deg, #f59e0b, #f97316, #ea580c)"
+                        : "linear-gradient(135deg, #6b7280, #4b5563, #374151)",
+                      color: "white",
+                      border: isNotificationEnabled
+                        ? theme.palette.mode === "dark"
+                          ? "2px solid rgba(245, 158, 11, 0.5)"
+                          : "2px solid rgba(245, 158, 11, 0.3)"
+                        : theme.palette.mode === "dark"
+                          ? "2px solid rgba(107, 114, 128, 0.5)"
+                          : "2px solid rgba(107, 114, 128, 0.3)",
+                      boxShadow: isNotificationEnabled
+                        ? theme.palette.mode === "dark"
+                          ? "0 4px 20px rgba(245, 158, 11, 0.4), 0 0 12px rgba(245, 158, 11, 0.2)"
+                          : "0 4px 16px rgba(245, 158, 11, 0.3), 0 0 8px rgba(245, 158, 11, 0.15)"
+                        : theme.palette.mode === "dark"
+                          ? "0 4px 20px rgba(107, 114, 128, 0.3), 0 0 8px rgba(107, 114, 128, 0.2)"
+                          : "0 4px 16px rgba(107, 114, 128, 0.2), 0 0 6px rgba(107, 114, 128, 0.1)",
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        top: 0,
+                        left: "-100%",
+                        width: "100%",
+                        height: "100%",
+                        background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)",
+                        transition: "left 0.5s ease",
+                      },
                       "&:hover": {
-                        transform: "translateY(-1px)",
-                        backgroundColor:
-                          theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(25, 118, 210, 0.1)",
+                        transform: "translateY(-2px) scale(1.05)",
+                        background: isNotificationEnabled
+                          ? "linear-gradient(135deg, #f97316, #ea580c, #dc2626)"
+                          : "linear-gradient(135deg, #4b5563, #374151, #1f2937)",
+                        boxShadow: isNotificationEnabled
+                          ? theme.palette.mode === "dark"
+                            ? "0 6px 28px rgba(245, 158, 11, 0.5), 0 0 16px rgba(245, 158, 11, 0.3)"
+                            : "0 6px 24px rgba(245, 158, 11, 0.4), 0 0 12px rgba(245, 158, 11, 0.2)"
+                          : theme.palette.mode === "dark"
+                            ? "0 6px 28px rgba(107, 114, 128, 0.4), 0 0 12px rgba(107, 114, 128, 0.3)"
+                            : "0 6px 24px rgba(107, 114, 128, 0.3), 0 0 8px rgba(107, 114, 128, 0.2)",
+                        "&::before": {
+                          left: "100%",
+                        },
+                      },
+                      "&:active": {
+                        transform: "translateY(-1px) scale(1.02)",
+                      },
+                      "&:disabled": {
+                        background: isNotificationEnabled
+                          ? "linear-gradient(135deg, rgba(245, 158, 11, 0.5), rgba(249, 115, 22, 0.5))"
+                          : "linear-gradient(135deg, rgba(107, 114, 128, 0.5), rgba(75, 85, 99, 0.5))",
+                        transform: "none",
+                        boxShadow: "none",
+                      },
+                      "& .MuiButton-startIcon": {
+                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
                       },
                     }}
                   >
-                    {isNotificationEnabled ? "알림끄기" : "알림받기"}
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: 800,
+                        fontSize: "0.85rem",
+                        textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                        letterSpacing: "0.3px",
+                        position: "relative",
+                        zIndex: 1,
+                      }}
+                    >
+                      {isNotificationEnabled ? "알림 끄기" : "알림 받기"}
+                    </Typography>
                   </Button>
                 </Box>
               )}
@@ -1928,7 +2226,11 @@ const ChannelDetailPage = () => {
                                   ? "0 2px 8px rgba(139, 92, 246, 0.3)"
                                   : "0 2px 8px rgba(139, 92, 246, 0.2)",
                             }}
-                            src={message.user.profile_image}
+                            src={
+                              message.user.profile_image
+                                ? `${process.env.NEXT_PUBLIC_BASE_URL}${message.user.profile_image}`
+                                : undefined
+                            }
                           >
                             {message.user.nickname.charAt(0)}
                           </Avatar>

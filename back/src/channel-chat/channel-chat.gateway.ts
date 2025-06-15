@@ -254,20 +254,28 @@ export class ChannelChatGateway
       }
 
       // 실시간으로 모든 채널 참여자에게 메시지 브로드캐스트
-      const messageData = savedMessage || {
-        id: Date.now(), // 임시 ID
-        channel_id,
-        user_id: client.userId,
-        message,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        user: {
-          id: client.userId,
-          nickname: client.userNickname,
-          user_email: '',
-          profile_image: null,
-        },
-      };
+      let messageData;
+
+      if (savedMessage) {
+        // DB에서 저장된 메시지 사용 (프로필 이미지 포함)
+        messageData = savedMessage;
+      } else {
+        // 게스트 사용자이거나 DB 저장 실패시 임시 메시지 생성
+        messageData = {
+          id: Date.now(), // 임시 ID
+          channel_id,
+          user_id: client.userId,
+          message,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user: {
+            id: client.userId,
+            nickname: client.userNickname,
+            user_email: '',
+            profile_image: null,
+          },
+        };
+      }
 
       this.server.to(`channel_${channel_id}`).emit('new_message', {
         type: 'new_message',

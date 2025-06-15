@@ -38,7 +38,7 @@ export class ChannelChatService {
     const [messages, total] =
       await this.channelChatMessageRepository.findAndCount({
         where: { channel: { id: channelId } },
-        relations: ['user'],
+        relations: ['user', 'user.UserImage'],
         order: { created_at: 'DESC' },
         skip: (page - 1) * limit,
         take: limit,

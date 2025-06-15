@@ -26,19 +26,37 @@ import { User } from 'src/entities/User.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Story } from 'src/entities/Story.entity';
 
+/**
+ * Story 컨트롤러
+ * 게시글 관련 API 엔드포인트를 처리합니다.
+ *
+ * @description 게시글 생성, 조회, 수정, 삭제 및 추천/비추천 기능을 제공합니다.
+ * @author StudyBoard Team
+ */
 @Controller('api/story')
 export class StoryController {
   logger: any;
   constructor(private readonly storyService: StoryService) {}
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 게시글 가져오기 API - 카테고리별 글 가져오기
+  /**
+   * 테이블 형태의 게시글 목록 조회
+   *
+   * @description 페이지네이션과 필터링을 통해 게시글 목록을 테이블 형태로 반환합니다.
+   * @param offset 시작 위치
+   * @param limit 조회할 게시글 수
+   * @param category 카테고리 필터 (선택사항)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @param minRecommend 최소 추천 수 필터 (추천 랭킹 모드)
+   * @returns 게시글 목록과 총 개수
+   */
   @Get('/pageTableData')
   async getPageStory(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
-    @Query('category') category?: string, // ✅ category 추가
-    @Query('channelId') channelId?: number, // ✅ channel 필터 추가
-    @Query('minRecommend') minRecommend?: number, // ✅ 추천 랭킹 모드: 최소 추천 수 필터
+    @Query('category') category?: string,
+    @Query('channelId') channelId?: number,
+    @Query('minRecommend') minRecommend?: number,
   ): Promise<{ results: Partial<Story>[]; total: number }> {
     console.log('🔍 테이블 데이터 API 호출:', {
       offset,
@@ -48,6 +66,7 @@ export class StoryController {
       minRecommend,
       typeof_channelId: typeof channelId,
     });
+
     // 추천 랭킹 모드가 활성화되면 minRecommend 값으로 필터링된 결과를 반환
     if (minRecommend) {
       return await this.storyService.findStoryWithMinRecommend(
@@ -58,6 +77,7 @@ export class StoryController {
         channelId,
       );
     }
+
     // 기본 페이지 데이터 조회
     return await this.storyService.findStory(
       offset,
@@ -66,15 +86,26 @@ export class StoryController {
       channelId,
     );
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 카드 게시글 가져오기 API - 카테고리별 글 가져오기
+  /**
+   * 카드 형태의 게시글 목록 조회
+   *
+   * @description 페이지네이션과 필터링을 통해 게시글 목록을 카드 형태로 반환합니다.
+   * @param offset 시작 위치
+   * @param limit 조회할 게시글 수
+   * @param category 카테고리 필터 (선택사항)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @param minRecommend 최소 추천 수 필터 (추천 랭킹 모드)
+   * @returns 게시글 목록과 총 개수
+   */
   @Get('/cardPageTableData')
   async getCardPageStory(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
-    @Query('category') category?: string, // ✅ category 추가
-    @Query('channelId') channelId?: number, // ✅ channel 필터 추가
-    @Query('minRecommend') minRecommend?: number, // ✅ 추천 랭킹 모드: 최소 추천 수 필터
+    @Query('category') category?: string,
+    @Query('channelId') channelId?: number,
+    @Query('minRecommend') minRecommend?: number,
   ): Promise<{ results: Partial<Story>[]; total: number }> {
     console.log('🔍 카드 데이터 API 호출:', {
       offset,
@@ -84,6 +115,7 @@ export class StoryController {
       minRecommend,
       typeof_channelId: typeof channelId,
     });
+
     // 추천 랭킹 모드가 활성화되면 minRecommend 값으로 필터링된 결과를 반환
     if (minRecommend) {
       return await this.storyService.findCardStoryWithMinRecommend(
@@ -94,6 +126,7 @@ export class StoryController {
         channelId,
       );
     }
+
     // 기본 페이지 데이터 조회
     return await this.storyService.findCardStory(
       offset,
@@ -104,14 +137,26 @@ export class StoryController {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
+  /**
+   * 게시글 검색 (테이블 형태)
+   *
+   * @description 검색어와 검색 타입에 따라 게시글을 검색합니다.
+   * @param offset 시작 위치
+   * @param limit 조회할 게시글 수
+   * @param type 검색 타입 (all, title_content, title, content, author, comment)
+   * @param query 검색어
+   * @param category 카테고리 필터 (선택사항)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @returns 검색된 게시글 목록과 총 개수
+   */
   @Get('/search')
   async searchStories(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
-    @Query('type') type: string = 'all', // 검색 타입: all, title_content, title, content, author, comment 등
-    @Query('query') query: string, // 실제 검색어
-    @Query('category') category?: string, // 카테고리 필터 추가
-    @Query('channelId') channelId?: number, // ✅ channel 필터 추가
+    @Query('type') type: string = 'all',
+    @Query('query') query: string,
+    @Query('category') category?: string,
+    @Query('channelId') channelId?: number,
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -131,14 +176,26 @@ export class StoryController {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 검색 기능 API
+  /**
+   * 게시글 검색 (카드 형태)
+   *
+   * @description 검색어와 검색 타입에 따라 게시글을 카드 형태로 검색합니다.
+   * @param offset 시작 위치
+   * @param limit 조회할 게시글 수
+   * @param type 검색 타입 (all, title_content, title, content, author, comment)
+   * @param query 검색어
+   * @param category 카테고리 필터 (선택사항)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @returns 검색된 게시글 목록과 총 개수
+   */
   @Get('/cardSearch')
   async cardSearchStories(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
-    @Query('type') type: string = 'all', // 검색 타입: all, title_content, title, content, author, comment 등
-    @Query('query') query: string, // 실제 검색어
-    @Query('category') category?: string, // 카테고리 필터 추가
-    @Query('channelId') channelId?: number, // ✅ channel 필터 추가
+    @Query('type') type: string = 'all',
+    @Query('query') query: string,
+    @Query('category') category?: string,
+    @Query('channelId') channelId?: number,
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -158,40 +215,65 @@ export class StoryController {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세페이지
+  /**
+   * 게시글 상세 페이지 조회
+   *
+   * @description 게시글 ID로 특정 게시글의 상세 정보를 조회합니다.
+   * @param id 게시글 ID
+   * @returns 게시글 상세 정보 (작성자 정보 포함)
+   */
   @Get('/detail/:id')
   async getStoryDetail(@Param('id', ParseIntPipe) id: number): Promise<any> {
     const data = await this.storyService.findStoryOne(id);
-    // User의 필요한 필드만 남김
-    console.log('q상세페이지 데이터:', data);
+    console.log('상세페이지 데이터:', data);
+
+    // 응답에 필요한 사용자 정보만 추출
     const { User, ...rest } = data;
     const writeUserInfo = {
       nickname: User.nickname,
       id: User.id,
       avatar: User.UserImage?.link || null,
     };
-    // User는 글 작성자임
+
     return { ...rest, User: writeUserInfo };
   }
   // 공지 상세페이지
+  /**
+   * 공지사항 상세 페이지 조회
+   *
+   * @description 공지사항 ID로 특정 공지사항의 상세 정보를 조회합니다.
+   * @param id 공지사항 ID
+   * @param userData 사용자 데이터 (선택사항)
+   * @returns 공지사항 상세 정보 (작성자 정보 포함)
+   */
   @Get('/notice/:id')
   async getNoticeDetail(
     @Param('id', ParseIntPipe) id: number,
     @Body() userData?: any,
   ): Promise<any> {
     const data = await this.storyService.findNoticeOne(id, userData?.userId);
-    // User의 필요한 필드만 남김
     console.log('상세페이지 데이터:', data);
+
+    // 응답에 필요한 사용자 정보만 추출
     const { User, ...rest } = data;
     const writeUserInfo = {
       nickname: User.nickname,
       id: User.id,
       avatar: User.UserImage?.link || null,
     };
-    // User는 글 작성자임
+
     return { ...rest, User: writeUserInfo };
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 상세 페이지 수정시 데이터 받아옴
+  /**
+   * 게시글 수정용 데이터 조회
+   *
+   * @description 게시글 수정 시 필요한 기존 데이터를 조회합니다.
+   * @param id 게시글 ID
+   * @param userId 사용자 ID (수정 권한 확인용)
+   * @returns 수정할 게시글 데이터
+   */
   @Get('/detail/edit/:id')
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
@@ -204,6 +286,15 @@ export class StoryController {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 작성
+  /**
+   * 새 게시글 작성
+   *
+   * @description 새로운 게시글을 작성합니다. 이미지 첨부 지원.
+   * @param createStoryDto 게시글 생성 데이터
+   * @param userData 인증된 사용자 정보
+   * @param files 첨부 이미지 파일 목록
+   * @returns 생성된 게시글 정보
+   */
   @Post('/create')
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
@@ -214,14 +305,25 @@ export class StoryController {
     @UploadedFiles() files: Express.Multer.File[],
   ) {
     console.log('글 작성', createStoryDto, userData, files);
-    // 테스트를 위해 title이 "error"이면 의도적으로 예외 발생
+
+    // 테스트용 예외 처리 코드 (현재 주석 처리)
     // if (createStoryDto.title === 'error') {
     //   throw new InternalServerErrorException('의도한 실패');
     // }
+
     return this.storyService.create(createStoryDto, userData, files);
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 공지사항 작성
+  /**
+   * 새 공지사항 작성
+   *
+   * @description 새로운 공지사항을 작성합니다. 이미지 첨부 지원.
+   * @param createStoryDto 공지사항 생성 데이터
+   * @param userData 인증된 사용자 정보
+   * @param files 첨부 이미지 파일 목록
+   * @returns 생성된 공지사항 정보
+   */
   @Post('/notice/create')
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
@@ -236,7 +338,17 @@ export class StoryController {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 수정
-  @Post('/update/:id') // 수정 작업을 POST 요청으로 처리
+  /**
+   * 게시글 수정
+   *
+   * @description 기존 게시글을 수정합니다. 이미지 변경 지원.
+   * @param storyId 수정할 게시글 ID
+   * @param updateStoryDto 수정할 데이터
+   * @param user 인증된 사용자 정보
+   * @param files 새로 첨부할 이미지 파일 목록
+   * @returns 수정된 게시글 정보
+   */
+  @Post('/update/:id')
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   @UseInterceptors(FilesInterceptor('images'))
@@ -251,6 +363,14 @@ export class StoryController {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 글 삭제
+  /**
+   * 게시글 삭제
+   *
+   * @description 게시글 ID로 특정 게시글을 삭제합니다. 작성자만 삭제 가능.
+   * @param storyId 삭제할 게시글 ID
+   * @param userData 인증된 사용자 정보
+   * @returns 성공 시 void
+   */
   @Delete('/:id')
   @UseGuards(AuthGuard())
   async deleteStory(
@@ -262,6 +382,14 @@ export class StoryController {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 좋아요, 싫어요.
+  /**
+   * 게시글 추천/비추천 기능
+   *
+   * @description 게시글에 좋아요 또는 싫어요를 추가/제거/변경합니다.
+   * @param storyId 대상 게시글 ID
+   * @param body 추천 데이터 (userId, vote, minRecommend)
+   * @returns 수행된 작업 정보 (add/remove/change)
+   */
   @Put('/likeOrUnlike/:id')
   @UseGuards(AuthGuard())
   async storyLikeOrNot(
@@ -282,6 +410,14 @@ export class StoryController {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   //! 관리자 전용: 기존 데이터를 RecommendRanking 테이블로 마이그레이션
+  /**
+   * 추천 랭킹 테이블 마이그레이션 (관리자 전용)
+   *
+   * @description 기존 게시글 데이터를 추천 랭킹 테이블로 마이그레이션합니다.
+   * @param user 인증된 사용자 정보 (관리자 권한 확인용)
+   * @param body 마이그레이션 설정 (최소 추천 수)
+   * @returns 마이그레이션 결과 정보
+   */
   @Post('/migrateToRecommendRanking')
   @UseGuards(AuthGuard())
   async migrateToRecommendRanking(
@@ -301,6 +437,13 @@ export class StoryController {
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 공지사항 목록 가져오기
+  /**
+   * 공지사항 목록 조회
+   *
+   * @description 등록된 공지사항 목록을 조회합니다.
+   * @param limit 조회할 공지사항 수 (기본값: 10)
+   * @returns 공지사항 목록과 총 개수
+   */
   @Get('/notices')
   async getNotices(
     @Query('limit') limit = 10,

@@ -20,6 +20,13 @@ import { Channels } from 'src/entities/Channels.entity';
 import { ChannelNotificationService } from '../channel-notification/channel-notification.service';
 import { NotificationService } from '../notification/notification.service';
 
+/**
+ * Story 서비스
+ * 게시글 관련 비즈니스 로직을 처리합니다.
+ *
+ * @description 게시글의 CRUD 작업, 검색, 추천/비추천, 이미지 처리 등을 담당합니다.
+ * @author StudyBoard Team
+ */
 @Injectable()
 export class StoryService {
   constructor(
@@ -39,7 +46,17 @@ export class StoryService {
     private channelNotificationService: ChannelNotificationService,
     private notificationService: NotificationService,
   ) {}
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+  /**
+   * 테이블 형태 게시글 목록 조회
+   *
+   * @description 페이지네이션과 필터링을 적용하여 게시글 목록을 조회합니다.
+   * @param offset 시작 위치 (기본값: 0)
+   * @param limit 조회할 게시글 수 (기본값: 10)
+   * @param category 카테고리 필터 (선택사항)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @returns 게시글 목록과 총 개수
+   */
   async findStory(
     offset = 0,
     limit = 10,
@@ -49,11 +66,12 @@ export class StoryService {
     results: Partial<Story & { recommendationCount: number }>[];
     total: number;
   }> {
-    // 카테고리 필터 조건 설정 + 공지사항 제외
-    const whereCondition: any = { isNotice: false }; // 공지사항이 아닌 것만
+    // 카테고리 필터 조건 설정 (공지사항 제외)
+    const whereCondition: any = { isNotice: false };
     if (category && category !== 'all') {
       whereCondition.category = category;
     }
+
     // 채널 필터 조건 추가
     if (channelId) {
       whereCondition.Channel = { id: Number(channelId) };
@@ -64,36 +82,28 @@ export class StoryService {
       channelId: channelId ? Number(channelId) : null,
       typeof_channelId: typeof channelId,
     });
-    const isAllCategory = !category || category === 'all';
 
-    // 전체 게시글 수 조회 (페이지네이션 계산용) - 공지사항 제외
+    // 전체 게시글 수 조회 (페이지네이션 계산용)
     const regularTotal = await this.storyRepository.count({
       where: whereCondition,
       relations: channelId ? ['Channel'] : [],
     });
 
-    // 페이지네이션 계산을 위한 로직
+    // 페이지네이션 매개변수 정규화
     let effectiveOffset = Number(offset);
     let effectiveLimit = Number(limit);
 
-    // 게시글 조회 - 공지사항 제외
+    // 게시글 조회 (공지사항 제외)
     const regularPosts = await this.storyRepository.find({
       relations: channelId ? ['User', 'Channel'] : ['User'],
-      // relations: ['User', 'Likes'],
       where: whereCondition,
       order: { id: 'DESC' },
-      skip: Math.max(0, effectiveOffset), // 음수가 되지 않도록 보정
+      skip: Math.max(0, effectiveOffset),
       take: effectiveLimit,
     });
 
-    // 결과 데이터 가공
+    // 응답 데이터 가공
     const modifiedPosts = regularPosts.map((story) => {
-      // const recommend_Count = story.Likes.reduce((acc, curr) => {
-      //   if (curr.vote === 'like') return acc + 1;
-      //   if (curr.vote === 'dislike') return acc - 1;
-      //   return acc;
-      // }, 0);
-
       const { Likes, StoryImage, User, Channel, ...rest } = story;
       return {
         ...rest,
@@ -111,7 +121,17 @@ export class StoryService {
       total: regularTotal,
     };
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+
+  /**
+   * 카드 형태 게시글 목록 조회
+   *
+   * @description 페이지네이션과 필터링을 적용하여 카드 형태의 게시글 목록을 조회합니다.
+   * @param offset 시작 위치 (기본값: 0)
+   * @param limit 조회할 게시글 수 (기본값: 10)
+   * @param category 카테고리 필터 (선택사항)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @returns 게시글 목록과 총 개수 (첫 번째 이미지 포함)
+   */
   async findCardStory(
     offset = 0,
     limit = 10,
@@ -121,11 +141,12 @@ export class StoryService {
     results: Partial<Story & { recommendationCount: number }>[];
     total: number;
   }> {
-    // 카테고리 필터 조건 설정 + 공지사항 제외
-    const whereCondition: any = { isNotice: false }; // 공지사항이 아닌 것만
+    // 카테고리 필터 조건 설정 (공지사항 제외)
+    const whereCondition: any = { isNotice: false };
     if (category && category !== 'all') {
       whereCondition.category = category;
     }
+
     // 채널 필터 조건 추가
     if (channelId) {
       whereCondition.Channel = { id: Number(channelId) };
@@ -137,28 +158,28 @@ export class StoryService {
       typeof_channelId: typeof channelId,
     });
 
-    // # 나중에 데이터 count만 채널이랑 엮어놓은 테이블 만들 예정
-    // 2. 전체 일반 게시글 수 조회 (페이지네이션 계산용) - 공지사항 제외
+    // 전체 일반 게시글 수 조회 (페이지네이션 계산용)
     const regularTotal = await this.storyRepository.count({
       where: whereCondition,
       relations: channelId ? ['Channel'] : [],
     });
 
-    // // 3. 페이지네이션 정확한 계산을 위한 로직
+    // 페이지네이션 매개변수 정규화
     let effectiveOffset = Number(offset);
     let effectiveLimit = Number(limit);
 
-    // 4. 일반 게시글 조회 (조정된 offset과 limit 사용) - 공지사항 제외
+    // 일반 게시글 조회 (조정된 offset과 limit 사용, 공지사항 제외)
     const regularPosts = await this.storyRepository.find({
       relations: channelId
         ? ['User', 'StoryImage', 'Channel']
         : ['User', 'StoryImage'],
       where: whereCondition,
       order: { id: 'DESC' },
-      skip: Math.max(0, effectiveOffset), // 음수가 되지 않도록 보정
+      skip: Math.max(0, effectiveOffset),
       take: effectiveLimit,
     });
 
+    // 응답 데이터 가공 (첫 번째 이미지 포함)
     const modifiedPosts = regularPosts.map((story) => {
       const { Likes, StoryImage, User, Channel, ...rest } = story;
       return {
@@ -173,12 +194,21 @@ export class StoryService {
 
     return {
       results: modifiedPosts,
-      total: regularTotal, // 일반테이블에서 이미 처리함.
+      total: regularTotal,
     };
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 새로 추가: 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 사용)
-  // 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 미사용)
+
+  /**
+   * 추천 수 기반 게시글 조회 (테이블 형태)
+   *
+   * @description 최소 추천 수 이상의 게시글을 조회합니다.
+   * @param offset 시작 위치 (기본값: 0)
+   * @param limit 조회할 게시글 수 (기본값: 10)
+   * @param category 카테고리 필터 (선택사항)
+   * @param minRecommend 최소 추천 수 (기본값: 0)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @returns 추천 랭킹 기반 게시글 목록
+   */
   async findStoryWithMinRecommend(
     offset = 0,
     limit = 10,
@@ -192,9 +222,18 @@ export class StoryService {
     // RecommendRanking 테이블에서 데이터 가져오기
     return this.getRecommendRankings(offset, limit, category, channelId);
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 새로 추가: 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 사용)
-  // 추천 랭킹 모드 적용 시 최소 추천 수 이상의 게시글 조회 (QueryBuilder 미사용)
+
+  /**
+   * 추천 수 기반 게시글 조회 (카드 형태)
+   *
+   * @description 최소 추천 수 이상의 게시글을 카드 형태로 조회합니다.
+   * @param offset 시작 위치 (기본값: 0)
+   * @param limit 조회할 게시글 수 (기본값: 10)
+   * @param category 카테고리 필터 (선택사항)
+   * @param minRecommend 최소 추천 수 (기본값: 0)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @returns 추천 랭킹 기반 게시글 목록
+   */
   async findCardStoryWithMinRecommend(
     offset = 0,
     limit = 10,
@@ -208,15 +247,26 @@ export class StoryService {
     // RecommendRanking 테이블에서 데이터 가져오기
     return this.getRecommendRankings(offset, limit, category, channelId);
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 검색 기능 API
+
+  /**
+   * 게시글 검색 (테이블 형태)
+   *
+   * @description 다양한 검색 타입으로 게시글을 검색합니다.
+   * @param offset 시작 위치 (기본값: 0)
+   * @param limit 조회할 게시글 수 (기본값: 10)
+   * @param type 검색 타입 (all, title_content, title, content, author, comment)
+   * @param query 검색어
+   * @param category 카테고리 필터 (선택사항)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @returns 검색된 게시글 목록과 총 개수
+   */
   async searchStory(
     offset = 0,
     limit = 10,
     type: string = 'all',
     query: string,
-    category?: string, // 카테고리 필터 (전체 검색이 아닐 경우)
-    channelId?: number, // 채널 필터 추가
+    category?: string,
+    channelId?: number,
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -228,25 +278,25 @@ export class StoryService {
     // 검색어에 대한 like 패턴 생성
     const likeQuery = `%${query}%`;
 
-    // 검색 옵션에 따른 기본 조건 구성 (카테고리 조건은 나중에 병합)
+    // 검색 타입에 따른 기본 조건 구성
     let baseConditions: any;
     if (type === 'title_content' || type === 'all') {
-      // 제목 OR 내용 검색 조건
+      // 제목 또는 내용 검색
       baseConditions = [
         { title: ILike(likeQuery), isNotice: false },
         { content: ILike(likeQuery), isNotice: false },
       ];
     } else if (type === 'title') {
-      // 제목 검색 조건
+      // 제목 검색
       baseConditions = { title: ILike(likeQuery), isNotice: false };
     } else if (type === 'content') {
-      // 내용 검색 조건
+      // 내용 검색
       baseConditions = { content: ILike(likeQuery), isNotice: false };
     } else if (type === 'author') {
-      // 작성자(User.name) 검색 조건
+      // 작성자 검색
       baseConditions = { User: { name: ILike(likeQuery) }, isNotice: false };
     } else if (type === 'comment') {
-      // 댓글 검색은 기본 find 옵션으로는 처리하기 어려움
+      // 댓글 검색은 QueryBuilder 필요
       throw new Error('댓글 검색은 QueryBuilder를 사용해야 합니다.');
     } else {
       // 정의되지 않은 타입의 경우 기본적으로 제목과 내용 조건 사용
@@ -326,68 +376,25 @@ export class StoryService {
     return { results, total };
   }
 
-  //! 검색 기능 함수 쿼리빌더 사용
-  // async searchStory(
-  //   offset = 0,
-  //   limit = 10,
-  //   type: string = 'all',
-  //   query: string,
-  // ): Promise<{ results: Partial<Story>[]; total: number }> {
-  //   // QueryBuilder를 사용하여 동적 검색 조건 생성
-  //   const queryBuilder = this.storyRepository
-  //     .createQueryBuilder('story')
-  //     .leftJoinAndSelect('story.User', 'user')
-  //     .orderBy('story.id', 'DESC')
-  //     .skip(offset)
-  //     .take(limit);
-
-  //   if (query && query.trim() !== '') {
-  //     const likeQuery = `%${query}%`;
-  //     switch (type) {
-  //       case 'title_content':
-  //         // 제목 또는 내용에 검색어가 포함된 경우
-  //         queryBuilder.andWhere(
-  //           '(story.title LIKE :likeQuery OR story.content LIKE :likeQuery)',
-  //           { likeQuery },
-  //         );
-  //         break;
-  //       case 'title':
-  //         queryBuilder.andWhere('story.title LIKE :likeQuery', { likeQuery });
-  //         break;
-  //       case 'content':
-  //         queryBuilder.andWhere('story.content LIKE :likeQuery', { likeQuery });
-  //         break;
-  //       case 'author':
-  //         // User 테이블과의 조인을 통해 글쓴이 검색
-  //         queryBuilder.andWhere('user.name LIKE :likeQuery', { likeQuery });
-  //         break;
-  //       case 'comment':
-  //         // 댓글 검색 시 댓글 테이블과 조인 (댓글 엔티티가 존재한다고 가정)
-  //         queryBuilder
-  //           .leftJoin('story.comments', 'comment')
-  //           .andWhere('comment.text LIKE :likeQuery', { likeQuery });
-  //         break;
-  //       default: // all 혹은 정의되지 않은 타입인 경우
-  //         queryBuilder.andWhere(
-  //           '(story.title LIKE :likeQuery OR story.content LIKE :likeQuery)',
-  //           { likeQuery },
-  //         );
-  //         break;
-  //     }
-  //   }
-
-  //   const [results, total] = await queryBuilder.getManyAndCount();
-  //   return { results, total };
-  // }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 검색 기능 API
+  /**
+   * 검색 기능 API
+   *
+   * @description 검색 기능을 구현합니다.
+   * @param offset 시작 위치 (기본값: 0)
+   * @param limit 조회할 게시글 수 (기본값: 10)
+   * @param type 검색 타입 (all, title_content, title, content, author, comment)
+   * @param query 검색어
+   * @param category 카테고리 필터 (선택사항)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @returns 검색된 게시글 목록과 총 개수
+   */
   async cardSearchStory(
     offset = 0,
     limit = 10,
     type: string = 'all',
     query: string,
-    category?: string, // 카테고리 필터 (전체 검색이 아닐 경우)
-    channelId?: number, // 채널 필터 추가
+    category?: string,
+    channelId?: number,
   ): Promise<{
     results: (Partial<Story> & {
       nickname: string;
@@ -496,8 +503,15 @@ export class StoryService {
 
     return { results, total };
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 수정 페이지
+
+  /**
+   * 수정 페이지
+   *
+   * @description 특정 게시글을 수정합니다.
+   * @param id 게시글 ID
+   * @param userId 사용자 ID
+   * @returns 수정된 게시글 데이터
+   */
   async findEditStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
@@ -513,8 +527,14 @@ export class StoryService {
     const { User, ...editData } = findData;
     return editData;
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 상세 페이지
+
+  /**
+   * 상세 페이지
+   *
+   * @description 특정 게시글의 상세 정보를 조회합니다.
+   * @param id 게시글 ID
+   * @returns 게시글 상세 정보
+   */
   async findStoryOne(id: number): Promise<any> {
     const queryRunner =
       this.storyRepository.manager.connection.createQueryRunner();
@@ -571,6 +591,7 @@ export class StoryService {
       await queryRunner.release();
     }
   }
+
   // 공지 상세 페이지
   async findNoticeOne(id: number, userId?: string): Promise<any> {
     const queryRunner =
@@ -605,8 +626,16 @@ export class StoryService {
       await queryRunner.release();
     }
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 글 작성
+
+  /**
+   * 글 작성
+   *
+   * @description 새로운 게시글을 작성합니다.
+   * @param createStoryDto 게시글 작성 정보
+   * @param userData 사용자 데이터
+   * @param files 이미지 파일 목록
+   * @returns 작성된 게시글 데이터
+   */
   async create(
     createStoryDto: CreateStoryDto,
     userData: User,
@@ -699,8 +728,16 @@ export class StoryService {
 
     return savedStory;
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 공지사항 작성
+
+  /**
+   * 공지사항 작성
+   *
+   * @description 공지사항을 작성합니다.
+   * @param createStoryDto 게시글 작성 정보
+   * @param userData 사용자 데이터
+   * @param files 이미지 파일 목록
+   * @returns 작성된 게시글 데이터
+   */
   async createNotice(
     createStoryDto: CreateStoryDto,
     userData: User,
@@ -737,8 +774,17 @@ export class StoryService {
 
     return savedStory;
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 글 수정
+
+  /**
+   * 글 수정
+   *
+   * @description 특정 게시글을 수정합니다.
+   * @param storyId 게시글 ID
+   * @param updateStoryDto 게시글 수정 정보
+   * @param userData 사용자 데이터
+   * @param newImages 새로운 이미지 파일 목록
+   * @returns 수정된 게시글 데이터
+   */
   async updateStory(
     storyId: number,
     updateStoryDto: UpdateStoryDto,
@@ -753,11 +799,6 @@ export class StoryService {
     if (!story) {
       throw new NotFoundException('수정할 글을 찾을 수 없습니다.');
     }
-
-    // 이거 에러 나던데 확인 해봐야 할듯
-    // if (story.User !== userData) {
-    //   throw new UnauthorizedException('본인의 글만 수정할 수 있습니다.');
-    // }
 
     // 기존 이미지 목록 중에 삭제할 이미지 목록 추출
     const existImages = Array.isArray(updateStoryDto.existImages)
@@ -827,8 +868,14 @@ export class StoryService {
 
     return await this.storyRepository.save(story);
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 글 삭제
+
+  /**
+   * 글 삭제
+   *
+   * @description 특정 게시글을 삭제합니다.
+   * @param storyId 게시글 ID
+   * @param userData 사용자 데이터
+   */
   async deleteStory(storyId: number, userData: User): Promise<void> {
     // 스토리 데이터 가져오기
     const story: Story = await this.storyRepository.findOne({
@@ -859,8 +906,17 @@ export class StoryService {
     // 삭제 권한이 있을 경우, 글 삭제 진행
     await this.storyRepository.delete(storyId);
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  //! 트랜잭션 적용된 버전
+
+  /**
+   * 트랜잭션 적용된 버전
+   *
+   * @description 좋아요/싫어요 투표 작업을 하나의 트랜잭션으로 묶어 원자성을 보장합니다.
+   * @param storyId 게시글 ID
+   * @param userId 사용자 ID
+   * @param vote 투표 유형 ('like' | 'dislike')
+   * @param minRecommend 최소 추천 수
+   * @returns 수행된 작업과 투표 유형
+   */
   async storyLikeUnLike(
     storyId: number,
     userId: string,
@@ -976,8 +1032,17 @@ export class StoryService {
       return { action, vote };
     });
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 추천 랭킹 테이블에서 데이터 가져오기
+
+  /**
+   * 추천 랭킹 테이블에서 데이터 가져오기
+   *
+   * @description 추천 랭킹 테이블에서 데이터를 가져옵니다.
+   * @param offset 시작 위치 (기본값: 0)
+   * @param limit 조회할 게시글 수 (기본값: 10)
+   * @param category 카테고리 필터 (선택사항)
+   * @param channelId 채널 ID 필터 (선택사항)
+   * @returns 추천 랭킹 기반 게시글 목록
+   */
   async getRecommendRankings(
     offset = 0,
     limit = 10,
@@ -1042,27 +1107,35 @@ export class StoryService {
     return { results, total };
   }
 
-  //* 이 코드는 추천 랭킹 테이블을 초기화하거나 업데이트할 때 사용되는 함수입니다.
-  // 작동 방식:
-  // 모든 게시글(스토리)을 데이터베이스에서 가져옵니다.
-  // 각 게시글의 좋아요와 싫어요 수를 계산해서 추천 점수를 구합니다.
-  // 추천 점수가 설정된 최소값(MIN_RECOMMEND_COUNT) 이상인 게시글만 필터링합니다.
-  // 기존 추천 랭킹 테이블을 비웁니다.
-  // 조건을 충족하는 게시글들을 추천 랭킹 테이블에 새로 등록합니다.
-  // 사용 시기:
-  // 시스템 처음 설정 시 - 기존 데이터를 추천 랭킹 테이블에 채울 때
-  // 데이터 복구가 필요할 때 - 추천 랭킹 테이블에 문제가 생긴 경우
-  // 관리자 작업 수행 시 - 랭킹 데이터를 초기화하고 싶을 때
-  // 이 함수는 관리자 권한을 가진 사용자만 API를 통해 실행할 수 있습니다. 일반 사용자는 실행할 수 없으며, 시스템 유지보수용 기능입니다.
-  // 기존 스토리 데이터를 RecommendRanking 테이블로 마이그레이션
+  /**
+   * 기존 데이터를 추천 랭킹 테이블로 마이그레이션
+   *
+   * @description 모든 게시글의 추천 수를 계산하여 조건을 만족하는 게시글을 추천 랭킹 테이블로 이전합니다.
+   *
+   * 작동 방식:
+   * 1. 모든 게시글을 데이터베이스에서 조회
+   * 2. 각 게시글의 좋아요/싫어요 수를 계산하여 추천 점수 산출
+   * 3. 추천 점수가 최소값 이상인 게시글만 필터링
+   * 4. 기존 추천 랭킹 테이블 초기화
+   * 5. 조건을 충족하는 게시글을 추천 랭킹 테이블에 등록
+   *
+   * @param minRecommend 추천 랭킹 테이블에 포함될 최소 추천 수
+   * @returns 마이그레이션된 게시글 수
+   *
+   * @example
+   * // 추천 수 5 이상인 게시글만 랭킹 테이블로 이전
+   * const migratedCount = await storyService.migrateToRecommendRanking(5);
+   *
+   * @note 관리자 권한이 필요한 시스템 유지보수용 기능입니다.
+   */
   async migrateToRecommendRanking(minRecommend: number): Promise<number> {
     try {
-      // 1. 모든 스토리 가져오기
+      // 모든 스토리와 연결된 좋아요 데이터 조회
       const stories = await this.storyRepository.find({
         relations: ['Likes'],
       });
 
-      // 2. 추천 수가 minRecommend 이상인 스토리 필터링
+      // 추천 수가 최소 기준치 이상인 스토리 필터링
       const eligibleStories = stories.filter((story) => {
         // 각 스토리의 추천 수 계산 (좋아요 - 싫어요)
         const recommendCount = story.Likes.reduce((acc, curr) => {
@@ -1074,10 +1147,10 @@ export class StoryService {
         return recommendCount >= minRecommend;
       });
 
-      // 3. 현재 RecommendRanking 테이블 비우기
+      // 기존 추천 랭킹 테이블 초기화
       await this.recommendRankingRepository.clear();
 
-      // 4. 자격을 갖춘 스토리 추가
+      // 자격을 갖춘 스토리를 랭킹 엔트리로 변환
       const rankingEntries = eligibleStories.map((story) => {
         const recommendCount = story.Likes.reduce((acc, curr) => {
           if (curr.vote === 'like') return acc + 1;
@@ -1092,7 +1165,7 @@ export class StoryService {
         });
       });
 
-      // 5. 일괄 저장
+      // 랭킹 엔트리 일괄 저장
       await this.recommendRankingRepository.save(rankingEntries);
 
       return rankingEntries.length;
@@ -1101,8 +1174,14 @@ export class StoryService {
       throw new Error('추천 랭킹 마이그레이션에 실패했습니다.');
     }
   }
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 공지사항 목록 가져오기
+
+  /**
+   * 공지사항 목록 가져오기
+   *
+   * @description 공지사항만 가져오기 (isNotice가 true인 것만)
+   * @param limit 조회할 게시글 수 (기본값: 10)
+   * @returns 공지사항 목록과 총 개수
+   */
   async findNotices(limit = 10): Promise<{
     results: Partial<Story>[];
     total: number;

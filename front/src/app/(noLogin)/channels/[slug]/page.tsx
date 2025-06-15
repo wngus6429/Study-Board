@@ -75,6 +75,21 @@ import { useCardStories } from "@/app/components/api/useCardStories";
 // 채팅 컴포넌트 import
 import ChannelChat from "@/app/components/chat/ChannelChat";
 
+// 스타일 컴포넌트 import
+import {
+  MainContainer,
+  ChannelInfoCard,
+  GradientButton,
+  ChatButton,
+  SubscribeButton,
+  GradientText,
+  TabsContainer,
+  ButtonGroup,
+  LoadingContainer,
+  NoticeCard,
+  NoticeItem,
+} from "./components";
+
 const ChannelDetailPage = () => {
   const theme = useTheme();
   const router = useRouter();
@@ -587,25 +602,14 @@ const ChannelDetailPage = () => {
   // 로딩 처리
   if (channelLoading) {
     return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background:
-            theme.palette.mode === "dark"
-              ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(16, 16, 32, 0.98))"
-              : "linear-gradient(135deg, #f8f9fa, #e9ecef)",
-        }}
-      >
+      <LoadingContainer>
         <CircularProgress
           size={60}
           sx={{
             color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
           }}
         />
-      </Box>
+      </LoadingContainer>
     );
   }
 
@@ -615,41 +619,9 @@ const ChannelDetailPage = () => {
   }
 
   return (
-    <Box
-      sx={{
-        minHeight: "100vh",
-        background:
-          theme.palette.mode === "dark"
-            ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(16, 16, 32, 0.98))"
-            : "linear-gradient(135deg, #f8f9fa, #e9ecef)",
-        // padding: 1,
-      }}
-    >
+    <MainContainer>
       {/* 채널 정보 헤더 (MainView 스타일) */}
-      <Card
-        sx={{
-          borderRadius: "16px",
-          background:
-            theme.palette.mode === "dark"
-              ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(45, 48, 71, 0.95) 100%)"
-              : "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
-          border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.2)" : "1px solid rgba(0, 0, 0, 0.08)",
-          boxShadow:
-            theme.palette.mode === "dark" ? "0 8px 32px rgba(139, 92, 246, 0.15)" : "0 8px 24px rgba(0, 0, 0, 0.08)",
-          position: "relative",
-          overflow: "hidden",
-          // marginBottom: 3,
-          "&::before": {
-            content: '""',
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            height: "4px",
-            background: "linear-gradient(90deg, #8b5cf6, #06b6d4)",
-          },
-        }}
-      >
+      <ChannelInfoCard>
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             {/* 왼쪽: 채널 정보 */}
@@ -1273,7 +1245,7 @@ const ChannelDetailPage = () => {
             </Box>
           </Box>
         </CardContent>
-      </Card>
+      </ChannelInfoCard>
 
       {/* 공지사항 모달 */}
       {showNotice && (
@@ -1849,7 +1821,7 @@ const ChannelDetailPage = () => {
           </Box>
         </>
       )}
-    </Box>
+    </MainContainer>
   );
 };
 

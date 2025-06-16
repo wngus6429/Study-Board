@@ -23,6 +23,8 @@ const VideoCard: React.FC<VideoCardProps> = React.memo(({ video, isLastOddVideo 
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(false);
   const [isBuffering, setIsBuffering] = useState(false);
+  const [videoAspectRatio, setVideoAspectRatio] = useState<number>(16 / 9); // 기본값
+  const [isVertical, setIsVertical] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -31,6 +33,10 @@ const VideoCard: React.FC<VideoCardProps> = React.memo(({ video, isLastOddVideo 
   // 비디오 메타데이터 로드 시
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
+      const { videoWidth, videoHeight } = videoRef.current;
+      const aspectRatio = videoWidth / videoHeight;
+      setVideoAspectRatio(aspectRatio);
+      setIsVertical(aspectRatio < 1); // 세로 영상 판단
       setDuration(videoRef.current.duration);
       setLoaded(true);
     }
@@ -161,8 +167,17 @@ const VideoCard: React.FC<VideoCardProps> = React.memo(({ video, isLastOddVideo 
       ref={containerRef}
       sx={{
         position: "relative",
-        width: isLastOddVideo ? "100%" : { xs: "100%", sm: "calc(50% - 8px)" },
-        aspectRatio: "16/9",
+        width: (() => {
+          if (isLastOddVideo) {
+            // 한 줄에 하나일 때는 세로/가로에 따라 적절한 크기
+            if (isVertical) return { xs: "100%", sm: "400px" }; // 세로 영상은 고정 너비
+            return "100%"; // 가로 영상은 전체 너비
+          }
+          if (isVertical) return { xs: "100%", sm: "400px" }; // 세로 영상은 고정 너비로 더 크게
+          return { xs: "100%", sm: "calc(50% - 8px)" }; // 가로 영상은 기본 크기
+        })(),
+        aspectRatio: loaded ? videoAspectRatio.toString() : "16/9",
+        maxHeight: isVertical && "600px", // 세로 영상 최대 높이를 더 크게
         borderRadius: "12px",
         overflow: "hidden",
         cursor: "pointer",
@@ -182,7 +197,8 @@ const VideoCard: React.FC<VideoCardProps> = React.memo(({ video, isLastOddVideo 
         style={{
           width: "100%",
           height: "100%",
-          objectFit: "cover",
+          objectFit: "contain", // 모든 영상에 contain 적용하여 원본 비율 유지
+          backgroundColor: isVertical ? "#000" : "transparent", // 세로 영상만 검은 배경
         }}
         muted={isMuted}
         onLoadedMetadata={handleLoadedMetadata}

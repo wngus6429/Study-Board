@@ -221,7 +221,13 @@ export default function page({ params }: { params: { id: string; slug: string } 
       queryClient.removeQueries({ queryKey: ["story", "detail", params?.id] });
       setIsDeleted(true); // 삭제 상태 업데이트, 다시 API 요청 방지
       showMessage("삭제 성공", "success");
-      router.push("/");
+
+      // 채널 페이지가 있으면 해당 채널로, 없으면 메인으로 이동
+      if (detail?.channelSlug) {
+        router.push(`/channels/${detail.channelSlug}`);
+      } else {
+        router.push("/");
+      }
     },
     onError: (error: any) => {
       if (error.response && error.response.data.code === 404) {
@@ -754,13 +760,13 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 <Box
                   sx={{
                     display: "flex",
-                    flexWrap: "wrap",
+                    flexDirection: "column",
                     gap: 2,
                     justifyContent: "center",
                   }}
                 >
                   {(() => {
-                    // 이미지와 동영상을 합쳐서 created_at 기준으로 정렬
+                    // 이미지와 동영상을 합쳐서 upload_order 기준으로 정렬
                     const allFiles: Array<
                       | { type: "image"; data: StoryImageType; index: number }
                       | { type: "video"; data: StoryVideoType; index: number }
@@ -783,22 +789,76 @@ export default function page({ params }: { params: { id: string; slug: string } 
                     // upload_order 기준으로 정렬 (업로드 순서)
                     allFiles.sort((a, b) => (a.data.upload_order || 0) - (b.data.upload_order || 0));
 
-                    // 정렬된 순서대로 컴포넌트 렌더링
-                    return allFiles.map((file, sortedIndex) => {
+                    // 연속된 이미지들을 그룹화하고 동영상은 개별 처리
+                    const groupedFiles: Array<
+                      | { type: "imageGroup"; images: Array<{ data: StoryImageType; index: number }> }
+                      | { type: "video"; data: StoryVideoType; index: number }
+                    > = [];
+
+                    let currentImageGroup: Array<{ data: StoryImageType; index: number }> = [];
+
+                    allFiles.forEach((file) => {
                       if (file.type === "image") {
-                        const isLastOddImage = sortedIndex === allFiles.length - 1 && allFiles.length % 2 !== 0;
+                        currentImageGroup.push({ data: file.data, index: file.index });
+                      } else {
+                        // 동영상을 만나면 이전 이미지 그룹을 저장하고 동영상 추가
+                        if (currentImageGroup.length > 0) {
+                          groupedFiles.push({ type: "imageGroup", images: [...currentImageGroup] });
+                          currentImageGroup = [];
+                        }
+                        groupedFiles.push(file);
+                      }
+                    });
+
+                    // 마지막 이미지 그룹 처리
+                    if (currentImageGroup.length > 0) {
+                      groupedFiles.push({ type: "imageGroup", images: currentImageGroup });
+                    }
+
+                    // 그룹화된 파일들을 렌더링
+                    return groupedFiles.map((group, groupIndex) => {
+                      if (group.type === "imageGroup") {
+                        // 이미지 그룹은 기존 로직으로 처리 (한 줄에 여러 개)
                         return (
-                          <ImageCard
-                            key={`image-${file.data.id}`}
-                            img={file.data}
-                            isLastOddImage={isLastOddImage}
-                            onClick={(img) => handleImageClick(img, file.index)}
-                          />
+                          <Box
+                            key={`image-group-${groupIndex}`}
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: 2,
+                              justifyContent: "center",
+                            }}
+                          >
+                            {group.images.map((img, imgIndex) => {
+                              const isLastOddImage =
+                                imgIndex === group.images.length - 1 && group.images.length % 2 !== 0;
+                              return (
+                                <ImageCard
+                                  key={`image-${img.data.id}`}
+                                  img={img.data}
+                                  isLastOddImage={isLastOddImage}
+                                  onClick={(clickedImg) => handleImageClick(clickedImg, img.index)}
+                                />
+                              );
+                            })}
+                          </Box>
                         );
                       } else {
-                        const isLastOddVideo = sortedIndex === allFiles.length - 1 && allFiles.length % 2 !== 0;
+                        // 동영상은 항상 한 줄에 하나씩
                         return (
-                          <VideoCard key={`video-${file.data.id}`} video={file.data} isLastOddVideo={isLastOddVideo} />
+                          <Box
+                            key={`video-${group.data.id}`}
+                            sx={{
+                              display: "flex",
+                              justifyContent: "center",
+                              width: "100%",
+                            }}
+                          >
+                            <VideoCard
+                              video={group.data}
+                              isLastOddVideo={true} // 동영상은 항상 전체 너비 사용
+                            />
+                          </Box>
                         );
                       }
                     });

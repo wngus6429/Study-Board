@@ -750,70 +750,60 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   첨부된 파일:
                 </Typography>
 
-                {/* 이미지 섹션 */}
-                {detail.StoryImage && detail.StoryImage.length > 0 && (
-                  <Box sx={{ mb: 3 }}>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        fontWeight: "bold",
-                        color: "primary.main",
-                        mb: 2,
-                      }}
-                    >
-                      📷 이미지 ({detail.StoryImage.length}개)
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: 2,
-                        justifyContent: "center",
-                      }}
-                    >
-                      {detail.StoryImage.map((img, index) => (
-                        <ImageCard
-                          key={img.id}
-                          img={img}
-                          isLastOddImage={detail.StoryImage.length % 2 === 1 && index === detail.StoryImage.length - 1}
-                          onClick={(img) => handleImageClick(img, index)}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                )}
+                {/* 이미지와 동영상을 업로드 순서대로 통합 표시 */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 2,
+                    justifyContent: "center",
+                  }}
+                >
+                  {(() => {
+                    // 이미지와 동영상을 합쳐서 created_at 기준으로 정렬
+                    const allFiles: Array<
+                      | { type: "image"; data: StoryImageType; index: number }
+                      | { type: "video"; data: StoryVideoType; index: number }
+                    > = [];
 
-                {/* 동영상 섹션 */}
-                {detail.StoryVideo && detail.StoryVideo.length > 0 && (
-                  <Box>
-                    <Typography
-                      variant="subtitle1"
-                      sx={{
-                        fontWeight: "bold",
-                        color: "primary.main",
-                        mb: 2,
-                      }}
-                    >
-                      🎥 동영상 ({detail.StoryVideo.length}개)
-                    </Typography>
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: 2,
-                        justifyContent: "center",
-                      }}
-                    >
-                      {detail.StoryVideo.map((video, index) => (
-                        <VideoCard
-                          key={video.id}
-                          video={video}
-                          isLastOddVideo={detail.StoryVideo.length % 2 === 1 && index === detail.StoryVideo.length - 1}
-                        />
-                      ))}
-                    </Box>
-                  </Box>
-                )}
+                    // 이미지 추가
+                    if (detail.StoryImage) {
+                      detail.StoryImage.forEach((img, index) => {
+                        allFiles.push({ type: "image", data: img, index });
+                      });
+                    }
+
+                    // 동영상 추가
+                    if (detail.StoryVideo) {
+                      detail.StoryVideo.forEach((video, index) => {
+                        allFiles.push({ type: "video", data: video, index });
+                      });
+                    }
+
+                    // upload_order 기준으로 정렬 (업로드 순서)
+                    allFiles.sort((a, b) => (a.data.upload_order || 0) - (b.data.upload_order || 0));
+
+                    // 정렬된 순서대로 컴포넌트 렌더링
+                    return allFiles.map((file, sortedIndex) => {
+                      if (file.type === "image") {
+                        const isLastOddImage = sortedIndex === allFiles.length - 1 && allFiles.length % 2 !== 0;
+                        return (
+                          <ImageCard
+                            key={`image-${file.data.id}`}
+                            img={file.data}
+                            isLastOddImage={isLastOddImage}
+                            onClick={(img) => handleImageClick(img, file.index)}
+                          />
+                        );
+                      } else {
+                        const isLastOddVideo = sortedIndex === allFiles.length - 1 && allFiles.length % 2 !== 0;
+                        return (
+                          <VideoCard key={`video-${file.data.id}`} video={file.data} isLastOddVideo={isLastOddVideo} />
+                        );
+                      }
+                    });
+                  })()}
+                </Box>
               </Box>
             )}
           </CardContent>

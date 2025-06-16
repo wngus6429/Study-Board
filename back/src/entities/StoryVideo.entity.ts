@@ -47,6 +47,12 @@ export class StoryVideo {
   duration: number;
 
   @ApiProperty({
+    description: '업로드 순서',
+  })
+  @Column({ type: 'int', default: 0 })
+  upload_order: number;
+
+  @ApiProperty({
     description: '작성일',
   })
   @CreateDateColumn()

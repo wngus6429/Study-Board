@@ -561,6 +561,10 @@ export class StoryService {
           'Likes',
           'Likes.User', // Likes와 연결된 User 정보 포함
         ],
+        order: {
+          StoryImage: { upload_order: 'ASC' },
+          StoryVideo: { upload_order: 'ASC' },
+        },
       });
 
       if (!findData) {
@@ -701,36 +705,33 @@ export class StoryService {
 
     console.log('글 작성 파일 업로드', files);
 
-    // 이미지 파일 처리
-    if (imageFiles.length > 0) {
-      const imageEntities = imageFiles.map((file) => {
-        const imageEntity = new StoryImage();
-        imageEntity.image_name = file.filename;
-        imageEntity.link = `/upload/${file.filename}`;
-        imageEntity.file_size = file.size;
-        imageEntity.mime_type = file.mimetype;
-        imageEntity.Story = savedStory;
-        return imageEntity;
-      });
+    // 파일 업로드 순서 처리 - 전체 파일 배열에서의 순서를 기준으로 설정
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
 
-      console.log('글작성 저장 전 이미지 엔티티:', imageEntities);
-      await this.imageRepository.save(imageEntities);
-    }
+        if (file.mimetype.startsWith('image/')) {
+          const imageEntity = new StoryImage();
+          imageEntity.image_name = file.filename;
+          imageEntity.link = `/upload/${file.filename}`;
+          imageEntity.file_size = file.size;
+          imageEntity.mime_type = file.mimetype;
+          imageEntity.upload_order = i; // 전체 파일 배열에서의 순서
+          imageEntity.Story = savedStory;
 
-    // 동영상 파일 처리
-    if (videoFiles.length > 0) {
-      const videoEntities = videoFiles.map((file) => {
-        const videoEntity = new StoryVideo();
-        videoEntity.video_name = file.filename;
-        videoEntity.link = `/videoUpload/${file.filename}`;
-        videoEntity.file_size = file.size;
-        videoEntity.mime_type = file.mimetype;
-        videoEntity.Story = savedStory;
-        return videoEntity;
-      });
+          await this.imageRepository.save(imageEntity);
+        } else if (file.mimetype.startsWith('video/')) {
+          const videoEntity = new StoryVideo();
+          videoEntity.video_name = file.filename;
+          videoEntity.link = `/videoUpload/${file.filename}`;
+          videoEntity.file_size = file.size;
+          videoEntity.mime_type = file.mimetype;
+          videoEntity.upload_order = i; // 전체 파일 배열에서의 순서
+          videoEntity.Story = savedStory;
 
-      console.log('글작성 저장 전 동영상 엔티티:', videoEntities);
-      await this.videoRepository.save(videoEntities);
+          await this.videoRepository.save(videoEntity);
+        }
+      }
     }
 
     // 채널에 게시글이 작성된 경우 알림 구독자들에게 알림 발송

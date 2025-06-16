@@ -10,6 +10,7 @@ export interface StoryImageType {
   created_at: string;
   file_size?: number; // 파일 크기 (bytes)
   mime_type?: string; // MIME 타입
+  upload_order?: number; // 업로드 순서
 }
 
 export interface StoryVideoType {
@@ -20,6 +21,7 @@ export interface StoryVideoType {
   file_size?: number; // 파일 크기 (bytes)
   mime_type?: string; // MIME 타입
   duration?: number; // 동영상 길이 (초)
+  upload_order?: number; // 업로드 순서
 }
 
 export interface SuggestionImageType {

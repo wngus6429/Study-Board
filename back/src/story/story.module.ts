@@ -8,6 +8,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { StoryImage } from 'src/entities/StoryImage.entity';
+import { StoryVideo } from 'src/entities/StoryVideo.entity';
 import { Today } from 'src/common/helper/today';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { User } from 'src/entities/User.entity';
@@ -29,13 +30,15 @@ import { NotificationModule } from '../notification/notification.module';
   imports: [
     /**
      * Multer 파일 업로드 설정
-     * - 게시글 이미지 첨부 기능을 위한 설정
+     * - 게시글 이미지 및 동영상 첨부 기능을 위한 설정
      * - 파일 저장 경로: ./upload
      * - 파일명 형식: 원본명_날짜시간.확장자 (한글 파일명 지원)
+     * - 지원 파일 타입: 이미지 (jpg, png, gif, webp, svg, bmp), 동영상 (mp4, webm, ogg, avi, mov, wmv, flv, mkv)
+     * - 최대 파일 크기: 100MB
      */
     MulterModule.register({
       storage: diskStorage({
-        destination: './upload',
+        destination: './video_upload',
         filename(req, file, done) {
           const ext = path.extname(file.originalname);
           const baseName = Buffer.from(
@@ -45,11 +48,50 @@ import { NotificationModule } from '../notification/notification.module';
           done(null, `${baseName}_${Today()}${ext}`);
         },
       }),
+      fileFilter: (req, file, callback) => {
+        // 허용되는 파일 타입 정의
+        const allowedMimeTypes = [
+          // 이미지 파일
+          'image/jpeg',
+          'image/jpg',
+          'image/png',
+          'image/gif',
+          'image/webp',
+          'image/svg+xml',
+          'image/bmp',
+          // 동영상 파일
+          'video/mp4',
+          'video/webm',
+          'video/ogg',
+          'video/avi',
+          'video/quicktime', // .mov 파일
+          'video/x-msvideo', // .avi 파일 (다른 MIME 타입)
+          'video/x-ms-wmv', // .wmv 파일
+          'video/x-flv', // .flv 파일
+          'video/x-matroska', // .mkv 파일
+        ];
+
+        if (allowedMimeTypes.includes(file.mimetype)) {
+          callback(null, true);
+        } else {
+          callback(
+            new Error(
+              '지원하지 않는 파일 형식입니다. 이미지 또는 동영상 파일만 업로드 가능합니다.',
+            ),
+            false,
+          );
+        }
+      },
+      limits: {
+        fileSize: 1000 * 1024 * 1024, // 1000MB 제한
+        files: 10, // 최대 10개 파일
+      },
     }),
     /**
      * TypeORM 엔티티 등록
      * - Story: 게시글 메인 테이블
      * - StoryImage: 게시글 이미지 테이블
+     * - StoryVideo: 게시글 동영상 테이블
      * - UserImage: 사용자 프로필 이미지 테이블
      * - User: 사용자 정보 테이블
      * - Comments: 댓글 테이블
@@ -60,6 +102,7 @@ import { NotificationModule } from '../notification/notification.module';
     TypeOrmModule.forFeature([
       Story,
       StoryImage,
+      StoryVideo,
       UserImage,
       User,
       Comments,

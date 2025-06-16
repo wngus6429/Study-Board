@@ -271,9 +271,9 @@ const ChannelsPage = () => {
         return;
       }
 
-      // 파일 크기 검증 (5MB 제한)
-      if (file.size > 5 * 1024 * 1024) {
-        showMessage("파일 크기는 5MB를 초과할 수 없습니다.", "error");
+      // 파일 크기 검증 (20MB 제한)
+      if (file.size > 20 * 1024 * 1024) {
+        showMessage("파일 크기는 20MB를 초과할 수 없습니다.", "error");
         return;
       }
 
@@ -319,9 +319,9 @@ const ChannelsPage = () => {
         return;
       }
 
-      // 파일 크기 검증 (5MB 제한)
-      if (file.size > 5 * 1024 * 1024) {
-        showMessage("파일 크기는 5MB를 초과할 수 없습니다.", "error");
+      // 파일 크기 검증 (20MB 제한)
+      if (file.size > 20 * 1024 * 1024) {
+        showMessage("파일 크기는 20MB를 초과할 수 없습니다.", "error");
         return;
       }
 

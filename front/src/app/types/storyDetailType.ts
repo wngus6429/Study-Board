@@ -1,4 +1,4 @@
-import { StoryImageType } from "./imageTypes";
+import { StoryImageType, StoryVideoType } from "./imageTypes";
 import { UserType } from "./userType";
 
 // 상세페이지 타입
@@ -15,7 +15,8 @@ export interface StoryType {
   comments: string | null;
   created_at: string;
   updated_at: string;
-  StoryImage: StoryImageType[]; // ImageType 배열로 설정
+  StoryImage: StoryImageType[]; // 이미지 배열
+  StoryVideo: StoryVideoType[]; // 동영상 배열
   User: UserType;
   channelName?: string; // 채널 이름 추가
   channelSlug?: string; // 채널 슬러그 추가

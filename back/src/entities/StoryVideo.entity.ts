@@ -7,10 +7,9 @@ import {
 } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Story } from './Story.entity';
-// import { User } from './User.entity';
 
 @Entity()
-export class StoryImage {
+export class StoryVideo {
   @ApiProperty({
     description: '아이디',
   })
@@ -18,13 +17,13 @@ export class StoryImage {
   id: number;
 
   @ApiProperty({
-    description: '이미지 파일 이름',
+    description: '동영상 파일 이름',
   })
   @Column({ nullable: false })
-  image_name: string;
+  video_name: string;
 
   @ApiProperty({
-    description: '이미지 파일 링크',
+    description: '동영상 파일 링크',
   })
   @Column({ nullable: false })
   link: string;
@@ -42,6 +41,12 @@ export class StoryImage {
   mime_type: string;
 
   @ApiProperty({
+    description: '동영상 길이 (초)',
+  })
+  @Column({ type: 'int', nullable: true })
+  duration: number;
+
+  @ApiProperty({
     description: '작성일',
   })
   @CreateDateColumn()
@@ -50,13 +55,8 @@ export class StoryImage {
   @ApiProperty({
     description: '게시글',
   })
-  @ManyToOne(() => Story, (story) => story.StoryImage, {
+  @ManyToOne(() => Story, (story) => story.StoryVideo, {
     onDelete: 'CASCADE',
   })
   Story: Story;
-
-  // @ApiProperty({
-  //   description: '작성자',
-  // })
-  // User?: User;
 }

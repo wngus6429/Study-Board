@@ -1,6 +1,6 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { StoryImageType } from "@/app/types/imageTypes";
+import { StoryImageType, StoryVideoType } from "@/app/types/imageTypes";
 import {
   Avatar,
   Box,
@@ -31,6 +31,7 @@ import ErrorView from "@/app/components/common/ErrorView";
 import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 import Link from "next/link";
 import ImageCard from "@/app/components/ImageCard";
+import VideoCard from "@/app/components/VideoCard";
 import { StoryType } from "@/app/types/storyDetailType";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
@@ -732,8 +733,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
             >
               {detail.content}
             </Typography>
-            {memoizedImageCards && (
-              <Box>
+            {/* 첨부된 파일 섹션 */}
+            {((detail.StoryImage && detail.StoryImage.length > 0) ||
+              (detail.StoryVideo && detail.StoryVideo.length > 0)) && (
+              <Box sx={{ mt: 4 }}>
                 <Typography
                   variant="h6"
                   gutterBottom
@@ -744,18 +747,73 @@ export default function page({ params }: { params: { id: string; slug: string } 
                     mb: 2,
                   }}
                 >
-                  첨부된 이미지:
+                  첨부된 파일:
                 </Typography>
-                <Box
-                  sx={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    justifyContent: "center",
-                    gap: 1,
-                  }}
-                >
-                  {memoizedImageCards}
-                </Box>
+
+                {/* 이미지 섹션 */}
+                {detail.StoryImage && detail.StoryImage.length > 0 && (
+                  <Box sx={{ mb: 3 }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: "bold",
+                        color: "primary.main",
+                        mb: 2,
+                      }}
+                    >
+                      📷 이미지 ({detail.StoryImage.length}개)
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 2,
+                        justifyContent: "center",
+                      }}
+                    >
+                      {detail.StoryImage.map((img, index) => (
+                        <ImageCard
+                          key={img.id}
+                          img={img}
+                          isLastOddImage={detail.StoryImage.length % 2 === 1 && index === detail.StoryImage.length - 1}
+                          onClick={(img) => handleImageClick(img, index)}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
+
+                {/* 동영상 섹션 */}
+                {detail.StoryVideo && detail.StoryVideo.length > 0 && (
+                  <Box>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: "bold",
+                        color: "primary.main",
+                        mb: 2,
+                      }}
+                    >
+                      🎥 동영상 ({detail.StoryVideo.length}개)
+                    </Typography>
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 2,
+                        justifyContent: "center",
+                      }}
+                    >
+                      {detail.StoryVideo.map((video, index) => (
+                        <VideoCard
+                          key={video.id}
+                          video={video}
+                          isLastOddVideo={detail.StoryVideo.length % 2 === 1 && index === detail.StoryVideo.length - 1}
+                        />
+                      ))}
+                    </Box>
+                  </Box>
+                )}
               </Box>
             )}
           </CardContent>

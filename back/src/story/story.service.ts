@@ -10,6 +10,7 @@ import { CreateStoryDto } from './dto/create-story.dto';
 import { User } from 'src/entities/User.entity';
 import { Story } from 'src/entities/Story.entity';
 import { StoryImage } from 'src/entities/StoryImage.entity';
+import { StoryVideo } from 'src/entities/StoryVideo.entity';
 import * as fs from 'fs';
 import * as path from 'path';
 import { UpdateStoryDto } from './dto/update-story.dto';
@@ -36,6 +37,8 @@ export class StoryService {
     private storyRepository: Repository<Story>,
     @InjectRepository(StoryImage)
     private readonly imageRepository: Repository<StoryImage>,
+    @InjectRepository(StoryVideo)
+    private readonly videoRepository: Repository<StoryVideo>,
     @InjectRepository(User) private userRepository: Repository<User>,
     @InjectRepository(Comments) private commentRepository: Repository<Comments>,
     @InjectRepository(Likes) private likeRepository: Repository<Likes>,
@@ -109,6 +112,7 @@ export class StoryService {
         ...rest,
         recommend_Count: story.like_count,
         imageFlag: story.imageFlag,
+        videoFlag: story.videoFlag,
         userId: User.id,
         nickname: User.nickname,
       };
@@ -186,6 +190,7 @@ export class StoryService {
         ...rest,
         recommend_Count: story.like_count,
         imageFlag: story.imageFlag,
+        videoFlag: story.videoFlag,
         userId: User.id,
         nickname: User.nickname,
         firstImage: StoryImage[0],
@@ -272,6 +277,7 @@ export class StoryService {
       nickname: string;
       recommend_Count: number;
       imageFlag: boolean;
+      videoFlag: boolean;
     })[];
     total: number;
   }> {
@@ -366,6 +372,7 @@ export class StoryService {
         ...rest,
         recommend_Count,
         imageFlag,
+        videoFlag: story.videoFlag,
         userId: User.id,
         nickname: User.nickname,
       };
@@ -400,6 +407,7 @@ export class StoryService {
       nickname: string;
       recommend_Count: number;
       imageFlag: boolean;
+      videoFlag: boolean;
     })[];
     total: number;
   }> {
@@ -494,6 +502,7 @@ export class StoryService {
         ...rest,
         recommend_Count,
         imageFlag,
+        videoFlag: story.videoFlag,
         userId: User.id,
         nickname: User.nickname,
       };
@@ -546,6 +555,7 @@ export class StoryService {
         where: { id },
         relations: [
           'StoryImage',
+          'StoryVideo',
           'User',
           'User.UserImage',
           'Likes',
@@ -602,7 +612,7 @@ export class StoryService {
       // 데이터 조회
       const findData = await queryRunner.manager.findOne(Story, {
         where: { id },
-        relations: ['StoryImage', 'User', 'User.UserImage'],
+        relations: ['StoryImage', 'StoryVideo', 'User', 'User.UserImage'],
       });
 
       if (!findData) {
@@ -657,8 +667,15 @@ export class StoryService {
       }
     }
 
-    // 이미지를 업로드 하는지 확인
-    const imageFlag = files && files.length > 0;
+    // 이미지와 동영상 업로드 여부 확인
+    const imageFiles = files
+      ? files.filter((file) => file.mimetype.startsWith('image/'))
+      : [];
+    const videoFiles = files
+      ? files.filter((file) => file.mimetype.startsWith('video/'))
+      : [];
+    const imageFlag = imageFiles.length > 0;
+    const videoFlag = videoFiles.length > 0;
 
     // Story 엔티티 생성
     const story = this.storyRepository.create({
@@ -667,6 +684,7 @@ export class StoryService {
       content,
       User: userData, // 유저데이터를 통으로 넣음
       imageFlag,
+      videoFlag,
       Channel: channel, // 채널 정보 추가
     });
 
@@ -681,19 +699,39 @@ export class StoryService {
       );
     }
 
-    console.log('글 작성 이미지', files);
+    console.log('글 작성 파일 업로드', files);
 
-    // 이미지 파일을 ImageEntity로 변환 후 저장
-    const imageEntities = files.map((file) => {
-      const image = new StoryImage();
-      image.image_name = file.filename;
-      image.link = `/upload/${file.filename}`; // 저장 경로 설정
-      image.Story = savedStory;
-      return image;
-    });
+    // 이미지 파일 처리
+    if (imageFiles.length > 0) {
+      const imageEntities = imageFiles.map((file) => {
+        const imageEntity = new StoryImage();
+        imageEntity.image_name = file.filename;
+        imageEntity.link = `/upload/${file.filename}`;
+        imageEntity.file_size = file.size;
+        imageEntity.mime_type = file.mimetype;
+        imageEntity.Story = savedStory;
+        return imageEntity;
+      });
 
-    console.log('글작성 저장 전 이미지 엔티티:', imageEntities);
-    await this.imageRepository.save(imageEntities);
+      console.log('글작성 저장 전 이미지 엔티티:', imageEntities);
+      await this.imageRepository.save(imageEntities);
+    }
+
+    // 동영상 파일 처리
+    if (videoFiles.length > 0) {
+      const videoEntities = videoFiles.map((file) => {
+        const videoEntity = new StoryVideo();
+        videoEntity.video_name = file.filename;
+        videoEntity.link = `/video_upload/${file.filename}`;
+        videoEntity.file_size = file.size;
+        videoEntity.mime_type = file.mimetype;
+        videoEntity.Story = savedStory;
+        return videoEntity;
+      });
+
+      console.log('글작성 저장 전 동영상 엔티티:', videoEntities);
+      await this.videoRepository.save(videoEntities);
+    }
 
     // 채널에 게시글이 작성된 경우 알림 구독자들에게 알림 발송
     if (channel) {
@@ -744,8 +782,16 @@ export class StoryService {
     files: Express.Multer.File[],
   ): Promise<Story> {
     const { title, content } = createStoryDto;
-    // 이미지를 업로드 하는지 확인
-    const imageFlag = files && files.length > 0;
+    // 이미지와 동영상 업로드 여부 확인
+    const noticeImageFiles = files
+      ? files.filter((file) => file.mimetype.startsWith('image/'))
+      : [];
+    const noticeVideoFiles = files
+      ? files.filter((file) => file.mimetype.startsWith('video/'))
+      : [];
+    const imageFlag = noticeImageFiles.length > 0;
+    const videoFlag = noticeVideoFiles.length > 0;
+
     // Story 엔티티 생성 (공지사항은 category를 "notice"로 고정, isNotice를 true로 설정)
     const story = this.storyRepository.create({
       category: 'notice',
@@ -753,24 +799,45 @@ export class StoryService {
       content,
       User: userData,
       imageFlag,
+      videoFlag,
       isNotice: true, // 공지사항 플래그 설정
     });
 
     const savedStory = await this.storyRepository.save(story);
 
-    console.log('공지사항 작성 이미지', files);
+    console.log('공지사항 작성 파일 업로드', files);
 
-    // 이미지 파일을 ImageEntity로 변환 후 저장
-    const imageEntities = files.map((file) => {
-      const image = new StoryImage();
-      image.image_name = file.filename;
-      image.link = `/upload/${file.filename}`; // 저장 경로 설정
-      image.Story = savedStory;
-      return image;
-    });
+    // 이미지 파일 처리
+    if (noticeImageFiles.length > 0) {
+      const imageEntities = noticeImageFiles.map((file) => {
+        const imageEntity = new StoryImage();
+        imageEntity.image_name = file.filename;
+        imageEntity.link = `/upload/${file.filename}`;
+        imageEntity.file_size = file.size;
+        imageEntity.mime_type = file.mimetype;
+        imageEntity.Story = savedStory;
+        return imageEntity;
+      });
 
-    console.log('공지사항 작성 저장 전 이미지 엔티티:', imageEntities);
-    await this.imageRepository.save(imageEntities);
+      console.log('공지사항 작성 저장 전 이미지 엔티티:', imageEntities);
+      await this.imageRepository.save(imageEntities);
+    }
+
+    // 동영상 파일 처리
+    if (noticeVideoFiles.length > 0) {
+      const videoEntities = noticeVideoFiles.map((file) => {
+        const videoEntity = new StoryVideo();
+        videoEntity.video_name = file.filename;
+        videoEntity.link = `/video_upload/${file.filename}`;
+        videoEntity.file_size = file.size;
+        videoEntity.mime_type = file.mimetype;
+        videoEntity.Story = savedStory;
+        return videoEntity;
+      });
+
+      console.log('공지사항 작성 저장 전 동영상 엔티티:', videoEntities);
+      await this.videoRepository.save(videoEntities);
+    }
 
     return savedStory;
   }
@@ -793,7 +860,7 @@ export class StoryService {
   ): Promise<Story> {
     const story = await this.storyRepository.findOne({
       where: { id: storyId },
-      relations: ['StoryImage'],
+      relations: ['StoryImage', 'StoryVideo'],
     });
 
     if (!story) {
@@ -836,18 +903,45 @@ export class StoryService {
       await this.storyRepository.save(story); // 관계 동기화
     }
 
-    // 새 이미지 추가
+    // 새 파일 추가 (이미지와 동영상 분리 처리)
     if (newImages.length > 0) {
-      const imageEntities = newImages.map((file) => {
-        const image = new StoryImage();
-        image.image_name = file.filename;
-        image.link = `/upload/${file.filename}`;
-        // image.user_id = String(userData.id);
-        image.Story = story; // 관계 명확히 설정
-        return image;
-      });
+      // 파일을 이미지와 동영상으로 분리
+      const imageFiles = newImages.filter((file) =>
+        file.mimetype.startsWith('image/'),
+      );
+      const videoFiles = newImages.filter((file) =>
+        file.mimetype.startsWith('video/'),
+      );
 
-      await this.imageRepository.save(imageEntities);
+      // 이미지 파일 처리
+      if (imageFiles.length > 0) {
+        const imageEntities = imageFiles.map((file) => {
+          const imageEntity = new StoryImage();
+          imageEntity.image_name = file.filename;
+          imageEntity.link = `/upload/${file.filename}`;
+          imageEntity.file_size = file.size;
+          imageEntity.mime_type = file.mimetype;
+          imageEntity.Story = story;
+          return imageEntity;
+        });
+
+        await this.imageRepository.save(imageEntities);
+      }
+
+      // 동영상 파일 처리
+      if (videoFiles.length > 0) {
+        const videoEntities = videoFiles.map((file) => {
+          const videoEntity = new StoryVideo();
+          videoEntity.video_name = file.filename;
+          videoEntity.link = `/video_upload/${file.filename}`;
+          videoEntity.file_size = file.size;
+          videoEntity.mime_type = file.mimetype;
+          videoEntity.Story = story;
+          return videoEntity;
+        });
+
+        await this.videoRepository.save(videoEntities);
+      }
 
       // 관계 업데이트: 최신 이미지 목록을 불러와서 할당
       const updatedImages = await this.imageRepository.find({
@@ -880,7 +974,7 @@ export class StoryService {
     // 스토리 데이터 가져오기
     const story: Story = await this.storyRepository.findOne({
       where: { id: storyId },
-      relations: ['StoryImage'], // 이미지 관계도 함께 가져오기
+      relations: ['StoryImage', 'StoryVideo'], // 이미지와 동영상 관계도 함께 가져오기
     });
 
     // 글이 존재하지 않으면 에러 발생
@@ -897,6 +991,20 @@ export class StoryService {
     if (story.StoryImage && story.StoryImage.length > 0) {
       story.StoryImage.forEach((image) => {
         const filePath = path.join(__dirname, '../../upload', image.image_name);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath); // 파일 삭제
+        }
+      });
+    }
+
+    // 동영상 파일 삭제
+    if (story.StoryVideo && story.StoryVideo.length > 0) {
+      story.StoryVideo.forEach((video) => {
+        const filePath = path.join(
+          __dirname,
+          '../../video_upload',
+          video.video_name,
+        );
         if (fs.existsSync(filePath)) {
           fs.unlinkSync(filePath); // 파일 삭제
         }
@@ -1095,6 +1203,7 @@ export class StoryService {
         recommend_Count: ranking.recommendCount,
         nickname: story.User.nickname,
         imageFlag: story.StoryImage && story.StoryImage.length > 0,
+        videoFlag: story.videoFlag,
         firstImage:
           story.StoryImage && story.StoryImage.length > 0
             ? story.StoryImage[0]

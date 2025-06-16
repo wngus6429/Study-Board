@@ -193,10 +193,10 @@ export class ChannelsController {
       );
     }
 
-    // 파일 크기 검증 (5MB 제한)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // 파일 크기 검증 (20MB 제한)
+    const maxSize = 20 * 1024 * 1024; // 20MB
     if (imageFile.size > maxSize) {
-      throw new Error('이미지 파일 크기는 5MB를 초과할 수 없습니다.');
+      throw new Error('이미지 파일 크기는 20MB를 초과할 수 없습니다.');
     }
 
     const savedImage = await this.channelsService.uploadChannelImage(

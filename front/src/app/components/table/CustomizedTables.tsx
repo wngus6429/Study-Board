@@ -14,6 +14,7 @@ import { useRouter } from "next/navigation";
 import { Box, Typography, Chip } from "@mui/material";
 import { TableStoryType } from "../../types/tableType";
 import ImageIcon from "@mui/icons-material/Image";
+import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
@@ -186,10 +187,38 @@ const CustomizedTables = ({ tableData, onRowClick }: CustomizedTablesProps): Rea
                         {row.imageFlag && (
                           <ImageIcon
                             sx={{
-                              fontSize: "1rem",
+                              fontSize: "1.1rem",
                               ml: 1,
                               verticalAlign: "middle",
-                              color: "info.main",
+                              color: "#10b981", // 에메랄드 그린
+                              backgroundColor: "rgba(16, 185, 129, 0.1)",
+                              borderRadius: "4px",
+                              padding: "2px",
+                              boxShadow: "0 2px 4px rgba(16, 185, 129, 0.3)",
+                              transition: "all 0.2s ease",
+                              "&:hover": {
+                                transform: "scale(1.1)",
+                                boxShadow: "0 4px 8px rgba(16, 185, 129, 0.4)",
+                              },
+                            }}
+                          />
+                        )}
+                        {row.videoFlag && (
+                          <VideoLibraryIcon
+                            sx={{
+                              fontSize: "1.1rem",
+                              ml: 1,
+                              verticalAlign: "middle",
+                              color: "#ef4444", // 빨간색
+                              backgroundColor: "rgba(239, 68, 68, 0.1)",
+                              borderRadius: "4px",
+                              padding: "2px",
+                              boxShadow: "0 2px 4px rgba(239, 68, 68, 0.3)",
+                              transition: "all 0.2s ease",
+                              "&:hover": {
+                                transform: "scale(1.1)",
+                                boxShadow: "0 4px 8px rgba(239, 68, 68, 0.4)",
+                              },
                             }}
                           />
                         )}

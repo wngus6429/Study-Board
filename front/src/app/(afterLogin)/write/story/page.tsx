@@ -51,7 +51,7 @@ export default function StoryWrite() {
   // 카테고리 변수
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
   // 이미지 변수
-  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
+  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>>([]);
   // 로딩
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -118,7 +118,9 @@ export default function StoryWrite() {
     },
   });
 
-  const handlePreviewUpdate = (updatedPreview: Array<{ dataUrl: string; file: File } | null>) => {
+  const handlePreviewUpdate = (
+    updatedPreview: Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>
+  ) => {
     setPreview(updatedPreview);
   };
 

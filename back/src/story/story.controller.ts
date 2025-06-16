@@ -162,6 +162,7 @@ export class StoryController {
       nickname: string;
       recommend_Count: number;
       imageFlag: boolean;
+      videoFlag: boolean;
     })[];
     total: number;
   }> {
@@ -201,6 +202,7 @@ export class StoryController {
       nickname: string;
       recommend_Count: number;
       imageFlag: boolean;
+      videoFlag: boolean;
     })[];
     total: number;
   }> {

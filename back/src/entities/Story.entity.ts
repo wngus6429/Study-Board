@@ -10,6 +10,8 @@ import {
 } from 'typeorm';
 // StoryImage 엔티티: 게시글에 첨부된 이미지 정보를 담는 엔티티
 import { StoryImage } from './StoryImage.entity';
+// StoryVideo 엔티티: 게시글에 첨부된 동영상 정보를 담는 엔티티
+import { StoryVideo } from './StoryVideo.entity';
 // Swagger를 이용한 API 문서 자동화를 위한 데코레이터
 import { ApiProperty } from '@nestjs/swagger';
 // Comments 엔티티: 게시글에 달린 댓글 정보를 담는 엔티티
@@ -88,8 +90,22 @@ export class Story {
   })
   StoryImage: StoryImage[];
 
+  // 게시글과 동영상 간의 관계 (일대다 관계)
+  // Story에 첨부된 여러 동영상을 관리합니다.
+  @ApiProperty({
+    description: '동영상 배열',
+    isArray: true,
+  })
+  @OneToMany(() => StoryVideo, (video) => video.Story, {
+    cascade: true,
+  })
+  StoryVideo: StoryVideo[];
+
   @Column({ default: false })
   imageFlag: boolean; // 이미지 존재 여부 플래그
+
+  @Column({ default: false })
+  videoFlag: boolean; // 동영상 존재 여부 플래그
 
   @ApiProperty({
     description: '공지사항 여부',

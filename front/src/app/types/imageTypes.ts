@@ -8,6 +8,18 @@ export interface StoryImageType {
   image_name: string;
   link: string;
   created_at: string;
+  file_size?: number; // 파일 크기 (bytes)
+  mime_type?: string; // MIME 타입
+}
+
+export interface StoryVideoType {
+  id: number;
+  video_name: string;
+  link: string;
+  created_at: string;
+  file_size?: number; // 파일 크기 (bytes)
+  mime_type?: string; // MIME 타입
+  duration?: number; // 동영상 길이 (초)
 }
 
 export interface SuggestionImageType {
@@ -15,4 +27,6 @@ export interface SuggestionImageType {
   image_name: string;
   link: string;
   created_at: string;
+  file_size?: number; // 파일 크기 (bytes)
+  mime_type?: string; // MIME 타입
 }

@@ -3,6 +3,7 @@
 /node_modules
 /build
 /upload
+/video_upload
 /userUpload
 /suggestionUpload
 /channelUpload

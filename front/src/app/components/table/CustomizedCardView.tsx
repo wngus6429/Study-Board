@@ -3,6 +3,8 @@ import React from "react";
 import { Card, CardMedia, CardContent, Typography, Grid, Box } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
+import ImageIcon from "@mui/icons-material/Image";
+import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -22,6 +24,7 @@ interface TableRowData {
   id: number;
   title: string;
   imageFlag: boolean;
+  videoFlag: boolean; // 동영상 존재 여부 플래그
   userId?: string; // 사용자 ID 추가 (블라인드 처리용)
   nickname: string;
   created_at: string;
@@ -102,15 +105,53 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                           }}
                         />
                       )}
-                      <Typography variant="h6" gutterBottom sx={{ wordBreak: "break-word" }}>
-                        {row.userId ? (
-                          <BlindWrapper userId={row.userId} type="post">
-                            {row.title}
-                          </BlindWrapper>
-                        ) : (
-                          row.title
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                        {row.imageFlag && (
+                          <ImageIcon
+                            sx={{
+                              fontSize: "1.1rem",
+                              verticalAlign: "middle",
+                              color: "#10b981", // 에메랄드 그린
+                              backgroundColor: "rgba(16, 185, 129, 0.1)",
+                              borderRadius: "4px",
+                              padding: "2px",
+                              boxShadow: "0 2px 4px rgba(16, 185, 129, 0.3)",
+                              transition: "all 0.2s ease",
+                              "&:hover": {
+                                transform: "scale(1.1)",
+                                boxShadow: "0 4px 8px rgba(16, 185, 129, 0.4)",
+                              },
+                            }}
+                          />
                         )}
-                      </Typography>
+                        {row.videoFlag && (
+                          <VideoLibraryIcon
+                            sx={{
+                              fontSize: "1.1rem",
+                              verticalAlign: "middle",
+                              color: "#ef4444", // 빨간색
+                              backgroundColor: "rgba(239, 68, 68, 0.1)",
+                              borderRadius: "4px",
+                              padding: "2px",
+                              boxShadow: "0 2px 4px rgba(239, 68, 68, 0.3)",
+                              transition: "all 0.2s ease",
+                              "&:hover": {
+                                transform: "scale(1.1)",
+                                boxShadow: "0 4px 8px rgba(239, 68, 68, 0.4)",
+                              },
+                            }}
+                          />
+                        )}
+                        <Typography variant="h6" gutterBottom sx={{ wordBreak: "break-word" }}>
+                          {row.userId ? (
+                            <BlindWrapper userId={row.userId} type="post">
+                              {row.title}
+                            </BlindWrapper>
+                          ) : (
+                            row.title
+                          )}
+                        </Typography>
+                      </Box>
                     </Box>
                     <Box sx={{ display: "flex", alignItems: "center", ml: 1 }}>
                       <FavoriteIcon fontSize="small" sx={{ mr: 0.5, color: "error.main" }} />

@@ -1,5 +1,5 @@
 "use client";
-// 채널 상세 페이지
+// 채널 테이블 뷰 페이지
 import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,

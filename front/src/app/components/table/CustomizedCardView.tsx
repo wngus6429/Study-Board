@@ -171,6 +171,8 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                     image={`${process.env.NEXT_PUBLIC_BASE_URL}${row.firstImage.link}`}
                     alt={row.title}
                   />
+                ) : row.videoFlag ? (
+                  <Image src="/assets/Video.png" alt="Video" width={360} height={200} />
                 ) : (
                   <Image src="/assets/NoImage.PNG" alt="No Image" width={360} height={200} />
                 )}

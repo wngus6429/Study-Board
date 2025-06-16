@@ -1,4 +1,5 @@
 "use client";
+// 채널 상세 페이지
 import Loading from "@/app/components/common/Loading";
 import { StoryImageType, StoryVideoType } from "@/app/types/imageTypes";
 import {
@@ -14,14 +15,13 @@ import {
   Slide,
   Tooltip,
   Typography,
-  Zoom,
   useTheme,
 } from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
-import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useEffect, useMemo, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -29,7 +29,6 @@ import { useComment } from "@/app/store/commentStore";
 import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 import ErrorView from "@/app/components/common/ErrorView";
 import RecommendButtonsWithCount from "@/app/components/RecommendButton";
-import Link from "next/link";
 import ImageCard from "@/app/components/ImageCard";
 import VideoCard from "@/app/components/VideoCard";
 import { StoryType } from "@/app/types/storyDetailType";
@@ -221,10 +220,9 @@ export default function page({ params }: { params: { id: string; slug: string } 
       queryClient.removeQueries({ queryKey: ["story", "detail", params?.id] });
       setIsDeleted(true); // 삭제 상태 업데이트, 다시 API 요청 방지
       showMessage("삭제 성공", "success");
-
       // 채널 페이지가 있으면 해당 채널로, 없으면 메인으로 이동
-      if (detail?.channelSlug) {
-        router.push(`/channels/${detail.channelSlug}`);
+      if (params.slug) {
+        router.push(`/channels/${params.slug}`);
       } else {
         router.push("/");
       }

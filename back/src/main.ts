@@ -89,8 +89,8 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'suggestionUpload'), {
     prefix: '/suggestionUpload/', // 건의사항 첨부 이미지
   });
-  app.useStaticAssets(join(__dirname, '..', 'video_upload'), {
-    prefix: '/video_upload/', // 스토리(게시글) 첨부 동영상
+  app.useStaticAssets(join(__dirname, '..', 'videoUpload'), {
+    prefix: '/videoUpload/', // 스토리(게시글) 첨부 동영상
   });
 
   // 📚 Swagger API 문서화 설정

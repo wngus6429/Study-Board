@@ -31,14 +31,23 @@ import { NotificationModule } from '../notification/notification.module';
     /**
      * Multer 파일 업로드 설정
      * - 게시글 이미지 및 동영상 첨부 기능을 위한 설정
-     * - 파일 저장 경로: ./upload
+     * - 파일 저장 경로: 이미지는 ./upload, 동영상은 ./videoUpload
      * - 파일명 형식: 원본명_날짜시간.확장자 (한글 파일명 지원)
      * - 지원 파일 타입: 이미지 (jpg, png, gif, webp, svg, bmp), 동영상 (mp4, webm, ogg, avi, mov, wmv, flv, mkv)
-     * - 최대 파일 크기: 100MB
+     * - 최대 파일 크기: 1000MB
      */
     MulterModule.register({
       storage: diskStorage({
-        destination: './video_upload',
+        destination: (req, file, cb) => {
+          // 파일 타입에 따라 저장 폴더 결정
+          if (file.mimetype.startsWith('image/')) {
+            cb(null, './upload'); // 이미지는 upload 폴더에
+          } else if (file.mimetype.startsWith('video/')) {
+            cb(null, './videoUpload'); // 동영상은 videoUpload 폴더에
+          } else {
+            cb(new Error('지원하지 않는 파일 타입입니다.'), '');
+          }
+        },
         filename(req, file, done) {
           const ext = path.extname(file.originalname);
           const baseName = Buffer.from(

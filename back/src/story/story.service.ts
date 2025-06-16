@@ -722,7 +722,7 @@ export class StoryService {
       const videoEntities = videoFiles.map((file) => {
         const videoEntity = new StoryVideo();
         videoEntity.video_name = file.filename;
-        videoEntity.link = `/video_upload/${file.filename}`;
+        videoEntity.link = `/videoUpload/${file.filename}`;
         videoEntity.file_size = file.size;
         videoEntity.mime_type = file.mimetype;
         videoEntity.Story = savedStory;
@@ -828,7 +828,7 @@ export class StoryService {
       const videoEntities = noticeVideoFiles.map((file) => {
         const videoEntity = new StoryVideo();
         videoEntity.video_name = file.filename;
-        videoEntity.link = `/video_upload/${file.filename}`;
+        videoEntity.link = `/videoUpload/${file.filename}`;
         videoEntity.file_size = file.size;
         videoEntity.mime_type = file.mimetype;
         videoEntity.Story = savedStory;
@@ -933,7 +933,7 @@ export class StoryService {
         const videoEntities = videoFiles.map((file) => {
           const videoEntity = new StoryVideo();
           videoEntity.video_name = file.filename;
-          videoEntity.link = `/video_upload/${file.filename}`;
+          videoEntity.link = `/videoUpload/${file.filename}`;
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
           videoEntity.Story = story;
@@ -1002,7 +1002,7 @@ export class StoryService {
       story.StoryVideo.forEach((video) => {
         const filePath = path.join(
           __dirname,
-          '../../video_upload',
+          '../../videoUpload',
           video.video_name,
         );
         if (fs.existsSync(filePath)) {

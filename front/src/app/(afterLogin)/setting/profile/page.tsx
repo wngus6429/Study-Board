@@ -303,9 +303,18 @@ function UserProfileEdit() {
   // 댓글 삭제 함수
   const deleteCommentMutation = useMutation({
     mutationFn: async (commentId: number) => {
-      return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/comment/${commentId}`, {
-        withCredentials: true,
-      });
+      if (!session?.user?.id) {
+        throw new Error("로그인이 필요합니다.");
+      }
+      return await axios.put(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/profile/comment/${commentId}`,
+        {
+          userId: session.user.id,
+        },
+        {
+          withCredentials: true,
+        }
+      );
     },
     onSuccess: () => {
       showMessage("댓글이 삭제되었습니다.", "success");

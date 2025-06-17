@@ -153,6 +153,48 @@ export class CommentService {
     });
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 프로필 페이지용 댓글 삭제 (storyId 자동 조회)
+  async deleteCommentFromProfile(
+    commentId: number,
+    userId?: string,
+  ): Promise<void> {
+    await this.dataSource.transaction(async (manager) => {
+      const commentRepository = manager.getRepository(Comments);
+      const storyRepository = manager.getRepository(Story);
+
+      // 댓글과 관련된 스토리, 사용자 정보를 함께 조회
+      const comment = await commentRepository.findOne({
+        where: { id: commentId },
+        relations: ['Story', 'User'],
+      });
+
+      if (!comment) {
+        throw new NotFoundException('삭제할 댓글을 찾을 수 없습니다.');
+      }
+
+      if (!comment.Story) {
+        throw new NotFoundException('댓글이 연결된 글을 찾을 수 없습니다.');
+      }
+
+      // 댓글 작성자 확인 (userId가 제공된 경우)
+      if (userId && comment.User.id !== userId) {
+        throw new Error('본인의 댓글만 삭제할 수 있습니다.');
+      }
+
+      // 댓글 논리 삭제
+      comment.deleted_at = new Date();
+      await commentRepository.save(comment);
+
+      // 스토리의 comment_count 감소
+      await storyRepository.decrement(
+        { id: comment.Story.id },
+        'comment_count',
+        1,
+      );
+    });
+  }
+
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 수정
   async editComment(commentId: number, content: string): Promise<void> {
     // 댓글 확인

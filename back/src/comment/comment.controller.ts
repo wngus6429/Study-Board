@@ -58,6 +58,17 @@ export class CommentController {
     return this.commentsService.deleteComment(commentId, commentData);
   }
   //!ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  // 프로필 페이지용 댓글 삭제
+  @Put('/profile/comment/:id')
+  @UseGuards(AuthGuard())
+  async deleteCommentFromProfile(
+    @Param('id', ParseIntPipe) commentId: number,
+    @Body('userId') userId: string,
+  ): Promise<void> {
+    return this.commentsService.deleteCommentFromProfile(commentId, userId);
+  }
+
+  //!ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 댓글 수정
   @Patch('/comment/:id')
   @UseGuards(AuthGuard())

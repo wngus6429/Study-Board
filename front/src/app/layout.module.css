@@ -1,12 +1,16 @@
 .main_container {
   display: flex; /* 수평 배치 */
   /* 전체 폭 100% */
+  min-height: 100vh; /* 전체 화면 높이 */
 }
 
-.nav_display {
-  width: 7%; /* 왼쪽 메뉴 7% */
-  /* border-right: 1px solid #ddd; 메뉴와 컨텐츠 구분선 제거 */
-  /* border-left 대신, 여기서 구분선 주면 가운데 침범 문제 줄어듦 */
+.nav_menu_container {
+  position: sticky; /* 스크롤 시 상단에 고정 */
+  top: 400px; /* 상단에서 120px 떨어진 위치 (TopBar 아래) */
+  align-self: flex-start; /* 컨테이너 상단에 정렬 */
+  z-index: 1000; /* 다른 요소보다 위에 표시 */
+  display: flex;
+  justify-content: flex-start; /* 왼쪽 정렬 */
 }
 
 .content_wrapper {

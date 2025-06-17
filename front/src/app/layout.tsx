@@ -53,9 +53,9 @@ export default function RootLayout({
                   <SubscriptionProvider>
                     {/* 상단 바 */}
                     <TopBar />
-                    <div style={{ width: "90%", maxWidth: "1600px", margin: "0 auto" }}>
+                    <div style={{ width: "90%", maxWidth: "1700px", margin: "0 auto" }}>
                       <div className={style.main_container}>
-                        <div className={style.nav_display}>
+                        <div className={style.nav_menu_container}>
                           {/* 왼쪽 메뉴 */}
                           <NavMenuBar />
                         </div>

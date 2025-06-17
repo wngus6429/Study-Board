@@ -58,6 +58,7 @@ import { useMessage } from "@/app/store/messageStore";
 import usePageStore from "@/app/store/pageStore";
 import { useSubscriptionStore } from "@/app/store/subscriptionStore";
 import { useChannelNotificationStore } from "@/app/store/channelNotificationStore";
+import { useChannelPageStore } from "@/app/store/channelPageStore";
 import { TABLE_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import { TAB_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import CustomizedTables from "@/app/components/table/CustomizedTables";
@@ -107,6 +108,7 @@ const ChannelDetailPage = () => {
   } = useSubscriptionStore();
 
   const { subscribeToChannel, unsubscribeFromChannel, isSubscribedToNotifications } = useChannelNotificationStore();
+  const { setChannelPageData } = useChannelPageStore();
 
   // 상태 관리
   const [currentTab, setCurrentTab] = useState("all");
@@ -290,6 +292,25 @@ const ChannelDetailPage = () => {
   useEffect(() => {
     loadSubscriptions();
   }, [loadSubscriptions]);
+
+  // 채널 페이지 데이터를 스토어에 저장
+  useEffect(() => {
+    if (currentData && currentData.results && channelSlug) {
+      const storyData = currentData.results.map((story) => ({
+        id: story.id,
+        title: story.title,
+        nickname: story.nickname,
+        category: story.category,
+        created_at: story.created_at,
+        read_count: story.read_count,
+        recommend_Count: story.recommend_Count,
+        comments_count: story.comments_count || 0,
+        channelSlug: channelSlug,
+      }));
+
+      setChannelPageData(channelSlug, currentPage, currentTab, storyData);
+    }
+  }, [currentData, channelSlug, currentPage, currentTab, setChannelPageData]);
 
   // 탭 변경 핸들러 (MainView 방식 적용)
   const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {

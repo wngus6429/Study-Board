@@ -152,8 +152,33 @@ export default function MenuBar() {
 
   return (
     <div className={styles.container}>
-      <Link href="/channels" aria-label="Home" className={styles.title} onClick={() => setCurrentPage(1)}>
-        🍔Live Board
+      <Link
+        href="/channels"
+        aria-label="Home"
+        className={styles.title}
+        onClick={() => setCurrentPage(1)}
+        style={{
+          fontSize: "2rem",
+          fontWeight: "bold",
+          background: "linear-gradient(45deg, #FF6B6B, #4ECDC4)",
+          WebkitBackgroundClip: "text",
+          WebkitTextFillColor: "transparent",
+          padding: "0.5rem 1rem",
+          borderRadius: "8px",
+          textDecoration: "none",
+          transition: "transform 0.2s ease-in-out",
+          display: "inline-block",
+          textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+          letterSpacing: "1px",
+        }}
+        onMouseOver={(e) => {
+          e.currentTarget.style.transform = "scale(1.05)";
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.transform = "scale(1)";
+        }}
+      >
+        Hobby Channel
       </Link>
       <Box sx={{ width: 56, height: 56 }}>
         {userImage ? (

@@ -282,6 +282,50 @@ function UserProfileEdit() {
     setCommentsCurrentPage(newPage);
   };
 
+  // 게시글 삭제 함수
+  const deleteStoryMutation = useMutation({
+    mutationFn: async (storyId: number) => {
+      return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/${storyId}`, {
+        withCredentials: true,
+      });
+    },
+    onSuccess: () => {
+      showMessage("게시글이 삭제되었습니다.", "success");
+      // 게시글 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ["user", "stories"] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || "게시글 삭제에 실패했습니다.";
+      showMessage(errorMessage, "error");
+    },
+  });
+
+  // 댓글 삭제 함수
+  const deleteCommentMutation = useMutation({
+    mutationFn: async (commentId: number) => {
+      return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/comment/${commentId}`, {
+        withCredentials: true,
+      });
+    },
+    onSuccess: () => {
+      showMessage("댓글이 삭제되었습니다.", "success");
+      // 댓글 목록 새로고침
+      queryClient.invalidateQueries({ queryKey: ["user", "comments"] });
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || "댓글 삭제에 실패했습니다.";
+      showMessage(errorMessage, "error");
+    },
+  });
+
+  const handleDeleteStory = (storyId: number) => {
+    deleteStoryMutation.mutate(storyId);
+  };
+
+  const handleDeleteComment = (commentId: number) => {
+    deleteCommentMutation.mutate(commentId);
+  };
+
   // 비밀번호 변경 핸들러
   const handlePasswordChange = async () => {
     if (newPassword !== confirmPassword) {
@@ -533,7 +577,11 @@ function UserProfileEdit() {
                 />
               </Box>
             )}
-            <CustomizedUserTables tableData={UserStory?.StoryResults || []} />
+            <CustomizedUserTables
+              tableData={UserStory?.StoryResults || []}
+              showDeleteButton={true}
+              onDelete={handleDeleteStory}
+            />
             <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
               <ProfilePagination
                 pageCount={Math.ceil((UserStory?.StoryTotal || 0) / viewCount)}
@@ -588,7 +636,12 @@ function UserProfileEdit() {
               />
             </Box>
           )}
-          <CustomizedUserCommentsTables tableData={UserComments?.CommentsResults || []} commentsFlag={false} />
+          <CustomizedUserCommentsTables
+            tableData={UserComments?.CommentsResults || []}
+            commentsFlag={false}
+            showDeleteButton={true}
+            onDelete={handleDeleteComment}
+          />
           <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <ProfilePagination
               pageCount={Math.ceil((UserComments?.CommentsTotal || 0) / viewCount)}

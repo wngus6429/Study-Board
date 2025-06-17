@@ -782,7 +782,29 @@ export class StoryService {
     userData: User,
     files: Express.Multer.File[],
   ): Promise<Story> {
-    const { title, content } = createStoryDto;
+    const { title, content, channelId } = createStoryDto;
+
+    // 채널 ID가 있는 경우 채널 정보 조회 및 권한 확인
+    let channel: Channels | null = null;
+    if (channelId) {
+      channel = await this.channelsRepository.findOne({
+        where: { id: Number(channelId) },
+        relations: ['creator'],
+      });
+
+      if (!channel) {
+        throw new NotFoundException(
+          `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
+        );
+      }
+
+      // 채널 소유자만 공지사항 작성 가능
+      if (channel.creator.id !== userData.id) {
+        throw new ForbiddenException(
+          '해당 채널의 소유자만 공지사항을 작성할 수 있습니다.',
+        );
+      }
+    }
     // 이미지와 동영상 업로드 여부 확인
     const noticeImageFiles = files
       ? files.filter((file) => file.mimetype.startsWith('image/'))
@@ -802,6 +824,7 @@ export class StoryService {
       imageFlag,
       videoFlag,
       isNotice: true, // 공지사항 플래그 설정
+      Channel: channel, // 채널 정보 추가
     });
 
     const savedStory = await this.storyRepository.save(story);
@@ -975,7 +998,13 @@ export class StoryService {
     // 스토리 데이터 가져오기
     const story: Story = await this.storyRepository.findOne({
       where: { id: storyId },
-      relations: ['StoryImage', 'StoryVideo'], // 이미지와 동영상 관계도 함께 가져오기
+      relations: [
+        'StoryImage',
+        'StoryVideo',
+        'User',
+        'Channel',
+        'Channel.creator',
+      ], // 채널과 채널 소유자 정보도 함께 가져오기
     });
 
     // 글이 존재하지 않으면 에러 발생
@@ -983,10 +1012,27 @@ export class StoryService {
       throw new NotFoundException('삭제된 글입니다.');
     }
 
-    // 글 작성자와 요청한 사용자의 이메일이 일치하지 않으면 에러 발생
-    // if (story.creator_user_id !== userData.id) {
-    //   throw new UnauthorizedException('본인의 글만 삭제할 수 있습니다.');
-    // }
+    // 공지사항인 경우 권한 확인
+    if (story.isNotice) {
+      if (story.Channel) {
+        // 채널의 공지사항인 경우: 채널 소유자만 삭제 가능
+        if (story.Channel.creator.id !== userData.id) {
+          throw new ForbiddenException(
+            '채널 소유자만 해당 공지사항을 삭제할 수 있습니다.',
+          );
+        }
+      } else {
+        // 전체 사이트 공지사항인 경우: 관리자만 삭제 가능 (필요시 추가 권한 체크)
+        if (story.User.id !== userData.id) {
+          throw new ForbiddenException('본인의 공지사항만 삭제할 수 있습니다.');
+        }
+      }
+    } else {
+      // 일반 게시글인 경우: 작성자만 삭제 가능
+      if (story.User.id !== userData.id) {
+        throw new ForbiddenException('본인의 글만 삭제할 수 있습니다.');
+      }
+    }
 
     // 이미지 파일 삭제
     if (story.StoryImage && story.StoryImage.length > 0) {
@@ -1010,6 +1056,15 @@ export class StoryService {
           fs.unlinkSync(filePath); // 파일 삭제
         }
       });
+    }
+
+    // 일반 게시글인 경우만 채널의 스토리 카운트 감소 (공지사항 제외)
+    if (story.Channel && !story.isNotice) {
+      await this.channelsRepository.decrement(
+        { id: story.Channel.id },
+        'story_count',
+        1,
+      );
     }
 
     // 삭제 권한이 있을 경우, 글 삭제 진행

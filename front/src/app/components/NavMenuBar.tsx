@@ -46,9 +46,9 @@ const NavMenuBar: FC = () => {
     <Box
       sx={{
         position: "fixed", // fixed 포지션으로 변경
-        top: 100, // TopBar 바로 아래
+        top: 300, // TopBar 바로 아래
         left: 20, // 왼쪽에서 20px 떨어진 위치
-        display: { xs: "none", md: "flex" }, // 모바일에서는 숨김, 데스크톱에서만 표시
+        display: { xs: "none", sm: "none", md: "none", lg: "flex" }, // 1024px 이하에서는 숨김 (lg 이상에서만 표시)
         flexDirection: "column",
         width: "220px", // 고정 너비
         maxHeight: "calc(100vh - 120px)", // TopBar 높이를 고려한 최대 높이 설정

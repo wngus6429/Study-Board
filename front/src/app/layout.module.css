@@ -10,7 +10,7 @@
   display: flex;
   gap: 20px; /* 적절한 간격 */
   width: 100%;
-  max-width: 1200px; /* 최대 너비 제한 */
+  max-width: 1500px; /* 최대 너비 제한 */
   margin: 0 auto; /* 중앙 정렬 */
   padding: 0 5px; /* 좌우 패딩 */
 }

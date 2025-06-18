@@ -4,7 +4,6 @@
   min-height: calc(100vh - 70px); /* TopBar 높이를 제외한 화면 높이 */
   position: relative;
   width: 100%;
-  padding: 20px 0; /* 상하 패딩 추가 */
 }
 
 .content_wrapper {

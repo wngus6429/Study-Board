@@ -52,7 +52,7 @@ const NavMenuBar: FC = () => {
         top: "50%", // 수직 중앙
         left: "20px", // 화면 왼쪽에서 약간 띄워서 배치 (원하는 값으로 조정 가능)
         transform: "translateY(-50%)", // 수직 중앙 정렬 보정
-        width: 210, // 직사각형의 너비 (구독 채널 표시를 위해 확장)
+        width: 240, // 직사각형의 너비 (구독 채널 표시를 위해 확장)
         maxHeight: "80vh", // 최대 높이 설정
         overflow: "auto", // 스크롤 가능하게
         bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "background.paper", // 배경색 (테마에 맞게 조정)

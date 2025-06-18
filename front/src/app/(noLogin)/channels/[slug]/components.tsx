@@ -11,7 +11,7 @@ export const MainContainer = styled(Box)(({ theme }) => ({
 // 채널 정보 카드
 export const ChannelInfoCard = styled(Card)(({ theme }) => ({
   ...getCardStyle(theme),
-  marginBottom: theme.spacing(3),
+  marginBottom: 0,
   "&::before": {
     content: '""',
     position: "absolute",

@@ -875,7 +875,7 @@ const ChannelDetailPage = () => {
                         letterSpacing: "0.5px",
                       }}
                     >
-                      {showChat ? "채팅 종료" : "실시간 채팅"}
+                      {showChat ? "채팅 종료" : "실시간채팅"}
                     </Typography>
                     <Typography
                       variant="caption"
@@ -886,7 +886,7 @@ const ChannelDetailPage = () => {
                         textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
                       }}
                     >
-                      {showChat ? "클릭하여 나가기" : "지금 참여하기"}
+                      {showChat ? "클릭하여 나가기" : "참여하기"}
                     </Typography>
                   </Box>
                 </Button>

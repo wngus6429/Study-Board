@@ -394,15 +394,31 @@ const CommentsView = () => {
               >
                 {comment.nickname}
               </Typography>
-              <Typography
-                variant="caption"
+              <Box
                 sx={{
                   ml: "auto",
-                  color: theme.palette.mode === "dark" ? "#94a3b8" : "gray",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
                 }}
               >
-                {dayjs(comment.updated_at).format("YYYY-MM-DD HH:mm:ss")}
-              </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: theme.palette.mode === "dark" ? "#94a3b8" : "gray",
+                  }}
+                >
+                  {dayjs(comment.updated_at).format("YYYY-MM-DD")}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: theme.palette.mode === "dark" ? "#94a3b8" : "gray",
+                  }}
+                >
+                  {dayjs(comment.updated_at).format("HH:mm:ss")}
+                </Typography>
+              </Box>
             </Box>
 
             {/* 댓글 내용 또는 수정 모드 입력 */}

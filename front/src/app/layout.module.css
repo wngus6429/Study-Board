@@ -1,48 +1,59 @@
 .main_container {
-  display: flex; /* 수평 배치 */
-  /* 전체 폭 100% */
-  min-height: 100vh; /* 전체 화면 높이 */
-}
-
-.nav_menu_container {
-  position: sticky; /* 스크롤 시 상단에 고정 */
-  top: 400px; /* 상단에서 120px 떨어진 위치 (TopBar 아래) */
-  align-self: flex-start; /* 컨테이너 상단에 정렬 */
-  z-index: 1000; /* 다른 요소보다 위에 표시 */
   display: flex;
-  justify-content: flex-start; /* 왼쪽 정렬 */
+  justify-content: center; /* 중앙 정렬 */
+  min-height: calc(100vh - 70px); /* TopBar 높이를 제외한 화면 높이 */
+  position: relative;
+  width: 100%;
+  padding: 20px 0; /* 상하 패딩 추가 */
 }
 
 .content_wrapper {
-  width: 93%; /* 나머지 93% */
   display: flex;
-  gap: 3px;
+  gap: 20px; /* 적절한 간격 */
+  width: 100%;
+  max-width: 1200px; /* 최대 너비 제한 */
+  margin: 0 auto; /* 중앙 정렬 */
+  padding: 0 5px; /* 좌우 패딩 */
 }
 
 /* 가운데 컨텐츠 */
 .main_content {
-  width: 75%; /* 예: 70% */
-  padding: 0 3px;
-  overflow-y: auto;
-  /* 필요하면 border-left, padding-left 추가 가능 */
+  flex: 1; /* 남은 공간을 모두 차지 */
+  min-width: 0; /* flex 아이템이 축소될 수 있도록 */
+  padding: 0;
 }
 
 /* 오른쪽 영역 */
 .right_view {
-  width: 25%; /* 70% + 30% = 100% (content_wrapper 안에서) */
+  width: 350px; /* 고정 너비 */
+  flex-shrink: 0; /* 축소되지 않도록 */
 }
 
-@media (max-width: 1400px) {
-  .nav_display {
-    display: none;
-  }
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
   .content_wrapper {
-    width: 100%;
     flex-direction: column;
+    gap: 20px;
+    padding: 0 15px;
   }
-  .main_content,
+
+  .main_content {
+    width: 100%;
+  }
+
   .right_view {
     width: 100%;
-    border: none;
+    order: 2; /* 메인 컨텐츠 아래로 배치 */
+  }
+}
+
+@media (max-width: 768px) {
+  .main_container {
+    padding: 10px 0;
+  }
+
+  .content_wrapper {
+    padding: 0 10px;
+    gap: 15px;
   }
 }

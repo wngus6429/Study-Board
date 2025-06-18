@@ -549,7 +549,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
   if (isError) return <ErrorView />;
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 2, overflow: "hidden" }}>
+    <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 1, overflow: "hidden" }}>
       {openConfirmDialog && (
         <ConfirmDialog
           open={openConfirmDialog}

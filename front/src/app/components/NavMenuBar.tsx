@@ -45,23 +45,22 @@ const NavMenuBar: FC = () => {
   return (
     <Box
       sx={{
-        display: "flex",
+        position: "fixed", // fixed 포지션으로 변경
+        top: 100, // TopBar 바로 아래
+        left: 20, // 왼쪽에서 20px 떨어진 위치
+        display: { xs: "none", md: "flex" }, // 모바일에서는 숨김, 데스크톱에서만 표시
         flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        top: "50%", // 수직 중앙
-        left: "20px", // 화면 왼쪽에서 약간 띄워서 배치 (원하는 값으로 조정 가능)
-        transform: "translateY(-50%)", // 수직 중앙 정렬 보정
-        width: 240, // 직사각형의 너비 (구독 채널 표시를 위해 확장)
-        maxHeight: "80vh", // 최대 높이 설정
+        width: "220px", // 고정 너비
+        maxHeight: "calc(100vh - 120px)", // TopBar 높이를 고려한 최대 높이 설정
         overflow: "auto", // 스크롤 가능하게
-        bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "background.paper", // 배경색 (테마에 맞게 조정)
-        border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid #ccc", // 옅은 테두리
-        borderRadius: "8px", // 모서리 둥글게 처리
-        boxShadow: theme.palette.mode === "dark" ? "0 8px 25px rgba(139, 92, 246, 0.15)" : 3, // 떠 있는 느낌을 주는 그림자 효과
+        bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "rgba(255, 255, 255, 0.95)", // 배경색 (테마에 맞게 조정)
+        border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid rgba(0, 0, 0, 0.1)", // 옅은 테두리
+        borderRadius: "12px", // 모서리 둥글게 처리
+        boxShadow:
+          theme.palette.mode === "dark" ? "0 8px 25px rgba(139, 92, 246, 0.15)" : "0 4px 20px rgba(0, 0, 0, 0.1)", // 떠 있는 느낌을 주는 그림자 효과
         p: 2, // 내부 패딩
-        zIndex: 1000, // 다른 요소보다 위에 표시
-        mr: 0.5,
+        backdropFilter: "blur(10px)", // 블러 효과 추가
+        zIndex: 999, // z-index 설정
       }}
     >
       {/* 구독한 채널 섹션 */}

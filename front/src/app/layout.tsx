@@ -53,22 +53,17 @@ export default function RootLayout({
                   <SubscriptionProvider>
                     {/* 상단 바 */}
                     <TopBar />
-                    <div style={{ width: "90%", maxWidth: "1700px", margin: "0 auto" }}>
-                      <div className={style.main_container}>
-                        <div className={style.nav_menu_container}>
-                          {/* 왼쪽 메뉴 */}
-                          <NavMenuBar />
+                    <NavMenuBar />
+                    <div className={style.main_container}>
+                      <div className={style.content_wrapper}>
+                        {/* 가운데 데이터 */}
+                        <div className={style.main_content}>{children}</div>
+                        {/* 광고 및 댓글부분 */}
+                        <div className={style.right_view}>
+                          <RightView />
                         </div>
-                        <div className={style.content_wrapper}>
-                          {/* 가운데 데이터 */}
-                          <div className={style.main_content}>{children}</div>
-                          {/* 광고 및 댓글부분 */}
-                          <div className={style.right_view}>
-                            <RightView />
-                          </div>
-                        </div>
-                        <MessageView />
                       </div>
+                      <MessageView />
                     </div>
                     <ScrollUpButton />
                   </SubscriptionProvider>

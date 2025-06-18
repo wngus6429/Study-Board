@@ -5,6 +5,10 @@
   align-items: center;
   background-color: #070e36;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 하단부 그림자 효과 */
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  height: 70px; /* TopBar 높이 명시적으로 설정 */
 }
 
 .title {

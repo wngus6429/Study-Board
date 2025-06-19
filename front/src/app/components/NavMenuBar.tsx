@@ -46,7 +46,7 @@ const NavMenuBar: FC = () => {
     <Box
       sx={{
         position: "fixed", // fixed 포지션으로 변경
-        top: 200, // TopBar 바로 아래
+        top: 150, // TopBar 바로 아래
         left: 20, // 왼쪽에서 20px 떨어진 위치
         display: { xs: "none", sm: "none", md: "none", lg: "flex" }, // 1024px 이하에서는 숨김 (lg 이상에서만 표시)
         flexDirection: "column",

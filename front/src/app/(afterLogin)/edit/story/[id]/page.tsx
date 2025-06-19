@@ -6,6 +6,7 @@ import axios from "axios";
 import { Box, Button, CircularProgress, TextField, Typography } from "@mui/material";
 import Loading from "@/app/components/common/Loading";
 import InputFileUpload from "@/app/components/common/InputFileUpload";
+import RichTextEditor from "@/app/components/common/RichTextEditor";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import { useSession } from "next-auth/react";
@@ -25,7 +26,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
   // 카테고리 변수
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
   // 이미지 변수
-  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
+  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>>([]);
   // 로딩
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -72,6 +73,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
       const formattedImages = (storyDetail.StoryImage || []).map((image: any) => ({
         dataUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${image.link}`, // 전체 URL로 변환
         file: null, // 기존 이미지는 파일이 없으므로 null
+        type: "image" as const, // type 속성 추가
       }));
       setPreview(formattedImages);
     }
@@ -102,7 +104,9 @@ export default function EditPage({ params }: { params: { id: string } }) {
     },
   });
 
-  const handlePreviewUpdate = (updatedPreview: Array<{ dataUrl: string; file: File } | null>) => {
+  const handlePreviewUpdate = (
+    updatedPreview: Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>
+  ) => {
     setPreview(updatedPreview);
   };
 
@@ -168,21 +172,12 @@ export default function EditPage({ params }: { params: { id: string } }) {
           borderRadius: 2,
         }}
       />
-      <TextField
-        name="content"
-        label="내용 (필수)"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        multiline
-        rows={6}
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        sx={{
-          bgcolor: "background.default",
-          borderRadius: 2,
-        }}
-      />
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
+          내용 (필수)
+        </Typography>
+        <RichTextEditor value={content} onChange={setContent} placeholder="글 내용을 입력해주세요" height="400px" />
+      </Box>
       <CustomSelect
         selectArray={WRITE_SELECT_OPTIONS}
         defaultValue={DEFAULT_SELECT_OPTION}

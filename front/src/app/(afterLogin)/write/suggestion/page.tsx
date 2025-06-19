@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import InputFileUpload from "@/app/components/common/InputFileUpload";
+import RichTextEditor from "@/app/components/common/RichTextEditor";
 import { useMessage } from "@/app/store/messageStore";
 import { DEFAULT_FEEDBACK_OPTION, FEEDBACK_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 
@@ -201,50 +202,25 @@ export default function FeedbackWrite() {
           onChange={(e) => setTitle(e.target.value)}
         />
 
-        <TextField
-          id="content-input"
-          label="내용"
-          placeholder="건의사항 내용을 자유롭게 작성해주세요 (3글자 이상)"
-          multiline
-          rows={6}
-          variant="outlined"
-          fullWidth
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "12px",
-              backgroundColor: isDarkMode ? "rgba(45, 48, 56, 0.8)" : "rgba(249, 250, 251, 0.8)",
-              color: isDarkMode ? "#ffffff" : "inherit",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                backgroundColor: isDarkMode ? "rgba(50, 53, 61, 1)" : "rgba(245, 247, 250, 1)",
-                boxShadow: isDarkMode ? "0 2px 8px rgba(0, 0, 0, 0.3)" : "0 2px 8px rgba(0, 0, 0, 0.04)",
-              },
-              "&.Mui-focused": {
-                backgroundColor: isDarkMode ? "rgba(55, 58, 66, 1)" : "#ffffff",
-                boxShadow: isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.4)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
-                "& fieldset": {
-                  borderColor: "#e94057",
-                  borderWidth: "2px",
-                },
-              },
-              "& fieldset": {
-                borderColor: isDarkMode ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.23)",
-              },
-            },
-            "& .MuiInputLabel-root": {
+        <Box>
+          <Typography
+            variant="body1"
+            sx={{
               fontWeight: 500,
+              mb: 1,
               color: isDarkMode ? "rgba(255, 255, 255, 0.7)" : "inherit",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "#e94057",
-            },
-            "& .MuiOutlinedInput-input::placeholder": {
-              color: isDarkMode ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.6)",
-              opacity: 1,
-            },
-          }}
-          onChange={(e) => setContent(e.target.value)}
-        />
+              fontSize: "1rem",
+            }}
+          >
+            내용
+          </Typography>
+          <RichTextEditor
+            value={content}
+            onChange={setContent}
+            placeholder="건의사항 내용을 자유롭게 작성해주세요 (3글자 이상)"
+            height="350px"
+          />
+        </Box>
 
         <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
 

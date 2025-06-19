@@ -24,9 +24,11 @@
     "next": "14.2.15",
     "next-auth": "^4.24.10",
     "prettier": "^3.3.3",
+    "quill": "^2.0.3",
     "react": "^18",
     "react-dom": "^18",
     "react-paginate": "^8.2.0",
+    "react-quill": "^2.0.0",
     "socket.io-client": "^4.8.1",
     "zustand": "^5.0.0"
   },

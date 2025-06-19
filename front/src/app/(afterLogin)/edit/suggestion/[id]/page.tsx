@@ -6,6 +6,7 @@ import axios from "axios";
 import { Box, Button, CircularProgress, TextField, Typography } from "@mui/material";
 import Loading from "@/app/components/common/Loading";
 import InputFileUpload from "@/app/components/common/InputFileUpload";
+import RichTextEditor from "@/app/components/common/RichTextEditor";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import {
   DEFAULT_FEEDBACK_OPTION,
@@ -26,7 +27,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
-  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
+  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   // 건의사항 상세 데이터를 불러옴 (수정용 엔드포인트)
@@ -63,6 +64,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
       const formattedImages = (suggestionDetail.SuggestionImage || []).map((image: any) => ({
         dataUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${image.link}`,
         file: null,
+        type: "image" as const,
       }));
       setPreview(formattedImages);
     }
@@ -101,7 +103,9 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
   });
 
   // InputFileUpload 컴포넌트에서 미리보기 이미지 업데이트를 받는 함수
-  const handlePreviewUpdate = (updatedPreview: Array<{ dataUrl: string; file: File } | null>) => {
+  const handlePreviewUpdate = (
+    updatedPreview: Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>
+  ) => {
     setPreview(updatedPreview);
   };
 
@@ -177,21 +181,17 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
           borderRadius: 2,
         }}
       />
-      <TextField
-        name="content"
-        label="내용 (필수)"
-        variant="outlined"
-        fullWidth
-        margin="normal"
-        multiline
-        rows={6}
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        sx={{
-          bgcolor: "background.default",
-          borderRadius: 2,
-        }}
-      />
+      <Box sx={{ mb: 2 }}>
+        <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
+          내용 (필수)
+        </Typography>
+        <RichTextEditor
+          value={content}
+          onChange={setContent}
+          placeholder="건의사항 내용을 입력해주세요"
+          height="400px"
+        />
+      </Box>
       <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
 
       <Box

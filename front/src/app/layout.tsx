@@ -53,13 +53,14 @@ export default function RootLayout({
                   <SubscriptionProvider>
                     {/* 상단 바 */}
                     <TopBar />
-                    <NavMenuBar />
                     <div className={style.main_container}>
                       <div className={style.content_wrapper}>
-                        {/* 가운데 데이터 */}
+                        {/* 왼쪽 네비게이션 */}
+                        <NavMenuBar />
+                        {/* 메인 컨텐츠 */}
                         <div className={style.main_content}>{children}</div>
-                        {/* 광고 및 댓글부분 */}
-                        <div className={style.right_view}>
+                        {/* 오른쪽 영역 */}
+                        <div className={style.right_section}>
                           <RightView />
                         </div>
                       </div>

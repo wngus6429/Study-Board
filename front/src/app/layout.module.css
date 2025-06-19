@@ -7,42 +7,47 @@
 }
 
 .content_wrapper {
-  display: flex;
-  gap: 20px; /* 적절한 간격 */
-  width: 100%;
-  max-width: 1500px; /* 최대 너비 제한 */
+  display: grid;
+  grid-template-columns: 120px 1000px 380px; /* NavMenuBar, 메인컨텐츠, RightView */
+  gap: 15px;
+  width: 1465px; /* 전체 고정 너비 (100+1000+400+15*2 + 50px 여백) */
   margin: 0 auto; /* 중앙 정렬 */
-  padding: 0 5px; /* 좌우 패딩 */
+  padding: 0 20px 0 20px; /* 좌우 패딩 */
 }
 
-/* 가운데 컨텐츠 */
+/* 메인 컨텐츠 */
 .main_content {
-  flex: 1; /* 남은 공간을 모두 차지 */
-  min-width: 0; /* flex 아이템이 축소될 수 있도록 */
+  grid-column: 2;
+  min-width: 0;
   padding: 0;
 }
 
 /* 오른쪽 영역 */
-.right_view {
-  width: 350px; /* 고정 너비 */
-  flex-shrink: 0; /* 축소되지 않도록 */
+.right_section {
+  grid-column: 3;
+  min-width: 0;
+  padding-right: 50px; /* 오른쪽 여백 50px 추가 */
 }
 
 /* 반응형 디자인 */
-@media (max-width: 1024px) {
+@media (max-width: 1500px) {
   .content_wrapper {
+    display: flex;
     flex-direction: column;
     gap: 20px;
+    width: 100%;
     padding: 0 15px;
   }
 
   .main_content {
     width: 100%;
+    order: 2;
   }
 
-  .right_view {
+  .right_section {
     width: 100%;
-    order: 2; /* 메인 컨텐츠 아래로 배치 */
+    order: 3;
+    padding-right: 0; /* 모바일에서는 오른쪽 여백 제거 */
   }
 }
 

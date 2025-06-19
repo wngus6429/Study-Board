@@ -116,18 +116,40 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
 
   return (
     <Box sx={{ width: "100%", textAlign: "center" }}>
-      <Button
-        component="label"
-        variant="contained"
-        startIcon={<CloudUploadIcon />}
-        sx={{
-          width: "100%",
-          fontWeight: "bold",
-        }}
-      >
-        파일 업로드 (이미지 & 동영상)
-        <VisuallyHiddenInput type="file" onChange={onUpload} multiple accept="image/*,video/*" />
-      </Button>
+      <Box sx={{ display: "flex", gap: 2, mb: 2 }}>
+        <Button
+          component="label"
+          variant="contained"
+          startIcon={<ImageIcon />}
+          sx={{
+            flex: 1,
+            fontWeight: "bold",
+            background: "linear-gradient(135deg, #4caf50, #45a049)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #45a049, #3d8b40)",
+            },
+          }}
+        >
+          이미지 업로드
+          <VisuallyHiddenInput type="file" onChange={onUpload} multiple accept="image/*" />
+        </Button>
+        <Button
+          component="label"
+          variant="contained"
+          startIcon={<VideoFileIcon />}
+          sx={{
+            flex: 1,
+            fontWeight: "bold",
+            background: "linear-gradient(135deg, #ff9800, #f57c00)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #f57c00, #ef6c00)",
+            },
+          }}
+        >
+          영상 업로드
+          <VisuallyHiddenInput type="file" onChange={onUpload} multiple accept="video/*" />
+        </Button>
+      </Box>
 
       {preview.length > 0 && (
         <Box>
@@ -168,20 +190,49 @@ export default function InputFileUpload({ onPreviewUpdate, preview }: InputFileU
                       <Box
                         sx={{
                           height: 120,
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          backgroundColor: "rgba(0, 0, 0, 0.05)",
+                          position: "relative",
                           borderRadius: "8px 8px 0 0",
-                          gap: 1,
+                          overflow: "hidden",
                         }}
                       >
-                        <VideoFileIcon sx={{ fontSize: 40, color: "primary.main" }} />
-                        <Typography variant="caption" sx={{ fontWeight: "bold" }}>
-                          동영상
-                        </Typography>
-                        <Chip label={formatFileSize(v.file.size)} size="small" color="primary" variant="outlined" />
+                        <video
+                          src={v.dataUrl}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                          controls={false}
+                          muted
+                        />
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                            right: 0,
+                            bottom: 0,
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: "rgba(0, 0, 0, 0.3)",
+                            gap: 1,
+                          }}
+                        >
+                          <VideoFileIcon sx={{ fontSize: 40, color: "white" }} />
+                          <Typography variant="caption" sx={{ fontWeight: "bold", color: "white" }}>
+                            동영상
+                          </Typography>
+                          <Chip
+                            label={formatFileSize(v.file.size)}
+                            size="small"
+                            sx={{
+                              backgroundColor: "rgba(255, 255, 255, 0.9)",
+                              color: "rgba(0, 0, 0, 0.87)",
+                            }}
+                          />
+                        </Box>
                       </Box>
                     )}
 

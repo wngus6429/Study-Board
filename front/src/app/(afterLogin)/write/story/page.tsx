@@ -130,8 +130,8 @@ export default function StoryWrite() {
       elevation={0}
       sx={{
         p: { xs: 3, sm: 4, md: 5 },
-        width: { xs: "95%", sm: "80%", md: "65%", lg: "55%" },
-        maxWidth: "900px",
+        width: { xs: "98%", sm: "90%", md: "80%", lg: "70%" },
+        maxWidth: "1200px",
         margin: "auto",
         mt: { xs: 3, sm: 4, md: 5 },
         mb: 5,

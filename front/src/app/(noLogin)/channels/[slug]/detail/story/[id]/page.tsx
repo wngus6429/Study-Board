@@ -580,15 +580,49 @@ export default function page({ params }: { params: { id: string; slug: string } 
     const parts = content.split(/(<img[^>]*>)/);
     const elements: React.ReactNode[] = [];
 
+    // 연속된 이미지들을 그룹화하기 위한 변수
+    let currentImageGroup: Array<{ img: StoryImageType; index: number; originalIndex: number }> = [];
+
+    const processImageGroup = () => {
+      if (currentImageGroup.length === 0) return;
+
+      // 이미지 그룹을 카드뷰로 렌더링 (원래 카드뷰 로직 적용)
+      elements.push(
+        <Box key={`image-group-${elements.length}`} sx={{ my: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 2,
+              justifyContent: "center",
+            }}
+          >
+            {currentImageGroup.map((item, idx) => {
+              const isLastOddImage = idx === currentImageGroup.length - 1 && currentImageGroup.length % 2 !== 0;
+              return (
+                <ImageCard
+                  key={`image-${item.img.id}-${item.originalIndex}`}
+                  img={item.img}
+                  isLastOddImage={isLastOddImage}
+                  onClick={(img) => handleImageClick(img, item.index)}
+                />
+              );
+            })}
+          </Box>
+        </Box>
+      );
+
+      // 그룹 초기화
+      currentImageGroup = [];
+    };
+
     parts.forEach((part, index) => {
       if (part.match(/^<img[^>]*>$/)) {
-        // 이미지 태그인 경우 카드뷰로 교체
+        // 이미지 태그인 경우
         const srcMatch = part.match(/src="([^"]*)"/);
-        const altMatch = part.match(/alt="([^"]*)"/);
 
         if (srcMatch && srcMatch[1]) {
           const imageSrc = srcMatch[1];
-          const imageAlt = altMatch ? altMatch[1] : "";
 
           // 서버 이미지 URL에서 실제 StoryImage 찾기
           const matchingImage = detail.StoryImage?.find(
@@ -597,19 +631,15 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
           if (matchingImage) {
             const imageIndex = detail.StoryImage?.indexOf(matchingImage) || 0;
-            elements.push(
-              <Box key={`image-card-${index}`} sx={{ my: 3, display: "flex", justifyContent: "center" }}>
-                <Box sx={{ maxWidth: "80%", width: "100%" }}>
-                  <ImageCard
-                    img={matchingImage}
-                    isLastOddImage={true} // 본문 중간 이미지는 전체 너비 사용
-                    onClick={(img) => handleImageClick(img, imageIndex)}
-                  />
-                </Box>
-              </Box>
-            );
+            // 현재 이미지 그룹에 추가
+            currentImageGroup.push({
+              img: matchingImage,
+              index: imageIndex,
+              originalIndex: index,
+            });
           } else {
-            // 매칭되는 이미지를 찾지 못한 경우 기본 이미지 태그로 표시
+            // 매칭되는 이미지를 찾지 못한 경우, 현재 그룹을 처리하고 폴백 이미지 추가
+            processImageGroup();
             elements.push(
               <Box
                 key={`img-fallback-${index}`}
@@ -620,7 +650,9 @@ export default function page({ params }: { params: { id: string; slug: string } 
           }
         }
       } else if (part.trim()) {
-        // 텍스트 내용인 경우
+        // 텍스트 내용인 경우, 현재 이미지 그룹을 먼저 처리
+        processImageGroup();
+
         elements.push(
           <Box
             key={`text-${index}`}
@@ -645,6 +677,9 @@ export default function page({ params }: { params: { id: string; slug: string } 
         );
       }
     });
+
+    // 마지막에 남은 이미지 그룹 처리
+    processImageGroup();
 
     return elements;
   };

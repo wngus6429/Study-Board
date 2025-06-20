@@ -29,7 +29,7 @@ export class CreateStoryDto {
    * @example "이것은 게시글의 내용입니다. 여러분의 의견을 들려주세요!"
    */
   @IsNotEmpty()
-  @MaxLength(1000)
+  @MaxLength(50000)
   content: string;
 
   /**

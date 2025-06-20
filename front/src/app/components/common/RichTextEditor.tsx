@@ -112,101 +112,80 @@ export default function RichTextEditor({
     }
   }, [uploadedFiles, onFilesChange]);
 
-  // 이미지 업로드 핸들러
+  // 이미지 업로드 핸들러 (다중 선택 지원)
   const handleImageUpload = useCallback(() => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "image/*";
+    input.multiple = true; // 다중 선택 허용
     input.onchange = (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        if (file.size > 100 * 1024 * 1024) {
-          alert("이미지 파일 크기는 100MB를 초과할 수 없습니다.");
-          return;
-        }
+      const files = Array.from((e.target as HTMLInputElement).files || []);
+      if (!files.length) return;
 
-        // Object URL 생성하여 실제 이미지 미리보기 표시
-        const objectUrl = URL.createObjectURL(file);
-
-        // 파일을 업로드된 파일 목록에 추가
-        setUploadedFiles((prevFiles) => [...prevFiles, file]);
-
-        // Tiptap Image Extension을 사용하여 이미지 삽입
-        editor?.chain().focus().setImage({ src: objectUrl, alt: file.name }).run();
-
-        // Object URL은 메모리 누수 방지를 위해 나중에 정리 (5분 후)
-        setTimeout(
-          () => {
-            URL.revokeObjectURL(objectUrl);
-          },
-          5 * 60 * 1000
-        );
-
-        console.log("📷 [이미지 업로드] 파일 추가 완료:", {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-        });
+      // 용량 체크 등은 그대로 유지
+      const oversized = files.filter((f) => f.size > 100 * 1024 * 1024);
+      if (oversized.length) {
+        alert(`100MB 초과 파일:\n${oversized.map((f) => f.name).join("\n")}`);
+        return;
       }
+
+      // Object URL 생성 + 삽입할 이미지 노드 목록 만들기
+      const nodes = files.map((file) => {
+        const src = URL.createObjectURL(file);
+        // 5분 후 메모리 해제
+        setTimeout(() => URL.revokeObjectURL(src), 5 * 60_000);
+        return {
+          type: "image",
+          attrs: {
+            src,
+            alt: file.name,
+            title: file.name,
+            // 스타일은 전역 설정된 HTMLAttributes가 적용됨
+          },
+        };
+      });
+
+      // 한 번의 커맨드로 여러 노드 삽입
+      editor?.chain().focus().insertContent(nodes).run();
+
+      // 부모 컴포넌트에 파일 리스트 전달
+      setUploadedFiles((prev) => [...prev, ...files]);
     };
     input.click();
   }, [editor]);
 
-  // 동영상 업로드 핸들러
+  // 동영상 업로드 핸들러 (다중 선택 지원)
   const handleVideoUpload = useCallback(() => {
     const input = document.createElement("input");
     input.type = "file";
     input.accept = "video/*";
+    input.multiple = false; // 단일 선택만 허용
     input.onchange = (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
-      if (file) {
-        if (file.size > 1024 * 1024 * 1024) {
-          alert("동영상 파일 크기는 1GB를 초과할 수 없습니다.");
-          return;
-        }
+      if (!file) return;
 
-        // 파일을 업로드된 파일 목록에 추가
-        console.log("🎬 [동영상 업로드] 파일 추가:", {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-        });
+      if (file.size > 1024 * 1024 * 1024) {
+        alert(`${file.name}은(는) 1GB를 초과합니다.`);
+        return;
+      }
 
-        // Object URL 생성하여 실제 동영상 미리보기 표시
-        const objectUrl = URL.createObjectURL(file);
+      const src = URL.createObjectURL(file);
+      setTimeout(() => URL.revokeObjectURL(src), 5 * 60_000);
 
-        // 파일을 업로드된 파일 목록에 추가
-        setUploadedFiles((prevFiles) => [...prevFiles, file]);
-
-        // 에디터에 실제 동영상 삽입 (Object URL 사용)
-        const fileIndex = uploadedFiles.length; // 현재 배열 길이가 새 인덱스
-        const videoHtml = `<div style="margin: 16px 0; text-align: center;" data-file-index="${fileIndex}" data-file-type="video">
-          <video controls style="max-width: 100%; height: auto; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);">
-            <source src="${objectUrl}" type="${file.type}">
+      const videoHtml = `
+        <div style="margin:16px 0; text-align:center;">
+          <video controls style="max-width:100%; height:auto; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
+            <source src="${src}" type="${file.type}" />
             동영상을 재생할 수 없습니다.
           </video>
-          <p style="margin: 8px 0 0 0; font-size: 14px; color: #e94057; font-weight: 500;">
+          <p style="margin:8px 0 0; font-size:14px; color:#e94057; font-weight:500;">
             🎬 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)
           </p>
-        </div>`;
+        </div>
+      `;
 
-        editor?.chain().focus().insertContent(videoHtml).run();
-
-        // Object URL은 메모리 누수 방지를 위해 나중에 정리 (5분 후)
-        setTimeout(
-          () => {
-            URL.revokeObjectURL(objectUrl);
-          },
-          5 * 60 * 1000
-        );
-
-        console.log("🎬 [동영상 업로드] 파일 추가 완료:", {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          index: fileIndex,
-        });
-      }
+      editor.chain().focus().insertContent(videoHtml).run();
+      setUploadedFiles((prev) => [...prev, file]);
     };
     input.click();
   }, [editor]);

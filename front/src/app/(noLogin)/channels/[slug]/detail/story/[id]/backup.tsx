@@ -548,107 +548,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
   if (isLoading) return <Loading />;
   if (isError) return <ErrorView />;
 
-  // 본문 내용에서 이미지 태그를 카드뷰로 교체하는 함수
-  const renderContentWithImageCards = () => {
-    if (!detail?.content) return null;
-
-    let content = detail.content;
-
-    // Object URL을 서버 이미지 URL로 교체 (기존 로직)
-    if (detail.StoryImage && detail.StoryImage.length > 0) {
-      content = content.replace(/<img[^>]*src="blob:[^"]*"[^>]*>/g, (imgTag) => {
-        const altMatch = imgTag.match(/alt="([^"]*)"/);
-        const titleMatch = imgTag.match(/title="([^"]*)"/);
-        const fileName = altMatch?.[1] || titleMatch?.[1];
-
-        if (fileName) {
-          const baseFileName = fileName.replace(/\.[^.]+$/, "");
-          const matchingImage = detail.StoryImage.find((img) => {
-            const imgBaseName = img.image_name.replace(/\.[^.]+$/, "");
-            return imgBaseName.includes(baseFileName) || baseFileName.includes(imgBaseName);
-          });
-
-          if (matchingImage) {
-            return imgTag.replace(/src="blob:[^"]*"/, `src="${process.env.NEXT_PUBLIC_BASE_URL}${matchingImage.link}"`);
-          }
-        }
-        return "";
-      });
-    }
-
-    // HTML을 파싱하여 이미지 태그를 카드뷰로 교체
-    const parts = content.split(/(<img[^>]*>)/);
-    const elements: React.ReactNode[] = [];
-
-    parts.forEach((part, index) => {
-      if (part.match(/^<img[^>]*>$/)) {
-        // 이미지 태그인 경우 카드뷰로 교체
-        const srcMatch = part.match(/src="([^"]*)"/);
-        const altMatch = part.match(/alt="([^"]*)"/);
-
-        if (srcMatch && srcMatch[1]) {
-          const imageSrc = srcMatch[1];
-          const imageAlt = altMatch ? altMatch[1] : "";
-
-          // 서버 이미지 URL에서 실제 StoryImage 찾기
-          const matchingImage = detail.StoryImage?.find(
-            (img) => imageSrc.includes(img.link) || img.link.includes(imageSrc.split("/").pop() || "")
-          );
-
-          if (matchingImage) {
-            const imageIndex = detail.StoryImage?.indexOf(matchingImage) || 0;
-            elements.push(
-              <Box key={`image-card-${index}`} sx={{ my: 3, display: "flex", justifyContent: "center" }}>
-                <Box sx={{ maxWidth: "80%", width: "100%" }}>
-                  <ImageCard
-                    img={matchingImage}
-                    isLastOddImage={true} // 본문 중간 이미지는 전체 너비 사용
-                    onClick={(img) => handleImageClick(img, imageIndex)}
-                  />
-                </Box>
-              </Box>
-            );
-          } else {
-            // 매칭되는 이미지를 찾지 못한 경우 기본 이미지 태그로 표시
-            elements.push(
-              <Box
-                key={`img-fallback-${index}`}
-                sx={{ my: 2, textAlign: "center" }}
-                dangerouslySetInnerHTML={{ __html: part }}
-              />
-            );
-          }
-        }
-      } else if (part.trim()) {
-        // 텍스트 내용인 경우
-        elements.push(
-          <Box
-            key={`text-${index}`}
-            sx={{
-              lineHeight: 1.7,
-              color: theme.palette.text.primary,
-              "& img": {
-                maxWidth: "100%",
-                height: "auto",
-                borderRadius: "8px",
-                margin: "8px 0",
-              },
-              "& video": {
-                maxWidth: "100%",
-                height: "auto",
-                borderRadius: "8px",
-                margin: "8px 0",
-              },
-            }}
-            dangerouslySetInnerHTML={{ __html: part }}
-          />
-        );
-      }
-    });
-
-    return elements;
-  };
-
   return (
     <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 1, overflow: "hidden" }}>
       {openConfirmDialog && (
@@ -827,23 +726,98 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 </Typography>
               </Box>
             </Box>
-
-            {/* 본문 내용 - 이미지가 중간중간에 카드뷰로 표시됨 */}
+            {/* 본문 텍스트와 이미지를 분리하여 표시 */}
             <Box
               sx={{
+                lineHeight: 1.7,
                 bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
                 p: 2,
                 borderRadius: 1,
                 boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
                 mb: 3,
                 border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+                color: theme.palette.text.primary,
               }}
-            >
-              {renderContentWithImageCards()}
-            </Box>
+              dangerouslySetInnerHTML={{
+                __html: (() => {
+                  let content = detail.content || "";
 
-            {/* 비디오 파일이 있는 경우에만 별도 섹션으로 표시 */}
-            {detail.StoryVideo && detail.StoryVideo.length > 0 && (
+                  // 이미지 태그를 모두 제거하고 텍스트만 표시
+                  content = content.replace(/<img[^>]*>/g, "");
+
+                  return content;
+                })(),
+              }}
+            />
+
+            {/* 본문의 이미지들을 카드 형태로 표시 */}
+            {detail.StoryImage && detail.StoryImage.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    justifyContent: "center",
+                  }}
+                >
+                  {(() => {
+                    // 이미지들을 upload_order 기준으로 정렬
+                    const sortedImages = [...detail.StoryImage].sort(
+                      (a, b) => (a.upload_order || 0) - (b.upload_order || 0)
+                    );
+
+                    // 연속된 이미지들을 그룹화
+                    const imageGroups: Array<{ images: Array<{ data: StoryImageType; index: number }> }> = [];
+                    let currentGroup: Array<{ data: StoryImageType; index: number }> = [];
+
+                    sortedImages.forEach((img, index) => {
+                      currentGroup.push({ data: img, index });
+
+                      // 2개씩 그룹화 (한 줄에 2개씩 표시)
+                      if (currentGroup.length === 2) {
+                        imageGroups.push({ images: [...currentGroup] });
+                        currentGroup = [];
+                      }
+                    });
+
+                    // 마지막 그룹 처리 (홀수 개인 경우)
+                    if (currentGroup.length > 0) {
+                      imageGroups.push({ images: currentGroup });
+                    }
+
+                    // 그룹화된 이미지들을 렌더링
+                    return imageGroups.map((group, groupIndex) => (
+                      <Box
+                        key={`image-group-${groupIndex}`}
+                        sx={{
+                          display: "flex",
+                          flexWrap: "wrap",
+                          gap: 2,
+                          justifyContent: "center",
+                        }}
+                      >
+                        {group.images.map((img, imgIndex) => {
+                          const isLastOddImage = imgIndex === group.images.length - 1 && group.images.length % 2 !== 0;
+                          return (
+                            <ImageCard
+                              key={`image-${img.data.id}`}
+                              img={img.data}
+                              isLastOddImage={isLastOddImage}
+                              onClick={(clickedImg) => handleImageClick(clickedImg, img.index)}
+                            />
+                          );
+                        })}
+                      </Box>
+                    ));
+                  })()}
+                </Box>
+              </Box>
+            )}
+            {/* 첨부된 파일 섹션 - 주석 처리 (본문에서 카드 형태로 표시하므로) */}
+            {/* 
+            {((detail.StoryImage && detail.StoryImage.length > 0) ||
+              (detail.StoryVideo && detail.StoryVideo.length > 0)) && (
               <Box sx={{ mt: 4 }}>
                 <Typography
                   variant="h6"
@@ -855,8 +829,9 @@ export default function page({ params }: { params: { id: string; slug: string } 
                     mb: 2,
                   }}
                 >
-                  첨부된 동영상:
+                  첨부된 파일:
                 </Typography>
+
                 <Box
                   sx={{
                     display: "flex",
@@ -865,21 +840,98 @@ export default function page({ params }: { params: { id: string; slug: string } 
                     justifyContent: "center",
                   }}
                 >
-                  {detail.StoryVideo.map((video, index) => (
-                    <Box
-                      key={`video-${video.id}`}
-                      sx={{
-                        display: "flex",
-                        justifyContent: "center",
-                        width: "100%",
-                      }}
-                    >
-                      <VideoCard video={video} isLastOddVideo={true} />
-                    </Box>
-                  ))}
+                  {(() => {
+                    const allFiles: Array<
+                      | { type: "image"; data: StoryImageType; index: number }
+                      | { type: "video"; data: StoryVideoType; index: number }
+                    > = [];
+
+                    if (detail.StoryImage) {
+                      detail.StoryImage.forEach((img, index) => {
+                        allFiles.push({ type: "image", data: img, index });
+                      });
+                    }
+
+                    if (detail.StoryVideo) {
+                      detail.StoryVideo.forEach((video, index) => {
+                        allFiles.push({ type: "video", data: video, index });
+                      });
+                    }
+
+                    allFiles.sort((a, b) => (a.data.upload_order || 0) - (b.data.upload_order || 0));
+
+                    const groupedFiles: Array<
+                      | { type: "imageGroup"; images: Array<{ data: StoryImageType; index: number }> }
+                      | { type: "video"; data: StoryVideoType; index: number }
+                    > = [];
+
+                    let currentImageGroup: Array<{ data: StoryImageType; index: number }> = [];
+
+                    allFiles.forEach((file) => {
+                      if (file.type === "image") {
+                        currentImageGroup.push({ data: file.data, index: file.index });
+                      } else {
+                        if (currentImageGroup.length > 0) {
+                          groupedFiles.push({ type: "imageGroup", images: [...currentImageGroup] });
+                          currentImageGroup = [];
+                        }
+                        groupedFiles.push(file);
+                      }
+                    });
+
+                    if (currentImageGroup.length > 0) {
+                      groupedFiles.push({ type: "imageGroup", images: currentImageGroup });
+                    }
+
+                    return groupedFiles.map((group, groupIndex) => {
+                      if (group.type === "imageGroup") {
+                        return (
+                          <Box
+                            key={`image-group-${groupIndex}`}
+                            sx={{
+                              display: "flex",
+                              flexWrap: "wrap",
+                              gap: 2,
+                              justifyContent: "center",
+                            }}
+                          >
+                            {group.images.map((img, imgIndex) => {
+                              const isLastOddImage =
+                                imgIndex === group.images.length - 1 && group.images.length % 2 !== 0;
+                              return (
+                                <ImageCard
+                                  key={`image-${img.data.id}`}
+                                  img={img.data}
+                                  isLastOddImage={isLastOddImage}
+                                  onClick={(clickedImg) => handleImageClick(clickedImg, img.index)}
+                                />
+                              );
+                            })}
+                          </Box>
+                        );
+                      } else {
+                        return (
+                          <Box
+                            key={`video-${group.data.id}`}
+                            sx={{
+                              display: "flex",
+                              justifyContent: "center",
+                              width: "100%",
+                            }}
+                          >
+                            <VideoCard
+                              video={group.data}
+                              isLastOddVideo={true}
+                            />
+                          </Box>
+                        );
+                      }
+                    });
+                  })()}
                 </Box>
               </Box>
             )}
+            */}
           </CardContent>
         </Card>
       )}

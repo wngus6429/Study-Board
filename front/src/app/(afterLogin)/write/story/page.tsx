@@ -5,7 +5,7 @@ import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState, useEffect } from "react";
 import CustomSelect from "@/app/components/common/CustomSelect";
-import InputFileUpload from "@/app/components/common/InputFileUpload";
+// import InputFileUpload from "@/app/components/common/InputFileUpload"; // 주석처리 - RichTextEditor로 통합
 import RichTextEditor from "@/app/components/common/RichTextEditor";
 import { useMessage } from "@/app/store/messageStore";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
@@ -51,8 +51,11 @@ export default function StoryWrite() {
   const [content, setContent] = useState<string>("");
   // 카테고리 변수
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
-  // 이미지 변수
-  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>>([]);
+  // 이미지 변수 (InputFileUpload 방식 - 주석처리)
+  // const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>>([]);
+
+  // RichTextEditor에서 관리할 파일들
+  const [editorFiles, setEditorFiles] = useState<File[]>([]);
   // 로딩
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -82,11 +85,32 @@ export default function StoryWrite() {
           formData.append("channelId", channelId);
         }
 
-        // preview의 각 파일을 'images' 키로 추가
-        preview.forEach((item) => {
-          if (item?.file) {
-            formData.append("images", item.file); // 'images'는 서버의 FilesInterceptor와 일치해야 합니다.
-          }
+        // preview의 각 파일을 'images' 키로 추가 (InputFileUpload 방식 - 주석처리)
+        // preview.forEach((item) => {
+        //   if (item?.file) {
+        //     formData.append("images", item.file); // 'images'는 서버의 FilesInterceptor와 일치해야 합니다.
+        //   }
+        // });
+
+        // RichTextEditor에서 관리하는 파일들을 'images' 키로 추가
+        console.log("🔍 [API 전송 전] editorFiles:", editorFiles);
+        console.log("🔍 [API 전송 전] editorFiles.length:", editorFiles.length);
+
+        editorFiles.forEach((file, index) => {
+          console.log(`🔍 [API 전송 전] 파일 ${index + 1}:`, {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            lastModified: file.lastModified,
+          });
+          formData.append("images", file);
+        });
+
+        // FormData 내용 확인
+        console.log("🔍 [API 전송 전] FormData 내용:");
+        const formDataEntries = Array.from(formData.entries());
+        formDataEntries.forEach(([key, value]) => {
+          console.log(`  ${key}:`, value);
         });
 
         return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`, formData, {
@@ -119,11 +143,12 @@ export default function StoryWrite() {
     },
   });
 
-  const handlePreviewUpdate = (
-    updatedPreview: Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>
-  ) => {
-    setPreview(updatedPreview);
-  };
+  // InputFileUpload 관련 핸들러 (주석처리)
+  // const handlePreviewUpdate = (
+  //   updatedPreview: Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>
+  // ) => {
+  //   setPreview(updatedPreview);
+  // };
 
   return (
     <Paper
@@ -272,10 +297,12 @@ export default function StoryWrite() {
             onChange={setContent}
             placeholder="스토리 내용을 자유롭게 작성해주세요 (3글자 이상)"
             height="400px"
+            onFilesChange={setEditorFiles}
           />
         </Box>
 
-        <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
+        {/* InputFileUpload 컴포넌트 사용 (주석처리) */}
+        {/* <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} /> */}
 
         <Divider sx={{ opacity: isDarkMode ? 0.3 : 0.9 }} />
 

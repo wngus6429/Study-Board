@@ -73,6 +73,100 @@ export default function RichTextEditor({
     };
   }, []);
 
+  // 동영상에서 썸네일 추출하는 함수
+  const extractVideoThumbnail = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement("video");
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      video.crossOrigin = "anonymous";
+      video.currentTime = 1; // 1초 지점의 프레임 캡처
+
+      video.onloadedmetadata = () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+      };
+
+      video.onseeked = () => {
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const thumbnailDataUrl = canvas.toDataURL("image/jpeg", 0.8);
+          resolve(thumbnailDataUrl);
+        } else {
+          reject(new Error("Canvas context not available"));
+        }
+        // 메모리 정리
+        URL.revokeObjectURL(video.src);
+      };
+
+      video.onerror = () => {
+        reject(new Error("Video load error"));
+        URL.revokeObjectURL(video.src);
+      };
+
+      video.src = URL.createObjectURL(file);
+      video.load();
+    });
+  };
+
+  // 동영상 업로드 핸들러
+  const videoHandler = useCallback(() => {
+    const input = document.createElement("input");
+    input.setAttribute("type", "file");
+    input.setAttribute("accept", "video/*");
+    input.click();
+
+    input.onchange = async () => {
+      const file = input.files?.[0];
+      if (file) {
+        try {
+          // 동영상에서 썸네일 추출
+          const thumbnailUrl = await extractVideoThumbnail(file);
+
+          // 간단한 방법으로 현재 에디터의 내용에 동영상 썸네일 추가
+          const currentContent = editorValue;
+          const videoHtml = `<div style="margin: 16px 0; padding: 12px; border: 2px dashed #e94057; border-radius: 8px; text-align: center; background: rgba(233, 64, 87, 0.05); position: relative;">
+            <img src="${thumbnailUrl}" alt="video thumbnail" style="max-width: 100%; height: auto; max-height: 300px; border-radius: 8px;" />
+            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.7); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+              <div style="width: 0; height: 0; border-left: 20px solid white; border-top: 12px solid transparent; border-bottom: 12px solid transparent; margin-left: 4px;"></div>
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 14px; color: #e94057; font-weight: 500;">
+              🎬 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)
+            </p>
+          </div>`;
+          const newContent = currentContent + videoHtml;
+
+          setEditorValue(newContent);
+          if (onChange) {
+            onChange(newContent);
+          }
+        } catch (error) {
+          console.error("썸네일 추출 실패:", error);
+          // 썸네일 추출 실패시 기본 동영상 아이콘 표시
+          const currentContent = editorValue;
+          const videoHtml = `<div style="margin: 16px 0; padding: 12px; border: 2px dashed #e94057; border-radius: 8px; text-align: center; background: rgba(233, 64, 87, 0.05);">
+            <div style="width: 200px; height: 150px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin: 0 auto; color: #6b7280;">
+              <div style="text-align: center;">
+                <div style="font-size: 48px; margin-bottom: 8px;">🎬</div>
+                <div style="font-size: 14px;">동영상 파일</div>
+              </div>
+            </div>
+            <p style="margin: 8px 0 0 0; font-size: 14px; color: #e94057; font-weight: 500;">
+              🎬 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)
+            </p>
+          </div>`;
+          const newContent = currentContent + videoHtml;
+
+          setEditorValue(newContent);
+          if (onChange) {
+            onChange(newContent);
+          }
+        }
+      }
+    };
+  }, []);
+
   const modules = useMemo(
     () => ({
       toolbar: {
@@ -90,13 +184,14 @@ export default function RichTextEditor({
         ],
         handlers: {
           image: imageHandler,
+          video: videoHandler,
         },
       },
       clipboard: {
         matchVisual: false,
       },
     }),
-    [imageHandler]
+    [imageHandler, videoHandler]
   );
 
   const formats = [

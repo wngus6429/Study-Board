@@ -18,10 +18,10 @@ import React, { FormEvent, useState, useEffect } from "react";
 import CustomSelect from "@/app/components/common/CustomSelect";
 // import InputFileUpload from "@/app/components/common/InputFileUpload"; // 주석처리 - RichTextEditor로 통합
 import RichTextEditor from "@/app/components/common/RichTextEditor";
-import QuillEditor from "@/app/components/common/QuillEditor";
 import { useMessage } from "@/app/store/messageStore";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import { getChannel } from "@/app/api/channelsApi";
+import QuillEditor from "@/app/components/common/QuillEditor";
 
 const commonButtonStyles = {
   fontSize: { xs: "0.95rem", sm: "1rem" },
@@ -239,14 +239,12 @@ export default function StoryWrite() {
         />
       </Box>
 
-      <Divider sx={{ mb: 2, opacity: isDarkMode ? 0.3 : 0.8 }} />
-
       <Box
         component="form"
         sx={{
           display: "flex",
           flexDirection: "column",
-          gap: 3,
+          gap: 1,
         }}
         noValidate
         autoComplete="off"
@@ -295,20 +293,7 @@ export default function StoryWrite() {
           onChange={(e) => setTitle(e.target.value)}
         />
 
-        {/* 에디터 비교 섹션 */}
         <Box>
-          <Typography
-            variant="body1"
-            sx={{
-              fontWeight: 500,
-              mb: 1,
-              color: isDarkMode ? "rgba(255, 255, 255, 0.7)" : "inherit",
-              fontSize: "1rem",
-            }}
-          >
-            내용 - 에디터 비교 🆚
-          </Typography>
-
           {/* 에디터 탭 */}
           <Tabs
             value={editorTab}
@@ -330,8 +315,8 @@ export default function StoryWrite() {
               },
             }}
           >
-            <Tab label="TipTap (기존)" />
-            <Tab label="Quill (비교용)" />
+            <Tab label="TipTap" />
+            <Tab label="Quill" />
           </Tabs>
 
           {/* TipTap 에디터 */}
@@ -355,20 +340,6 @@ export default function StoryWrite() {
               onFilesChange={setEditorFiles}
             />
           )}
-
-          {/* 에디터 비교 안내 */}
-          <Typography
-            variant="caption"
-            sx={{
-              display: "block",
-              mt: 1,
-              color: isDarkMode ? "#94a3b8" : "#6b7280",
-              fontStyle: "italic",
-            }}
-          >
-            💡 탭을 클릭해서 TipTap과 Quill 에디터를 비교해보세요. 동영상 업로드 시 썸네일 표시 차이를 확인할 수
-            있습니다.
-          </Typography>
         </Box>
 
         {/* InputFileUpload 컴포넌트 사용 (주석처리) */}

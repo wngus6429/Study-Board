@@ -400,21 +400,55 @@ export default function page({ params }: { params: { id: string; slug: string } 
     setZoomLevel(1); // 줌 레벨 초기화
   };
 
+  // content 순서대로 재구성된 이미지 배열 생성
+  const contentOrderedImages = useMemo(() => {
+    if (!detail?.content || !detail?.StoryImage) return [];
+
+    const contentImageOrder: StoryImageType[] = [];
+    const imageMatches = detail.content.match(/<img[^>]*>/g);
+
+    if (imageMatches) {
+      imageMatches.forEach((imgTag) => {
+        const srcMatch = imgTag.match(/src="([^"]*)"/);
+        if (srcMatch && srcMatch[1]) {
+          const imageSrc = srcMatch[1];
+          const matchingImage = detail.StoryImage?.find((img) => {
+            // 정확한 링크 매칭
+            if (imageSrc.includes(img.link)) return true;
+
+            // 파일명 기반 매칭
+            const srcFileName = imageSrc.split("/").pop();
+            const imgFileName = img.link.split("/").pop();
+            if (srcFileName && imgFileName && srcFileName === imgFileName) return true;
+
+            return false;
+          });
+
+          if (matchingImage && !contentImageOrder.find((img) => img.id === matchingImage.id)) {
+            contentImageOrder.push(matchingImage);
+          }
+        }
+      });
+    }
+
+    return contentImageOrder;
+  }, [detail?.content, detail?.StoryImage]);
+
   // 다음 이미지로 이동
   const handleNextImage = () => {
-    if (detail?.StoryImage && currentImageIndex < detail.StoryImage.length - 1) {
+    if (contentOrderedImages && currentImageIndex < contentOrderedImages.length - 1) {
       const nextIndex = currentImageIndex + 1;
       setCurrentImageIndex(nextIndex);
-      setSelectedImage(detail.StoryImage[nextIndex]);
+      setSelectedImage(contentOrderedImages[nextIndex]);
     }
   };
 
   // 이전 이미지로 이동
   const handlePrevImage = () => {
-    if (detail?.StoryImage && currentImageIndex > 0) {
+    if (contentOrderedImages && currentImageIndex > 0) {
       const prevIndex = currentImageIndex - 1;
       setCurrentImageIndex(prevIndex);
-      setSelectedImage(detail.StoryImage[prevIndex]);
+      setSelectedImage(contentOrderedImages[prevIndex]);
     }
   };
 
@@ -447,7 +481,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [openImageViewer, currentImageIndex, detail?.StoryImage, zoomLevel]);
+  }, [openImageViewer, currentImageIndex, contentOrderedImages, zoomLevel]);
 
   // Slide 트랜지션 커스텀 컴포넌트
   const SlideTransition = React.forwardRef(function Transition(
@@ -507,8 +541,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
   // 사용자 메뉴 관련 핸들러
   const handleUserNicknameClick = (event: React.MouseEvent<HTMLElement>, nickname: string) => {
-    console.log("상세페이지 - 클릭한 닉네임:", nickname);
-    console.log("상세페이지 - 앵커 엘리먼트:", event.currentTarget);
     event.preventDefault();
     event.stopPropagation();
     setUserMenuAnchorEl(event.currentTarget);
@@ -576,6 +608,39 @@ export default function page({ params }: { params: { id: string; slug: string } 
       });
     }
 
+    // content에 나타나는 순서대로 이미지 배열 재구성
+    const contentImageOrder: StoryImageType[] = [];
+    const imageMatches = content.match(/<img[^>]*>/g);
+
+    if (imageMatches) {
+      imageMatches.forEach((imgTag) => {
+        const srcMatch = imgTag.match(/src="([^"]*)"/);
+        if (srcMatch && srcMatch[1]) {
+          const imageSrc = srcMatch[1];
+          const matchingImage = detail.StoryImage?.find((img) => {
+            // 정확한 링크 매칭
+            if (imageSrc.includes(img.link)) return true;
+
+            // 파일명 기반 매칭
+            const srcFileName = imageSrc.split("/").pop();
+            const imgFileName = img.link.split("/").pop();
+            if (srcFileName && imgFileName && srcFileName === imgFileName) return true;
+
+            return false;
+          });
+
+          if (matchingImage && !contentImageOrder.find((img) => img.id === matchingImage.id)) {
+            contentImageOrder.push(matchingImage);
+          }
+        }
+      });
+    }
+
+    console.log(
+      "📸 Content 순서대로 재구성된 이미지 배열:",
+      contentImageOrder.map((img) => img.image_name)
+    );
+
     // HTML을 파싱하여 이미지 태그를 카드뷰로 교체
     const parts = content.split(/(<img[^>]*>)/);
     const elements: React.ReactNode[] = [];
@@ -623,29 +688,81 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
         if (srcMatch && srcMatch[1]) {
           const imageSrc = srcMatch[1];
-
-          // 서버 이미지 URL에서 실제 StoryImage 찾기
-          const matchingImage = detail.StoryImage?.find(
-            (img) => imageSrc.includes(img.link) || img.link.includes(imageSrc.split("/").pop() || "")
+          console.log(
+            `📋 사용 가능한 StoryImage:`,
+            detail.StoryImage?.map((img) => img.link)
           );
 
+          // 서버 이미지 URL에서 실제 StoryImage 찾기
+          let matchingImage = detail.StoryImage?.find((img) => {
+            // 1. 정확한 링크 매칭
+            if (imageSrc.includes(img.link)) return true;
+
+            // 2. 파일명 기반 매칭
+            const srcFileName = imageSrc.split("/").pop();
+            const imgFileName = img.link.split("/").pop();
+            if (srcFileName && imgFileName && srcFileName === imgFileName) return true;
+
+            // 3. 이미지 이름 기반 매칭 (확장자 제거)
+            const srcBaseName = srcFileName?.replace(/\.[^.]+$/, "");
+            const imgBaseName = img.image_name?.replace(/\.[^.]+$/, "");
+            if (srcBaseName && imgBaseName && imgBaseName.includes(srcBaseName)) return true;
+
+            return false;
+          });
+
+          // 매칭되는 이미지를 찾지 못한 경우, 첫 번째 이미지를 기본값으로 사용
+          if (!matchingImage && detail.StoryImage && detail.StoryImage.length > 0) {
+            console.warn(`이미지 매칭 실패, 기본 이미지 사용: ${imageSrc}`);
+            matchingImage = detail.StoryImage[currentImageGroup.length % detail.StoryImage.length];
+          }
+
           if (matchingImage) {
-            const imageIndex = detail.StoryImage?.indexOf(matchingImage) || 0;
+            // content 순서 기준으로 인덱스 찾기
+            const imageIndex = contentImageOrder.findIndex((img) => img.id === matchingImage.id);
             // 현재 이미지 그룹에 추가
             currentImageGroup.push({
               img: matchingImage,
-              index: imageIndex,
+              index: imageIndex >= 0 ? imageIndex : 0,
               originalIndex: index,
             });
           } else {
-            // 매칭되는 이미지를 찾지 못한 경우, 현재 그룹을 처리하고 폴백 이미지 추가
+            // 정말로 매칭되는 이미지가 없는 경우, 클릭 가능한 이미지로 렌더링
             processImageGroup();
             elements.push(
-              <Box
-                key={`img-fallback-${index}`}
-                sx={{ my: 2, textAlign: "center" }}
-                dangerouslySetInnerHTML={{ __html: part }}
-              />
+              <Box key={`img-fallback-${index}`} sx={{ my: 2, textAlign: "center" }}>
+                <Box
+                  component="img"
+                  src={imageSrc}
+                  alt="이미지"
+                  sx={{
+                    maxWidth: "100%",
+                    height: "auto",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    "&:hover": {
+                      opacity: 0.8,
+                      transform: "scale(1.02)",
+                    },
+                    transition: "all 0.2s ease",
+                  }}
+                  onClick={() => {
+                    // 폴백 이미지에 대한 임시 객체 생성
+                    const tempImage: StoryImageType = {
+                      id: Date.now(), // 임시 ID
+                      image_name: imageSrc.split("/").pop() || "unknown",
+                      link: imageSrc.startsWith("http")
+                        ? imageSrc.replace(process.env.NEXT_PUBLIC_BASE_URL || "", "")
+                        : imageSrc,
+                      file_size: 0,
+                      mime_type: "image/jpeg",
+                      upload_order: 0,
+                      created_at: new Date().toISOString(),
+                    };
+                    handleImageClick(tempImage, 0);
+                  }}
+                />
+              </Box>
             );
           }
         }
@@ -1059,7 +1176,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
           )}
 
           {/* 다음 이미지 네비게이션 버튼 */}
-          {detail?.StoryImage && currentImageIndex < detail.StoryImage.length - 1 && (
+          {contentOrderedImages && currentImageIndex < contentOrderedImages.length - 1 && (
             <IconButton
               onClick={handleNextImage}
               sx={{

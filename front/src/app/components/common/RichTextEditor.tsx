@@ -9,6 +9,7 @@ import TextStyle from "@tiptap/extension-text-style";
 import Highlight from "@tiptap/extension-highlight";
 import Underline from "@tiptap/extension-underline";
 import Image from "@tiptap/extension-image";
+import { Video } from "../../../extensions/video";
 import { Box, Paper, useTheme, Typography, IconButton, Divider, Tooltip, ButtonGroup } from "@mui/material";
 import {
   FormatBold,
@@ -57,6 +58,7 @@ export default function RichTextEditor({
           style: "max-width: 100%; height: auto; margin: 8px 0; border-radius: 8px;",
         },
       }),
+      Video,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -172,19 +174,23 @@ export default function RichTextEditor({
       const src = URL.createObjectURL(file);
       setTimeout(() => URL.revokeObjectURL(src), 5 * 60_000);
 
-      const videoHtml = `
-        <div style="margin:16px 0; text-align:center;">
-          <video controls style="max-width:100%; height:auto; border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15);">
-            <source src="${src}" type="${file.type}" />
-            동영상을 재생할 수 없습니다.
-          </video>
-          <p style="margin:8px 0 0; font-size:14px; color:#e94057; font-weight:500;">
+      // Video extension의 setVideo 커맨드 사용
+      if (editor) {
+        editor.chain().focus().setVideo(src).run();
+
+        // 파일 정보 추가
+        editor
+          .chain()
+          .focus()
+          .insertContent(
+            `
+          <p style="margin:8px 0 0; font-size:14px; color:#e94057; font-weight:500; text-align:center;">
             🎬 ${file.name} (${(file.size / 1024 / 1024).toFixed(2)}MB)
           </p>
-        </div>
-      `;
-
-      editor.chain().focus().insertContent(videoHtml).run();
+        `
+          )
+          .run();
+      }
       setUploadedFiles((prev) => [...prev, file]);
     };
     input.click();

@@ -553,6 +553,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
     if (!detail?.content) return null;
 
     let content = detail.content;
+    const elements: React.ReactNode[] = [];
 
     // Object URL을 서버 이미지 URL로 교체 (기존 로직)
     if (detail.StoryImage && detail.StoryImage.length > 0) {
@@ -578,10 +579,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
     // HTML을 파싱하여 이미지 태그를 카드뷰로 교체
     const parts = content.split(/(<img[^>]*>)/);
-    const elements: React.ReactNode[] = [];
 
     // 연속된 이미지들을 그룹화하기 위한 변수
     let currentImageGroup: Array<{ img: StoryImageType; index: number; originalIndex: number }> = [];
+    let hasImagesInContent = false;
 
     const processImageGroup = () => {
       if (currentImageGroup.length === 0) return;
@@ -618,6 +619,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
     parts.forEach((part, index) => {
       if (part.match(/^<img[^>]*>$/)) {
+        hasImagesInContent = true;
         // 이미지 태그인 경우
         const srcMatch = part.match(/src="([^"]*)"/);
 
@@ -680,6 +682,47 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
     // 마지막에 남은 이미지 그룹 처리
     processImageGroup();
+
+    // 본문에 이미지 태그가 없지만 StoryImage 배열에 이미지가 있는 경우
+    // 모든 이미지를 본문 뒤에 ImageCard로 표시
+    if (!hasImagesInContent && detail.StoryImage && detail.StoryImage.length > 0) {
+      elements.push(
+        <Box key="separate-images" sx={{ mt: 3 }}>
+          <Typography
+            variant="h6"
+            gutterBottom
+            sx={{
+              fontWeight: "bold",
+              textAlign: "center",
+              color: "primary.main",
+              mb: 2,
+            }}
+          >
+            첨부된 이미지:
+          </Typography>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 2,
+              justifyContent: "center",
+            }}
+          >
+            {detail.StoryImage.map((img: StoryImageType, index: number) => {
+              const isLastOddImage = index === detail.StoryImage.length - 1 && detail.StoryImage.length % 2 !== 0;
+              return (
+                <ImageCard
+                  key={`separate-image-${img.id}-${index}`}
+                  img={img}
+                  isLastOddImage={isLastOddImage}
+                  onClick={(img) => handleImageClick(img, index)}
+                />
+              );
+            })}
+          </Box>
+        </Box>
+      );
+    }
 
     return elements;
   };

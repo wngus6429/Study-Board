@@ -1,16 +1,5 @@
 "use client";
-import {
-  TextField,
-  Box,
-  Typography,
-  Paper,
-  Button,
-  CircularProgress,
-  Divider,
-  useTheme,
-  Tabs,
-  Tab,
-} from "@mui/material";
+import { TextField, Box, Typography, Paper, Button, CircularProgress, Divider, useTheme } from "@mui/material";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,7 +7,6 @@ import React, { FormEvent, useState, useEffect } from "react";
 import CustomSelect from "@/app/components/common/CustomSelect";
 // import InputFileUpload from "@/app/components/common/InputFileUpload"; // 주석처리 - RichTextEditor로 통합
 import RichTextEditor from "@/app/components/common/RichTextEditor";
-import QuillEditor from "@/app/components/common/QuillEditor";
 import { useMessage } from "@/app/store/messageStore";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import { getChannel } from "@/app/api/channelsApi";
@@ -78,9 +66,6 @@ export default function StoryWrite() {
     enabled: !!channelId && channelId !== "0",
     staleTime: 1000 * 60 * 5, // 5분간 캐시
   });
-
-  // 에디터 탭 상태 추가
-  const [editorTab, setEditorTab] = useState(0);
 
   // useMutation 훅 사용
   const mutation = useMutation({
@@ -295,7 +280,6 @@ export default function StoryWrite() {
           onChange={(e) => setTitle(e.target.value)}
         />
 
-        {/* 에디터 비교 섹션 */}
         <Box>
           <Typography
             variant="body1"
@@ -306,69 +290,15 @@ export default function StoryWrite() {
               fontSize: "1rem",
             }}
           >
-            내용 - 에디터 비교 🆚
+            내용
           </Typography>
-
-          {/* 에디터 탭 */}
-          <Tabs
-            value={editorTab}
-            onChange={(event, newValue) => setEditorTab(newValue)}
-            sx={{
-              borderBottom: 1,
-              borderColor: "divider",
-              mb: 2,
-              "& .MuiTab-root": {
-                textTransform: "none",
-                fontWeight: 600,
-                fontSize: "1rem",
-              },
-              "& .Mui-selected": {
-                color: "#e94057 !important",
-              },
-              "& .MuiTabs-indicator": {
-                backgroundColor: "#e94057",
-              },
-            }}
-          >
-            <Tab label="TipTap (기존)" />
-            <Tab label="Quill (비교용)" />
-          </Tabs>
-
-          {/* TipTap 에디터 */}
-          {editorTab === 0 && (
-            <RichTextEditor
-              value={content}
-              onChange={setContent}
-              placeholder="TipTap 에디터로 스토리 내용을 작성해주세요 (3글자 이상)"
-              height="400px"
-              onFilesChange={setEditorFiles}
-            />
-          )}
-
-          {/* Quill 에디터 */}
-          {editorTab === 1 && (
-            <QuillEditor
-              value={content}
-              onChange={setContent}
-              placeholder="Quill 에디터로 스토리 내용을 작성해주세요 (3글자 이상)"
-              height="400px"
-              onFilesChange={setEditorFiles}
-            />
-          )}
-
-          {/* 에디터 비교 안내 */}
-          <Typography
-            variant="caption"
-            sx={{
-              display: "block",
-              mt: 1,
-              color: isDarkMode ? "#94a3b8" : "#6b7280",
-              fontStyle: "italic",
-            }}
-          >
-            💡 탭을 클릭해서 TipTap과 Quill 에디터를 비교해보세요. 동영상 업로드 시 썸네일 표시 차이를 확인할 수
-            있습니다.
-          </Typography>
+          <RichTextEditor
+            value={content}
+            onChange={setContent}
+            placeholder="스토리 내용을 자유롭게 작성해주세요 (3글자 이상)"
+            height="400px"
+            onFilesChange={setEditorFiles}
+          />
         </Box>
 
         {/* InputFileUpload 컴포넌트 사용 (주석처리) */}

@@ -562,8 +562,8 @@ export class StoryService {
           'Likes.User', // Likes와 연결된 User 정보 포함
         ],
         order: {
-          StoryImage: { upload_order: 'ASC' },
-          StoryVideo: { upload_order: 'ASC' },
+          StoryImage: { created_at: 'ASC' },
+          StoryVideo: { created_at: 'ASC' },
         },
       });
 
@@ -716,7 +716,7 @@ export class StoryService {
           imageEntity.link = `/upload/${file.filename}`;
           imageEntity.file_size = file.size;
           imageEntity.mime_type = file.mimetype;
-          imageEntity.upload_order = i; // 전체 파일 배열에서의 순서
+          // imageEntity.upload_order = i; // 전체 파일 배열에서의 순서 (tiptap 사용으로 불필요)
           imageEntity.Story = savedStory;
 
           await this.imageRepository.save(imageEntity);
@@ -726,7 +726,7 @@ export class StoryService {
           videoEntity.link = `/videoUpload/${file.filename}`;
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
-          videoEntity.upload_order = i; // 전체 파일 배열에서의 순서
+          // videoEntity.upload_order = i; // 전체 파일 배열에서의 순서 (tiptap 사용으로 불필요)
           videoEntity.Story = savedStory;
 
           await this.videoRepository.save(videoEntity);
@@ -986,15 +986,8 @@ export class StoryService {
         (video) => !videosToDelete.includes(video),
       );
 
-      const maxImageOrder =
-        remainingImages.length > 0
-          ? Math.max(...remainingImages.map((img) => img.upload_order || 0))
-          : -1;
-      const maxVideoOrder =
-        remainingVideos.length > 0
-          ? Math.max(...remainingVideos.map((video) => video.upload_order || 0))
-          : -1;
-      const maxOrder = Math.max(maxImageOrder, maxVideoOrder);
+      // upload_order 대신 created_at 기반으로 순서 관리 (tiptap 사용으로 불필요)
+      const maxOrder = 0;
 
       // 파일을 이미지와 동영상으로 분리
       const imageFiles = newFiles.filter((file) =>
@@ -1012,7 +1005,7 @@ export class StoryService {
           imageEntity.link = `/upload/${file.filename}`;
           imageEntity.file_size = file.size;
           imageEntity.mime_type = file.mimetype;
-          imageEntity.upload_order = maxOrder + 1 + index;
+          // imageEntity.upload_order = maxOrder + 1 + index; // tiptap 사용으로 불필요
           imageEntity.Story = story;
           return imageEntity;
         });
@@ -1036,7 +1029,7 @@ export class StoryService {
           videoEntity.link = `/videoUpload/${file.filename}`;
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
-          videoEntity.upload_order = maxOrder + 1 + imageFiles.length + index;
+          // videoEntity.upload_order = maxOrder + 1 + imageFiles.length + index; // tiptap 사용으로 불필요
           videoEntity.Story = story;
           return videoEntity;
         });
@@ -1065,11 +1058,11 @@ export class StoryService {
     // 최신 파일 정보로 관계 업데이트
     const updatedImages = await this.imageRepository.find({
       where: { Story: { id: storyId } },
-      order: { upload_order: 'ASC' },
+      order: { created_at: 'ASC' },
     });
     const updatedVideos = await this.videoRepository.find({
       where: { Story: { id: storyId } },
-      order: { upload_order: 'ASC' },
+      order: { created_at: 'ASC' },
     });
 
     story.StoryImage = updatedImages;

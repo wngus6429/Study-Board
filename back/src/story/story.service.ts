@@ -524,12 +524,12 @@ export class StoryService {
   async findEditStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['StoryImage', 'User'],
+      relations: ['StoryImage', 'StoryVideo', 'User', 'Channel'],
     });
     if (!findData) {
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
-    // 예를 들어 findData에 작성자 uuid가 authorId로 저장되어 있다고 가정
+    // 수정 권한 확인
     if (findData.User.id !== userId) {
       throw new ForbiddenException('수정 권한이 없습니다');
     }
@@ -873,116 +873,211 @@ export class StoryService {
    * @param storyId 게시글 ID
    * @param updateStoryDto 게시글 수정 정보
    * @param userData 사용자 데이터
-   * @param newImages 새로운 이미지 파일 목록
+   * @param newFiles 새로운 파일 목록 (이미지/동영상)
    * @returns 수정된 게시글 데이터
    */
   async updateStory(
     storyId: number,
-    updateStoryDto: UpdateStoryDto,
+    updateStoryDto: any,
     userData: User,
-    newImages: Express.Multer.File[],
+    newFiles: Express.Multer.File[],
   ): Promise<Story> {
     const story = await this.storyRepository.findOne({
       where: { id: storyId },
-      relations: ['StoryImage', 'StoryVideo'],
+      relations: ['StoryImage', 'StoryVideo', 'User'],
     });
 
     if (!story) {
       throw new NotFoundException('수정할 글을 찾을 수 없습니다.');
     }
 
-    // 기존 이미지 목록 중에 삭제할 이미지 목록 추출
-    const existImages = Array.isArray(updateStoryDto.existImages)
-      ? updateStoryDto.existImages
-      : updateStoryDto.existImages
-        ? [updateStoryDto.existImages]
-        : []; // undefined인 경우 빈 배열로 초기화
-
-    let normalizedExistImages: string[] = [];
-    if (existImages.length > 0) {
-      normalizedExistImages = existImages.map((url) =>
-        decodeURIComponent(new URL(url).pathname),
-      );
+    // 권한 확인
+    if (story.User.id !== userData.id) {
+      throw new ForbiddenException('본인의 글만 수정할 수 있습니다.');
     }
 
-    // 삭제할 이미지 목록 추출
+    // content에서 실제 사용되는 파일들 분석
+    const content = updateStoryDto.content || '';
+
+    // content에서 사용되는 이미지 파일명들 추출
+    const usedImagePaths = [];
+    const imageMatches = content.match(/src="[^"]*\/upload\/([^"]+)"/g);
+    if (imageMatches) {
+      imageMatches.forEach((match) => {
+        const pathMatch = match.match(/\/upload\/([^"]+)/);
+        if (pathMatch) {
+          usedImagePaths.push(pathMatch[1]);
+        }
+      });
+    }
+
+    // content에서 사용되는 동영상 파일명들 추출
+    const usedVideoPaths = [];
+    const videoMatches = content.match(/src="[^"]*\/videoUpload\/([^"]+)"/g);
+    if (videoMatches) {
+      videoMatches.forEach((match) => {
+        const pathMatch = match.match(/\/videoUpload\/([^"]+)/);
+        if (pathMatch) {
+          usedVideoPaths.push(pathMatch[1]);
+        }
+      });
+    }
+
+    console.log('사용되는 이미지 파일들:', usedImagePaths);
+    console.log('사용되는 동영상 파일들:', usedVideoPaths);
+
+    // 삭제할 이미지 찾기 (content에서 사용되지 않는 것들)
     const imagesToDelete = story.StoryImage.filter(
-      (img) => !normalizedExistImages.includes(decodeURIComponent(img.link)),
+      (img) => !usedImagePaths.includes(img.image_name),
     );
 
+    // 삭제할 동영상 찾기 (content에서 사용되지 않는 것들)
+    const videosToDelete = story.StoryVideo.filter(
+      (video) => !usedVideoPaths.includes(video.video_name),
+    );
+
+    console.log(
+      '삭제할 이미지들:',
+      imagesToDelete.map((img) => img.image_name),
+    );
+    console.log(
+      '삭제할 동영상들:',
+      videosToDelete.map((video) => video.video_name),
+    );
+
+    // 이미지 파일 삭제
     if (imagesToDelete.length > 0) {
-      const imagesWithRelations = await this.imageRepository.find({
-        where: { id: In(imagesToDelete.map((img) => img.id)) },
-        relations: ['Story'],
-      });
-
-      for (const image of imagesWithRelations) {
-        await this.imageRepository.remove(image); // 관계 포함 삭제
+      for (const image of imagesToDelete) {
+        // 파일 시스템에서 이미지 파일 삭제
+        const filePath = path.join(__dirname, '../../upload', image.image_name);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
       }
-
-      // Story의 StoryImage 관계에서 삭제된 이미지를 제거
-      story.StoryImage = story.StoryImage.filter(
-        (img) => !imagesToDelete.some((delImg) => delImg.id === img.id),
-      );
-      await this.storyRepository.save(story); // 관계 동기화
+      // 데이터베이스에서 이미지 삭제
+      await this.imageRepository.remove(imagesToDelete);
     }
 
-    // 새 파일 추가 (이미지와 동영상 분리 처리)
-    if (newImages.length > 0) {
+    // 동영상 파일 삭제
+    if (videosToDelete.length > 0) {
+      for (const video of videosToDelete) {
+        // 파일 시스템에서 동영상 파일 삭제
+        const filePath = path.join(
+          __dirname,
+          '../../videoUpload',
+          video.video_name,
+        );
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+      // 데이터베이스에서 동영상 삭제
+      await this.videoRepository.remove(videosToDelete);
+    }
+
+    // 새 파일 추가 및 content 업데이트
+    let updatedContent = content;
+    if (newFiles && newFiles.length > 0) {
+      // 현재 최대 업로드 순서 찾기
+      const remainingImages = story.StoryImage.filter(
+        (img) => !imagesToDelete.includes(img),
+      );
+      const remainingVideos = story.StoryVideo.filter(
+        (video) => !videosToDelete.includes(video),
+      );
+
+      const maxImageOrder =
+        remainingImages.length > 0
+          ? Math.max(...remainingImages.map((img) => img.upload_order || 0))
+          : -1;
+      const maxVideoOrder =
+        remainingVideos.length > 0
+          ? Math.max(...remainingVideos.map((video) => video.upload_order || 0))
+          : -1;
+      const maxOrder = Math.max(maxImageOrder, maxVideoOrder);
+
       // 파일을 이미지와 동영상으로 분리
-      const imageFiles = newImages.filter((file) =>
+      const imageFiles = newFiles.filter((file) =>
         file.mimetype.startsWith('image/'),
       );
-      const videoFiles = newImages.filter((file) =>
+      const videoFiles = newFiles.filter((file) =>
         file.mimetype.startsWith('video/'),
       );
 
       // 이미지 파일 처리
       if (imageFiles.length > 0) {
-        const imageEntities = imageFiles.map((file) => {
+        const imageEntities = imageFiles.map((file, index) => {
           const imageEntity = new StoryImage();
           imageEntity.image_name = file.filename;
           imageEntity.link = `/upload/${file.filename}`;
           imageEntity.file_size = file.size;
           imageEntity.mime_type = file.mimetype;
+          imageEntity.upload_order = maxOrder + 1 + index;
           imageEntity.Story = story;
           return imageEntity;
         });
 
         await this.imageRepository.save(imageEntities);
+
+        // content에서 빈 src를 새 파일 경로로 교체
+        imageFiles.forEach((file) => {
+          updatedContent = updatedContent.replace(
+            /src=""/,
+            `src="/upload/${file.filename}"`,
+          );
+        });
       }
 
       // 동영상 파일 처리
       if (videoFiles.length > 0) {
-        const videoEntities = videoFiles.map((file) => {
+        const videoEntities = videoFiles.map((file, index) => {
           const videoEntity = new StoryVideo();
           videoEntity.video_name = file.filename;
           videoEntity.link = `/videoUpload/${file.filename}`;
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
+          videoEntity.upload_order = maxOrder + 1 + imageFiles.length + index;
           videoEntity.Story = story;
           return videoEntity;
         });
 
         await this.videoRepository.save(videoEntities);
-      }
 
-      // 관계 업데이트: 최신 이미지 목록을 불러와서 할당
-      const updatedImages = await this.imageRepository.find({
-        where: { Story: { id: storyId } },
-      });
-      story.StoryImage = updatedImages;
-      await this.storyRepository.save(story); // 관계 동기화
+        // content에서 빈 src를 새 파일 경로로 교체
+        videoFiles.forEach((file) => {
+          updatedContent = updatedContent.replace(
+            /src=""/,
+            `src="/videoUpload/${file.filename}"`,
+          );
+        });
+      }
     }
+
+    console.log('최종 업데이트될 컨텐츠:', updatedContent);
+
     // 제목, 내용, 카테고리 업데이트
     Object.assign(story, {
       title: updateStoryDto.title,
-      content: updateStoryDto.content,
+      content: updatedContent, // 새 파일 경로가 반영된 content 사용
       category: updateStoryDto.category,
     });
 
-    // imageFlag 업데이트: 이미지가 하나라도 있으면 true, 없으면 false
-    story.imageFlag = story.StoryImage && story.StoryImage.length > 0;
+    // 최신 파일 정보로 관계 업데이트
+    const updatedImages = await this.imageRepository.find({
+      where: { Story: { id: storyId } },
+      order: { upload_order: 'ASC' },
+    });
+    const updatedVideos = await this.videoRepository.find({
+      where: { Story: { id: storyId } },
+      order: { upload_order: 'ASC' },
+    });
+
+    story.StoryImage = updatedImages;
+    story.StoryVideo = updatedVideos;
+
+    // 플래그 업데이트
+    story.imageFlag = updatedImages.length > 0;
+    story.videoFlag = updatedVideos.length > 0;
 
     return await this.storyRepository.save(story);
   }

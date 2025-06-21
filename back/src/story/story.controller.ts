@@ -343,17 +343,17 @@ export class StoryController {
   /**
    * 게시글 수정
    *
-   * @description 기존 게시글을 수정합니다. 이미지 변경 지원.
+   * @description 기존 게시글을 수정합니다. 이미지와 동영상 변경 지원.
    * @param storyId 수정할 게시글 ID
    * @param updateStoryDto 수정할 데이터
    * @param user 인증된 사용자 정보
-   * @param files 새로 첨부할 이미지 파일 목록
+   * @param files 새로 첨부할 파일 목록 (이미지/동영상)
    * @returns 수정된 게시글 정보
    */
   @Post('/update/:id')
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
-  @UseInterceptors(FilesInterceptor('images'))
+  @UseInterceptors(FilesInterceptor('files'))
   async updateStory(
     @Param('id') storyId: number,
     @Body() updateStoryDto: any,

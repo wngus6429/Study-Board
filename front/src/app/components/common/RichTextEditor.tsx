@@ -184,7 +184,7 @@ export default function RichTextEditor({
         </div>
       `;
 
-      editor.chain().focus().insertContent(videoHtml).run();
+      editor?.chain().focus().insertContent(videoHtml).run();
       setUploadedFiles((prev) => [...prev, file]);
     };
     input.click();

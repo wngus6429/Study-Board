@@ -782,10 +782,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
                       onClick={(e) => {
                         setEditFlag(true);
                         e.preventDefault();
-                        // 현재 페이지 정보를 세션스토리지에 저장
-                        if (typeof window !== "undefined") {
-                          sessionStorage.setItem("editReturnUrl", `/channels/${params.slug}/detail/story/${detail.id}`);
-                        }
                         router.push(`/edit/story/${detail.id}`);
                       }}
                       disabled={editFlag}

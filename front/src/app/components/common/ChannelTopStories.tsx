@@ -69,10 +69,6 @@ export default function ChannelTopStories() {
 
   const topStories = storiesData?.results || [];
 
-  console.log("🔥 최종 topStories:", topStories);
-  console.log("🔥 isLoading:", isLoading);
-  console.log("🔥 error:", error);
-
   // 로딩 중이거나 에러가 있을 때도 표시하도록 수정 (디버깅용)
   if (isLoading) {
     return (

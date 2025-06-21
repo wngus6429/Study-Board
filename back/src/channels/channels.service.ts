@@ -30,12 +30,12 @@ export class ChannelsService {
   }
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 특정 채널 조회 (채널 이미지 포함)
+  // 특정 채널 조회 (채널 이미지 포함) - Stories 제외로 성능 최적화
   async findOne(id: number): Promise<Channels> {
     console.log('채널 상세 데이터 조회:', id);
     const channel = await this.channelsRepository.findOne({
       where: { id },
-      relations: ['subscriptions', 'Stories', 'creator', 'ChannelImage'], // 채널 이미지도 함께 조회
+      relations: ['subscriptions', 'creator', 'ChannelImage'], // Stories 제거로 성능 최적화
     });
 
     if (!channel) {
@@ -48,12 +48,12 @@ export class ChannelsService {
   }
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 슬러그로 채널 조회 (채널 이미지 포함)
+  // 슬러그로 채널 조회 (채널 이미지 포함) - Stories 제외로 성능 최적화
   async findBySlug(slug: string): Promise<Channels> {
     console.log('채널 슬러그 데이터 조회:', slug);
     const channel = await this.channelsRepository.findOne({
       where: { slug },
-      relations: ['subscriptions', 'Stories', 'creator', 'ChannelImage'], // 채널 이미지도 함께 조회
+      relations: ['subscriptions', 'creator', 'ChannelImage'], // Stories 제거로 성능 최적화
     });
 
     if (!channel) {

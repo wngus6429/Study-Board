@@ -9,7 +9,7 @@ import TextStyle from "@tiptap/extension-text-style";
 import Highlight from "@tiptap/extension-highlight";
 import Underline from "@tiptap/extension-underline";
 import Image from "@tiptap/extension-image";
-import { Box, Paper, useTheme, Typography, IconButton, Divider, Tooltip, ButtonGroup } from "@mui/material";
+import { Box, Paper, useTheme, Typography, IconButton, Divider, Tooltip, ButtonGroup, Fade, Card } from "@mui/material";
 import {
   FormatBold,
   FormatItalic,
@@ -26,6 +26,10 @@ import {
   FormatAlignRight,
   Undo,
   Redo,
+  PhotoSizeSelectSmall,
+  PhotoSizeSelectActual,
+  PhotoSizeSelectLarge,
+  Delete as DeleteIcon,
 } from "@mui/icons-material";
 
 interface RichTextEditorProps {
@@ -46,6 +50,9 @@ export default function RichTextEditor({
   onFilesChange,
 }: RichTextEditorProps) {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [selectedImageElement, setSelectedImageElement] = useState<HTMLImageElement | null>(null);
+  const [showImageControls, setShowImageControls] = useState(false);
+  const [imageControlsPosition, setImageControlsPosition] = useState({ top: 0, left: 0 });
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
 
@@ -54,7 +61,8 @@ export default function RichTextEditor({
       StarterKit,
       Image.configure({
         HTMLAttributes: {
-          style: "max-width: 100%; height: auto; margin: 8px 0; border-radius: 8px;",
+          style: "max-width: 100%; height: auto; margin: 8px 0; border-radius: 8px; cursor: pointer;",
+          class: "editor-image",
         },
       }),
       Link.configure({
@@ -84,6 +92,17 @@ export default function RichTextEditor({
         style: `min-height: ${height}; padding: 16px; outline: none;`,
         class: "tiptap-editor",
       },
+      handleClick: (view, pos, event) => {
+        const target = event.target as HTMLElement;
+        if (target.tagName === "IMG" && target.classList.contains("editor-image")) {
+          handleImageClick(target as HTMLImageElement);
+          return true;
+        } else {
+          setShowImageControls(false);
+          setSelectedImageElement(null);
+        }
+        return false;
+      },
     },
   });
 
@@ -111,6 +130,105 @@ export default function RichTextEditor({
       return () => clearTimeout(timeoutId);
     }
   }, [uploadedFiles, onFilesChange]);
+
+  // 이미지 클릭 핸들러 (아카라이브 스타일)
+  const handleImageClick = useCallback((imgElement: HTMLImageElement) => {
+    console.log("🖼️ 이미지 클릭됨:", imgElement.src);
+
+    // 기존 선택 해제
+    document.querySelectorAll(".editor-image.selected").forEach((img) => {
+      img.classList.remove("selected");
+    });
+
+    // 새로운 이미지 선택
+    imgElement.classList.add("selected");
+    setSelectedImageElement(imgElement);
+
+    // 이미지 위치 계산
+    const rect = imgElement.getBoundingClientRect();
+    const editorRect = imgElement.closest(".tiptap-editor")?.getBoundingClientRect();
+
+    if (editorRect) {
+      setImageControlsPosition({
+        top: rect.top - editorRect.top - 50, // 이미지 위쪽에 컨트롤 표시
+        left: rect.left - editorRect.left + rect.width - 200, // 오른쪽 정렬
+      });
+    }
+
+    setShowImageControls(true);
+  }, []);
+
+  // 이미지 크기 조절 함수
+  const handleImageResize = useCallback(
+    (size: string) => {
+      if (!selectedImageElement || !editor) return;
+
+      console.log(`📏 이미지 크기 변경: ${size}`);
+
+      // 현재 선택된 이미지의 위치 찾기
+      const images = Array.from(editor.view.dom.querySelectorAll("img.editor-image"));
+      const targetImageIndex = images.indexOf(selectedImageElement);
+
+      if (targetImageIndex !== -1) {
+        // TipTap 에디터에서 해당 이미지 속성 업데이트
+        let imagePos = -1;
+        let currentImageIndex = 0;
+
+        editor.state.doc.descendants((node, pos) => {
+          if (node.type.name === "image") {
+            if (currentImageIndex === targetImageIndex) {
+              imagePos = pos;
+              return false;
+            }
+            currentImageIndex++;
+          }
+        });
+
+        if (imagePos !== -1) {
+          const newAttrs = {
+            style: `max-width: ${size}; height: auto; margin: 8px 0; border-radius: 8px; cursor: pointer;`,
+            class: "editor-image",
+          };
+
+          editor.chain().focus().setNodeSelection(imagePos).updateAttributes("image", newAttrs).run();
+        }
+      }
+
+      // 직접 DOM 업데이트 (즉시 반영)
+      selectedImageElement.style.maxWidth = size;
+
+      setShowImageControls(false);
+      setSelectedImageElement(null);
+    },
+    [selectedImageElement, editor]
+  );
+
+  // 이미지 삭제 함수
+  const handleImageDelete = useCallback(() => {
+    if (!selectedImageElement || !editor) return;
+
+    console.log("🗑️ 이미지 삭제");
+
+    // TipTap에서 이미지 삭제
+    const images = Array.from(editor.view.dom.querySelectorAll("img.editor-image"));
+    const imageIndex = images.indexOf(selectedImageElement);
+
+    if (imageIndex !== -1) {
+      let currentIndex = 0;
+      editor.state.doc.descendants((node, pos) => {
+        if (node.type.name === "image") {
+          if (currentIndex === imageIndex) {
+            editor.chain().focus().setNodeSelection(pos).deleteSelection().run();
+            return false;
+          }
+          currentIndex++;
+        }
+      });
+    }
+
+    setShowImageControls(false);
+    setSelectedImageElement(null);
+  }, [selectedImageElement, editor]);
 
   // 이미지 업로드 핸들러 (다중 선택 지원)
   const handleImageUpload = useCallback(() => {
@@ -450,6 +568,119 @@ export default function RichTextEditor({
           </ButtonGroup>
         </Box>
 
+        {/* 아카라이브 스타일 이미지 컨트롤 */}
+        <Fade in={showImageControls}>
+          <Card
+            sx={{
+              position: "absolute",
+              top: imageControlsPosition.top,
+              left: imageControlsPosition.left,
+              zIndex: 1000,
+              background: isDarkMode ? "rgba(20, 22, 28, 0.95)" : "rgba(255, 255, 255, 0.95)",
+              backdropFilter: "blur(8px)",
+              border: `1px solid ${isDarkMode ? "rgba(139, 92, 246, 0.3)" : "rgba(0, 0, 0, 0.1)"}`,
+              borderRadius: "8px",
+              boxShadow: isDarkMode
+                ? "0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(139, 92, 246, 0.3)"
+                : "0 8px 32px rgba(0, 0, 0, 0.15)",
+              p: 1,
+              minWidth: "180px",
+            }}
+          >
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              {/* 크기 조절 버튼들 */}
+              <Typography
+                variant="caption"
+                sx={{
+                  color: isDarkMode ? "#a78bfa" : "#8b5cf6",
+                  fontWeight: 600,
+                  textAlign: "center",
+                  mb: 0.5,
+                }}
+              >
+                이미지 크기 조절
+              </Typography>
+
+              <ButtonGroup size="small" orientation="vertical" fullWidth>
+                <Tooltip title="소형 (25%)" placement="left">
+                  <IconButton
+                    onClick={() => handleImageResize("25%")}
+                    sx={{
+                      color: isDarkMode ? "#e2e8f0" : "#475569",
+                      "&:hover": {
+                        backgroundColor: isDarkMode ? "rgba(139, 92, 246, 0.2)" : "rgba(139, 92, 246, 0.1)",
+                        color: "#8b5cf6",
+                      },
+                      justifyContent: "flex-start",
+                      px: 2,
+                    }}
+                  >
+                    <PhotoSizeSelectSmall sx={{ mr: 1 }} />
+                    <Typography variant="body2">소형 (25%)</Typography>
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="중형 (50%)" placement="left">
+                  <IconButton
+                    onClick={() => handleImageResize("50%")}
+                    sx={{
+                      color: isDarkMode ? "#e2e8f0" : "#475569",
+                      "&:hover": {
+                        backgroundColor: isDarkMode ? "rgba(139, 92, 246, 0.2)" : "rgba(139, 92, 246, 0.1)",
+                        color: "#8b5cf6",
+                      },
+                      justifyContent: "flex-start",
+                      px: 2,
+                    }}
+                  >
+                    <PhotoSizeSelectActual sx={{ mr: 1 }} />
+                    <Typography variant="body2">중형 (50%)</Typography>
+                  </IconButton>
+                </Tooltip>
+
+                <Tooltip title="대형 (100%)" placement="left">
+                  <IconButton
+                    onClick={() => handleImageResize("100%")}
+                    sx={{
+                      color: isDarkMode ? "#e2e8f0" : "#475569",
+                      "&:hover": {
+                        backgroundColor: isDarkMode ? "rgba(139, 92, 246, 0.2)" : "rgba(139, 92, 246, 0.1)",
+                        color: "#8b5cf6",
+                      },
+                      justifyContent: "flex-start",
+                      px: 2,
+                    }}
+                  >
+                    <PhotoSizeSelectLarge sx={{ mr: 1 }} />
+                    <Typography variant="body2">대형 (100%)</Typography>
+                  </IconButton>
+                </Tooltip>
+              </ButtonGroup>
+
+              <Divider sx={{ my: 0.5 }} />
+
+              {/* 삭제 버튼 */}
+              <Tooltip title="이미지 삭제" placement="left">
+                <IconButton
+                  onClick={handleImageDelete}
+                  sx={{
+                    color: "#ef4444",
+                    "&:hover": {
+                      backgroundColor: "rgba(239, 68, 68, 0.1)",
+                      color: "#dc2626",
+                    },
+                    justifyContent: "flex-start",
+                    px: 2,
+                  }}
+                >
+                  <DeleteIcon sx={{ mr: 1 }} />
+                  <Typography variant="body2">삭제</Typography>
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Card>
+        </Fade>
+
         {/* 에디터 */}
         <Box
           sx={{
@@ -518,6 +749,20 @@ export default function RichTextEditor({
                 textDecoration: "none",
                 "&:hover": {
                   textDecoration: "underline",
+                },
+              },
+              // 아카라이브 스타일 이미지 효과
+              "& img.editor-image": {
+                transition: "all 0.2s ease",
+                "&:hover": {
+                  boxShadow: "0 0 0 2px rgba(139, 92, 246, 0.5)",
+                  transform: "scale(1.02)",
+                },
+                "&.selected": {
+                  boxShadow: isDarkMode
+                    ? "0 0 0 3px rgba(139, 92, 246, 0.8), 0 8px 25px rgba(139, 92, 246, 0.3)"
+                    : "0 0 0 3px rgba(139, 92, 246, 0.6), 0 8px 25px rgba(139, 92, 246, 0.2)",
+                  transform: "scale(1.02)",
                 },
               },
             },

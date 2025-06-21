@@ -68,6 +68,11 @@ export default function page({ params }: { params: { id: string; slug: string } 
   // handleImageClick 함수 근처에 줌 관련 상태와 함수 추가
   const [zoomLevel, setZoomLevel] = useState<number>(1);
 
+  // 드래그 관련 상태 추가
+  const [imagePosition, setImagePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
   // 사용자 메뉴 관련 상태
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedUserNickname, setSelectedUserNickname] = useState<string>("");
@@ -390,6 +395,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
     setSelectedImage(image);
     setCurrentImageIndex(index);
     setZoomLevel(1); // 줌 레벨 초기화
+    setImagePosition({ x: 0, y: 0 }); // 이미지 위치 초기화
     setOpenImageViewer(true);
   };
 
@@ -398,6 +404,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
     setOpenImageViewer(false);
     setSelectedImage(null);
     setZoomLevel(1); // 줌 레벨 초기화
+    setImagePosition({ x: 0, y: 0 }); // 이미지 위치 초기화
+    setIsDragging(false); // 드래그 상태 초기화
   };
 
   // content 순서대로 재구성된 이미지 배열 생성
@@ -440,6 +448,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
       const nextIndex = currentImageIndex + 1;
       setCurrentImageIndex(nextIndex);
       setSelectedImage(contentOrderedImages[nextIndex]);
+      setZoomLevel(1); // 줌 레벨 초기화
+      setImagePosition({ x: 0, y: 0 }); // 이미지 위치 초기화
     }
   };
 
@@ -449,6 +459,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
       const prevIndex = currentImageIndex - 1;
       setCurrentImageIndex(prevIndex);
       setSelectedImage(contentOrderedImages[prevIndex]);
+      setZoomLevel(1); // 줌 레벨 초기화
+      setImagePosition({ x: 0, y: 0 }); // 이미지 위치 초기화
     }
   };
 
@@ -458,7 +470,42 @@ export default function page({ params }: { params: { id: string; slug: string } 
   };
 
   const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(prev - 0.25, 0.5)); // 최소 0.5배까지 축소
+    const newZoomLevel = Math.max(zoomLevel - 0.25, 0.5);
+    setZoomLevel(newZoomLevel);
+
+    // 줌 레벨이 1배 이하가 되면 이미지 위치도 초기화
+    if (newZoomLevel <= 1) {
+      setImagePosition({ x: 0, y: 0 });
+    }
+  };
+
+  // 드래그 관련 핸들러들
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel <= 1) return; // 확대된 상태에서만 드래그 가능
+
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX - imagePosition.x,
+      y: e.clientY - imagePosition.y,
+    });
+    e.preventDefault();
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || zoomLevel <= 1) return;
+
+    setImagePosition({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
   };
 
   // 키보드 이벤트 처리 업데이트
@@ -476,12 +523,41 @@ export default function page({ params }: { params: { id: string; slug: string } 
         handleZoomIn();
       } else if (e.key === "-") {
         handleZoomOut();
+      } else if (e.key === "r" || e.key === "R") {
+        // R키로 이미지 위치 리셋
+        setImagePosition({ x: 0, y: 0 });
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [openImageViewer, currentImageIndex, contentOrderedImages, zoomLevel]);
+
+  // 드래그 상태를 전역 마우스 이벤트로도 처리 (이미지 밖으로 나가도 처리)
+  useEffect(() => {
+    if (!isDragging) return;
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (!isDragging || zoomLevel <= 1) return;
+
+      setImagePosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    };
+
+    const handleGlobalMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    document.addEventListener("mousemove", handleGlobalMouseMove);
+    document.addEventListener("mouseup", handleGlobalMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleGlobalMouseMove);
+      document.removeEventListener("mouseup", handleGlobalMouseUp);
+    };
+  }, [isDragging, dragStart, zoomLevel]);
 
   // Slide 트랜지션 커스텀 컴포넌트
   const SlideTransition = React.forwardRef(function Transition(
@@ -1164,14 +1240,21 @@ export default function page({ params }: { params: { id: string; slug: string } 
               component="img"
               src={`${process.env.NEXT_PUBLIC_BASE_URL}${selectedImage.link}`}
               alt="Selected"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
               sx={{
                 maxWidth: "90%",
                 maxHeight: "80vh",
                 objectFit: "contain",
-                transform: `scale(${zoomLevel})`,
-                transition: "transform 0.2s ease-out",
+                transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px)`,
+                transition: isDragging ? "none" : "transform 0.2s ease-out",
                 border: "1px solid rgba(192, 192, 192, 0.2)",
+                cursor: zoomLevel > 1 ? (isDragging ? "grabbing" : "grab") : "default",
+                userSelect: "none", // 텍스트 선택 방지
               }}
+              draggable={false} // HTML 드래그 방지
             />
           )}
 

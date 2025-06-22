@@ -215,21 +215,34 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 </Typography>
               </Box>
             </Box>
-            <Typography
-              variant="body1"
-              color="text.primary"
+            <Box
               sx={{
                 lineHeight: 1.7,
+                color: theme.palette.text.primary,
                 bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
                 p: 2,
                 borderRadius: 1,
                 boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
                 mb: 3,
                 border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+                "& ol, & ul": {
+                  paddingLeft: "24px",
+                  margin: "12px 0",
+                  listStylePosition: "outside",
+                },
+                "& ol": {
+                  listStyleType: "decimal",
+                },
+                "& ul": {
+                  listStyleType: "disc",
+                },
+                "& li": {
+                  margin: "6px 0",
+                  paddingLeft: "4px",
+                },
               }}
-            >
-              {detail.content}
-            </Typography>
+              dangerouslySetInnerHTML={{ __html: detail.content }}
+            />
             {memoizedImageCards && (
               <Box>
                 <Typography

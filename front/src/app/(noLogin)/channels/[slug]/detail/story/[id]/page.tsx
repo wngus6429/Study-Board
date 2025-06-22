@@ -911,6 +911,21 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 borderRadius: "8px",
                 margin: "8px 0",
               },
+              "& ol, & ul": {
+                paddingLeft: "24px",
+                margin: "12px 0",
+                listStylePosition: "outside",
+              },
+              "& ol": {
+                listStyleType: "decimal",
+              },
+              "& ul": {
+                listStyleType: "disc",
+              },
+              "& li": {
+                margin: "6px 0",
+                paddingLeft: "4px",
+              },
             }}
             dangerouslySetInnerHTML={{ __html: part }}
           />

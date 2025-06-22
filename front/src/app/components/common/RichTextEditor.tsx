@@ -598,8 +598,15 @@ export default function RichTextEditor({
                 fontSize: "0.9em",
               },
               "& ul, & ol": {
-                paddingLeft: "20px",
-                margin: "8px 0",
+                paddingLeft: "24px",
+                margin: "12px 0",
+                listStylePosition: "outside",
+              },
+              "& ol": {
+                listStyleType: "decimal",
+              },
+              "& ul": {
+                listStyleType: "disc",
               },
               "& li": {
                 margin: "4px 0",

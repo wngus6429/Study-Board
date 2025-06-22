@@ -29,11 +29,10 @@ import WarningIcon from "@mui/icons-material/Warning";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { getBlindUsers, addBlindUser, removeBlindUser } from "../api/blind";
-import { IBlindUser } from "../types/blind";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-import { useBlindStore } from "../store/blindStore";
+import { addBlindUser, getBlindUsers, removeBlindUser } from "@/app/api/blind";
+import { useBlindStore } from "@/app/store/blindStore";
 
 export default function BlindsPage() {
   const router = useRouter();

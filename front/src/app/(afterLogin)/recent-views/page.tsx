@@ -10,10 +10,10 @@ import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import { Box, Typography, Button, Container } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { useRecentViews, RecentViewItem } from "../store/recentViewsStore";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import "dayjs/locale/ko";
+import { RecentViewItem, useRecentViews } from "@/app/store/recentViewsStore";
 
 dayjs.extend(relativeTime);
 dayjs.locale("ko");

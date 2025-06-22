@@ -28,8 +28,8 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useMessage } from "../store/messageStore";
-import Loading from "../components/common/Loading";
+import { useMessage } from "@/app/store/messageStore";
+import Loading from "@/app/components/common/Loading";
 
 dayjs.extend(relativeTime);
 dayjs.locale("ko");

@@ -24,11 +24,11 @@ import {
   markNotificationAsRead,
   deleteNotification,
   markAllNotificationsAsRead,
-} from "../api/notification";
-import { INotification } from "../types/notification";
+} from "@/app/api/notification";
+import { INotification } from "@/app/types/notification";
 import { formatDistanceToNow } from "date-fns";
 import { ko } from "date-fns/locale";
-import { NOTIFICATION_VIEW_COUNT } from "../const/VIEW_COUNT";
+import { NOTIFICATION_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 
 export default function ChannelNotificationsPage() {
   const router = useRouter();

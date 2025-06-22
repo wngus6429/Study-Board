@@ -722,7 +722,13 @@ export default function page({ params }: { params: { id: string; slug: string } 
     const elements: React.ReactNode[] = [];
 
     // 연속된 이미지들을 그룹화하기 위한 변수
-    let currentImageGroup: Array<{ img: StoryImageType; index: number; originalIndex: number }> = [];
+    let currentImageGroup: Array<{
+      img: StoryImageType;
+      index: number;
+      originalIndex: number;
+      customWidth?: string;
+      customMargin?: string;
+    }> = [];
 
     const processImageGroup = () => {
       if (currentImageGroup.length === 0) return;
@@ -746,6 +752,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   img={item.img}
                   isLastOddImage={isLastOddImage}
                   onClick={(img) => handleImageClick(img, item.index)}
+                  customWidth={item.customWidth} // 추출된 width 정보 전달
+                  customMargin={item.customMargin} // 추출된 margin 정보 전달
                 />
               );
             })}
@@ -796,11 +804,50 @@ export default function page({ params }: { params: { id: string; slug: string } 
           if (matchingImage) {
             // content 순서 기준으로 인덱스 찾기
             const imageIndex = contentImageOrder.findIndex((img) => img.id === matchingImage.id);
+
+            // 이미지 태그에서 width와 margin 정보 추출
+            const styleMatch = part.match(/style="([^"]*)"/);
+            let customWidth = undefined;
+            let customMargin = undefined;
+            if (styleMatch && styleMatch[1]) {
+              const styleText = styleMatch[1];
+              // CSS 속성들을 세미콜론으로 분리
+              const styleProperties = styleText.split(";");
+
+              // width 속성만 찾기 (max-width 제외)
+              const widthProperty = styleProperties.find((prop) => {
+                const trimmed = prop.trim();
+                return trimmed.startsWith("width:") && !trimmed.startsWith("max-width:");
+              });
+
+              if (widthProperty) {
+                const widthValue = widthProperty.split(":")[1]?.trim();
+                if (widthValue) {
+                  customWidth = widthValue;
+                }
+              }
+
+              // margin 속성 찾기
+              const marginProperty = styleProperties.find((prop) => {
+                const trimmed = prop.trim();
+                return trimmed.startsWith("margin:");
+              });
+
+              if (marginProperty) {
+                const marginValue = marginProperty.split(":")[1]?.trim();
+                if (marginValue) {
+                  customMargin = marginValue;
+                }
+              }
+            }
+
             // 현재 이미지 그룹에 추가
             currentImageGroup.push({
               img: matchingImage,
               index: imageIndex >= 0 ? imageIndex : 0,
               originalIndex: index,
+              customWidth: customWidth, // width 정보 추가
+              customMargin: customMargin, // margin 정보 추가
             });
           } else {
             // 정말로 매칭되는 이미지가 없는 경우, 클릭 가능한 이미지로 렌더링

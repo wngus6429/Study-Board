@@ -1143,17 +1143,6 @@ const ChannelDetailPage = () => {
                           "구독하기"
                         )}
                       </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          fontSize: "0.7rem",
-                          opacity: 0.9,
-                          fontWeight: 600,
-                          textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
-                        }}
-                      >
-                        {isSubscribed ? "클릭하여 해제" : "새 글 알림받기"}
-                      </Typography>
                     </Box>
                   </Button>
 
@@ -1567,16 +1556,6 @@ const ChannelDetailPage = () => {
             }}
           >
             <strong>{channelData.channel_name}</strong> 채널의 구독을 취소하시겠습니까?
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              color: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
-              mt: 1,
-              textAlign: "center",
-            }}
-          >
-            구독을 취소하면 새로운 게시글 알림을 받을 수 없습니다.
           </Typography>
         </DialogContent>
 

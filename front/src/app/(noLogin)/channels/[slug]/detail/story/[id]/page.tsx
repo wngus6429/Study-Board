@@ -1232,16 +1232,18 @@ export default function page({ params }: { params: { id: string; slug: string } 
               color: "silver",
               "&:hover": { color: "white" },
               mr: 1,
+              fontSize: "1.8rem",
             }}
           >
-            <ZoomOutIcon />
+            <ZoomOutIcon sx={{ fontSize: "1.8rem" }} />
           </IconButton>
 
           <Typography
-            variant="body2"
+            variant="body1"
             sx={{
               color: "silver",
               mx: 1,
+              fontSize: "1.1rem",
             }}
           >
             {(zoomLevel * 100).toFixed(0)}%
@@ -1253,9 +1255,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
               color: "silver",
               "&:hover": { color: "white" },
               mr: 1,
+              fontSize: "1.8rem",
             }}
           >
-            <ZoomInIcon />
+            <ZoomInIcon sx={{ fontSize: "1.8rem" }} />
           </IconButton>
 
           {/* 닫기 버튼 */}
@@ -1264,9 +1267,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
             sx={{
               color: "silver",
               "&:hover": { color: "white" },
+              fontSize: "1.8rem",
             }}
           >
-            <CloseIcon />
+            <CloseIcon sx={{ fontSize: "1.8rem" }} />
           </IconButton>
         </Box>
 
@@ -1290,9 +1294,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 left: { xs: 8, md: 24 },
                 color: "silver",
                 "&:hover": { color: "white" },
+                fontSize: "2rem",
               }}
             >
-              <ArrowBackIosNewIcon />
+              <ArrowBackIosNewIcon sx={{ fontSize: "2rem" }} />
             </IconButton>
           )}
 
@@ -1329,9 +1334,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 right: { xs: 8, md: 24 },
                 color: "silver",
                 "&:hover": { color: "white" },
+                fontSize: "2rem",
               }}
             >
-              <ArrowForwardIosIcon />
+              <ArrowForwardIosIcon sx={{ fontSize: "2rem" }} />
             </IconButton>
           )}
         </Box>

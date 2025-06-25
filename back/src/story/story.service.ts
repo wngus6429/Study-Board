@@ -979,15 +979,15 @@ export class StoryService {
     let updatedContent = content;
     if (newFiles && newFiles.length > 0) {
       // 현재 최대 업로드 순서 찾기
-      const remainingImages = story.StoryImage.filter(
-        (img) => !imagesToDelete.includes(img),
-      );
-      const remainingVideos = story.StoryVideo.filter(
-        (video) => !videosToDelete.includes(video),
-      );
+      // const remainingImages = story.StoryImage.filter(
+      //   (img) => !imagesToDelete.includes(img),
+      // );
+      // const remainingVideos = story.StoryVideo.filter(
+      //   (video) => !videosToDelete.includes(video),
+      // );
 
-      // upload_order 대신 created_at 기반으로 순서 관리 (tiptap 사용으로 불필요)
-      const maxOrder = 0;
+      // // upload_order 대신 created_at 기반으로 순서 관리 (tiptap 사용으로 불필요)
+      // const maxOrder = 0;
 
       // 파일을 이미지와 동영상으로 분리
       const imageFiles = newFiles.filter((file) =>

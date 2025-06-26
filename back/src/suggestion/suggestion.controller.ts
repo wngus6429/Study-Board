@@ -28,16 +28,22 @@ export class SuggestionController {
   logger: any;
   constructor(private readonly suggestionService: SuggestionService) {}
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 게시글 목록 조회 (카테고리별, 혹은 특정 유저의 건의사항)
+  // 게시글 목록 조회 (채널별 + 사용자별 필터링)
   @Get('/pageTableData')
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   async getPageSuggestion(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
-    @Query('userId') userId: string,
+    @Query('channelId') channelId?: number,
+    @Query('userId') userId?: string,
   ): Promise<{ results: Partial<Suggestion>[]; total: number }> {
-    return await this.suggestionService.findSuggestion(offset, limit, userId);
+    return await this.suggestionService.findSuggestion(
+      offset,
+      limit,
+      channelId,
+      userId,
+    );
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 작성
@@ -50,7 +56,13 @@ export class SuggestionController {
     @GetUser() user: User,
     @UploadedFiles() files: Express.Multer.File[],
   ): Promise<Suggestion> {
-    return this.suggestionService.create(createSuggestionDto, user, files);
+    const { channelId, ...suggestionData } = createSuggestionDto;
+    return this.suggestionService.create(
+      suggestionData,
+      user,
+      files,
+      channelId,
+    );
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 상세 조회

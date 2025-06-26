@@ -1,6 +1,6 @@
 "use client";
 import { TextField, Box, Typography, Paper, Button, CircularProgress, Divider, useTheme } from "@mui/material";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
@@ -47,6 +47,19 @@ export default function FeedbackWrite() {
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_FEEDBACK_OPTION);
   const [loading, setLoading] = useState<boolean>(false);
 
+  // 채널 정보 조회 (channelSlug가 있는 경우에만)
+  const { data: channelData } = useQuery({
+    queryKey: ["channel", channelSlug],
+    queryFn: async () => {
+      if (!channelSlug) return null;
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/slug/${channelSlug}`, {
+        withCredentials: true,
+      });
+      return response.data;
+    },
+    enabled: !!channelSlug,
+  });
+
   const mutation = useMutation({
     mutationFn: async (e: FormEvent) => {
       e.preventDefault();
@@ -56,6 +69,12 @@ export default function FeedbackWrite() {
         formData.append("category", selectedCategory);
         formData.append("title", title);
         formData.append("content", content);
+
+        // 채널 정보가 있으면 channelId 추가
+        if (channelData?.id) {
+          formData.append("channelId", channelData.id.toString());
+        }
+
         return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/suggestion/create`, formData, {
           withCredentials: true,
           headers: { "Content-Type": "multipart/form-data" },
@@ -77,6 +96,7 @@ export default function FeedbackWrite() {
       }
     },
     onError: (error) => {
+      setLoading(false);
       showMessage("글 작성 실패, 이전 화면으로 이동합니다", "error");
       console.error(error);
       router.back();

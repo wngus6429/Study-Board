@@ -25,26 +25,45 @@ export class SuggestionService {
     private userRepository: Repository<User>,
   ) {}
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 건의사항 목록 조회 (카테고리 필터 적용)
+  // 건의사항 목록 조회 (채널별 + 사용자별 필터 적용)
   async findSuggestion(
     offset = 0,
     limit = 10,
-    userId: string,
+    channelId?: number,
+    userId?: string,
   ): Promise<{
     results: Partial<Suggestion & { nickname: string }>[];
     total: number;
   }> {
-    // userId를 기준으로 필터 조건 생성
-    const whereCondition = { User: { id: userId } };
+    // 필터 조건 생성
+    const whereCondition: any = {};
 
-    // 해당 유저가 작성한 건의사항 총 개수 조회
-    const total = await this.suggestionRepository.count({
-      where: whereCondition,
+    // 채널 필터링
+    if (channelId) {
+      whereCondition.Channel = { id: Number(channelId) };
+    }
+
+    // 사용자 필터링 (내가 작성한 건의사항만)
+    if (userId) {
+      whereCondition.User = { id: userId };
+    }
+
+    console.log('🔍 findSuggestion whereCondition:', {
+      whereCondition,
+      channelId: channelId ? Number(channelId) : null,
+      userId,
+      typeof_channelId: typeof channelId,
     });
 
-    // 해당 유저가 작성한 건의사항 목록 조회 (작성자 정보 포함)
+    // 해당 조건의 건의사항 총 개수 조회
+    const total = await this.suggestionRepository.count({
+      where: whereCondition,
+      relations: channelId ? ['Channel', 'User'] : ['User'],
+    });
+
+    // 해당 조건의 건의사항 목록 조회 (작성자 정보 포함)
     const suggestions = await this.suggestionRepository.find({
-      relations: ['User'],
+      relations: channelId ? ['User', 'Channel'] : ['User'],
       where: whereCondition,
       order: { id: 'DESC' },
       skip: Number(offset),
@@ -53,9 +72,11 @@ export class SuggestionService {
 
     // 결과 데이터 가공: 작성자의 닉네임 포함
     const results = suggestions.map((suggestion) => {
-      const { User, ...rest } = suggestion;
+      const { User, Channel, ...rest } = suggestion;
       return { ...rest, nickname: User.nickname };
     });
+
+    console.log('건의사항 조회 결과:', { results, total, channelId, userId });
 
     return { results, total };
   }
@@ -102,33 +123,52 @@ export class SuggestionService {
     createSuggestionDto: any,
     userData: User,
     files: Express.Multer.File[],
+    channelId?: number,
   ): Promise<Suggestion> {
     const { title, content, category } = createSuggestionDto;
-    const suggestion = this.suggestionRepository.create({
+
+    // 건의사항 생성 데이터 준비
+    const suggestionData: any = {
       category,
       title,
       content,
       User: userData,
-    });
+    };
+
+    // 채널 정보가 있으면 추가
+    if (channelId) {
+      suggestionData.Channel = { id: Number(channelId) };
+    }
+
+    const suggestion = this.suggestionRepository.create(suggestionData);
     const savedSuggestion = await this.suggestionRepository.save(suggestion);
+
+    // 타입 안전성을 위해 단일 엔티티임을 명시
+    const singleSuggestion = Array.isArray(savedSuggestion)
+      ? savedSuggestion[0]
+      : savedSuggestion;
 
     if (files && files.length > 0) {
       const imageEntities = files.map((file) => {
         const image = new SuggestionImage();
         image.image_name = file.filename;
         image.link = `/suggestionUpload/${file.filename}`;
-        image.Suggestion = savedSuggestion;
+        image.Suggestion = singleSuggestion;
         return image;
       });
+
       await this.suggestionImageRepository.save(imageEntities);
+
       // 최신 이미지 목록 재조회 후 반영
-      savedSuggestion.SuggestionImage =
-        await this.suggestionImageRepository.find({
-          where: { Suggestion: { id: savedSuggestion.id } },
-        });
-      await this.suggestionRepository.save(savedSuggestion);
+      const updatedImages = await this.suggestionImageRepository.find({
+        where: { Suggestion: { id: singleSuggestion.id } },
+      });
+
+      singleSuggestion.SuggestionImage = updatedImages;
+      await this.suggestionRepository.save(singleSuggestion);
     }
-    return savedSuggestion;
+
+    return singleSuggestion;
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 수정

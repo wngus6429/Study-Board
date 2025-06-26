@@ -196,18 +196,13 @@ const ChannelDetailPage = () => {
 
   // 건의사항 데이터 가져오기
   useEffect(() => {
-    if (currentTab === "suggestion" && session?.user?.id) {
+    if (currentTab === "suggestion" && channelId && session?.user?.id) {
       const fetchSuggestionData = async () => {
         setSuggestionLoading(true);
         try {
           const offset = (currentPage - 1) * viewCount;
-          const params = {
-            offset: offset.toString(),
-            limit: viewCount.toString(),
-            userId: session.user.id,
-          };
 
-          const queryString = `offset=${offset}&limit=${viewCount}&userId=${session.user.id}`;
+          const queryString = `offset=${offset}&limit=${viewCount}&channelId=${channelId}&userId=${session.user.id}`;
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_BASE_URL}/api/suggestion/pageTableData?${queryString}`,
             {
@@ -235,7 +230,7 @@ const ChannelDetailPage = () => {
 
       fetchSuggestionData();
     }
-  }, [currentTab, currentPage, viewCount, session?.user?.id]);
+  }, [currentTab, currentPage, viewCount, channelId, session?.user?.id]);
 
   // 채널 테이블 데이터 조회 (기존 커스텀 훅 사용)
   const {

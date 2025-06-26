@@ -15,6 +15,7 @@ import { User } from './User.entity';
 import { ChannelImage } from './ChannelImage.entity';
 import { ChannelNotificationSubscription } from './ChannelNotificationSubscription.entity';
 import { ChannelChatMessage } from './ChannelChatMessage.entity';
+import { Suggestion } from './Suggestion.entity';
 
 @Entity() // 이 클래스가 데이터베이스의 엔티티임을 선언합니다.
 export class Channels {
@@ -47,6 +48,10 @@ export class Channels {
 
   @OneToMany(() => Subscription, (subscription) => subscription.Channel)
   subscriptions: Subscription[];
+
+  // 채널 건의사항 관계
+  @OneToMany(() => Suggestion, (suggestion) => suggestion.Channel)
+  Suggestion: Suggestion[];
 
   // 채널 알림 구독 관계
   @OneToMany(

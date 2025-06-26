@@ -9,6 +9,7 @@ import {
 } from 'typeorm';
 import { User } from './User.entity';
 import { SuggestionImage } from './SuggestionImage.entity';
+import { Channels } from './Channels.entity';
 
 @Entity()
 export class Suggestion {
@@ -29,6 +30,12 @@ export class Suggestion {
     nullable: false, // 피드백 글은 반드시 작성자와 연결되어야 함
   })
   User: User;
+
+  // 채널과의 관계: 한 채널에는 여러 건의사항이 있을 수 있음
+  @ManyToOne(() => Channels, (channel) => channel.Suggestion, {
+    nullable: true, // 채널이 없는 기존 건의사항도 허용
+  })
+  Channel: Channels;
 
   // 건의사항에 첨부된 이미지들
   @OneToMany(() => SuggestionImage, (image) => image.Suggestion, {

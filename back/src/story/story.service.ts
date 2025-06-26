@@ -299,11 +299,129 @@ export class StoryService {
       // 내용 검색
       baseConditions = { content: ILike(likeQuery), isNotice: false };
     } else if (type === 'author') {
-      // 작성자 검색
-      baseConditions = { User: { name: ILike(likeQuery) }, isNotice: false };
+      // 작성자 검색 (닉네임으로 검색)
+      baseConditions = {
+        User: { nickname: ILike(likeQuery) },
+        isNotice: false,
+      };
     } else if (type === 'comment') {
-      // 댓글 검색은 QueryBuilder 필요
-      throw new Error('댓글 검색은 QueryBuilder를 사용해야 합니다.');
+      // 댓글 검색 - 안전한 방식으로 구현
+      console.log('🔍 [searchStory] 댓글 검색 시작:', {
+        query,
+        likeQuery,
+        category,
+        channelId,
+        offset,
+        limit,
+      });
+
+      try {
+        console.log('📝 [searchStory] 1단계: 댓글에서 스토리 ID 찾기 시작');
+
+        // 먼저 댓글이 있는 스토리 ID들을 찾기
+        const storyIdsWithComments = await this.commentRepository
+          .createQueryBuilder('comment')
+          .select('DISTINCT comment.storyId', 'storyId')
+          .where('comment.content LIKE :query', { query: likeQuery })
+          .getRawMany();
+
+        console.log(
+          '📝 [searchStory] 댓글에서 찾은 스토리 ID들:',
+          storyIdsWithComments,
+        );
+
+        const storyIds = storyIdsWithComments.map((item) => item.storyId);
+        console.log('📝 [searchStory] 변환된 스토리 ID 배열:', storyIds);
+
+        if (storyIds.length === 0) {
+          console.log('📝 [searchStory] 댓글 검색 결과 없음 - 빈 배열 반환');
+          return { results: [], total: 0 };
+        }
+
+        // 기본 조건 설정
+        let whereCondition: any = {
+          id: In(storyIds),
+          isNotice: false,
+        };
+
+        // 카테고리 필터 추가
+        if (category && category !== 'all') {
+          whereCondition.category = category;
+          console.log('📝 [searchStory] 카테고리 필터 추가:', category);
+        }
+
+        // 채널 필터 추가
+        if (channelId) {
+          whereCondition.Channel = { id: channelId };
+          console.log('📝 [searchStory] 채널 필터 추가:', channelId);
+        }
+
+        console.log('📝 [searchStory] 최종 where 조건:', whereCondition);
+        console.log('📝 [searchStory] 2단계: 스토리 데이터 조회 시작');
+
+        // 데이터 조회
+        const [resultsTemp, total] = await Promise.all([
+          this.storyRepository.find({
+            relations: channelId
+              ? ['User', 'Likes', 'StoryImage', 'Channel']
+              : ['User', 'Likes', 'StoryImage'],
+            where: whereCondition,
+            order: { id: 'DESC' },
+            skip: offset,
+            take: limit,
+          }),
+          this.storyRepository.count({
+            where: whereCondition,
+            relations: channelId ? ['Channel'] : [],
+          }),
+        ]);
+
+        console.log(
+          '📝 [searchStory] 조회된 스토리 개수:',
+          resultsTemp.length,
+          '전체 개수:',
+          total,
+        );
+
+        const results = resultsTemp.map((story) => {
+          const recommend_Count = story.Likes.reduce((acc, curr) => {
+            if (curr.vote === 'like') return acc + 1;
+            if (curr.vote === 'dislike') return acc - 1;
+            return acc;
+          }, 0);
+
+          const imageFlag = story.StoryImage.length > 0;
+
+          const { Likes, StoryImage, User, ...rest } = story;
+          return {
+            ...rest,
+            recommend_Count,
+            imageFlag,
+            videoFlag: story.videoFlag,
+            userId: User.id,
+            nickname: User.nickname,
+          };
+        });
+
+        console.log(
+          '📝 [searchStory] 댓글 검색 성공:',
+          results.length,
+          '개 결과 반환',
+        );
+        return { results, total };
+      } catch (error) {
+        console.error('❌ [searchStory] 댓글 검색 에러 상세:', {
+          error: error.message,
+          stack: error.stack,
+          query,
+          likeQuery,
+          category,
+          channelId,
+          offset,
+          limit,
+        });
+        throw new Error('댓글 검색 중 오류가 발생했습니다.');
+      }
     } else {
       // 정의되지 않은 타입의 경우 기본적으로 제목과 내용 조건 사용
       baseConditions = [
@@ -429,11 +547,129 @@ export class StoryService {
       // 내용 검색 조건
       baseConditions = { content: ILike(likeQuery), isNotice: false };
     } else if (type === 'author') {
-      // 작성자(User.name) 검색 조건
-      baseConditions = { User: { name: ILike(likeQuery) }, isNotice: false };
+      // 작성자(User.nickname) 검색 조건
+      baseConditions = {
+        User: { nickname: ILike(likeQuery) },
+        isNotice: false,
+      };
     } else if (type === 'comment') {
-      // 댓글 검색은 기본 find 옵션으로는 처리하기 어려움
-      throw new Error('댓글 검색은 QueryBuilder를 사용해야 합니다.');
+      // 댓글 검색 - 안전한 방식으로 구현
+      console.log('🔍 [searchStory] 댓글 검색 시작:', {
+        query,
+        likeQuery,
+        category,
+        channelId,
+        offset,
+        limit,
+      });
+
+      try {
+        console.log('📝 [searchStory] 1단계: 댓글에서 스토리 ID 찾기 시작');
+
+        // 먼저 댓글이 있는 스토리 ID들을 찾기
+        const storyIdsWithComments = await this.commentRepository
+          .createQueryBuilder('comment')
+          .select('DISTINCT comment.storyId', 'storyId')
+          .where('comment.content LIKE :query', { query: likeQuery })
+          .getRawMany();
+
+        console.log(
+          '📝 [searchStory] 댓글에서 찾은 스토리 ID들:',
+          storyIdsWithComments,
+        );
+
+        const storyIds = storyIdsWithComments.map((item) => item.storyId);
+        console.log('📝 [searchStory] 변환된 스토리 ID 배열:', storyIds);
+
+        if (storyIds.length === 0) {
+          console.log('📝 [searchStory] 댓글 검색 결과 없음 - 빈 배열 반환');
+          return { results: [], total: 0 };
+        }
+
+        // 기본 조건 설정
+        let whereCondition: any = {
+          id: In(storyIds),
+          isNotice: false,
+        };
+
+        // 카테고리 필터 추가
+        if (category && category !== 'all') {
+          whereCondition.category = category;
+          console.log('📝 [searchStory] 카테고리 필터 추가:', category);
+        }
+
+        // 채널 필터 추가
+        if (channelId) {
+          whereCondition.Channel = { id: channelId };
+          console.log('📝 [searchStory] 채널 필터 추가:', channelId);
+        }
+
+        console.log('📝 [searchStory] 최종 where 조건:', whereCondition);
+        console.log('📝 [searchStory] 2단계: 스토리 데이터 조회 시작');
+
+        // 데이터 조회
+        const [resultsTemp, total] = await Promise.all([
+          this.storyRepository.find({
+            relations: channelId
+              ? ['User', 'Likes', 'StoryImage', 'Channel']
+              : ['User', 'Likes', 'StoryImage'],
+            where: whereCondition,
+            order: { id: 'DESC' },
+            skip: offset,
+            take: limit,
+          }),
+          this.storyRepository.count({
+            where: whereCondition,
+            relations: channelId ? ['Channel'] : [],
+          }),
+        ]);
+
+        console.log(
+          '📝 [searchStory] 조회된 스토리 개수:',
+          resultsTemp.length,
+          '전체 개수:',
+          total,
+        );
+
+        const results = resultsTemp.map((story) => {
+          const recommend_Count = story.Likes.reduce((acc, curr) => {
+            if (curr.vote === 'like') return acc + 1;
+            if (curr.vote === 'dislike') return acc - 1;
+            return acc;
+          }, 0);
+
+          const imageFlag = story.StoryImage.length > 0;
+
+          const { Likes, StoryImage, User, ...rest } = story;
+          return {
+            ...rest,
+            recommend_Count,
+            imageFlag,
+            videoFlag: story.videoFlag,
+            userId: User.id,
+            nickname: User.nickname,
+          };
+        });
+
+        console.log(
+          '📝 [searchStory] 댓글 검색 성공:',
+          results.length,
+          '개 결과 반환',
+        );
+        return { results, total };
+      } catch (error) {
+        console.error('❌ [searchStory] 댓글 검색 에러 상세:', {
+          error: error.message,
+          stack: error.stack,
+          query,
+          likeQuery,
+          category,
+          channelId,
+          offset,
+          limit,
+        });
+        throw new Error('댓글 검색 중 오류가 발생했습니다.');
+      }
     } else {
       // 정의되지 않은 타입의 경우 기본적으로 제목과 내용 조건 사용
       baseConditions = [

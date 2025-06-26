@@ -139,40 +139,36 @@ export default function ChannelTopStories() {
                 }}
                 onClick={() => handleStoryClick(story.id)}
               >
-                <ListItemText
-                  primary={
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: "medium",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          flex: 1,
-                        }}
-                      >
-                        {story.title}
+                <Box sx={{ width: "100%" }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: "medium",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        flex: 1,
+                      }}
+                    >
+                      {story.title}
+                    </Typography>
+                    {story.category === "question" && (
+                      <Chip label="질문" size="small" color="primary" sx={{ fontSize: "0.7rem", height: "20px" }} />
+                    )}
+                  </Box>
+                  <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <Typography variant="caption" color="text.secondary">
+                      {story.nickname} · {dayjs(story.created_at).fromNow()}
+                    </Typography>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Favorite sx={{ fontSize: "14px", color: "error.main" }} />
+                      <Typography variant="caption" color="error.main" sx={{ fontWeight: "bold" }}>
+                        {story.recommend_Count}
                       </Typography>
-                      {story.category === "question" && (
-                        <Chip label="질문" size="small" color="primary" sx={{ fontSize: "0.7rem", height: "20px" }} />
-                      )}
                     </Box>
-                  }
-                  secondary={
-                    <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <Typography variant="caption" color="text.secondary">
-                        {story.nickname} · {dayjs(story.created_at).fromNow()}
-                      </Typography>
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                        <Favorite sx={{ fontSize: "14px", color: "error.main" }} />
-                        <Typography variant="caption" color="error.main" sx={{ fontWeight: "bold" }}>
-                          {story.recommend_Count}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  }
-                />
+                  </Box>
+                </Box>
               </ListItem>
               {index < topStories.length - 1 && <Divider sx={{ mx: 1 }} />}
             </React.Fragment>

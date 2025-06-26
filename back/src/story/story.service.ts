@@ -1431,21 +1431,37 @@ export class StoryService {
   /**
    * 공지사항 목록 가져오기
    *
-   * @description 공지사항만 가져오기 (isNotice가 true인 것만)
+   * @description 공지사항만 가져오기 (isNotice가 true인 것만). 채널별 필터링 지원.
    * @param limit 조회할 게시글 수 (기본값: 10)
+   * @param channelId 채널 ID (선택사항) - 특정 채널의 공지사항만 조회
    * @returns 공지사항 목록과 총 개수
    */
-  async findNotices(limit = 10): Promise<{
+  async findNotices(
+    limit = 10,
+    channelId?: number,
+  ): Promise<{
     results: Partial<Story>[];
     total: number;
   }> {
+    // where 조건을 동적으로 구성
+    const whereCondition: any = { isNotice: true };
+
+    if (channelId) {
+      // 특정 채널의 공지사항만 가져오기
+      whereCondition.Channel = { id: channelId };
+    }
+
     // 공지사항만 가져오기 (isNotice가 true인 것만)
     const [notices, total] = await this.storyRepository.findAndCount({
-      where: { isNotice: true },
-      relations: ['User'],
+      where: whereCondition,
+      relations: ['User', 'Channel'],
       order: { id: 'DESC' },
       take: limit,
     });
+
+    console.log(
+      `📢 공지사항 조회 - 채널ID: ${channelId}, 총 ${total}개, 결과 ${notices.length}개`,
+    );
 
     // 결과 데이터 가공
     const results = notices.map((notice) => {

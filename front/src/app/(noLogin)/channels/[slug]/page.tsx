@@ -588,7 +588,7 @@ const ChannelDetailPage = () => {
   };
 
   const handleNoticeClick = (noticeId: number) => {
-    router.push(`/channels/${channelSlug}/detail/suggestion/${noticeId}`);
+    router.push(`/notice/${noticeId}`);
     setShowNotice(false);
   };
 

@@ -1,12 +1,13 @@
 "use client";
 import { TextField, Box, Typography, Paper, Button, CircularProgress, Divider, useTheme } from "@mui/material";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
-import InputFileUpload from "@/app/components/common/InputFileUpload";
+// import InputFileUpload from "@/app/components/common/InputFileUpload"; // 주석처리 - RichTextEditor로 통합
 import RichTextEditor from "@/app/components/common/RichTextEditor";
 import { useMessage } from "@/app/store/messageStore";
+import { getChannel } from "@/app/api/channelsApi";
 
 const commonButtonStyles = {
   fontSize: { xs: "0.95rem", sm: "1rem" },
@@ -34,18 +35,34 @@ const commonButtonStyles = {
 
 export default function NoticeWrite() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const queryClient = useQueryClient();
   const { showMessage } = useMessage((state) => state);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
+
+  // 채널 ID 가져오기
+  const channelId = searchParams?.get("channel");
 
   // 제목 변수
   const [title, setTitle] = useState<string>("");
   // 내용 변수
   const [content, setContent] = useState<string>("");
-  // 이미지 변수
-  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
+  // 이미지 변수 (InputFileUpload 방식 - 주석처리)
+  // const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
+
+  // RichTextEditor에서 관리할 파일들
+  const [editorFiles, setEditorFiles] = useState<File[]>([]);
   // 로딩
   const [loading, setLoading] = useState<boolean>(false);
+
+  // 채널 정보 조회 (channelId가 있는 경우에만)
+  const { data: channelData } = useQuery({
+    queryKey: ["channel", channelId],
+    queryFn: () => getChannel(Number(channelId)),
+    enabled: !!channelId && channelId !== "0",
+    staleTime: 1000 * 60 * 5, // 5분간 캐시
+  });
 
   // useMutation 훅 사용
   const mutation = useMutation({
@@ -60,11 +77,21 @@ export default function NoticeWrite() {
         formData.append("title", title);
         formData.append("content", content);
 
-        // preview의 각 파일을 'images' 키로 추가
-        preview.forEach((item) => {
-          if (item?.file) {
-            formData.append("images", item.file); // 'images'는 서버의 FilesInterceptor와 일치해야 합니다.
-          }
+        // 채널 ID가 있으면 추가
+        if (channelId) {
+          formData.append("channelId", channelId);
+        }
+
+        // preview의 각 파일을 'images' 키로 추가 (InputFileUpload 방식 - 주석처리)
+        // preview.forEach((item) => {
+        //   if (item?.file) {
+        //     formData.append("images", item.file); // 'images'는 서버의 FilesInterceptor와 일치해야 합니다.
+        //   }
+        // });
+
+        // RichTextEditor에서 관리하는 파일들을 'images' 키로 추가
+        editorFiles.forEach((file) => {
+          formData.append("images", file);
         });
 
         return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/notice/create`, formData, {
@@ -82,7 +109,19 @@ export default function NoticeWrite() {
     onSuccess: (data) => {
       setLoading(false);
       showMessage("공지사항 작성 완료", "info");
-      router.push("/");
+
+      // 공지사항 관련 쿼리 캐시만 무효화
+      queryClient.invalidateQueries({ queryKey: ["notices"] }); // 전역 공지사항 목록 캐시 무효화
+      if (channelId) {
+        queryClient.invalidateQueries({ queryKey: ["channelNotices", Number(channelId)] }); // 해당 채널의 공지사항 캐시 무효화
+      }
+
+      // 채널 페이지로 이동 (channelData가 있으면 채널 페이지로, 없으면 메인 페이지로)
+      if (channelData?.slug) {
+        router.push(`/channels/${channelData.slug}`);
+      } else {
+        router.push("/");
+      }
     },
     onError: (error) => {
       showMessage("공지사항 작성 실패, 이전 화면으로 이동합니다", "error");
@@ -91,9 +130,10 @@ export default function NoticeWrite() {
     },
   });
 
-  const handlePreviewUpdate = (updatedPreview: Array<{ dataUrl: string; file: File } | null>) => {
-    setPreview(updatedPreview);
-  };
+  // InputFileUpload 관련 핸들러 (주석처리)
+  // const handlePreviewUpdate = (updatedPreview: Array<{ dataUrl: string; file: File } | null>) => {
+  //   setPreview(updatedPreview);
+  // };
 
   return (
     <Paper
@@ -202,52 +242,13 @@ export default function NoticeWrite() {
           onChange={(e) => setTitle(e.target.value)}
         />
 
-        <TextField
-          id="filled-multiline-flexible"
-          label="내용"
-          placeholder="공지사항 내용을 자유롭게 작성해주세요 (3글자 이상)"
-          multiline
-          rows={6}
-          variant="outlined"
-          fullWidth
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              borderRadius: "12px",
-              backgroundColor: isDarkMode ? "rgba(45, 48, 56, 0.8)" : "rgba(249, 250, 251, 0.8)",
-              color: isDarkMode ? "#ffffff" : "inherit",
-              transition: "all 0.3s ease",
-              "&:hover": {
-                backgroundColor: isDarkMode ? "rgba(50, 53, 61, 1)" : "rgba(245, 247, 250, 1)",
-                boxShadow: isDarkMode ? "0 2px 8px rgba(0, 0, 0, 0.3)" : "0 2px 8px rgba(0, 0, 0, 0.04)",
-              },
-              "&.Mui-focused": {
-                backgroundColor: isDarkMode ? "rgba(55, 58, 66, 1)" : "#ffffff",
-                boxShadow: isDarkMode ? "0 4px 12px rgba(0, 0, 0, 0.4)" : "0 4px 12px rgba(0, 0, 0, 0.05)",
-                "& fieldset": {
-                  borderColor: "#e94057",
-                  borderWidth: "2px",
-                },
-              },
-              "& fieldset": {
-                borderColor: isDarkMode ? "rgba(255, 255, 255, 0.2)" : "rgba(0, 0, 0, 0.23)",
-              },
-            },
-            "& .MuiInputLabel-root": {
-              fontWeight: 500,
-              color: isDarkMode ? "rgba(255, 255, 255, 0.7)" : "inherit",
-            },
-            "& .MuiInputLabel-root.Mui-focused": {
-              color: "#e94057",
-            },
-            "& .MuiOutlinedInput-input::placeholder": {
-              color: isDarkMode ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.6)",
-              opacity: 1,
-            },
-          }}
-          onChange={(e) => setContent(e.target.value)}
-        />
+        {/* TextField content 입력란 제거 - RichTextEditor로 통합 */}
+        {/* <TextField /> 기존 content 입력란 제거됨 */}
 
-        <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
+        {/* InputFileUpload 주석처리 - RichTextEditor로 통합 */}
+        {/* <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} /> */}
+
+        <RichTextEditor value={content} onChange={setContent} onFilesChange={setEditorFiles} />
 
         <Divider sx={{ opacity: isDarkMode ? 0.3 : 0.9 }} />
 

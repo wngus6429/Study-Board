@@ -442,15 +442,17 @@ export class StoryController {
   /**
    * 공지사항 목록 조회
    *
-   * @description 등록된 공지사항 목록을 조회합니다.
+   * @description 등록된 공지사항 목록을 조회합니다. 채널별 공지사항 필터링 지원.
    * @param limit 조회할 공지사항 수 (기본값: 10)
+   * @param channel 채널 ID (선택사항) - 특정 채널의 공지사항만 조회
    * @returns 공지사항 목록과 총 개수
    */
   @Get('/notices')
   async getNotices(
     @Query('limit') limit = 10,
+    @Query('channel') channel?: number,
   ): Promise<{ results: Partial<Story>[]; total: number }> {
-    console.log('공지사항 목록 가져오기');
-    return await this.storyService.findNotices(limit);
+    console.log('공지사항 목록 가져오기 - channel:', channel, 'limit:', limit);
+    return await this.storyService.findNotices(limit, channel);
   }
 }

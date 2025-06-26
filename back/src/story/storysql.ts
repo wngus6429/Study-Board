@@ -943,15 +943,40 @@ export class StorySqlService {
 
   /**
    * 공지사항 목록 조회 - SQL 버전
+   *
+   * @description 공지사항만 가져오기 (isNotice가 true인 것만). 채널별 필터링 지원.
+   * @param limit 조회할 게시글 수 (기본값: 10)
+   * @param channelId 채널 ID (선택사항) - 특정 채널의 공지사항만 조회
+   * @returns 공지사항 목록과 총 개수
    */
-  async findNotices(limit = 10): Promise<{
+  async findNotices(
+    limit = 10,
+    channelId?: number,
+  ): Promise<{
     results: any[];
     total: number;
   }> {
+    // WHERE 조건 구성
+    let whereClause = 'WHERE s.isNotice = true';
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    if (channelId !== undefined) {
+      if (channelId === 0) {
+        // channelId가 0이면 전역 공지사항 (채널에 속하지 않은 공지사항)
+        whereClause += ' AND s.channelId IS NULL';
+      } else {
+        // 특정 채널의 공지사항
+        whereClause += ` AND s.channelId = $${paramIndex}`;
+        params.push(Number(channelId));
+        paramIndex++;
+      }
+    }
+
     const countSql = `
       SELECT COUNT(*) as total
       FROM story s
-      WHERE s.isNotice = true
+      ${whereClause}
     `;
 
     const listSql = `
@@ -963,17 +988,22 @@ export class StorySqlService {
         s.read_count,
         s.created_at,
         s.updated_at,
-        u.nickname
+        s.channelId,
+        u.nickname,
+        c.channel_name
       FROM story s
       LEFT JOIN user u ON s.userId = u.id
-      WHERE s.isNotice = true
+      LEFT JOIN channels c ON s.channelId = c.id
+      ${whereClause}
       ORDER BY s.id DESC
-      LIMIT $1
+      LIMIT $${paramIndex}
     `;
 
+    params.push(limit);
+
     const [countResult, listResult] = await Promise.all([
-      this.dataSource.query(countSql),
-      this.dataSource.query(listSql, [limit]),
+      this.dataSource.query(countSql, params.slice(0, -1)), // limit 제외
+      this.dataSource.query(listSql, params),
     ]);
 
     const total = parseInt(countResult[0]?.total || '0');
@@ -986,7 +1016,9 @@ export class StorySqlService {
       read_count: row.read_count,
       created_at: row.created_at,
       updated_at: row.updated_at,
+      channelId: row.channelid,
       nickname: row.nickname,
+      channel_name: row.channel_name,
     }));
 
     return { results, total };

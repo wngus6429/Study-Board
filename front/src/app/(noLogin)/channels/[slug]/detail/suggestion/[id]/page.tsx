@@ -1,6 +1,20 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { Avatar, Box, Button, Card, CardContent, CircularProgress, Typography, useTheme } from "@mui/material";
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Typography,
+  useTheme,
+  Chip,
+  Paper,
+  Dialog,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -14,10 +28,26 @@ import Link from "next/link";
 import ImageCard from "@/app/components/ImageCard";
 import { SuggestionImageType } from "@/app/types/imageTypes";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import FeedbackIcon from "@mui/icons-material/Feedback";
+import PersonIcon from "@mui/icons-material/Person";
+import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import UpdateIcon from "@mui/icons-material/Update";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CloseIcon from "@mui/icons-material/Close";
+import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import ZoomInIcon from "@mui/icons-material/ZoomIn";
+import ZoomOutIcon from "@mui/icons-material/ZoomOut";
+import BookmarkIcon from "@mui/icons-material/Bookmark";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import UserMenuPopover from "@/app/components/common/UserMenuPopover";
+import SendMessageModal from "@/app/components/common/SendMessageModal";
 // MODIFIED: SuggestionType 타입 사용 (건의사항 상세 데이터)
 // import { SuggestionType } from "@/app/types/suggestionDetailType";
 
-export default function page({ params }: { params: { id: string } }): ReactNode {
+export default function page({ params }: { params: { id: string; slug: string } }): ReactNode {
   const { showMessage } = useMessage((state) => state);
   const router = useRouter();
   const { data: session } = useSession();
@@ -25,6 +55,24 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
   const theme = useTheme();
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false);
+
+  // 이미지 뷰어 상태
+  const [selectedImage, setSelectedImage] = useState<SuggestionImageType | null>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [openImageViewer, setOpenImageViewer] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState<number>(1);
+  const [imagePosition, setImagePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  // 사용자 메뉴 관련 상태
+  const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<HTMLElement | null>(null);
+  const [selectedUserNickname, setSelectedUserNickname] = useState<string>("");
+  const [sendMessageModalOpen, setSendMessageModalOpen] = useState<boolean>(false);
+
+  // 스크랩 관련 상태
+  const [isScraped, setIsScraped] = useState<boolean>(false);
+  const [scrapLoading, setScrapLoading] = useState<boolean>(false);
 
   //! 건의사항 상세 데이터 가져오기
   const {
@@ -38,7 +86,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/suggestion/detail/${params?.id}`, {
         withCredentials: true,
       });
-      console.log("오옹", response);
+      console.log("건의사항 상세", response);
       return response.data;
     },
     retry: 1,
@@ -50,6 +98,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
 
   useEffect(() => {
     if (detail) {
+      console.log("detail", detail);
       document.title = `${detail.title}`;
     }
   }, [detail]);
@@ -110,6 +159,98 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     setOpenConfirmDialog(false);
   };
 
+  // 이미지 뷰어 관련 함수들
+  const handleImageClick = (image: SuggestionImageType, index: number) => {
+    setSelectedImage(image);
+    setCurrentImageIndex(index);
+    setOpenImageViewer(true);
+    setZoomLevel(1);
+    setImagePosition({ x: 0, y: 0 });
+  };
+
+  const handleCloseImageViewer = () => {
+    setOpenImageViewer(false);
+    setSelectedImage(null);
+    setZoomLevel(1);
+    setImagePosition({ x: 0, y: 0 });
+  };
+
+  const handleNextImage = () => {
+    if (detail?.SuggestionImage && currentImageIndex < detail.SuggestionImage.length - 1) {
+      const nextIndex = currentImageIndex + 1;
+      setCurrentImageIndex(nextIndex);
+      setSelectedImage(detail.SuggestionImage[nextIndex]);
+      setZoomLevel(1);
+      setImagePosition({ x: 0, y: 0 });
+    }
+  };
+
+  const handlePrevImage = () => {
+    if (currentImageIndex > 0) {
+      const prevIndex = currentImageIndex - 1;
+      setCurrentImageIndex(prevIndex);
+      setSelectedImage(detail?.SuggestionImage[prevIndex]);
+      setZoomLevel(1);
+      setImagePosition({ x: 0, y: 0 });
+    }
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel((prev) => Math.min(prev + 0.5, 3));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel((prev) => Math.max(prev - 0.5, 0.5));
+  };
+
+  // 드래그 관련 함수들
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomLevel > 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX - imagePosition.x, y: e.clientY - imagePosition.y });
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && zoomLevel > 1) {
+      setImagePosition({
+        x: e.clientX - dragStart.x,
+        y: e.clientY - dragStart.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const handleMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  // 사용자 메뉴 관련 함수들
+  const handleUserNicknameClick = (event: React.MouseEvent<HTMLElement>, nickname: string) => {
+    setUserMenuAnchorEl(event.currentTarget);
+    setSelectedUserNickname(nickname);
+  };
+
+  const handleUserMenuClose = () => {
+    setUserMenuAnchorEl(null);
+  };
+
+  const handleSendMessageClick = () => {
+    setSendMessageModalOpen(true);
+    handleUserMenuClose();
+  };
+
+  const handleSendMessageModalClose = () => {
+    setSendMessageModalOpen(false);
+  };
+
+  const handleGoToMain = () => {
+    router.push("/");
+  };
+
   // MODIFIED: 건의사항 이미지 처리 (SuggestionImage 배열 사용)
   const memoizedImageCards = useMemo(() => {
     if (!detail || !detail.SuggestionImage || detail.SuggestionImage.length === 0) {
@@ -117,15 +258,153 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
     }
     return detail.SuggestionImage.map((img: any, index: number) => {
       const isLastOddImage = index === detail.SuggestionImage.length - 1 && detail.SuggestionImage.length % 2 !== 0;
-      return <ImageCard key={`${img.id}-${index}`} img={img} isLastOddImage={isLastOddImage} />;
+      return (
+        <ImageCard
+          key={`${img.id}-${index}`}
+          img={img}
+          isLastOddImage={isLastOddImage}
+          onClick={(image) => handleImageClick(image, index)}
+        />
+      );
     });
   }, [detail?.SuggestionImage]);
+
+  // 본문 내용 렌더링 (스토리와 비슷한 방식)
+  const renderContentWithImageCards = () => {
+    if (!detail?.content) return null;
+
+    // HTML을 파싱하여 이미지 태그를 카드뷰로 교체
+    const parts = detail.content.split(/(<img[^>]*>)/);
+    const elements: React.ReactNode[] = [];
+
+    let currentImageGroup: SuggestionImageType[] = [];
+
+    const processImageGroup = () => {
+      if (currentImageGroup.length === 0) return;
+
+      elements.push(
+        <Box key={`image-group-${elements.length}`} sx={{ my: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 2,
+              justifyContent: "center",
+            }}
+          >
+            {currentImageGroup.map((img, idx) => {
+              const isLastOddImage = idx === currentImageGroup.length - 1 && currentImageGroup.length % 2 !== 0;
+              const imageIndex = detail.SuggestionImage?.findIndex((image: any) => image.id === img.id) || 0;
+              return (
+                <ImageCard
+                  key={`image-${img.id}-${idx}`}
+                  img={img}
+                  isLastOddImage={isLastOddImage}
+                  onClick={(image) => handleImageClick(image, imageIndex)}
+                />
+              );
+            })}
+          </Box>
+        </Box>
+      );
+
+      currentImageGroup = [];
+    };
+
+    parts.forEach((part: string, index: number) => {
+      if (part.match(/^<img[^>]*>$/)) {
+        // 이미지 태그인 경우
+        const srcMatch = part.match(/src="([^"]*)"/);
+
+        if (srcMatch && srcMatch[1]) {
+          const imageSrc = srcMatch[1];
+
+          let matchingImage = detail.SuggestionImage?.find((img: any) => {
+            if (imageSrc.includes(img.link)) return true;
+
+            const srcFileName = imageSrc.split("/").pop();
+            const imgFileName = img.link.split("/").pop();
+            if (srcFileName && imgFileName && srcFileName === imgFileName) return true;
+
+            return false;
+          });
+
+          if (matchingImage) {
+            currentImageGroup.push(matchingImage);
+          }
+        }
+      } else if (part.trim()) {
+        // 텍스트 내용인 경우
+        processImageGroup();
+
+        elements.push(
+          <Box
+            key={`text-${index}`}
+            sx={{
+              lineHeight: 1.8,
+              fontSize: "1.1rem",
+              color: theme.palette.text.primary,
+              "& p": {
+                margin: "16px 0",
+              },
+              "& ol, & ul": {
+                paddingLeft: "28px",
+                margin: "16px 0",
+                listStylePosition: "outside",
+              },
+              "& ol": {
+                listStyleType: "decimal",
+              },
+              "& ul": {
+                listStyleType: "disc",
+              },
+              "& li": {
+                margin: "8px 0",
+                paddingLeft: "4px",
+                lineHeight: 1.7,
+              },
+              "& h1, & h2, & h3, & h4, & h5, & h6": {
+                margin: "24px 0 16px 0",
+                fontWeight: "bold",
+                color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+              },
+              "& blockquote": {
+                borderLeft: `4px solid ${theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed"}`,
+                paddingLeft: "16px",
+                margin: "16px 0",
+                fontStyle: "italic",
+                background: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(139, 92, 246, 0.05)",
+                borderRadius: "0 8px 8px 0",
+                padding: "12px 16px",
+              },
+            }}
+            dangerouslySetInnerHTML={{ __html: part }}
+          />
+        );
+      }
+    });
+
+    // 마지막 이미지 그룹 처리
+    processImageGroup();
+
+    return elements;
+  };
 
   if (isLoading) return <Loading />;
   if (isError) return <ErrorView />;
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 2, overflow: "hidden" }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        background:
+          theme.palette.mode === "dark"
+            ? "linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 50%, rgba(51, 65, 85, 0.95) 100%)"
+            : "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 50%, #cbd5e1 100%)",
+        py: 4,
+        px: 2,
+      }}
+    >
       {openConfirmDialog && (
         <ConfirmDialog
           open={openConfirmDialog}
@@ -137,129 +416,402 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
           cancelText="취소"
         />
       )}
+
       {detail && (
-        <Card sx={{ width: "100%", boxShadow: 4, padding: 3, borderRadius: 2, bgcolor: "background.paper" }}>
-          <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Typography variant="h4" component="div" sx={{ fontWeight: "bold" }}>
-                {detail.title}
-              </Typography>
-              {detail?.User?.id === session?.user?.id && (
-                <Box display="flex" gap={1}>
-                  <Button
-                    size="medium"
+        <Box sx={{ maxWidth: "1200px", margin: "0 auto" }}>
+          <Card sx={{ width: "100%", boxShadow: 4, padding: 3, borderRadius: 2, bgcolor: "background.paper" }}>
+            <CardContent>
+              {/* 뒤로가기 버튼 */}
+              <Box sx={{ mb: 2 }}>
+                <Button
+                  onClick={() => router.back()}
+                  startIcon={<ArrowBackIcon />}
+                  variant="outlined"
+                  size="small"
+                  sx={{
+                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(139, 92, 246, 0.3)",
+                    color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+                    "&:hover": {
+                      borderColor:
+                        theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "rgba(139, 92, 246, 0.5)",
+                      background:
+                        theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(139, 92, 246, 0.05)",
+                    },
+                  }}
+                >
+                  뒤로가기
+                </Button>
+              </Box>
+
+              {/* 제목과 액션 버튼 */}
+              <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+                <Box flex={1} mr={3}>
+                  <Box display="flex" alignItems="center" gap={2} mb={2}>
+                    <FeedbackIcon
+                      sx={{
+                        fontSize: 32,
+                        color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+                      }}
+                    />
+                    <Typography
+                      variant="h3"
+                      component="h1"
+                      sx={{
+                        fontWeight: "bold",
+                        background:
+                          theme.palette.mode === "dark"
+                            ? "linear-gradient(135deg, #8b5cf6, #06b6d4)"
+                            : "linear-gradient(135deg, #7c3aed, #0891b2)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      {detail.title}
+                    </Typography>
+                  </Box>
+
+                  {/* 카테고리 칩 */}
+                  <Chip
+                    icon={<LocalOfferIcon />}
+                    label={`카테고리: ${detail.category}`}
                     variant="outlined"
-                    color="warning"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      router.push(`/edit/suggestion/${detail.id}`);
+                    sx={{
+                      borderColor:
+                        theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(139, 92, 246, 0.3)",
+                      color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+                      backgroundColor:
+                        theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(139, 92, 246, 0.05)",
+                      fontWeight: 600,
+                      "& .MuiChip-icon": {
+                        color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+                      },
+                    }}
+                  />
+                </Box>
+
+                {/* 수정/삭제 버튼 */}
+                {detail?.User?.id === session?.user?.id && (
+                  <Box display="flex" gap={1.5}>
+                    <Button
+                      variant="outlined"
+                      color="warning"
+                      startIcon={<EditIcon />}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        router.push(`/edit/suggestion/${detail.id}`);
+                      }}
+                      sx={{
+                        borderRadius: 3,
+                        px: 3,
+                        fontWeight: 600,
+                        textTransform: "none",
+                      }}
+                    >
+                      수정
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      startIcon={<DeleteIcon />}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleDeleteClick(detail.id);
+                      }}
+                      sx={{
+                        borderRadius: 3,
+                        px: 3,
+                        fontWeight: 600,
+                        textTransform: "none",
+                      }}
+                    >
+                      삭제
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+
+              {/* 작성자 정보와 날짜 */}
+              <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
+                <Box display="flex" alignItems="center" gap={3}>
+                  <Avatar
+                    src={`${process.env.NEXT_PUBLIC_BASE_URL}${detail.User.userImage}`}
+                    sx={{
+                      width: 70,
+                      height: 70,
+                      boxShadow:
+                        theme.palette.mode === "dark"
+                          ? "0 0 20px rgba(139, 92, 246, 0.3)"
+                          : "0 4px 20px rgba(0, 0, 0, 0.15)",
+                      border: `3px solid ${theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(139, 92, 246, 0.2)"}`,
+                    }}
+                  />
+                  <Box>
+                    <Box display="flex" alignItems="center" gap={1} mb={1}>
+                      <PersonIcon sx={{ color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed" }} />
+                      <Typography
+                        variant="h6"
+                        sx={{
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                          color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+                        }}
+                        onClick={(e) => handleUserNicknameClick(e, detail.User.nickname)}
+                      >
+                        {detail.User.nickname}
+                      </Typography>
+                    </Box>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mb: 1 }}>
+                      건의사항 작성자
+                    </Typography>
+                    <Box sx={{ display: "flex", gap: 1 }}>
+                      <Button
+                        onClick={handleGoToMain}
+                        size="small"
+                        variant="contained"
+                        sx={{
+                          backgroundColor: "#ff9800",
+                          "&:hover": { backgroundColor: "#f57c00" },
+                        }}
+                      >
+                        메인으로
+                      </Button>
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* 날짜 정보 */}
+                <Box textAlign="right">
+                  <Box display="flex" alignItems="center" gap={1} mb={1}>
+                    <AccessTimeIcon fontSize="small" sx={{ color: "text.secondary" }} />
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                      등록일: {dayjs(detail.created_at).format("YYYY년 MM월 DD일 HH:mm")}
+                    </Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <UpdateIcon fontSize="small" sx={{ color: "text.secondary" }} />
+                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
+                      수정일: {dayjs(detail.updated_at).format("YYYY년 MM월 DD일 HH:mm")}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Box>
+
+              {/* 본문 내용 */}
+              <Box
+                sx={{
+                  bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
+                  p: 3,
+                  borderRadius: 3,
+                  boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
+                  mb: 3,
+                  border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+                }}
+              >
+                {renderContentWithImageCards()}
+              </Box>
+
+              {/* 첨부 이미지 섹션 (이미지가 본문에 없을 때만 표시) */}
+              {memoizedImageCards && detail.content && !detail.content.includes("<img") && (
+                <Box sx={{ mt: 4 }}>
+                  <Typography
+                    variant="h5"
+                    sx={{
+                      fontWeight: "bold",
+                      mb: 3,
+                      textAlign: "center",
+                      color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+                      borderBottom: `2px solid ${theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(139, 92, 246, 0.2)"}`,
+                      pb: 1,
                     }}
                   >
-                    수정
-                  </Button>
-                  <Button
-                    size="medium"
-                    variant="outlined"
-                    color="error"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleDeleteClick(detail.id);
+                    🖼️ 첨부된 이미지
+                  </Typography>
+
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      justifyContent: "center",
+                      gap: 2,
+                      mt: 3,
                     }}
                   >
-                    삭제
-                  </Button>
+                    {memoizedImageCards}
+                  </Box>
                 </Box>
               )}
-            </Box>
-            <Typography
-              variant="subtitle2"
-              color="text.secondary"
+            </CardContent>
+          </Card>
+        </Box>
+      )}
+
+      {/* 이미지 뷰어 다이얼로그 */}
+      <Dialog
+        open={openImageViewer}
+        onClose={handleCloseImageViewer}
+        maxWidth={false}
+        fullWidth
+        PaperProps={{
+          sx: {
+            bgcolor: "rgba(0, 0, 0, 0.92)",
+            border: "1px solid rgba(192, 192, 192, 0.5)",
+            boxShadow: "0 0 20px rgba(255, 255, 255, 0.1)",
+            position: "relative",
+            height: "85vh",
+            width: "80vw",
+            margin: "20px",
+            borderRadius: "8px",
+            overflow: "hidden",
+          },
+        }}
+      >
+        {/* 상단 컨트롤 바 */}
+        <Box
+          sx={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            display: "flex",
+            justifyContent: "flex-end",
+            alignItems: "center",
+            p: 1.5,
+            zIndex: 10,
+          }}
+        >
+          {/* 줌 컨트롤 */}
+          <IconButton
+            onClick={handleZoomOut}
+            sx={{
+              color: "silver",
+              "&:hover": { color: "white" },
+              mr: 1,
+              fontSize: "1.8rem",
+            }}
+          >
+            <ZoomOutIcon sx={{ fontSize: "1.8rem" }} />
+          </IconButton>
+
+          <Typography
+            variant="body1"
+            sx={{
+              color: "silver",
+              mx: 1,
+              fontSize: "1.1rem",
+            }}
+          >
+            {(zoomLevel * 100).toFixed(0)}%
+          </Typography>
+
+          <IconButton
+            onClick={handleZoomIn}
+            sx={{
+              color: "silver",
+              "&:hover": { color: "white" },
+              mr: 1,
+              fontSize: "1.8rem",
+            }}
+          >
+            <ZoomInIcon sx={{ fontSize: "1.8rem" }} />
+          </IconButton>
+
+          {/* 닫기 버튼 */}
+          <IconButton
+            onClick={handleCloseImageViewer}
+            sx={{
+              color: "silver",
+              "&:hover": { color: "white" },
+              fontSize: "1.8rem",
+            }}
+          >
+            <CloseIcon sx={{ fontSize: "1.8rem" }} />
+          </IconButton>
+        </Box>
+
+        {/* 이미지 컨테이너 */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            height: "100%",
+            width: "100%",
+            position: "relative",
+          }}
+        >
+          {/* 이전 이미지 네비게이션 버튼 */}
+          {currentImageIndex > 0 && (
+            <IconButton
+              onClick={handlePrevImage}
               sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "grey.100",
-                p: 1,
-                borderRadius: 1,
-                mb: 3,
-                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
-                boxShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.2)" : "none",
+                position: "absolute",
+                left: { xs: 8, md: 24 },
+                color: "silver",
+                "&:hover": { color: "white" },
+                fontSize: "2rem",
               }}
             >
-              <LocalOfferIcon fontSize="small" />
-              종류: {detail.category}
-            </Typography>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Box display="flex" alignItems="center" gap={2}>
-                <Avatar
-                  src={`${process.env.NEXT_PUBLIC_BASE_URL}${detail.User.userImage}`}
-                  sx={{ width: 50, height: 50, boxShadow: 2 }}
-                />
-                <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", cursor: "pointer" }}>
-                    <Link href={`/profile/${encodeURIComponent(detail.User.nickname)}`} passHref>
-                      작성자: {detail.User.nickname}
-                    </Link>
-                  </Typography>
-                  <Button onClick={() => router.back()} size="small" variant="contained" color="primary" sx={{ mt: 1 }}>
-                    뒤로가기
-                  </Button>
-                </Box>
-              </Box>
-              <Box textAlign="right">
-                <Typography variant="subtitle2" color="text.secondary">
-                  등록일: {dayjs(detail.created_at).format("YYYY/MM/DD HH:mm:ss")}
-                </Typography>
-                <Typography variant="subtitle2" color="text.secondary">
-                  수정일: {dayjs(detail.updated_at).format("YYYY/MM/DD HH:mm:ss")}
-                </Typography>
-              </Box>
-            </Box>
+              <ArrowBackIosNewIcon sx={{ fontSize: "2rem" }} />
+            </IconButton>
+          )}
+
+          {/* 이미지 */}
+          {selectedImage && (
             <Box
+              component="img"
+              src={`${process.env.NEXT_PUBLIC_BASE_URL}${selectedImage.link}`}
+              alt="Selected"
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUp}
+              onMouseLeave={handleMouseLeave}
               sx={{
-                lineHeight: 1.7,
-                color: theme.palette.text.primary,
-                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
-                p: 2,
-                borderRadius: 1,
-                boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
-                mb: 3,
-                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
-                "& ol, & ul": {
-                  paddingLeft: "24px",
-                  margin: "12px 0",
-                  listStylePosition: "outside",
-                },
-                "& ol": {
-                  listStyleType: "decimal",
-                },
-                "& ul": {
-                  listStyleType: "disc",
-                },
-                "& li": {
-                  margin: "6px 0",
-                  paddingLeft: "4px",
-                },
+                maxWidth: "90%",
+                maxHeight: "80vh",
+                objectFit: "contain",
+                transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px)`,
+                transition: isDragging ? "none" : "transform 0.2s ease-out",
+                border: "1px solid rgba(192, 192, 192, 0.2)",
+                cursor: zoomLevel > 1 ? (isDragging ? "grabbing" : "grab") : "default",
+                userSelect: "none",
               }}
-              dangerouslySetInnerHTML={{ __html: detail.content }}
+              draggable={false}
             />
-            {memoizedImageCards && (
-              <Box>
-                <Typography
-                  variant="h6"
-                  gutterBottom
-                  sx={{ fontWeight: "bold", textAlign: "center", color: "primary.main", mb: 2 }}
-                >
-                  첨부된 이미지:
-                </Typography>
-                <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: 1 }}>
-                  {memoizedImageCards}
-                </Box>
-              </Box>
-            )}
-          </CardContent>
-        </Card>
-      )}
+          )}
+
+          {/* 다음 이미지 네비게이션 버튼 */}
+          {detail?.SuggestionImage && currentImageIndex < detail.SuggestionImage.length - 1 && (
+            <IconButton
+              onClick={handleNextImage}
+              sx={{
+                position: "absolute",
+                right: { xs: 8, md: 24 },
+                color: "silver",
+                "&:hover": { color: "white" },
+                fontSize: "2rem",
+              }}
+            >
+              <ArrowForwardIosIcon sx={{ fontSize: "2rem" }} />
+            </IconButton>
+          )}
+        </Box>
+      </Dialog>
+
+      {/* 사용자 메뉴 팝오버 */}
+      <UserMenuPopover
+        open={Boolean(userMenuAnchorEl)}
+        anchorEl={userMenuAnchorEl}
+        onClose={handleUserMenuClose}
+        nickname={selectedUserNickname}
+        onSendMessage={handleSendMessageClick}
+      />
+
+      {/* 쪽지 보내기 모달 */}
+      <SendMessageModal
+        open={sendMessageModalOpen}
+        onClose={handleSendMessageModalClose}
+        receiverNickname={selectedUserNickname}
+      />
     </Box>
   );
 }

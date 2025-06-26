@@ -26,7 +26,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
   // 제목, 내용, 카테고리, 로딩 상태를 위한 상태 변수
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
-  const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
+  const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_FEEDBACK_OPTION);
   // RichTextEditor에서 관리하는 파일들
   const [editorFiles, setEditorFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
@@ -64,11 +64,16 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
       let processedContent = suggestionDetail.content || "";
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
+      console.log("1. 원본 컨텐츠:", suggestionDetail.content);
+      console.log("2. SuggestionImage 배열:", suggestionDetail.SuggestionImage);
+
       if (baseUrl && suggestionDetail.SuggestionImage && suggestionDetail.SuggestionImage.length > 0) {
         // SuggestionImage 배열을 이용해 blob URL을 실제 파일 경로로 매핑
-        suggestionDetail.SuggestionImage.forEach((imageInfo: any) => {
+        suggestionDetail.SuggestionImage.forEach((imageInfo: any, index: number) => {
           // 파일명에서 타임스탬프와 확장자 제거한 기본 이름 추출
           const baseFileName = imageInfo.image_name.replace(/_\d{8}\.(jpg|jpeg|png|gif|webp)$/i, "");
+
+          console.log(`매핑 시도 ${index}: ${baseFileName} -> ${imageInfo.link}`);
 
           // alt 속성의 파일명으로 찾기
           const escapedFileName = baseFileName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -98,11 +103,15 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
 
       // 혹시 이미 상대 경로로 저장된 것들도 처리
       if (baseUrl) {
-        processedContent = processedContent.replace(/src="\/upload\/([^"]+)"/g, `src="${baseUrl}/upload/$1"`);
+        processedContent = processedContent.replace(
+          /src="\/suggestionUpload\/([^"]+)"/g,
+          `src="${baseUrl}/suggestionUpload/$1"`
+        );
       }
 
       setContent(processedContent);
-      setSelectedCategory(suggestionDetail.category || DEFAULT_SELECT_OPTION);
+      setSelectedCategory(suggestionDetail.category || DEFAULT_FEEDBACK_OPTION);
+      console.log("수정 페이지용 데이터", suggestionDetail);
     }
   }, [suggestionDetail]);
 
@@ -132,6 +141,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
       router.back(); // 이전 페이지로 돌아가기
     },
     onError: (error) => {
+      setLoading(false);
       showMessage("수정 실패, 이전 화면으로 이동합니다", "error");
       console.error(error);
       router.back();
@@ -162,20 +172,32 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
       // 이미지 절대 경로를 상대 경로로 변환
       const escapedBaseUrl = baseUrl.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
       contentToSave = contentToSave.replace(
-        new RegExp(`src="${escapedBaseUrl}/upload/([^"]+)"`, "g"),
-        'src="/upload/$1"'
+        new RegExp(`src="${escapedBaseUrl}/suggestionUpload/([^"]+)"`, "g"),
+        'src="/suggestionUpload/$1"'
       );
 
       // blob URL도 제거 (새로 추가된 파일들은 서버에서 처리됨)
       contentToSave = contentToSave.replace(/src="blob:[^"]*"/g, 'src=""');
+
+      console.log("=== 저장 전 컨텐츠 변환 ===");
+      console.log("원본:", content);
+      console.log("변환 후:", contentToSave);
+      console.log("=== 변환 완료 ===");
     }
 
     formData.append("content", contentToSave);
     formData.append("category", selectedCategory);
 
-    // RichTextEditor에서 관리하는 파일들을 FormData에 추가
+    // RichTextEditor에서 관리하는 파일들을 FormData에 추가 (스토리와 다르게 'images'로 추가)
     editorFiles.forEach((file) => {
-      formData.append("files", file);
+      formData.append("images", file);
+    });
+
+    // FormData 내용 확인 (디버깅용)
+    console.log("FormData 내용:");
+    const entries = Array.from(formData.entries());
+    entries.forEach(([key, value]) => {
+      console.log(`${key}:`, value);
     });
 
     updateSuggestion.mutate(formData);
@@ -210,14 +232,6 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
         건의사항 수정하기
       </Typography>
 
-      <Box>
-        <CustomSelect
-          selectArray={FEEDBACK_SELECT_OPTIONS}
-          defaultValue={DEFAULT_FEEDBACK_OPTION}
-          setSelectedCategory={setSelectedCategory}
-        />
-      </Box>
-
       <TextField
         name="title"
         label="제목 (필수)"
@@ -229,10 +243,19 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
         sx={{
           bgcolor: "background.default",
           borderRadius: 2,
+          mb: 2,
         }}
       />
+
+      <CustomSelect
+        selectArray={FEEDBACK_SELECT_OPTIONS}
+        defaultValue={DEFAULT_FEEDBACK_OPTION}
+        setSelectedCategory={setSelectedCategory}
+        value={selectedCategory}
+      />
+
       <Box sx={{ mb: 2 }}>
-        <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
+        <Typography variant="body1" sx={{ mb: 1, fontWeight: 500, mt: -1 }}>
           내용 (필수)
         </Typography>
         <RichTextEditor

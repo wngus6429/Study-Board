@@ -280,10 +280,12 @@ const ChannelDetailPage = () => {
     }
   }, [channelId, setCurrentPage]);
 
-  // 구독 데이터 로드
+  // 구독 데이터 로드 (로그인한 경우에만)
   useEffect(() => {
-    loadSubscriptions();
-  }, [loadSubscriptions]);
+    if (session?.user) {
+      loadSubscriptions();
+    }
+  }, [session?.user, loadSubscriptions]);
 
   // 채널 페이지 데이터를 스토어에 저장
   useEffect(() => {

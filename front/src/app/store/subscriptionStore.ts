@@ -33,7 +33,14 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       set({ loading: true, error: null });
       const channels = await getUserSubscriptions();
       set({ subscribedChannels: channels, loading: false, isInitialized: true });
-    } catch (error) {
+    } catch (error: any) {
+      // 401 Unauthorized 에러는 로그인이 필요한 상황이므로 에러로 처리하지 않음
+      if (error?.response?.status === 401) {
+        console.log("로그인이 필요한 API입니다. 구독 데이터를 불러올 수 없습니다.");
+        set({ loading: false, error: null });
+        return;
+      }
+
       console.error("구독 채널 목록을 불러오는데 실패했습니다:", error);
       set({
         error: "구독 채널 목록을 불러오는데 실패했습니다.",

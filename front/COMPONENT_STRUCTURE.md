@@ -25,12 +25,24 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | `pages/api/auth/[...nextauth].ts` | **NextAuth.js 설정** - 인증 관련 API 라우트         |
 | `middleware.ts`                   | **미들웨어** - 라우트 보호 및 인증 체크             |
 
-### 🎨 CSS 파일들
+### 🎨 CSS 및 정적 파일들
 
 - `app/globals.css` - 전역 스타일
 - `app/layout.module.css` - 레이아웃 스타일
 - `app/page.module.css` - 메인 페이지 스타일
 - `app/components/style/*.module.css` - 컴포넌트별 CSS 모듈
+- `app/components/HtmlTable.module.css` - HTML 테이블 스타일
+- `app/components/common/Pagination.module.css` - 페이지네이션 스타일
+- `app/favicon.ico`, `app/icon.png` - 파비콘 및 아이콘
+- `app/fonts/` - 폰트 파일들
+
+### 🎨 UI 컴포넌트 (서버 컴포넌트)
+
+| 파일 경로                  | 역할                                         |
+| -------------------------- | -------------------------------------------- |
+| `components/ImageCard.tsx` | **이미지 카드** - 이미지 표시 카드           |
+| `components/VideoCard.tsx` | **비디오 카드** - 비디오 표시 카드           |
+| `components/MainView.tsx`  | **메인 뷰** - 메인 페이지 콘텐츠 (주석 처리) |
 
 ---
 
@@ -49,25 +61,26 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 #### 🏠 메인 콘텐츠 페이지
 
-| 파일 경로                                                   | 역할                                                      |
-| ----------------------------------------------------------- | --------------------------------------------------------- |
-| `(noLogin)/channels/page.tsx`                               | **채널 목록 페이지** - 모든 채널 표시                     |
-| `(noLogin)/channels/[slug]/page.tsx`                        | **채널 상세 페이지** - 특정 채널의 게시글 목록            |
-| `(noLogin)/channels/[slug]/detail/story/[id]/page.tsx`      | **게시글 상세 페이지** - 게시글 내용 및 댓글              |
-| `(noLogin)/channels/[slug]/detail/suggestion/[id]/page.tsx` | **건의사항 상세 페이지** - 건의사항 내용 및 댓글          |
-| `(noLogin)/channel-notifications/page.tsx`                  | **채널 알림 설정 페이지** - 채널별 알림 구독 관리         |
-| `(noLogin)/notice/[id]/page.tsx`                            | **공지사항 상세 페이지** - 공지사항 내용                  |
-| `(noLogin)/profile/[username]/page.tsx`                     | **사용자 프로필 페이지** - 다른 사용자의 프로필 및 작성글 |
+| 파일 경로                                              | 역할                                                      |
+| ------------------------------------------------------ | --------------------------------------------------------- |
+| `(noLogin)/channels/page.tsx`                          | **채널 목록 페이지** - 모든 채널 표시                     |
+| `(noLogin)/channels/[slug]/page.tsx`                   | **채널 상세 페이지** - 특정 채널의 게시글 목록            |
+| `(noLogin)/channels/[slug]/detail/story/[id]/page.tsx` | **게시글 상세 페이지** - 게시글 내용 및 댓글              |
+| `(noLogin)/channels/backup/page.tsx`                   | **채널 백업 페이지** - 채널 목록 백업 버전 (주석 처리)    |
+| `(noLogin)/channel-notifications/page.tsx`             | **채널 알림 설정 페이지** - 채널별 알림 구독 관리         |
+| `(noLogin)/notice/[id]/page.tsx`                       | **공지사항 상세 페이지** - 공지사항 내용                  |
+| `(noLogin)/profile/[username]/page.tsx`                | **사용자 프로필 페이지** - 다른 사용자의 프로필 및 작성글 |
 
 #### ✏️ 글 작성/수정 페이지
 
-| 파일 경로                                    | 역할                                             |
-| -------------------------------------------- | ------------------------------------------------ |
-| `(afterLogin)/write/story/page.tsx`          | **게시글 작성 페이지** - 새 게시글 작성 폼       |
-| `(afterLogin)/write/suggestion/page.tsx`     | **건의사항 작성 페이지** - 새 건의사항 작성 폼   |
-| `(afterLogin)/write/notice/page.tsx`         | **공지사항 작성 페이지** - 새 공지사항 작성 폼   |
-| `(afterLogin)/edit/story/[id]/page.tsx`      | **게시글 수정 페이지** - 기존 게시글 수정 폼     |
-| `(afterLogin)/edit/suggestion/[id]/page.tsx` | **건의사항 수정 페이지** - 기존 건의사항 수정 폼 |
+| 파일 경로                                                      | 역할                                                     |
+| -------------------------------------------------------------- | -------------------------------------------------------- |
+| `(afterLogin)/write/story/page.tsx`                            | **게시글 작성 페이지** - 새 게시글 작성 폼               |
+| `(afterLogin)/write/suggestion/page.tsx`                       | **건의사항 작성 페이지** - 새 건의사항 작성 폼           |
+| `(afterLogin)/write/notice/page.tsx`                           | **공지사항 작성 페이지** - 새 공지사항 작성 폼           |
+| `(afterLogin)/edit/story/[id]/page.tsx`                        | **게시글 수정 페이지** - 기존 게시글 수정 폼             |
+| `(afterLogin)/edit/suggestion/[id]/page.tsx`                   | **건의사항 수정 페이지** - 기존 건의사항 수정 폼         |
+| `(afterLogin)/channels/[slug]/detail/suggestion/[id]/page.tsx` | **건의사항 상세 페이지** - 로그인 사용자용 건의사항 상세 |
 
 #### 👤 사용자 기능 페이지
 
@@ -128,10 +141,23 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | ----------------------------------------- | ------------------------------------------------------ |
 | `components/common/AuthSessionCom.tsx`    | **세션 관리** - NextAuth 세션 프로바이더               |
 | `components/common/Loading.tsx`           | **로딩 컴포넌트** - 데이터 로딩 시 표시                |
+| `components/common/ErrorView.tsx`         | **에러 뷰** - 에러 상황 표시                           |
 | `components/common/Pagination.tsx`        | **페이지네이션** - 페이지 이동 컨트롤                  |
 | `components/common/ProfilePagination.tsx` | **프로필 페이지네이션** - 프로필 페이지용 페이지네이션 |
 | `components/common/SearchBar.tsx`         | **검색 바** - 게시글 검색 기능                         |
 | `components/common/ScrollUpButton.tsx`    | **상단 이동 버튼** - 페이지 최상단으로 스크롤          |
+| `components/common/RightView.tsx`         | **우측 뷰** - 우측 사이드바 컨텐츠                     |
+| `components/common/ChannelTopStories.tsx` | **채널 인기 게시글** - 채널별 인기 게시글 표시         |
+| `components/common/Advertisement.tsx`     | **광고 컴포넌트** - 광고 표시 영역                     |
+| `components/common/CommentsView.tsx`      | **댓글 뷰** - 댓글 목록 및 작성 폼                     |
+| `components/common/ConfirmDialog.tsx`     | **확인 다이얼로그** - 확인/취소 다이얼로그             |
+| `components/common/ConfirmModal.tsx`      | **확인 모달** - 모달 형태 확인 창                      |
+| `components/common/CustomSelect.tsx`      | **커스텀 셀렉트** - 커스텀 드롭다운 선택 컴포넌트      |
+| `components/common/CustomSnackBar.tsx`    | **커스텀 스낵바** - 알림 메시지 표시                   |
+| `components/common/InputFileUpload.tsx`   | **파일 업로드** - 파일 업로드 입력 컴포넌트            |
+| `components/common/RichTextEditor.tsx`    | **리치 텍스트 에디터** - 게시글 작성용 에디터          |
+| `components/common/SendMessageModal.tsx`  | **메시지 전송 모달** - 쪽지 전송 모달                  |
+| `components/common/UserMenuPopover.tsx`   | **사용자 메뉴 팝오버** - 사용자 메뉴 드롭다운          |
 
 #### 💬 채팅 및 메시지
 
@@ -142,12 +168,10 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 #### 🎨 콘텐츠 표시 컴포넌트
 
-| 파일 경로                  | 역할                                        |
-| -------------------------- | ------------------------------------------- |
-| `components/MainView.tsx`  | **메인 뷰** - 메인 페이지 콘텐츠            |
-| `components/HtmlTable.tsx` | **HTML 테이블** - 범용 HTML 테이블 컴포넌트 |
-| `components/ImageCard.tsx` | **이미지 카드** - 이미지 표시 카드          |
-| `components/VideoCard.tsx` | **비디오 카드** - 비디오 표시 카드          |
+| 파일 경로                        | 역할                                        |
+| -------------------------------- | ------------------------------------------- |
+| `components/HtmlTable.tsx`       | **HTML 테이블** - 범용 HTML 테이블 컴포넌트 |
+| `components/RecommendButton.tsx` | **추천 버튼** - 게시글 추천/비추천 버튼     |
 
 #### 🔒 보안 및 접근 제어
 
@@ -164,20 +188,33 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | `components/common/BrowserNotification.tsx`  | **브라우저 알림** - 웹 푸시 알림     |
 | `components/common/SubscriptionProvider.tsx` | **구독 프로바이더** - 알림 구독 관리 |
 
+#### 💾 백업 컴포넌트
+
+| 파일 경로                                    | 역할                                          |
+| -------------------------------------------- | --------------------------------------------- |
+| `components/BackUp/MainView.backup.tsx`      | **메인 뷰 백업** - 메인 뷰 백업 버전          |
+| `components/BackUp/MainViewClientBackUp.tsx` | **메인 뷰 클라이언트 백업** - 클라이언트 백업 |
+
 ---
 
 ## 🏪 스토어 (Zustand)
 
 ### 상태 관리 파일들
 
-| 파일 경로                | 역할                                       |
-| ------------------------ | ------------------------------------------ |
-| `store/themeStore.ts`    | **테마 상태** - 다크/라이트 모드 상태 관리 |
-| `store/userInfoStore.ts` | **사용자 정보 상태** - 로그인 사용자 정보  |
-| `store/messageStore.ts`  | **메시지 상태** - 알림 메시지 표시 상태    |
-| `store/pageStore.ts`     | **페이지 상태** - 페이지네이션 상태        |
-| `store/commentStore.ts`  | **댓글 상태** - 댓글 관련 상태             |
-| `store/blindStore.ts`    | **블라인드 상태** - 블라인드 기능 상태     |
+| 파일 경로                           | 역할                                             |
+| ----------------------------------- | ------------------------------------------------ |
+| `store/themeStore.ts`               | **테마 상태** - 다크/라이트 모드 상태 관리       |
+| `store/userInfoStore.ts`            | **사용자 정보 상태** - 로그인 사용자 정보        |
+| `store/userImageStore.ts`           | **사용자 이미지 상태** - 프로필 이미지 상태      |
+| `store/messageStore.ts`             | **메시지 상태** - 알림 메시지 표시 상태          |
+| `store/pageStore.ts`                | **페이지 상태** - 페이지네이션 상태              |
+| `store/commentStore.ts`             | **댓글 상태** - 댓글 관련 상태                   |
+| `store/blindStore.ts`               | **블라인드 상태** - 블라인드 기능 상태           |
+| `store/scrapStore.ts`               | **스크랩 상태** - 스크랩 기능 상태 관리          |
+| `store/recentViewsStore.ts`         | **최근 조회 상태** - 최근 조회한 게시글 상태     |
+| `store/channelPageStore.ts`         | **채널 페이지 상태** - 채널 페이지 관련 상태     |
+| `store/channelNotificationStore.ts` | **채널 알림 상태** - 채널 알림 구독 상태 관리    |
+| `store/subscriptionStore.ts`        | **구독 상태** - 채널 구독 및 알림 구독 상태 관리 |
 
 ---
 
@@ -185,19 +222,31 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 ### API 모듈
 
-| 파일 경로             | 역할                                  |
-| --------------------- | ------------------------------------- |
-| `api/axios.ts`        | **Axios 설정** - HTTP 클라이언트 설정 |
-| `api/channelsApi.ts`  | **채널 API** - 채널 관련 API 호출     |
-| `api/messagesApi.ts`  | **메시지 API** - 메시지 관련 API 호출 |
-| `api/notification.ts` | **알림 API** - 알림 관련 API 호출     |
+| 파일 경로                       | 역할                                   |
+| ------------------------------- | -------------------------------------- |
+| `api/axios.ts`                  | **Axios 설정** - HTTP 클라이언트 설정  |
+| `api/channelsApi.ts`            | **채널 API** - 채널 관련 API 호출      |
+| `api/messagesApi.ts`            | **메시지 API** - 메시지 관련 API 호출  |
+| `api/notification.ts`           | **알림 API** - 알림 관련 API 호출      |
+| `api/blind.ts`                  | **블라인드 API** - 블라인드 관련 API   |
+| `api/channelChatApi.ts`         | **채널 채팅 API** - 채널 채팅 API 호출 |
+| `api/channelNotificationApi.ts` | **채널 알림 API** - 채널 알림 API 호출 |
+
+### 커스텀 훅
+
+| 파일 경로                          | 역할                                          |
+| ---------------------------------- | --------------------------------------------- |
+| `components/api/useStories.ts`     | **게시글 훅** - 게시글 데이터 관리 훅         |
+| `components/api/useCardStories.ts` | **카드 게시글 훅** - 카드 형태 게시글 관리 훅 |
+| `hooks/useBlind.ts`                | **블라인드 훅** - 블라인드 기능 관리 훅       |
 
 ### 유틸리티
 
-| 파일 경로             | 역할                                   |
-| --------------------- | -------------------------------------- |
-| `utils/websocket.ts`  | **웹소켓 유틸** - 실시간 통신 유틸리티 |
-| `const/VIEW_COUNT.ts` | **상수 정의** - 뷰 카운트 관련 상수    |
+| 파일 경로               | 역할                                   |
+| ----------------------- | -------------------------------------- |
+| `utils/websocket.ts`    | **웹소켓 유틸** - 실시간 통신 유틸리티 |
+| `const/VIEW_COUNT.ts`   | **상수 정의** - 뷰 카운트 관련 상수    |
+| `const/WRITE_CONST.tsx` | **작성 상수** - 글 작성 관련 상수 정의 |
 
 ---
 
@@ -209,6 +258,16 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | `types/userType.ts`        | **사용자 타입** - 사용자 관련 타입      |
 | `types/storyDetailType.ts` | **게시글 타입** - 게시글 관련 타입      |
 | `types/tableType.ts`       | **테이블 타입** - 테이블 관련 타입      |
+| `types/blind.ts`           | **블라인드 타입** - 블라인드 관련 타입  |
+| `types/imageTypes.ts`      | **이미지 타입** - 이미지 관련 타입      |
+| `types/message.ts`         | **메시지 타입** - 메시지 관련 타입      |
+| `types/notification.ts`    | **알림 타입** - 알림 관련 타입          |
+
+### 테마 설정
+
+| 파일 경로        | 역할                                  |
+| ---------------- | ------------------------------------- |
+| `theme/theme.ts` | **테마 설정** - Material-UI 테마 설정 |
 
 ---
 
@@ -231,3 +290,46 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 - 서버 컴포넌트(layout.tsx)가 클라이언트 컴포넌트들을 감싸는 구조
 - 각 컴포넌트의 특성에 맞는 최적화된 렌더링 방식 적용
 - SEO와 사용자 경험을 모두 고려한 균형잡힌 아키텍처
+
+---
+
+## 🔄 최근 업데이트 (2024년 12월)
+
+### 새로 추가된 기능
+
+- ✅ **채널 알림 시스템**: 채널별 알림 구독 관리 페이지 및 컴포넌트
+- ✅ **스크랩 기능**: 게시글 스크랩 및 관리 시스템
+- ✅ **최근 조회 기능**: 최근 본 글 추적 및 표시
+- ✅ **실시간 채널 채팅**: WebSocket 기반 채널 내 실시간 채팅
+- ✅ **건의사항 시스템**: 채널별 건의사항 작성 및 관리
+- ✅ **리치 텍스트 에디터**: 게시글 작성용 고급 에디터
+- ✅ **파일 업로드**: 이미지/동영상 첨부 기능
+- ✅ **브라우저 알림**: 웹 푸시 알림 지원
+
+### 개선된 기능
+
+- 🔧 **상태 관리 확장**: 12개의 전문화된 Zustand 스토어
+- 🔧 **API 모듈화**: 기능별 API 모듈 분리
+- 🔧 **컴포넌트 세분화**: 재사용 가능한 공통 컴포넌트 확장
+- 🔧 **타입 안전성**: TypeScript 타입 정의 강화
+- 🔧 **UI/UX 개선**: 다크모드, 반응형 디자인 지원
+
+### 삭제된 기능
+
+- ❌ **건의사항 상세 페이지 (noLogin)**: `(noLogin)/channels/[slug]/detail/suggestion/[id]/page.tsx` 제거
+- ❌ **일부 백업 파일**: 주석 처리된 백업 컴포넌트들
+
+---
+
+## 📞 지원 및 문의
+
+이 문서에 대한 질문이나 개선 사항이 있으시면 개발팀에 문의해 주세요.
+
+**개발팀**: StudyBoard Team  
+**프로젝트**: Study Board Frontend Components  
+**버전**: 2.0.0  
+**마지막 업데이트**: 2024년 12월
+
+---
+
+_이 문서는 Study Board 프론트엔드 시스템의 전체적인 컴포넌트 구조와 기능을 설명합니다. 개발 과정에서 지속적으로 업데이트됩니다._

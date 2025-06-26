@@ -635,8 +635,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
         <Box sx={{ maxWidth: "1200px", margin: "0 auto" }}>
           <Card sx={{ width: "100%", boxShadow: 4, padding: 3, borderRadius: 2, bgcolor: "background.paper" }}>
             <CardContent>
-              {/* 뒤로가기 버튼 */}
-              <Box sx={{ mb: 2 }}>
+              {/* 뒤로가기와 메인으로 버튼 */}
+              <Box sx={{ mb: 2, display: "flex", gap: 1 }}>
                 <Button
                   onClick={() => router.back()}
                   startIcon={<ArrowBackIcon />}
@@ -654,6 +654,17 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   }}
                 >
                   뒤로가기
+                </Button>
+                <Button
+                  onClick={handleGoToMain}
+                  size="small"
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "#ff9800",
+                    "&:hover": { backgroundColor: "#f57c00" },
+                  }}
+                >
+                  메인으로
                 </Button>
               </Box>
 
@@ -778,19 +789,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mb: 1 }}>
                       건의사항 작성자
                     </Typography>
-                    <Box sx={{ display: "flex", gap: 1 }}>
-                      <Button
-                        onClick={handleGoToMain}
-                        size="small"
-                        variant="contained"
-                        sx={{
-                          backgroundColor: "#ff9800",
-                          "&:hover": { backgroundColor: "#f57c00" },
-                        }}
-                      >
-                        메인으로
-                      </Button>
-                    </Box>
                   </Box>
                 </Box>
 

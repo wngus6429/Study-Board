@@ -8,7 +8,7 @@ import Color from "@tiptap/extension-color";
 import TextStyle from "@tiptap/extension-text-style";
 import Highlight from "@tiptap/extension-highlight";
 import Underline from "@tiptap/extension-underline";
-import Image from "@tiptap/extension-image";
+
 import ImageResize from "tiptap-extension-resize-image";
 import { Box, Paper, useTheme, Typography, IconButton, Divider, Tooltip, ButtonGroup } from "@mui/material";
 import {
@@ -53,12 +53,6 @@ export default function RichTextEditor({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Image.configure({
-        HTMLAttributes: {
-          style: "max-width: 100%; height: auto; margin: 8px auto; border-radius: 2px; display: block;",
-          class: "editor-image",
-        },
-      }),
       ImageResize.configure({
         // 옵션 (생략 가능)
         // preserveAspectRatio: true,           // 비율 고정
@@ -81,6 +75,7 @@ export default function RichTextEditor({
       Underline,
     ],
     content: value,
+    immediatelyRender: false, // SSR 하이드레이션 문제 해결
     onUpdate: ({ editor }) => {
       const html = editor.getHTML();
       onChange(html);

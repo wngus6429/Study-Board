@@ -63,6 +63,7 @@ import { TABLE_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import { TAB_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import CustomizedTables from "@/app/components/table/CustomizedTables";
 import CustomizedCardView from "@/app/components/table/CustomizedCardView";
+import CustomizedSuggestionTable from "@/app/components/table/CustomizedSuggestionTable";
 import Pagination from "@/app/components/common/Pagination";
 import SearchBar from "@/app/components/common/SearchBar";
 import Loading from "@/app/components/common/Loading";
@@ -189,6 +190,53 @@ const ChannelDetailPage = () => {
     }
   }, [channelSlug, setCurrentPage]); // channelSlug 의존성 추가
 
+  // 건의사항 데이터 조회 (별도 관리)
+  const [suggestionData, setSuggestionData] = useState<{ results: any[]; total: number } | null>(null);
+  const [suggestionLoading, setSuggestionLoading] = useState(false);
+
+  // 건의사항 데이터 가져오기
+  useEffect(() => {
+    if (currentTab === "suggestion" && session?.user?.id) {
+      const fetchSuggestionData = async () => {
+        setSuggestionLoading(true);
+        try {
+          const offset = (currentPage - 1) * viewCount;
+          const params = {
+            offset: offset.toString(),
+            limit: viewCount.toString(),
+            userId: session.user.id,
+          };
+
+          const queryString = `offset=${offset}&limit=${viewCount}&userId=${session.user.id}`;
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/api/suggestion/pageTableData?${queryString}`,
+            {
+              method: "GET",
+              credentials: "include",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error("Failed to fetch suggestion data");
+          }
+
+          const data = await response.json();
+          setSuggestionData(data);
+        } catch (error) {
+          console.error("Error fetching suggestion data:", error);
+          setSuggestionData({ results: [], total: 0 });
+        } finally {
+          setSuggestionLoading(false);
+        }
+      };
+
+      fetchSuggestionData();
+    }
+  }, [currentTab, currentPage, viewCount, session?.user?.id]);
+
   // 채널 테이블 데이터 조회 (기존 커스텀 훅 사용)
   const {
     data: tableData,
@@ -220,9 +268,30 @@ const ChannelDetailPage = () => {
   });
 
   // MainView 스타일로 데이터 처리
-  const currentData = viewMode === "card" ? cardData : tableData;
-  const currentError = viewMode === "card" ? cardError : tableError;
-  const currentLoading = viewMode === "card" ? cardLoading : tableLoading;
+  const getCurrentData = () => {
+    if (currentTab === "suggestion") {
+      return suggestionData;
+    }
+    return viewMode === "card" ? cardData : tableData;
+  };
+
+  const getCurrentError = () => {
+    if (currentTab === "suggestion") {
+      return null; // 건의사항은 별도 에러 처리
+    }
+    return viewMode === "card" ? cardError : tableError;
+  };
+
+  const getCurrentLoading = () => {
+    if (currentTab === "suggestion") {
+      return suggestionLoading;
+    }
+    return viewMode === "card" ? cardLoading : tableLoading;
+  };
+
+  const currentData = getCurrentData();
+  const currentError = getCurrentError();
+  const currentLoading = getCurrentLoading();
   const currentTotal = currentData?.total || 0;
 
   // 구독 mutation
@@ -1654,13 +1723,17 @@ const ChannelDetailPage = () => {
               },
             }}
           >
-            {TAB_SELECT_OPTIONS.filter((option) => option.value !== "suggestion").map((option) => (
+            {TAB_SELECT_OPTIONS.filter((option) => {
+              // "건의" 탭은 로그인 상태일 때만 표시
+              if (option.value === "suggestion" && !session?.user) return false;
+              return true;
+            }).map((option) => (
               <Tab key={option.value} icon={option.icon} label={option.name} value={option.value} />
             ))}
           </Tabs>
 
-          {/* 뷰 모드 토글 버튼 - 채팅 모드가 아닐 때만 표시 */}
-          {!showChat && (
+          {/* 뷰 모드 토글 버튼 - 채팅 모드가 아니고 건의사항 탭이 아닐 때만 표시 */}
+          {!showChat && currentTab !== "suggestion" && (
             <>
               <IconButton
                 onClick={() => handleViewModeChange("table")}
@@ -1727,6 +1800,8 @@ const ChannelDetailPage = () => {
           {/* 게시글 목록 */}
           {currentLoading && !currentData ? (
             <Loading />
+          ) : currentTab === "suggestion" ? (
+            <CustomizedSuggestionTable tableData={sortedTableData} />
           ) : viewMode === "card" ? (
             <CustomizedCardView tableData={sortedTableData} onRowClick={handlePostClick} />
           ) : (
@@ -1752,44 +1827,48 @@ const ChannelDetailPage = () => {
               height: "35px",
             }}
           >
-            {/* 왼쪽: 정렬 옵션과 추천 랭킹 버튼 */}
+            {/* 왼쪽: 정렬 옵션과 추천 랭킹 버튼 - 건의사항 탭이 아닐 때만 표시 */}
             <Box sx={{ flex: 1, display: "flex", gap: 1 }}>
-              <FormControl size="small">
-                <Select value={sortOrder} onChange={handleSortChange}>
-                  <MenuItem value="recent">최신순</MenuItem>
-                  <MenuItem value="view">조회순</MenuItem>
-                  <MenuItem value="recommend">추천순</MenuItem>
-                </Select>
-              </FormControl>
-              <Button
-                variant="contained"
-                startIcon={<EmojiEventsIcon sx={{ fontSize: 24, color: "rgba(255, 255, 255, 0.8)" }} />}
-                sx={{
-                  backgroundImage:
-                    theme.palette.mode === "dark"
-                      ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
-                      : "linear-gradient(45deg, #ff9800, #f77d58)",
-                  color: "white",
-                  fontWeight: "bold",
-                  borderRadius: "8px",
-                  padding: "8px 16px",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0px 4px 15px rgba(139, 92, 246, 0.4)"
-                      : "0px 4px 10px rgba(0,0,0,0.2)",
-                  "&:hover": {
-                    backgroundImage:
-                      theme.palette.mode === "dark"
-                        ? "linear-gradient(45deg, #7c3aed, #0891b2)"
-                        : "linear-gradient(45deg, #e65100, #bf360c)",
-                    boxShadow: theme.palette.mode === "dark" ? "0px 6px 20px rgba(139, 92, 246, 0.6)" : undefined,
-                    transform: theme.palette.mode === "dark" ? "translateY(-1px)" : undefined,
-                  },
-                }}
-                onClick={toggleRecommendRanking}
-              >
-                {recommendRankingMode ? "추천 랭킹 해제" : "추천 랭킹"}
-              </Button>
+              {currentTab !== "suggestion" && (
+                <>
+                  <FormControl size="small">
+                    <Select value={sortOrder} onChange={handleSortChange}>
+                      <MenuItem value="recent">최신순</MenuItem>
+                      <MenuItem value="view">조회순</MenuItem>
+                      <MenuItem value="recommend">추천순</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button
+                    variant="contained"
+                    startIcon={<EmojiEventsIcon sx={{ fontSize: 24, color: "rgba(255, 255, 255, 0.8)" }} />}
+                    sx={{
+                      backgroundImage:
+                        theme.palette.mode === "dark"
+                          ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
+                          : "linear-gradient(45deg, #ff9800, #f77d58)",
+                      color: "white",
+                      fontWeight: "bold",
+                      borderRadius: "8px",
+                      padding: "8px 16px",
+                      boxShadow:
+                        theme.palette.mode === "dark"
+                          ? "0px 4px 15px rgba(139, 92, 246, 0.4)"
+                          : "0px 4px 10px rgba(0,0,0,0.2)",
+                      "&:hover": {
+                        backgroundImage:
+                          theme.palette.mode === "dark"
+                            ? "linear-gradient(45deg, #7c3aed, #0891b2)"
+                            : "linear-gradient(45deg, #e65100, #bf360c)",
+                        boxShadow: theme.palette.mode === "dark" ? "0px 6px 20px rgba(139, 92, 246, 0.6)" : undefined,
+                        transform: theme.palette.mode === "dark" ? "translateY(-1px)" : undefined,
+                      },
+                    }}
+                    onClick={toggleRecommendRanking}
+                  >
+                    {recommendRankingMode ? "추천 랭킹 해제" : "추천 랭킹"}
+                  </Button>
+                </>
+              )}
             </Box>
 
             {/* 가운데: 페이지네이션 */}
@@ -1801,19 +1880,51 @@ const ChannelDetailPage = () => {
               />
             </Box>
 
-            {/* 오른쪽: 여백 */}
-            <Box sx={{ flex: 1 }} />
+            {/* 오른쪽: 건의사항 탭일 때 건의하기 버튼 */}
+            <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
+              {currentTab === "suggestion" && session?.user && (
+                <Button
+                  variant="contained"
+                  startIcon={<CreateIcon />}
+                  onClick={() => router.push("/write/suggestion")}
+                  sx={{
+                    background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
+                    color: "white",
+                    fontWeight: 600,
+                    borderRadius: "12px",
+                    px: 3,
+                    py: 1.5,
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 4px 15px rgba(233, 64, 87, 0.4)"
+                        : "0 4px 12px rgba(233, 64, 87, 0.3)",
+                    "&:hover": {
+                      background: "linear-gradient(135deg, #7a1d77, #d93a4f, #e2671e)",
+                      boxShadow:
+                        theme.palette.mode === "dark"
+                          ? "0 6px 20px rgba(233, 64, 87, 0.5)"
+                          : "0 6px 16px rgba(233, 64, 87, 0.4)",
+                      transform: "translateY(-2px)",
+                    },
+                  }}
+                >
+                  건의하기
+                </Button>
+              )}
+            </Box>
           </Box>
 
-          {/* 검색바 */}
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 2 }}>
-            <SearchBar
-              onSearch={handleSearch}
-              onClearSearch={handleClearSearch}
-              currentQuery={searchParamsState?.query || ""}
-              currentCategory={searchParamsState?.type || "all"}
-            />
-          </Box>
+          {/* 검색바 - 건의사항 탭이 아닐 때만 표시 */}
+          {currentTab !== "suggestion" && (
+            <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 2 }}>
+              <SearchBar
+                onSearch={handleSearch}
+                onClearSearch={handleClearSearch}
+                currentQuery={searchParamsState?.query || ""}
+                currentCategory={searchParamsState?.type || "all"}
+              />
+            </Box>
+          )}
         </>
       )}
     </MainContainer>

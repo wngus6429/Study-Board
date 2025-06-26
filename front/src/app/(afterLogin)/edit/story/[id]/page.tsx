@@ -260,10 +260,19 @@ export default function EditPage({ params }: { params: { id: string } }) {
         sx={{
           bgcolor: "background.default",
           borderRadius: 2,
+          mb: 2,
         }}
       />
+
+      <CustomSelect
+        selectArray={WRITE_SELECT_OPTIONS}
+        defaultValue={DEFAULT_SELECT_OPTION}
+        setSelectedCategory={setSelectedCategory}
+        value={selectedCategory}
+      />
+
       <Box sx={{ mb: 2 }}>
-        <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
+        <Typography variant="body1" sx={{ mb: 1, fontWeight: 500, mt: -1 }}>
           내용 (필수)
         </Typography>
         <RichTextEditor
@@ -274,12 +283,6 @@ export default function EditPage({ params }: { params: { id: string } }) {
           onFilesChange={handleEditorFilesChange}
         />
       </Box>
-      <CustomSelect
-        selectArray={WRITE_SELECT_OPTIONS}
-        defaultValue={DEFAULT_SELECT_OPTION}
-        setSelectedCategory={setSelectedCategory}
-        value={selectedCategory}
-      />
 
       {/* InputFileUpload 컴포넌트 사용 안 함 - RichTextEditor로 파일 처리 */}
       {/* <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} /> */}

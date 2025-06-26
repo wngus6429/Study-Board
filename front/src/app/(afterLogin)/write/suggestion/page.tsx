@@ -5,7 +5,6 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import CustomSelect from "@/app/components/common/CustomSelect";
-import InputFileUpload from "@/app/components/common/InputFileUpload";
 import RichTextEditor from "@/app/components/common/RichTextEditor";
 import { useMessage } from "@/app/store/messageStore";
 import { DEFAULT_FEEDBACK_OPTION, FEEDBACK_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
@@ -44,7 +43,6 @@ export default function FeedbackWrite() {
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_FEEDBACK_OPTION);
-  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File } | null>>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   const mutation = useMutation({
@@ -56,11 +54,6 @@ export default function FeedbackWrite() {
         formData.append("category", selectedCategory);
         formData.append("title", title);
         formData.append("content", content);
-        preview.forEach((item) => {
-          if (item?.file) {
-            formData.append("images", item.file);
-          }
-        });
         return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/suggestion/create`, formData, {
           withCredentials: true,
           headers: { "Content-Type": "multipart/form-data" },
@@ -82,10 +75,6 @@ export default function FeedbackWrite() {
       router.back();
     },
   });
-
-  const handlePreviewUpdate = (updatedPreview: Array<{ dataUrl: string; file: File } | null>) => {
-    setPreview(updatedPreview);
-  };
 
   return (
     <Paper
@@ -221,8 +210,6 @@ export default function FeedbackWrite() {
             height="350px"
           />
         </Box>
-
-        <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
 
         <Divider sx={{ opacity: isDarkMode ? 0.3 : 0.9 }} />
 

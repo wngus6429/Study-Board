@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { Box, Button, CircularProgress, TextField, Typography } from "@mui/material";
 import Loading from "@/app/components/common/Loading";
-import InputFileUpload from "@/app/components/common/InputFileUpload";
+// import InputFileUpload from "@/app/components/common/InputFileUpload";
 import RichTextEditor from "@/app/components/common/RichTextEditor";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import {
@@ -23,11 +23,12 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
   const { data: session, status } = useSession();
   const { showMessage } = useMessage((state) => state);
 
-  // 제목, 내용, 카테고리, 이미지 미리보기, 로딩 상태를 위한 상태 변수
+  // 제목, 내용, 카테고리, 로딩 상태를 위한 상태 변수
   const [title, setTitle] = useState<string>("");
   const [content, setContent] = useState<string>("");
   const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
-  const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>>([]);
+  // RichTextEditor에서 관리하는 파일들
+  const [editorFiles, setEditorFiles] = useState<File[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
 
   // 건의사항 상세 데이터를 불러옴 (수정용 엔드포인트)
@@ -58,15 +59,50 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
   useEffect(() => {
     if (suggestionDetail) {
       setTitle(suggestionDetail.title || "");
-      setContent(suggestionDetail.content || "");
+
+      // blob URL을 실제 서버 파일 경로로 변환하여 에디터에 표시
+      let processedContent = suggestionDetail.content || "";
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+      if (baseUrl && suggestionDetail.SuggestionImage && suggestionDetail.SuggestionImage.length > 0) {
+        // SuggestionImage 배열을 이용해 blob URL을 실제 파일 경로로 매핑
+        suggestionDetail.SuggestionImage.forEach((imageInfo: any) => {
+          // 파일명에서 타임스탬프와 확장자 제거한 기본 이름 추출
+          const baseFileName = imageInfo.image_name.replace(/_\d{8}\.(jpg|jpeg|png|gif|webp)$/i, "");
+
+          // alt 속성의 파일명으로 찾기
+          const escapedFileName = baseFileName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+          processedContent = processedContent.replace(
+            new RegExp(`alt="${escapedFileName}[^"]*"[^>]*src="blob:[^"]*"`, "gi"),
+            `alt="${baseFileName}.jpg" src="${baseUrl}${imageInfo.link}"`
+          );
+
+          // title 속성으로도 찾기
+          processedContent = processedContent.replace(
+            new RegExp(`title="${escapedFileName}[^"]*"[^>]*src="blob:[^"]*"`, "gi"),
+            `title="${baseFileName}.jpg" src="${baseUrl}${imageInfo.link}"`
+          );
+
+          // src가 먼저 오는 경우
+          processedContent = processedContent.replace(
+            new RegExp(`src="blob:[^"]*"[^>]*alt="${escapedFileName}[^"]*"`, "gi"),
+            `src="${baseUrl}${imageInfo.link}" alt="${baseFileName}.jpg"`
+          );
+
+          processedContent = processedContent.replace(
+            new RegExp(`src="blob:[^"]*"[^>]*title="${escapedFileName}[^"]*"`, "gi"),
+            `src="${baseUrl}${imageInfo.link}" title="${baseFileName}.jpg"`
+          );
+        });
+      }
+
+      // 혹시 이미 상대 경로로 저장된 것들도 처리
+      if (baseUrl) {
+        processedContent = processedContent.replace(/src="\/upload\/([^"]+)"/g, `src="${baseUrl}/upload/$1"`);
+      }
+
+      setContent(processedContent);
       setSelectedCategory(suggestionDetail.category || DEFAULT_SELECT_OPTION);
-      // 기존 이미지 데이터를 preview 형식으로 변환 (SuggestionImage 배열)
-      const formattedImages = (suggestionDetail.SuggestionImage || []).map((image: any) => ({
-        dataUrl: `${process.env.NEXT_PUBLIC_BASE_URL}${image.link}`,
-        file: null,
-        type: "image" as const,
-      }));
-      setPreview(formattedImages);
     }
   }, [suggestionDetail]);
 
@@ -102,32 +138,46 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
     },
   });
 
-  // InputFileUpload 컴포넌트에서 미리보기 이미지 업데이트를 받는 함수
-  const handlePreviewUpdate = (
-    updatedPreview: Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>
-  ) => {
-    setPreview(updatedPreview);
+  // RichTextEditor에서 파일 변경사항을 받는 함수
+  const handleEditorFilesChange = (files: File[]) => {
+    setEditorFiles(files);
   };
 
   // 폼 제출 시 수정 요청 전송
   const handleUpdate = (e: FormEvent) => {
+    if (title.length < 3 || content.length < 3) {
+      showMessage("제목과 내용을 3글자 이상 입력해주세요", "error");
+      return;
+    }
+
     setLoading(true);
     e.preventDefault();
     const formData = new FormData();
     formData.append("title", title);
-    formData.append("content", content);
+
+    // 에디터의 컨텐츠에서 절대 URL을 다시 상대 URL로 변경하여 저장
+    let contentToSave = content;
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (baseUrl) {
+      // 이미지 절대 경로를 상대 경로로 변환
+      const escapedBaseUrl = baseUrl.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+      contentToSave = contentToSave.replace(
+        new RegExp(`src="${escapedBaseUrl}/upload/([^"]+)"`, "g"),
+        'src="/upload/$1"'
+      );
+
+      // blob URL도 제거 (새로 추가된 파일들은 서버에서 처리됨)
+      contentToSave = contentToSave.replace(/src="blob:[^"]*"/g, 'src=""');
+    }
+
+    formData.append("content", contentToSave);
     formData.append("category", selectedCategory);
 
-    // 새 이미지 파일과 기존 이미지 데이터 분기 처리
-    preview.forEach((item) => {
-      if (item?.file != null) {
-        // 새로운 이미지 파일인 경우
-        formData.append("images", item.file);
-      } else if (item?.dataUrl) {
-        // 기존 이미지일 경우 (변경 여부를 감지)
-        formData.append("existImages", item.dataUrl);
-      }
+    // RichTextEditor에서 관리하는 파일들을 FormData에 추가
+    editorFiles.forEach((file) => {
+      formData.append("files", file);
     });
+
     updateSuggestion.mutate(formData);
   };
 
@@ -190,9 +240,12 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
           onChange={setContent}
           placeholder="건의사항 내용을 입력해주세요"
           height="400px"
+          onFilesChange={handleEditorFilesChange}
         />
       </Box>
-      <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} />
+
+      {/* InputFileUpload 컴포넌트 사용 안 함 - RichTextEditor로 파일 처리 */}
+      {/* <InputFileUpload onPreviewUpdate={handlePreviewUpdate} preview={preview} /> */}
 
       <Box
         sx={{
@@ -204,7 +257,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
         <Button
           variant="outlined"
           color="error"
-          onClick={() => router.push(`/detail/suggestion/${params.id}`)}
+          onClick={() => router.back()}
           sx={{
             flex: 1,
             marginRight: 1,
@@ -214,9 +267,9 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
           취소
         </Button>
         <Button
-          type="submit"
           variant="contained"
           color="success"
+          onClick={handleUpdate}
           disabled={loading || title.length < 3 || content.length < 3}
           sx={{
             flex: 1,

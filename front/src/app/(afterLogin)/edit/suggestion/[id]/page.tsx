@@ -129,7 +129,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
       setLoading(false);
       showMessage("수정 성공", "success");
       queryClient.invalidateQueries({ queryKey: ["suggestion", "detail", params.id] });
-      router.push(`/detail/suggestion/${params.id}`);
+      router.back(); // 이전 페이지로 돌아가기
     },
     onError: (error) => {
       showMessage("수정 실패, 이전 화면으로 이동합니다", "error");

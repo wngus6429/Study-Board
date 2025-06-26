@@ -64,10 +64,11 @@ interface SuggestionType {
 // 컴포넌트 Props 정의
 interface CustomizedSuggestionTableProps {
   tableData: SuggestionType[];
+  channelSlug?: string; // 채널 슬러그 추가
 }
 
 // 건의사항 전용 테이블 컴포넌트
-export default function CustomizedSuggestionTable({ tableData }: CustomizedSuggestionTableProps) {
+export default function CustomizedSuggestionTable({ tableData, channelSlug }: CustomizedSuggestionTableProps) {
   const router = useRouter();
   const theme = useTheme();
 
@@ -103,7 +104,7 @@ export default function CustomizedSuggestionTable({ tableData }: CustomizedSugge
               tableData.map((row) => (
                 <StyledTableRow
                   key={row.id}
-                  onClick={() => router.push(`/detail/suggestion/${row.id}`)}
+                  onClick={() => router.push(`/channels/${channelSlug}/detail/suggestion/${row.id}`)}
                   sx={{ cursor: "pointer" }}
                 >
                   {/* 번호 */}

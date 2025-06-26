@@ -1801,7 +1801,7 @@ const ChannelDetailPage = () => {
           {currentLoading && !currentData ? (
             <Loading />
           ) : currentTab === "suggestion" ? (
-            <CustomizedSuggestionTable tableData={sortedTableData} />
+            <CustomizedSuggestionTable tableData={sortedTableData} channelSlug={channelSlug} />
           ) : viewMode === "card" ? (
             <CustomizedCardView tableData={sortedTableData} onRowClick={handlePostClick} />
           ) : (

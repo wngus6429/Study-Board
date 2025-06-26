@@ -2,7 +2,7 @@
 import { TextField, Box, Typography, Paper, Button, CircularProgress, Divider, useTheme } from "@mui/material";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState } from "react";
 import CustomSelect from "@/app/components/common/CustomSelect";
 import RichTextEditor from "@/app/components/common/RichTextEditor";
@@ -35,6 +35,8 @@ const commonButtonStyles = {
 
 export default function FeedbackWrite() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const channelSlug = searchParams?.get("channel");
   const { showMessage } = useMessage((state) => state);
   const theme = useTheme();
   const isDarkMode = theme.palette.mode === "dark";
@@ -67,7 +69,12 @@ export default function FeedbackWrite() {
     onSuccess: (data) => {
       setLoading(false);
       showMessage("글 작성 완료", "info");
-      router.push("/");
+      // 채널 정보가 있으면 해당 채널로, 없으면 메인 페이지로 이동
+      if (channelSlug) {
+        router.push(`/channels/${channelSlug}`);
+      } else {
+        router.push("/");
+      }
     },
     onError: (error) => {
       showMessage("글 작성 실패, 이전 화면으로 이동합니다", "error");

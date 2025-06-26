@@ -1886,7 +1886,7 @@ const ChannelDetailPage = () => {
                 <Button
                   variant="contained"
                   startIcon={<CreateIcon />}
-                  onClick={() => router.push("/write/suggestion")}
+                  onClick={() => router.push(`/write/suggestion?channel=${params?.slug || ""}`)}
                   sx={{
                     background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
                     color: "white",

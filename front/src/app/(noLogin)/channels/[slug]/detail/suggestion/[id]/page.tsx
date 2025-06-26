@@ -273,11 +273,123 @@ export default function page({ params }: { params: { id: string; slug: string } 
   const renderContentWithImageCards = () => {
     if (!detail?.content) return null;
 
+    let content = detail.content;
+
+    // 빈 src 속성과 blob URL을 서버 이미지 URL로 교체 (스토리와 동일한 로직)
+    if (detail.SuggestionImage && detail.SuggestionImage.length > 0) {
+      // 빈 src 속성을 가진 이미지 태그 처리
+      content = content.replace(/<img[^>]*src=""[^>]*>/g, (imgTag: string) => {
+        const altMatch = imgTag.match(/alt="([^"]*)"/);
+        const titleMatch = imgTag.match(/title="([^"]*)"/);
+        const fileName = altMatch?.[1] || titleMatch?.[1];
+
+        console.log("🔍 빈 src 이미지 태그 발견:", { imgTag, fileName });
+
+        if (fileName) {
+          // 파일명에서 확장자 제거하여 기본 이름 추출
+          const baseFileName = fileName.replace(/\.[^.]+$/, "");
+
+          const matchingImage = detail.SuggestionImage.find((img: any) => {
+            // 이미지 이름에서 확장자 제거
+            const imgBaseName = img.image_name.replace(/\.[^.]+$/, "");
+            const imgBaseNameWithoutDate = imgBaseName.replace(/_\d{8}$/, ""); // 날짜 제거
+
+            console.log("🔍 이미지 매칭 시도:", {
+              baseFileName,
+              imgBaseName,
+              imgBaseNameWithoutDate,
+              imageName: img.image_name,
+            });
+
+            // 다양한 매칭 방식 시도
+            return (
+              imgBaseName.includes(baseFileName) ||
+              baseFileName.includes(imgBaseName) ||
+              imgBaseNameWithoutDate.includes(baseFileName) ||
+              baseFileName.includes(imgBaseNameWithoutDate) ||
+              img.image_name.includes(fileName) ||
+              fileName.includes(img.image_name)
+            );
+          });
+
+          if (matchingImage) {
+            console.log("✅ 매칭된 이미지:", matchingImage);
+            return imgTag.replace(/src=""/, `src="${process.env.NEXT_PUBLIC_BASE_URL}${matchingImage.link}"`);
+          } else {
+            console.warn("❌ 매칭 실패:", fileName);
+          }
+        }
+        return imgTag; // 매칭 실패시 원본 반환
+      });
+
+      // blob URL을 서버 이미지 URL로 교체
+      content = content.replace(/<img[^>]*src="blob:[^"]*"[^>]*>/g, (imgTag: string) => {
+        const altMatch = imgTag.match(/alt="([^"]*)"/);
+        const titleMatch = imgTag.match(/title="([^"]*)"/);
+        const fileName = altMatch?.[1] || titleMatch?.[1];
+
+        if (fileName) {
+          const baseFileName = fileName.replace(/\.[^.]+$/, "");
+          const matchingImage = detail.SuggestionImage.find((img: any) => {
+            const imgBaseName = img.image_name.replace(/\.[^.]+$/, "");
+            return imgBaseName.includes(baseFileName) || baseFileName.includes(imgBaseName);
+          });
+
+          if (matchingImage) {
+            return imgTag.replace(/src="blob:[^"]*"/, `src="${process.env.NEXT_PUBLIC_BASE_URL}${matchingImage.link}"`);
+          }
+        }
+        return "";
+      });
+    }
+
+    console.log("🔄 처리된 content:", content);
+
+    // content에 나타나는 순서대로 이미지 배열 재구성
+    const contentImageOrder: SuggestionImageType[] = [];
+    const imageMatches = content.match(/<img[^>]*>/g);
+
+    if (imageMatches) {
+      imageMatches.forEach((imgTag: string) => {
+        const srcMatch = imgTag.match(/src="([^"]*)"/);
+        if (srcMatch && srcMatch[1]) {
+          const imageSrc = srcMatch[1];
+          const matchingImage = detail.SuggestionImage?.find((img: any) => {
+            // 정확한 링크 매칭
+            if (imageSrc.includes(img.link)) return true;
+
+            // 파일명 기반 매칭
+            const srcFileName = imageSrc.split("/").pop();
+            const imgFileName = img.link.split("/").pop();
+            if (srcFileName && imgFileName && srcFileName === imgFileName) return true;
+
+            return false;
+          });
+
+          if (matchingImage && !contentImageOrder.find((img) => img.id === matchingImage.id)) {
+            contentImageOrder.push(matchingImage);
+          }
+        }
+      });
+    }
+
+    console.log(
+      "📸 Content 순서대로 재구성된 이미지 배열:",
+      contentImageOrder.map((img: any) => img.image_name)
+    );
+
     // HTML을 파싱하여 이미지 태그를 카드뷰로 교체
-    const parts = detail.content.split(/(<img[^>]*>)/);
+    const parts = content.split(/(<img[^>]*>)/);
     const elements: React.ReactNode[] = [];
 
-    let currentImageGroup: SuggestionImageType[] = [];
+    // 연속된 이미지들을 그룹화하기 위한 변수
+    let currentImageGroup: Array<{
+      img: SuggestionImageType;
+      index: number;
+      originalIndex: number;
+      customWidth?: string;
+      customMargin?: string;
+    }> = [];
 
     const processImageGroup = () => {
       if (currentImageGroup.length === 0) return;
@@ -292,15 +404,16 @@ export default function page({ params }: { params: { id: string; slug: string } 
               justifyContent: "center",
             }}
           >
-            {currentImageGroup.map((img, idx) => {
+            {currentImageGroup.map((item, idx) => {
               const isLastOddImage = idx === currentImageGroup.length - 1 && currentImageGroup.length % 2 !== 0;
-              const imageIndex = detail.SuggestionImage?.findIndex((image: any) => image.id === img.id) || 0;
               return (
                 <ImageCard
-                  key={`image-${img.id}-${idx}`}
-                  img={img}
+                  key={`image-${item.img.id}-${item.originalIndex}`}
+                  img={item.img}
                   isLastOddImage={isLastOddImage}
-                  onClick={(image) => handleImageClick(image, imageIndex)}
+                  onClick={(img) => handleImageClick(img, item.index)}
+                  customWidth={item.customWidth}
+                  customMargin={item.customMargin}
                 />
               );
             })}
@@ -318,23 +431,124 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
         if (srcMatch && srcMatch[1]) {
           const imageSrc = srcMatch[1];
+          console.log(
+            `📋 사용 가능한 SuggestionImage:`,
+            detail.SuggestionImage?.map((img: any) => img.link)
+          );
 
+          // 서버 이미지 URL에서 실제 SuggestionImage 찾기
           let matchingImage = detail.SuggestionImage?.find((img: any) => {
+            // 1. 정확한 링크 매칭
             if (imageSrc.includes(img.link)) return true;
 
+            // 2. 파일명 기반 매칭
             const srcFileName = imageSrc.split("/").pop();
             const imgFileName = img.link.split("/").pop();
             if (srcFileName && imgFileName && srcFileName === imgFileName) return true;
 
+            // 3. 이미지 이름 기반 매칭 (확장자 제거)
+            const srcBaseName = srcFileName?.replace(/\.[^.]+$/, "");
+            const imgBaseName = img.image_name?.replace(/\.[^.]+$/, "");
+            if (srcBaseName && imgBaseName && imgBaseName.includes(srcBaseName)) return true;
+
             return false;
           });
 
+          // 매칭되는 이미지를 찾지 못한 경우, 첫 번째 이미지를 기본값으로 사용
+          if (!matchingImage && detail.SuggestionImage && detail.SuggestionImage.length > 0) {
+            console.warn(`이미지 매칭 실패, 기본 이미지 사용: ${imageSrc}`);
+            matchingImage = detail.SuggestionImage[currentImageGroup.length % detail.SuggestionImage.length];
+          }
+
           if (matchingImage) {
-            currentImageGroup.push(matchingImage);
+            // content 순서 기준으로 인덱스 찾기
+            const imageIndex = contentImageOrder.findIndex((img) => img.id === matchingImage.id);
+
+            // 이미지 태그에서 width와 margin 정보 추출
+            const styleMatch = part.match(/style="([^"]*)"/);
+            let customWidth = undefined;
+            let customMargin = undefined;
+            if (styleMatch && styleMatch[1]) {
+              const styleText = styleMatch[1];
+              // CSS 속성들을 세미콜론으로 분리
+              const styleProperties = styleText.split(";");
+
+              // width 속성만 찾기 (max-width 제외)
+              const widthProperty = styleProperties.find((prop) => {
+                const trimmed = prop.trim();
+                return trimmed.startsWith("width:") && !trimmed.startsWith("max-width:");
+              });
+
+              if (widthProperty) {
+                const widthValue = widthProperty.split(":")[1]?.trim();
+                if (widthValue) {
+                  customWidth = widthValue;
+                }
+              }
+
+              // margin 속성 찾기
+              const marginProperty = styleProperties.find((prop) => {
+                const trimmed = prop.trim();
+                return trimmed.startsWith("margin:");
+              });
+
+              if (marginProperty) {
+                const marginValue = marginProperty.split(":")[1]?.trim();
+                if (marginValue) {
+                  customMargin = marginValue;
+                }
+              }
+            }
+
+            // 현재 이미지 그룹에 추가
+            currentImageGroup.push({
+              img: matchingImage,
+              index: imageIndex >= 0 ? imageIndex : 0,
+              originalIndex: index,
+              customWidth: customWidth,
+              customMargin: customMargin,
+            });
+          } else {
+            // 정말로 매칭되는 이미지가 없는 경우, 클릭 가능한 이미지로 렌더링
+            processImageGroup();
+            elements.push(
+              <Box key={`img-fallback-${index}`} sx={{ my: 2, textAlign: "center" }}>
+                <Box
+                  component="img"
+                  src={imageSrc}
+                  alt="이미지"
+                  sx={{
+                    maxWidth: "100%",
+                    height: "auto",
+                    borderRadius: "8px",
+                    cursor: "pointer",
+                    "&:hover": {
+                      opacity: 0.8,
+                      transform: "scale(1.02)",
+                    },
+                    transition: "all 0.2s ease",
+                  }}
+                  onClick={() => {
+                    // 폴백 이미지에 대한 임시 객체 생성
+                    const tempImage: SuggestionImageType = {
+                      id: Date.now(),
+                      image_name: imageSrc.split("/").pop() || "unknown",
+                      link: imageSrc.startsWith("http")
+                        ? imageSrc.replace(process.env.NEXT_PUBLIC_BASE_URL || "", "")
+                        : imageSrc,
+                      file_size: 0,
+                      mime_type: "image/jpeg",
+                      created_at: new Date().toISOString(),
+                    };
+                    handleImageClick(tempImage, 0);
+                  }}
+                />
+              </Box>
+            );
           }
         }
       } else if (part.trim()) {
-        // 텍스트 내용인 경우
+        // 텍스트 내용인 경우, 현재 이미지 그룹을 먼저 처리
         processImageGroup();
 
         elements.push(

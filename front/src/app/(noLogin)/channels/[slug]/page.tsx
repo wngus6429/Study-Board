@@ -22,13 +22,6 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  TextField,
-  InputAdornment,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemAvatar,
-  Divider,
 } from "@mui/material";
 import {
   PersonAdd as PersonAddIcon,
@@ -37,7 +30,6 @@ import {
   Create as CreateIcon,
   Star as StarIcon,
   People as PeopleIcon,
-  Article as ArticleIcon,
   TrendingUp as TrendingUpIcon,
   ViewList as ViewListIcon,
   ViewModule as ViewModuleIcon,
@@ -48,11 +40,9 @@ import {
   Announcement as AnnouncementIcon,
   FiberNew as FiberNewIcon,
   Chat as ChatIcon,
-  Send as SendIcon,
-  Close as CloseIcon,
 } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import usePageStore from "@/app/store/pageStore";
@@ -78,19 +68,7 @@ import { useCardStories } from "@/app/components/api/useCardStories";
 import ChannelChat from "@/app/components/chat/ChannelChat";
 
 // 스타일 컴포넌트 import
-import {
-  MainContainer,
-  ChannelInfoCard,
-  GradientButton,
-  ChatButton,
-  SubscribeButton,
-  GradientText,
-  TabsContainer,
-  ButtonGroup,
-  LoadingContainer,
-  NoticeCard,
-  NoticeItem,
-} from "./components";
+import { MainContainer, ChannelInfoCard, LoadingContainer } from "./components";
 
 const ChannelDetailPage = () => {
   const theme = useTheme();

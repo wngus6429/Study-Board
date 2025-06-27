@@ -29,8 +29,17 @@ export const metadata: Metadata = {
 // 서버에서 초기 채널 데이터 가져오기
 async function getInitialChannels() {
   try {
+    // Next.js App Router의 서버 사이드에서 API 호출
+    // 이 함수는 서버 컴포넌트에서 실행되므로 서버에서 직접 백엔드 API를 호출
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels`, {
-      next: { revalidate: 300 }, // 5분마다 재검증
+      // 채널 목록은 자주 변경되지 않으므로 긴 캐시 시간 설정
+      next: {
+        revalidate: 3600, // 1시간(3600초)마다 재검증
+        // 또는 revalidate: false로 설정하여 빌드 시에만 생성하고
+        // 채널 생성/수정/삭제 시에만 on-demand revalidation 사용 가능
+        // 장점: 서버 리소스 절약, 빠른 응답속도
+        // 단점: 새 채널이 바로 반영되지 않음 (최대 1시간 지연)
+      },
       headers: {
         "Content-Type": "application/json",
       },
@@ -42,6 +51,8 @@ async function getInitialChannels() {
 
     return await res.json();
   } catch (error) {
+    // API 호출 실패 시 빈 배열 반환하여 페이지가 크래시되지 않도록 처리
+    // 클라이언트 사이드에서 React Query가 다시 시도할 수 있음
     console.error("초기 채널 데이터 로딩 실패:", error);
     return [];
   }
@@ -52,7 +63,7 @@ export default async function ChannelsPage() {
   const initialChannels = await getInitialChannels();
 
   return (
-    <div>
+    <>
       {/* 구조화된 데이터 추가 (SEO) */}
       <script
         type="application/ld+json"
@@ -83,6 +94,6 @@ export default async function ChannelsPage() {
       <Suspense fallback={<Loading />}>
         <ChannelsClient initialChannels={initialChannels} />
       </Suspense>
-    </div>
+    </>
   );
 }

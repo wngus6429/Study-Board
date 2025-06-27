@@ -8,7 +8,8 @@
   position: sticky;
   top: 0;
   z-index: 1100;
-  height: 70px; /* TopBar 높이 명시적으로 설정 */
+  height: 70px; /* TopBar 높이 명시적으로 설정 - 프로필 사진 액자 효과를 위해 증가 */
+  padding: 8px 0; /* 상하 패딩 추가 */
 }
 
 .title {

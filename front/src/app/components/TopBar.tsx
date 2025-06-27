@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
-import { Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText } from "@mui/material";
+import { Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText, useTheme } from "@mui/material";
 import { useRouter } from "next/navigation";
 import axios from "@/app/api/axios";
 import styles from "./style/TopBar.module.css";
@@ -52,11 +52,45 @@ import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 export default function MenuBar() {
   const router = useRouter();
+  const theme = useTheme();
   const { data: user, status } = useSession();
   const { showMessage } = useMessage((state) => state);
   const { setUserImageUrl, TopBarImageDelete } = useUserImage();
   const { setCurrentPage } = usePageStore();
   const [settingsMenuAnchor, setSettingsMenuAnchor] = useState<null | HTMLElement>(null);
+
+  // 현대적인 버튼 스타일
+  const modernButtonStyle = {
+    borderRadius: "12px",
+    padding: "8px 20px",
+    fontWeight: 600,
+    textTransform: "none" as const,
+    position: "relative" as const,
+    overflow: "hidden" as const,
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    backdropFilter: "blur(10px)",
+    border: "1px solid rgba(255, 255, 255, 0.1)",
+    "&::before": {
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: "-100%",
+      width: "100%",
+      height: "100%",
+      background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent)",
+      transition: "left 0.5s ease",
+    },
+    "&:hover": {
+      transform: "translateY(-2px)",
+      boxShadow: "0 8px 25px rgba(0,0,0,0.15)",
+      "&::before": {
+        left: "100%",
+      },
+    },
+    "&:active": {
+      transform: "translateY(0px)",
+    },
+  };
 
   const {
     data: userImage,
@@ -160,33 +194,176 @@ export default function MenuBar() {
         style={{
           fontSize: "2rem",
           fontWeight: "bold",
-          background: "linear-gradient(45deg, #FF6B6B, #4ECDC4)",
+          background:
+            theme.palette.mode === "dark"
+              ? "linear-gradient(45deg, #8B5CF6, #06B6D4, #10B981)"
+              : "linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1)",
           WebkitBackgroundClip: "text",
           WebkitTextFillColor: "transparent",
+          backgroundSize: "200% 200%",
           padding: "0.5rem 1rem",
-          borderRadius: "8px",
+          borderRadius: "12px",
           textDecoration: "none",
-          transition: "transform 0.2s ease-in-out",
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
           display: "inline-block",
-          textShadow: "2px 2px 4px rgba(0,0,0,0.1)",
+          textShadow:
+            theme.palette.mode === "dark" ? "0 0 20px rgba(139, 92, 246, 0.3)" : "2px 2px 4px rgba(0,0,0,0.1)",
           letterSpacing: "1px",
+          position: "relative" as const,
+          overflow: "hidden" as const,
         }}
         onMouseOver={(e) => {
           e.currentTarget.style.transform = "scale(1.05)";
+          e.currentTarget.style.filter = "brightness(1.2)";
         }}
         onMouseOut={(e) => {
           e.currentTarget.style.transform = "scale(1)";
+          e.currentTarget.style.filter = "brightness(1)";
         }}
       >
         Hobby Channel
       </Link>
-      <Box sx={{ width: 56, height: 56 }}>
-        {userImage ? (
-          <Avatar src={`${process.env.NEXT_PUBLIC_BASE_URL}${userImage}`} sx={{ width: 56, height: 56 }} />
-        ) : (
-          // 이미지가 없을 때에도 같은 크기의 빈 Avatar 또는 기본 아이콘을 보여줌
-          <Box sx={{ width: 56, height: 56 }} />
-        )}
+      <Box
+        sx={{
+          width: 64,
+          height: 64,
+          position: "relative",
+          // 외부 액자 프레임 (황금/플래티넘 느낌)
+          background:
+            theme.palette.mode === "dark"
+              ? "linear-gradient(145deg, #2a2a3e 0%, #1a1a2e 50%, #2a2a3e 100%)"
+              : "linear-gradient(145deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%)",
+          borderRadius: "50%",
+          padding: "4px",
+          boxShadow:
+            theme.palette.mode === "dark"
+              ? `
+              0 12px 40px rgba(0, 0, 0, 0.6),
+              0 4px 12px rgba(139, 92, 246, 0.2),
+              inset 0 2px 4px rgba(255, 255, 255, 0.1),
+              inset 0 -2px 4px rgba(0, 0, 0, 0.4),
+              inset 0 0 20px rgba(139, 92, 246, 0.05)
+            `
+              : `
+              0 12px 40px rgba(0, 0, 0, 0.15),
+              0 4px 12px rgba(218, 165, 32, 0.3),
+              inset 0 2px 4px rgba(255, 255, 255, 0.9),
+              inset 0 -2px 4px rgba(0, 0, 0, 0.1),
+              inset 0 0 20px rgba(218, 165, 32, 0.1)
+            `,
+          transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+          // 회전하는 액자 테두리 효과
+          "&::before": {
+            content: '""',
+            position: "absolute",
+            top: -3,
+            left: -3,
+            right: -3,
+            bottom: -3,
+            background:
+              theme.palette.mode === "dark"
+                ? "conic-gradient(from 0deg, #8B5CF6, #06B6D4, #10B981, #F59E0B, #EF4444, #8B5CF6)"
+                : "conic-gradient(from 0deg, #DAA520, #FF6B6B, #4ECDC4, #45B7D1, #9C27B0, #DAA520)",
+            borderRadius: "50%",
+            opacity: 0.8,
+            transition: "opacity 0.3s ease",
+            zIndex: -1,
+            animation: "frameGlow 6s linear infinite",
+          },
+          // 내부 액자 프레임
+          "&::after": {
+            content: '""',
+            position: "absolute",
+            top: 2,
+            left: 2,
+            right: 2,
+            bottom: 2,
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(145deg, rgba(42, 42, 62, 0.9), rgba(26, 26, 46, 0.9))"
+                : "linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(240, 240, 240, 0.9))",
+            borderRadius: "50%",
+            border:
+              theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid rgba(218, 165, 32, 0.4)",
+            zIndex: 1,
+          },
+          "&:hover": {
+            transform: "scale(1.08) rotate(3deg)",
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? `
+                0 16px 50px rgba(0, 0, 0, 0.8),
+                0 6px 20px rgba(139, 92, 246, 0.4),
+                inset 0 3px 6px rgba(255, 255, 255, 0.15),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.5),
+                inset 0 0 30px rgba(139, 92, 246, 0.1)
+              `
+                : `
+                0 16px 50px rgba(0, 0, 0, 0.25),
+                0 6px 20px rgba(218, 165, 32, 0.5),
+                inset 0 3px 6px rgba(255, 255, 255, 1),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.15),
+                inset 0 0 30px rgba(218, 165, 32, 0.15)
+              `,
+            "&::before": {
+              opacity: 1,
+              transform: "scale(1.1)",
+            },
+          },
+          "@keyframes frameGlow": {
+            "0%": { transform: "rotate(0deg)" },
+            "100%": { transform: "rotate(360deg)" },
+          },
+        }}
+      >
+        <Avatar
+          src={userImage ? `${process.env.NEXT_PUBLIC_BASE_URL}${userImage}` : "/assets/noprofileImage.png"}
+          sx={{
+            width: 56,
+            height: 56,
+            position: "relative",
+            zIndex: 2,
+            // 사진 자체의 고급 프레임 효과
+            border:
+              theme.palette.mode === "dark" ? "2px solid rgba(139, 92, 246, 0.5)" : "2px solid rgba(218, 165, 32, 0.7)",
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? `
+                0 0 25px rgba(139, 92, 246, 0.4),
+                inset 0 3px 6px rgba(255, 255, 255, 0.1),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.3),
+                0 0 0 1px rgba(255, 255, 255, 0.05)
+              `
+                : `
+                0 6px 25px rgba(218, 165, 32, 0.4),
+                inset 0 3px 6px rgba(255, 255, 255, 0.8),
+                inset 0 -3px 6px rgba(0, 0, 0, 0.1),
+                0 0 0 1px rgba(255, 255, 255, 0.3)
+              `,
+            transition: "all 0.3s ease",
+            cursor: "pointer",
+            // 사진에 고급스러운 필터 효과
+            filter: "contrast(1.08) saturate(1.15) brightness(1.02)",
+            "&:hover": {
+              filter: "contrast(1.15) saturate(1.25) brightness(1.08)",
+              transform: "scale(1.02)",
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? `
+                  0 0 35px rgba(139, 92, 246, 0.6),
+                  inset 0 4px 8px rgba(255, 255, 255, 0.15),
+                  inset 0 -4px 8px rgba(0, 0, 0, 0.4),
+                  0 0 0 2px rgba(255, 255, 255, 0.1)
+                `
+                  : `
+                  0 8px 35px rgba(218, 165, 32, 0.5),
+                  inset 0 4px 8px rgba(255, 255, 255, 0.9),
+                  inset 0 -4px 8px rgba(0, 0, 0, 0.15),
+                  0 0 0 2px rgba(255, 255, 255, 0.5)
+                `,
+            },
+          }}
+        />
       </Box>
       <nav className={styles.nav}>
         {/* 로그인한 사용자에게만 알림 아이콘 표시 */}
@@ -198,28 +375,101 @@ export default function MenuBar() {
         )}
 
         {!user?.user && (
-          <Button size="medium" variant="contained" onClick={() => router.push("/login")} color="info">
+          <Button
+            size="medium"
+            variant="contained"
+            onClick={() => router.push("/login")}
+            color="info"
+            sx={{
+              ...modernButtonStyle,
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%)"
+                  : "linear-gradient(135deg, #2196F3 0%, #1976D2 100%)",
+              "&:hover": {
+                ...modernButtonStyle["&:hover"],
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, #1E40AF 0%, #1E3A8A 100%)"
+                    : "linear-gradient(135deg, #1976D2 0%, #1565C0 100%)",
+              },
+            }}
+          >
             로그인
           </Button>
         )}
-        {user?.user && (
-          <Button size="medium" variant="contained" onClick={logout} color="error">
-            로그아웃
-          </Button>
-        )}
-        {!user?.user && (
-          <Button size="medium" variant="contained" onClick={() => router.push("/signup")} color="inherit">
-            회원가입
-          </Button>
-        )}
+
         {user?.user && (
           <Button
             size="medium"
             variant="contained"
-            onClick={() => {
-              router.push(`/setting/profile`);
-            }}
+            onClick={logout}
             color="error"
+            sx={{
+              ...modernButtonStyle,
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
+                  : "linear-gradient(135deg, #F44336 0%, #D32F2F 100%)",
+              "&:hover": {
+                ...modernButtonStyle["&:hover"],
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, #DC2626 0%, #B91C1C 100%)"
+                    : "linear-gradient(135deg, #D32F2F 0%, #C62828 100%)",
+              },
+            }}
+          >
+            로그아웃
+          </Button>
+        )}
+
+        {!user?.user && (
+          <Button
+            size="medium"
+            variant="contained"
+            onClick={() => router.push("/signup")}
+            color="inherit"
+            sx={{
+              ...modernButtonStyle,
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, #6B7280 0%, #4B5563 100%)"
+                  : "linear-gradient(135deg, #9E9E9E 0%, #757575 100%)",
+              color: "white",
+              "&:hover": {
+                ...modernButtonStyle["&:hover"],
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, #4B5563 0%, #374151 100%)"
+                    : "linear-gradient(135deg, #757575 0%, #616161 100%)",
+              },
+            }}
+          >
+            회원가입
+          </Button>
+        )}
+
+        {user?.user && (
+          <Button
+            size="medium"
+            variant="contained"
+            onClick={() => router.push(`/setting/profile`)}
+            color="error"
+            sx={{
+              ...modernButtonStyle,
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, #10B981 0%, #059669 100%)"
+                  : "linear-gradient(135deg, #4CAF50 0%, #388E3C 100%)",
+              "&:hover": {
+                ...modernButtonStyle["&:hover"],
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, #059669 0%, #047857 100%)"
+                    : "linear-gradient(135deg, #388E3C 0%, #2E7D32 100%)",
+              },
+            }}
           >
             프로필
           </Button>
@@ -238,8 +488,19 @@ export default function MenuBar() {
             color="inherit"
             sx={{
               color: "white",
+              borderRadius: "50%",
+              padding: "10px",
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))"
+                  : "linear-gradient(135deg, rgba(25, 118, 210, 0.1), rgba(33, 150, 243, 0.1))",
+              backdropFilter: "blur(10px)",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+              transition: "all 0.3s ease",
               "&:hover": {
-                backgroundColor: (theme) => theme.palette.action.hover,
+                backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(25, 118, 210, 0.2)",
+                transform: "rotate(90deg) scale(1.1)",
+                boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
               },
             }}
             onClick={handleSettingsMenuOpen}
@@ -261,13 +522,38 @@ export default function MenuBar() {
             vertical: "top",
             horizontal: "right",
           }}
+          sx={{
+            "& .MuiPaper-root": {
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(35, 35, 60, 0.95))"
+                  : "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.95))",
+              backdropFilter: "blur(20px)",
+              border:
+                theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.2)" : "1px solid rgba(0, 0, 0, 0.05)",
+              borderRadius: "12px",
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.1)"
+                  : "0 20px 40px rgba(0, 0, 0, 0.1)",
+              overflow: "hidden",
+              minWidth: 200,
+            },
+            "& .MuiMenuItem-root": {
+              borderRadius: "8px",
+              margin: "4px 8px",
+              padding: "12px 16px",
+              transition: "all 0.2s ease",
+              "&:hover": {
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1))"
+                    : "linear-gradient(135deg, rgba(25, 118, 210, 0.05), rgba(33, 150, 243, 0.05))",
+                transform: "translateX(4px)",
+              },
+            },
+          }}
         >
-          {/* <MenuItem onClick={handleDisplaySettings}>
-            <ListItemIcon>
-              <DisplaySettingsIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>표시설정</ListItemText>
-          </MenuItem> */}
           <MenuItem onClick={handleMessages}>
             <ListItemIcon>
               <MessageIcon fontSize="small" />

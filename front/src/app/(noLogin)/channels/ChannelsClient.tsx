@@ -334,12 +334,12 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
   return (
     <Box
       sx={{
-        minHeight: "100vh",
         background:
           theme.palette.mode === "dark"
             ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(16, 16, 32, 0.98))"
             : "linear-gradient(135deg, #f8f9fa, #e9ecef)",
         padding: 3,
+        paddingBottom: 6, // 하단에 여백 추가
       }}
     >
       {/* 헤더 */}

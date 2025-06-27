@@ -400,17 +400,153 @@ function UserProfileEdit() {
             </Typography>
             {/* 프로필 사진과 입력 요소들을 한 줄로 배치 */}
             <Box display="flex" flexDirection="row" alignItems="flex-start" sx={{ gap: 3, mb: 3 }}>
-              <Avatar
-                src={previewImage}
+              <Box
                 sx={{
-                  width: 120,
-                  height: 120,
-                  boxShadow: 2,
-                  border: "3px solid",
-                  borderColor: "primary.main",
+                  width: 130,
+                  height: 130,
+                  position: "relative",
                   flexShrink: 0,
+                  // 외부 액자 프레임 (황금/플래티넘 느낌)
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(145deg, #2a2a3e 0%, #1a1a2e 50%, #2a2a3e 100%)"
+                      : "linear-gradient(145deg, #f8f9fa 0%, #e9ecef 50%, #f8f9fa 100%)",
+                  borderRadius: "50%",
+                  padding: "6px",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? `
+                      0 16px 50px rgba(0, 0, 0, 0.6),
+                      0 6px 16px rgba(139, 92, 246, 0.3),
+                      inset 0 3px 6px rgba(255, 255, 255, 0.1),
+                      inset 0 -3px 6px rgba(0, 0, 0, 0.4),
+                      inset 0 0 25px rgba(139, 92, 246, 0.05)
+                    `
+                      : `
+                      0 16px 50px rgba(0, 0, 0, 0.15),
+                      0 6px 16px rgba(218, 165, 32, 0.3),
+                      inset 0 3px 6px rgba(255, 255, 255, 0.9),
+                      inset 0 -3px 6px rgba(0, 0, 0, 0.1),
+                      inset 0 0 25px rgba(218, 165, 32, 0.1)
+                    `,
+                  transition: "all 0.4s cubic-bezier(0.4, 0, 0.2, 1)",
+                  // 회전하는 액자 테두리 효과
+                  "&::before": {
+                    content: '""',
+                    position: "absolute",
+                    top: -4,
+                    left: -4,
+                    right: -4,
+                    bottom: -4,
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "conic-gradient(from 0deg, #8B5CF6, #06B6D4, #10B981, #F59E0B, #EF4444, #8B5CF6)"
+                        : "conic-gradient(from 0deg, #DAA520, #FF6B6B, #4ECDC4, #45B7D1, #9C27B0, #DAA520)",
+                    borderRadius: "50%",
+                    opacity: 0.8,
+                    transition: "opacity 0.3s ease",
+                    zIndex: -1,
+                    animation: "profileFrameGlow 8s linear infinite",
+                  },
+                  // 내부 액자 프레임
+                  "&::after": {
+                    content: '""',
+                    position: "absolute",
+                    top: 3,
+                    left: 3,
+                    right: 3,
+                    bottom: 3,
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(145deg, rgba(42, 42, 62, 0.9), rgba(26, 26, 46, 0.9))"
+                        : "linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(240, 240, 240, 0.9))",
+                    borderRadius: "50%",
+                    border:
+                      theme.palette.mode === "dark"
+                        ? "1px solid rgba(139, 92, 246, 0.3)"
+                        : "1px solid rgba(218, 165, 32, 0.4)",
+                    zIndex: 1,
+                  },
+                  "&:hover": {
+                    transform: "scale(1.05) rotate(2deg)",
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? `
+                        0 20px 60px rgba(0, 0, 0, 0.8),
+                        0 8px 25px rgba(139, 92, 246, 0.5),
+                        inset 0 4px 8px rgba(255, 255, 255, 0.15),
+                        inset 0 -4px 8px rgba(0, 0, 0, 0.5),
+                        inset 0 0 35px rgba(139, 92, 246, 0.1)
+                      `
+                        : `
+                        0 20px 60px rgba(0, 0, 0, 0.25),
+                        0 8px 25px rgba(218, 165, 32, 0.5),
+                        inset 0 4px 8px rgba(255, 255, 255, 1),
+                        inset 0 -4px 8px rgba(0, 0, 0, 0.15),
+                        inset 0 0 35px rgba(218, 165, 32, 0.15)
+                      `,
+                    "&::before": {
+                      opacity: 1,
+                      transform: "scale(1.1)",
+                    },
+                  },
+                  "@keyframes profileFrameGlow": {
+                    "0%": { transform: "rotate(0deg)" },
+                    "100%": { transform: "rotate(360deg)" },
+                  },
                 }}
-              />
+              >
+                <Avatar
+                  src={previewImage || "/assets/noprofileImage.png"}
+                  sx={{
+                    width: 118,
+                    height: 118,
+                    position: "relative",
+                    zIndex: 2,
+                    // 사진 자체의 고급 프레임 효과
+                    border:
+                      theme.palette.mode === "dark"
+                        ? "3px solid rgba(139, 92, 246, 0.5)"
+                        : "3px solid rgba(218, 165, 32, 0.7)",
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? `
+                        0 0 30px rgba(139, 92, 246, 0.4),
+                        inset 0 4px 8px rgba(255, 255, 255, 0.1),
+                        inset 0 -4px 8px rgba(0, 0, 0, 0.3),
+                        0 0 0 1px rgba(255, 255, 255, 0.05)
+                      `
+                        : `
+                        0 8px 30px rgba(218, 165, 32, 0.4),
+                        inset 0 4px 8px rgba(255, 255, 255, 0.8),
+                        inset 0 -4px 8px rgba(0, 0, 0, 0.1),
+                        0 0 0 1px rgba(255, 255, 255, 0.3)
+                      `,
+                    transition: "all 0.3s ease",
+                    cursor: "pointer",
+                    // 사진에 고급스러운 필터 효과
+                    filter: "contrast(1.08) saturate(1.15) brightness(1.02)",
+                    "&:hover": {
+                      filter: "contrast(1.15) saturate(1.25) brightness(1.08)",
+                      transform: "scale(1.02)",
+                      boxShadow:
+                        theme.palette.mode === "dark"
+                          ? `
+                          0 0 40px rgba(139, 92, 246, 0.6),
+                          inset 0 5px 10px rgba(255, 255, 255, 0.15),
+                          inset 0 -5px 10px rgba(0, 0, 0, 0.4),
+                          0 0 0 2px rgba(255, 255, 255, 0.1)
+                        `
+                          : `
+                          0 10px 40px rgba(218, 165, 32, 0.5),
+                          inset 0 5px 10px rgba(255, 255, 255, 0.9),
+                          inset 0 -5px 10px rgba(0, 0, 0, 0.15),
+                          0 0 0 2px rgba(255, 255, 255, 0.5)
+                        `,
+                    },
+                  }}
+                />
+              </Box>
               <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 2 }}>
                 <Box display="flex" gap={1}>
                   <Button variant="outlined" component="label" color="primary" sx={{ flexGrow: 1 }}>

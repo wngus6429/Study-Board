@@ -1,11 +1,42 @@
 // Home.tsx
 // 이 파일은 Next.js App Router의 페이지 컴포넌트로, 기본적으로 서버 컴포넌트입니다.
 import { redirect } from "next/navigation";
+import { Metadata } from "next";
 // import MainView from "./components/MainView";
 // import { MIN_RECOMMEND_COUNT, TABLE_VIEW_COUNT } from "./const/VIEW_COUNT";
 
+// SEO를 위한 동적 메타데이터 생성
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Hobby Channel - 취미 커뮤니티 플랫폼",
+    description:
+      "다양한 취미와 관심사를 가진 사람들이 모이는 커뮤니티 플랫폼입니다. 채널을 통해 소통하고 정보를 공유하세요.",
+    keywords: ["취미", "커뮤니티", "채널", "소통", "정보공유", "게시판"],
+    openGraph: {
+      title: "Hobby Channel - 취미 커뮤니티 플랫폼",
+      description: "다양한 취미와 관심사를 가진 사람들이 모이는 커뮤니티 플랫폼",
+      type: "website",
+      locale: "ko_KR",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: "Hobby Channel - 취미 커뮤니티 플랫폼",
+      description: "다양한 취미와 관심사를 가진 사람들이 모이는 커뮤니티 플랫폼",
+    },
+    robots: {
+      index: true,
+      follow: true,
+      googleBot: {
+        index: true,
+        follow: true,
+      },
+    },
+  };
+}
+
 export default async function Home() {
   // 메인 페이지 접속 시 자동으로 channels 페이지로 리다이렉트
+  // 서버 컴포넌트에서 실행되므로 SEO에 유리
   redirect("/channels");
 }
 

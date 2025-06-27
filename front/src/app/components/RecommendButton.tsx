@@ -23,6 +23,26 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
     setTimeout(() => setClicked(null), 500);
   };
 
+  const marbleStyle = {
+    background:
+      theme.palette.mode === "dark"
+        ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(45, 45, 75, 0.95), rgba(26, 26, 46, 0.95))"
+        : "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(241, 241, 245, 0.95), rgba(255, 255, 255, 0.95))",
+    position: "relative" as const,
+    "&::after": {
+      content: '""',
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)",
+      opacity: 0.3,
+      animation: "shimmer 3s ease-in-out infinite",
+      borderRadius: "inherit",
+    },
+  };
+
   return (
     <Box
       sx={{
@@ -44,11 +64,15 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
           border: theme.palette.mode === "dark" ? "2px solid rgba(139, 92, 246, 0.4)" : "2px solid rgba(0, 0, 0, 0.1)",
           padding: "12px",
           borderRadius: 3,
-          backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "rgba(255, 255, 255, 0.95)",
-          boxShadow: theme.palette.mode === "dark" ? "0 8px 32px rgba(139, 92, 246, 0.3)" : 3,
+          ...marbleStyle,
+          boxShadow:
+            theme.palette.mode === "dark"
+              ? "0 8px 32px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+              : "0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
           width: 220,
           textAlign: "center",
           backdropFilter: "blur(10px)",
+          overflow: "hidden",
         }}
       >
         <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: 1 }}>

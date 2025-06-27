@@ -13,6 +13,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Lock as LockIcon, Visibility, VisibilityOff, VpnKey as KeyIcon } from "@mui/icons-material";
+import Loading from "./Loading";
 
 interface SitePasswordGateProps {
   children: React.ReactNode;
@@ -78,24 +79,7 @@ const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ children }) => {
 
   // 로딩 중
   if (isLoading) {
-    return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          background:
-            theme.palette.mode === "dark"
-              ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(16, 16, 32, 0.98))"
-              : "linear-gradient(135deg, #f8f9fa, #e9ecef)",
-        }}
-      >
-        <Typography variant="h6" color="text.secondary">
-          로딩 중...
-        </Typography>
-      </Box>
-    );
+    return <Loading />;
   }
 
   // 인증됨 - 실제 사이트 컨텐츠 표시

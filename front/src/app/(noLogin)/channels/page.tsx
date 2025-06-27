@@ -36,6 +36,7 @@ import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
+import Loading from "@/app/components/common/Loading";
 // API 함수들 import
 import { getChannels, createChannel, uploadChannelImage, deleteChannelImage, Channel } from "@/app/api/channelsApi";
 
@@ -50,7 +51,6 @@ const ChannelsPage = () => {
   const queryClient = useQueryClient();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("전체");
 
   // 채널 생성 모달 관련 상태
   const [openCreateDialog, setOpenCreateDialog] = useState(false);
@@ -167,30 +167,6 @@ const ChannelsPage = () => {
     // const matchesCategory = selectedCategory === "전체" || channel.category === selectedCategory;
     return matchesSearch;
   });
-
-  // slug 자동 생성 함수
-  const generateSlug = (name: string): string => {
-    return (
-      name
-        .toLowerCase()
-        .replace(/[^a-z0-9가-힣\s]/g, "") // 특수문자 제거
-        .replace(/\s+/g, "-") // 공백을 하이픈으로
-        .replace(/게임/g, "game")
-        .replace(/개발/g, "dev")
-        .replace(/프로그래밍/g, "programming")
-        .replace(/애니메이션/g, "animation")
-        .replace(/만화/g, "comic")
-        .replace(/음식/g, "food")
-        .replace(/요리/g, "cooking")
-        .replace(/영화/g, "movie")
-        .replace(/음악/g, "music")
-        .replace(/스포츠/g, "sports")
-        .replace(/뉴스/g, "news")
-        .replace(/일반/g, "general")
-        .replace(/자유/g, "free")
-        .replace(/토론/g, "discussion") || `channel-${Date.now()}`
-    );
-  };
 
   // 채널 클릭 핸들러
   const handleChannelClick = (slug: string) => {
@@ -354,30 +330,7 @@ const ChannelsPage = () => {
     deleteExistingChannelImageMutation.mutate(editChannelId);
   };
 
-  // 로딩 상태
-  if (isLoading) {
-    return (
-      <Box
-        sx={{
-          minHeight: "100vh",
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          background:
-            theme.palette.mode === "dark"
-              ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(16, 16, 32, 0.98))"
-              : "linear-gradient(135deg, #f8f9fa, #e9ecef)",
-        }}
-      >
-        <CircularProgress
-          size={60}
-          sx={{
-            color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
-          }}
-        />
-      </Box>
-    );
-  }
+  // 로딩 상태 제거 - Next.js 기본 로딩만 사용
 
   return (
     <Box
@@ -838,25 +791,6 @@ const ChannelsPage = () => {
                   },
                 }}
               />
-              <Button
-                variant="outlined"
-                onClick={() => setNewChannelSlug(generateSlug(newChannelName))}
-                disabled={!newChannelName.trim()}
-                sx={{
-                  mb: 2.5,
-                  minWidth: "auto",
-                  px: 2,
-                  color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
-                  borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(25, 118, 210, 0.5)",
-                  "&:hover": {
-                    borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
-                    backgroundColor:
-                      theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(25, 118, 210, 0.05)",
-                  },
-                }}
-              >
-                자동생성
-              </Button>
             </Box>
             <Typography
               variant="caption"

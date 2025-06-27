@@ -7,32 +7,42 @@ export default function Loading() {
   return (
     <div
       style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "100vh",
-        width: "100vw",
         position: "fixed",
         top: 0,
         left: 0,
-        backgroundColor: theme.palette.mode === "dark" ? "#121212" : "#ffffff",
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: theme.palette.mode === "dark" ? "rgba(18, 18, 18, 0.3)" : "rgba(255, 255, 255, 0.3)",
+        backdropFilter: "blur(1px)",
         zIndex: 9999,
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
         transition: "background-color 0.3s ease",
       }}
     >
-      <div style={{ textAlign: "center" }}>
+      <div
+        style={{
+          textAlign: "center",
+          backgroundColor: theme.palette.mode === "dark" ? "#1e1e1e" : "#ffffff",
+          padding: "24px 32px",
+          borderRadius: "12px",
+          boxShadow: theme.palette.mode === "dark" ? "0 8px 24px rgba(0, 0, 0, 0.5)" : "0 8px 24px rgba(0, 0, 0, 0.15)",
+          border: theme.palette.mode === "dark" ? "1px solid #333333" : "1px solid #e0e0e0",
+        }}
+      >
         <CircularProgress
-          size={60}
+          size={48}
           thickness={4}
           sx={{
             color: theme.palette.mode === "dark" ? "#bb86fc" : "#1976d2",
-            marginBottom: 2,
+            marginBottom: 1,
           }}
         />
         <div
           style={{
-            marginTop: "16px",
-            fontSize: "16px",
+            marginTop: "12px",
+            fontSize: "14px",
             color: theme.palette.mode === "dark" ? "#e0e0e0" : "#666666",
             fontWeight: 500,
           }}

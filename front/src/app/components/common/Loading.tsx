@@ -1,4 +1,6 @@
-import { CircularProgress, useTheme } from "@mui/material";
+"use client";
+import { CircularProgress } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import React from "react";
 
 export default function Loading() {

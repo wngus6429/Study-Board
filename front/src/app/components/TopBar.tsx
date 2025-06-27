@@ -194,31 +194,19 @@ export default function MenuBar() {
         style={{
           fontSize: "2rem",
           fontWeight: "bold",
-          background:
-            theme.palette.mode === "dark"
-              ? "linear-gradient(45deg, #8B5CF6, #06B6D4, #10B981)"
-              : "linear-gradient(45deg, #FF6B6B, #4ECDC4, #45B7D1)",
-          WebkitBackgroundClip: "text",
-          WebkitTextFillColor: "transparent",
-          backgroundSize: "200% 200%",
+          color: theme.palette.mode === "dark" ? "#A78BFA" : "#7C3AED",
           padding: "0.5rem 1rem",
           borderRadius: "12px",
           textDecoration: "none",
-          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          transition: "all 0.4s ease",
           display: "inline-block",
-          textShadow:
-            theme.palette.mode === "dark" ? "0 0 20px rgba(139, 92, 246, 0.3)" : "2px 2px 4px rgba(0,0,0,0.1)",
           letterSpacing: "1px",
-          position: "relative" as const,
-          overflow: "hidden" as const,
-        }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.transform = "scale(1.05)";
-          e.currentTarget.style.filter = "brightness(1.2)";
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.transform = "scale(1)";
-          e.currentTarget.style.filter = "brightness(1)";
+          cursor: "pointer",
+          textShadow:
+            theme.palette.mode === "dark"
+              ? "0 0 20px rgba(167, 139, 250, 0.4), 0 2px 4px rgba(0,0,0,0.3)"
+              : "0 0 15px rgba(124, 58, 237, 0.3), 0 2px 4px rgba(0,0,0,0.1)",
+          filter: theme.palette.mode === "dark" ? "brightness(1.1)" : "brightness(1)",
         }}
       >
         Hobby Channel

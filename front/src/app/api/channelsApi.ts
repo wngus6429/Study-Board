@@ -49,7 +49,7 @@ export const getChannel = async (id: number): Promise<Channel> => {
 // 슬러그로 채널 조회
 export const getChannelBySlug = async (slug: string): Promise<Channel> => {
   // 로딩 테스트를 위한 2초 지연
-  await new Promise((resolve) => setTimeout(resolve, 2000));
+  // await new Promise((resolve) => setTimeout(resolve, 2000));
 
   const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/slug/${slug}`, {
     withCredentials: true,

@@ -330,7 +330,9 @@ const ChannelsPage = () => {
     deleteExistingChannelImageMutation.mutate(editChannelId);
   };
 
-  // 로딩 상태 제거 - Next.js 기본 로딩만 사용
+  if (isLoading) {
+    return <Loading />;
+  }
 
   return (
     <Box

@@ -8,7 +8,7 @@
 
 .content_wrapper {
   display: grid;
-  grid-template-columns: 120px 1000px 380px; /* NavMenuBar, 메인컨텐츠, RightView */
+  grid-template-columns: 100px 1000px 400px; /* NavMenuBar, 메인컨텐츠, RightView */
   gap: 15px;
   width: 1465px; /* 전체 고정 너비 (100+1000+400+15*2 + 50px 여백) */
   margin: 0 auto; /* 중앙 정렬 */
@@ -20,6 +20,13 @@
   grid-column: 2;
   min-width: 0;
   padding: 0;
+  /* 레이아웃 안정성을 위한 속성들 */
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  /* 고정 너비로 레이아웃 변화 방지 */
+  width: 1000px;
+  max-width: 1000px;
 }
 
 /* 오른쪽 영역 */

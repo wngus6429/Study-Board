@@ -40,6 +40,11 @@ import {
   Announcement as AnnouncementIcon,
   FiberNew as FiberNewIcon,
   Chat as ChatIcon,
+  Hub as HubIcon,
+  AutoAwesome as AutoAwesomeIcon,
+  Diamond as DiamondIcon,
+  Psychology as PsychologyIcon,
+  Bolt as BoltIcon,
 } from "@mui/icons-material";
 import { useRouter, useParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -68,7 +73,14 @@ import { useCardStories } from "@/app/components/api/useCardStories";
 import ChannelChat from "@/app/components/chat/ChannelChat";
 
 // 스타일 컴포넌트 import
-import { MainContainer, ChannelInfoCard, LoadingContainer } from "./components";
+import {
+  MainContainer,
+  ChannelInfoCard,
+  LoadingContainer,
+  MetallicAvatar,
+  MetallicTitle,
+  MetallicSubtitle,
+} from "./components";
 
 const ChannelDetailPage = () => {
   const theme = useTheme();
@@ -684,39 +696,72 @@ const ChannelDetailPage = () => {
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             {/* 왼쪽: 채널 정보 */}
             <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <Avatar
-                sx={{
-                  width: 64,
-                  height: 64,
-                  background: "linear-gradient(135deg, #8b5cf6, #06b6d4)",
-                  fontSize: "1.5rem",
-                  fontWeight: "bold",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0 4px 20px rgba(139, 92, 246, 0.3)"
-                      : "0 4px 12px rgba(139, 92, 246, 0.2)",
-                }}
-              >
-                {channelData.channel_name.charAt(0)}
-              </Avatar>
+              <MetallicAvatar>
+                <Box
+                  sx={{
+                    position: "relative",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "100%",
+                    height: "100%",
+                  }}
+                >
+                  {/* 메인 아이콘 */}
+                  <HubIcon
+                    sx={{
+                      fontSize: "2.2rem",
+                      position: "relative",
+                      zIndex: 2,
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                    }}
+                  />
+
+                  {/* 배경 장식 아이콘들 */}
+                  <AutoAwesomeIcon
+                    sx={{
+                      position: "absolute",
+                      top: "8px",
+                      right: "12px",
+                      fontSize: "0.8rem",
+                      opacity: 0.7,
+                      animation: "sparkle 2s ease-in-out infinite",
+                      "@keyframes sparkle": {
+                        "0%, 100%": { opacity: 0.4, transform: "scale(0.8)" },
+                        "50%": { opacity: 1, transform: "scale(1.2)" },
+                      },
+                    }}
+                  />
+
+                  <DiamondIcon
+                    sx={{
+                      position: "absolute",
+                      bottom: "6px",
+                      left: "8px",
+                      fontSize: "0.6rem",
+                      opacity: 0.6,
+                      animation: "sparkle 2.5s ease-in-out infinite",
+                      animationDelay: "0.5s",
+                    }}
+                  />
+
+                  <BoltIcon
+                    sx={{
+                      position: "absolute",
+                      top: "6px",
+                      left: "10px",
+                      fontSize: "0.7rem",
+                      opacity: 0.5,
+                      animation: "sparkle 3s ease-in-out infinite",
+                      animationDelay: "1s",
+                    }}
+                  />
+                </Box>
+              </MetallicAvatar>
 
               <Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                  <Typography
-                    variant="h5"
-                    sx={{
-                      fontWeight: 700,
-                      background:
-                        theme.palette.mode === "dark"
-                          ? "linear-gradient(135deg, #a78bfa, #22d3ee)"
-                          : "linear-gradient(135deg, #8b5cf6, #06b6d4)",
-                      WebkitBackgroundClip: "text",
-                      WebkitTextFillColor: "transparent",
-                      backgroundClip: "text",
-                    }}
-                  >
-                    {channelData.channel_name}
-                  </Typography>
+                  <MetallicTitle variant="h5">{channelData.channel_name}</MetallicTitle>
                   <VerifiedIcon
                     sx={{
                       color: theme.palette.mode === "dark" ? "#22d3ee" : "#06b6d4",
@@ -737,17 +782,16 @@ const ChannelDetailPage = () => {
                   )}
                 </Box>
 
-                <Typography
+                <MetallicSubtitle
                   variant="body2"
                   sx={{
-                    color: theme.palette.mode === "dark" ? "#cbd5e1" : "text.secondary",
                     mb: 1,
                     maxWidth: "500px",
                     lineHeight: 1.5,
                   }}
                 >
-                  {`${channelData.creator?.nickname || "알수없음"}님이 만든 채널입니다. 다양한 주제로 소통해보세요! 🚀`}
-                </Typography>
+                  {`${channelData.creator?.nickname || "알수없음"}님이 만든 채널입니다. 다양한 주제로 소통해보세요! ✨`}
+                </MetallicSubtitle>
 
                 <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -757,15 +801,14 @@ const ChannelDetailPage = () => {
                         color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
                       }}
                     />
-                    <Typography
+                    <MetallicSubtitle
                       variant="body2"
                       sx={{
-                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
                         fontWeight: 600,
                       }}
                     >
                       구독자 {formatSubscriberCount(channelData.subscriber_count)}명
-                    </Typography>
+                    </MetallicSubtitle>
                   </Box>
 
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
@@ -775,14 +818,9 @@ const ChannelDetailPage = () => {
                         color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
                       }}
                     />
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
-                      }}
-                    >
+                    <MetallicSubtitle variant="body2">
                       생성자: {channelData.creator?.nickname || "알수없음"}
-                    </Typography>
+                    </MetallicSubtitle>
                     {/* 생성자에게 쪽지 보내기 버튼 */}
                     {session?.user && channelData.creator?.nickname && session.user.id !== channelData.creator.id && (
                       <Button
@@ -807,14 +845,9 @@ const ChannelDetailPage = () => {
                     )}
                   </Box>
 
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
-                    }}
-                  >
+                  <MetallicSubtitle variant="body2">
                     게시글 {channelData.story_count.toLocaleString()}개
-                  </Typography>
+                  </MetallicSubtitle>
                 </Box>
               </Box>
             </Box>

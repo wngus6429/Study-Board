@@ -1,6 +1,15 @@
 import { styled } from "@mui/material/styles";
 import { Box, Card, Button, Typography } from "@mui/material";
-import { colors, shadows, getCardStyle, getGradientButtonStyle, getTextGradientStyle } from "./styles";
+import {
+  colors,
+  shadows,
+  getCardStyle,
+  getGradientButtonStyle,
+  getTextGradientStyle,
+  getMetallicCardStyle,
+  getMetallicAvatarStyle,
+  getMetallicTextStyle,
+} from "./styles";
 
 // 메인 컨테이너
 export const MainContainer = styled(Box)(({ theme }) => ({
@@ -8,19 +17,10 @@ export const MainContainer = styled(Box)(({ theme }) => ({
   background: theme.palette.mode === "dark" ? colors.gradient.background.dark : colors.gradient.background.light,
 }));
 
-// 채널 정보 카드
+// 채널 정보 카드 (메탈릭 스타일)
 export const ChannelInfoCard = styled(Card)(({ theme }) => ({
-  ...getCardStyle(theme),
+  ...getMetallicCardStyle(theme),
   marginBottom: 0,
-  "&::before": {
-    content: '""',
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    height: "4px",
-    background: colors.gradient.primary,
-  },
 }));
 
 // 그라디언트 버튼
@@ -90,6 +90,25 @@ export const SubscribeButton = styled(Button)<{ subscribed?: boolean }>(({ theme
 // 그라디언트 텍스트
 export const GradientText = styled(Typography)(({ theme }) => ({
   ...getTextGradientStyle(theme),
+}));
+
+// 메탈릭 아바타
+export const MetallicAvatar = styled(Box)(({ theme }) => ({
+  ...getMetallicAvatarStyle(theme),
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: "50%",
+}));
+
+// 메탈릭 제목 텍스트
+export const MetallicTitle = styled(Typography)(({ theme }) => ({
+  ...getMetallicTextStyle(theme, "title"),
+}));
+
+// 메탈릭 서브타이틀 텍스트
+export const MetallicSubtitle = styled(Typography)(({ theme }) => ({
+  ...getMetallicTextStyle(theme, "subtitle"),
 }));
 
 // 탭 컨테이너

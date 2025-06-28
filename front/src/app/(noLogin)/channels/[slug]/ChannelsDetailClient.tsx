@@ -1408,26 +1408,58 @@ const ChannelDetailPage = () => {
       {showNotice && (
         <Card
           sx={{
-            borderRadius: "16px",
-            background: theme.palette.mode === "dark" ? "rgba(30, 32, 38, 0.98)" : "rgba(255, 255, 255, 0.98)",
-            backdropFilter: "blur(12px)",
-            boxShadow:
-              theme.palette.mode === "dark"
-                ? "0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.2)"
-                : "0 20px 40px rgba(0, 0, 0, 0.15), 0 0 20px rgba(233, 64, 87, 0.1)",
-            border:
-              theme.palette.mode === "dark" ? "1px solid rgba(255, 255, 255, 0.1)" : "1px solid rgba(0, 0, 0, 0.05)",
+            borderRadius: "20px",
             position: "relative",
             overflow: "hidden",
-            // mb: 3,
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(45, 48, 71, 0.98) 100%)"
+                : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.99) 100%)",
+            backdropFilter: "blur(20px)",
+            border:
+              theme.palette.mode === "dark"
+                ? "2px solid rgba(139, 92, 246, 0.4)"
+                : "2px solid rgba(139, 92, 246, 0.25)",
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0 0 40px rgba(139, 92, 246, 0.3), 0 0 80px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                : "0 0 40px rgba(139, 92, 246, 0.2), 0 20px 60px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: "-2px",
+              left: "-2px",
+              right: "-2px",
+              bottom: "-2px",
+              background: "linear-gradient(45deg, #8a2387, #e94057, #f27121, #8a2387)",
+              borderRadius: "22px",
+              opacity: 0.7,
+              animation: "borderGlow 4s linear infinite",
+              zIndex: -1,
+            },
             "&::after": {
               content: '""',
               position: "absolute",
               top: 0,
               left: 0,
               right: 0,
-              height: "4px",
+              height: "6px",
               background: "linear-gradient(90deg, #8a2387, #e94057, #f27121)",
+              animation: "gradientShift 3s ease-in-out infinite",
+            },
+            "@keyframes gradientShift": {
+              "0%": {
+                background: "linear-gradient(90deg, #8a2387, #e94057, #f27121)",
+                filter: "hue-rotate(0deg)",
+              },
+              "50%": {
+                background: "linear-gradient(90deg, #e94057, #f27121, #8a2387)",
+                filter: "hue-rotate(60deg)",
+              },
+              "100%": {
+                background: "linear-gradient(90deg, #8a2387, #e94057, #f27121)",
+                filter: "hue-rotate(0deg)",
+              },
             },
           }}
         >
@@ -1626,47 +1658,166 @@ const ChannelDetailPage = () => {
       {showChannelInfo && (
         <Card
           sx={{
-            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
-            border:
-              theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid rgba(0, 0, 0, 0.1)",
-            borderRadius: 3,
+            borderRadius: "20px",
+            position: "relative",
+            overflow: "hidden",
             p: 4,
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(45, 48, 71, 0.98) 100%)"
+                : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.99) 100%)",
+            backdropFilter: "blur(20px)",
+            border:
+              theme.palette.mode === "dark"
+                ? "2px solid rgba(139, 92, 246, 0.4)"
+                : "2px solid rgba(139, 92, 246, 0.25)",
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0 0 30px rgba(139, 92, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                : "0 0 30px rgba(139, 92, 246, 0.2), 0 15px 45px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: "-2px",
+              left: "-2px",
+              right: "-2px",
+              bottom: "-2px",
+              background: "linear-gradient(45deg, #06b6d4, #8b5cf6, #06b6d4, #8b5cf6)",
+              borderRadius: "22px",
+              opacity: 0.6,
+              animation: "borderGlow 5s linear infinite",
+              zIndex: -1,
+            },
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              height: "4px",
+              background: "linear-gradient(90deg, #06b6d4, #8b5cf6, #22c55e)",
+              animation: "gradientShift 4s ease-in-out infinite",
+            },
           }}
         >
           <Typography
             variant="h6"
             sx={{
               color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
-              mb: 2,
-              fontWeight: 700,
+              mb: 3,
+              fontWeight: 800,
+              fontSize: "1.4rem",
               display: "flex",
               alignItems: "center",
-              gap: 1,
+              gap: 1.5,
+              textShadow: theme.palette.mode === "dark" ? "0 2px 4px rgba(0, 0, 0, 0.3)" : "none",
+              position: "relative",
+              zIndex: 2,
             }}
           >
-            <PeopleIcon sx={{ color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6" }} />
+            <Box
+              sx={{
+                position: "relative",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 48,
+                height: 48,
+                borderRadius: "12px",
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2))"
+                    : "linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.1))",
+                border:
+                  theme.palette.mode === "dark"
+                    ? "2px solid rgba(139, 92, 246, 0.5)"
+                    : "2px solid rgba(139, 92, 246, 0.3)",
+                boxShadow:
+                  theme.palette.mode === "dark"
+                    ? "0 0 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                    : "0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+              }}
+            >
+              <PeopleIcon
+                sx={{
+                  color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                  fontSize: 28,
+                  filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                }}
+              />
+            </Box>
             채널 정보
           </Typography>
 
           {/* 한 줄로 간격을 띄워서 표시 */}
-          <Typography
-            variant="body1"
+          <Box
             sx={{
-              color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
-              textAlign: "center",
-              lineHeight: 1.6,
+              position: "relative",
+              zIndex: 2,
+              p: 3,
+              borderRadius: "16px",
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.04))"
+                  : "linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(248, 250, 252, 0.9))",
+              border:
+                theme.palette.mode === "dark"
+                  ? "1px solid rgba(139, 92, 246, 0.2)"
+                  : "1px solid rgba(139, 92, 246, 0.15)",
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "0 4px 15px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                  : "0 4px 15px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
             }}
           >
-            📅 생성일:{" "}
-            {new Date(channelData.created_at).toLocaleDateString("ko-KR", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-            })}
-            &nbsp;&nbsp;&nbsp;&nbsp; 👤 생성자: {channelData.creator?.nickname || "알수없음"}
-            &nbsp;&nbsp;&nbsp;&nbsp; 📊 통계: 구독자 {channelData.subscriber_count.toLocaleString()}명 · 게시글{" "}
-            {channelData.story_count.toLocaleString()}개
-          </Typography>
+            <Typography
+              variant="body1"
+              sx={{
+                color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
+                textAlign: "center",
+                lineHeight: 1.8,
+                fontSize: "1.1rem",
+                fontWeight: 600,
+                textShadow: theme.palette.mode === "dark" ? "0 1px 2px rgba(0, 0, 0, 0.3)" : "none",
+              }}
+            >
+              📅 생성일:{" "}
+              <Box
+                component="span"
+                sx={{
+                  color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                  fontWeight: 700,
+                }}
+              >
+                {new Date(channelData.created_at).toLocaleDateString("ko-KR", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })}
+              </Box>
+              &nbsp;&nbsp;&nbsp;&nbsp; 👤 생성자:{" "}
+              <Box
+                component="span"
+                sx={{
+                  color: theme.palette.mode === "dark" ? "#22d3ee" : "#06b6d4",
+                  fontWeight: 700,
+                }}
+              >
+                {channelData.creator?.nickname || "알수없음"}
+              </Box>
+              &nbsp;&nbsp;&nbsp;&nbsp; 📊 통계:{" "}
+              <Box
+                component="span"
+                sx={{
+                  color: theme.palette.mode === "dark" ? "#22c55e" : "#16a34a",
+                  fontWeight: 700,
+                }}
+              >
+                구독자 {channelData.subscriber_count.toLocaleString()}명 · 게시글{" "}
+                {channelData.story_count.toLocaleString()}개
+              </Box>
+            </Typography>
+          </Box>
         </Card>
       )}
 
@@ -1762,13 +1913,69 @@ const ChannelDetailPage = () => {
             display: "flex",
             alignItems: "center",
             width: "100%",
-            borderRadius: 2,
-            boxShadow:
-              theme.palette.mode === "dark" ? "0 4px 20px rgba(139, 92, 246, 0.15)" : "0 4px 12px rgba(0,0,0,0.08)",
+            borderRadius: "16px",
+            position: "relative",
             overflow: "hidden",
-            bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "background.paper",
-            border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
-            // marginBottom: 3,
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(45, 48, 71, 0.95) 100%)"
+                : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)",
+            border:
+              theme.palette.mode === "dark" ? "2px solid rgba(139, 92, 246, 0.3)" : "2px solid rgba(139, 92, 246, 0.2)",
+            boxShadow:
+              theme.palette.mode === "dark"
+                ? "0 0 30px rgba(139, 92, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                : "0 0 30px rgba(139, 92, 246, 0.2), 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+            "&::before": {
+              content: '""',
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)"
+                  : "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)",
+              opacity: 0.1,
+              animation: "borderGlow 4s linear infinite",
+              zIndex: 0,
+            },
+            "&::after": {
+              content: '""',
+              position: "absolute",
+              top: "50%",
+              left: "-100%",
+              width: "200%",
+              height: "2px",
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.6), transparent)"
+                  : "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent)",
+              transform: "translateY(-50%)",
+              animation: "scanLine 3s ease-in-out infinite",
+              zIndex: 1,
+              pointerEvents: "none",
+            },
+            "@keyframes borderGlow": {
+              "0%": {
+                backgroundPosition: "0% 50%",
+                filter: "hue-rotate(0deg)",
+              },
+              "50%": {
+                backgroundPosition: "100% 50%",
+                filter: "hue-rotate(180deg)",
+              },
+              "100%": {
+                backgroundPosition: "0% 50%",
+                filter: "hue-rotate(360deg)",
+              },
+            },
+            "@keyframes scanLine": {
+              "0%": { left: "-100%", opacity: 0 },
+              "50%": { left: "50%", opacity: 1 },
+              "100%": { left: "200%", opacity: 0 },
+            },
           }}
         >
           <Tabs
@@ -1781,28 +1988,67 @@ const ChannelDetailPage = () => {
             scrollButtons="auto"
             sx={{
               flexGrow: 1,
+              position: "relative",
+              zIndex: 2,
               "& .MuiTab-root": {
-                fontWeight: 600,
-                fontSize: "1rem",
-                py: 2,
+                fontWeight: 700,
+                fontSize: "1.1rem",
+                py: 2.5,
                 px: 3,
-                transition: "all 0.2s ease",
-                color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
+                position: "relative",
+                overflow: "hidden",
+                borderRadius: "12px",
+                margin: "6px 4px",
+                transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
+                textShadow: theme.palette.mode === "dark" ? "0 2px 4px rgba(0, 0, 0, 0.3)" : "none",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(6, 182, 212, 0.05))"
+                      : "linear-gradient(135deg, rgba(139, 92, 246, 0.03), rgba(6, 182, 212, 0.03))",
+                  borderRadius: "12px",
+                  opacity: 0,
+                  transition: "opacity 0.3s ease",
+                  zIndex: -1,
+                },
                 "&:hover": {
-                  backgroundColor:
-                    theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(156, 39, 176, 0.04)",
-                  color: theme.palette.mode === "dark" ? "#a78bfa" : "secondary.dark",
+                  transform: "translateY(-2px) scale(1.02)",
+                  color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 8px 25px rgba(139, 92, 246, 0.3), 0 0 15px rgba(139, 92, 246, 0.2)"
+                      : "0 8px 25px rgba(139, 92, 246, 0.2), 0 0 15px rgba(139, 92, 246, 0.1)",
+                  "&::before": {
+                    opacity: 1,
+                  },
                 },
                 "&.Mui-selected": {
-                  color: theme.palette.mode === "dark" ? "#a78bfa" : "secondary.main",
-                  fontWeight: 700,
+                  color: theme.palette.mode === "dark" ? "#ffffff" : "#8b5cf6",
+                  fontWeight: 800,
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2))"
+                      : "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05))",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 0 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                      : "0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+                  border:
+                    theme.palette.mode === "dark"
+                      ? "1px solid rgba(139, 92, 246, 0.4)"
+                      : "1px solid rgba(139, 92, 246, 0.3)",
+                  transform: "translateY(-1px)",
                 },
               },
               "& .MuiTabs-indicator": {
-                height: 3,
-                borderTopLeftRadius: 3,
-                borderTopRightRadius: 3,
-                backgroundColor: theme.palette.mode === "dark" ? "#8b5cf6" : undefined,
+                display: "none",
               },
             }}
           >
@@ -1817,49 +2063,173 @@ const ChannelDetailPage = () => {
 
           {/* 뷰 모드 토글 버튼 - 채팅 모드가 아니고 건의사항 탭이 아닐 때만 표시 */}
           {!showChat && currentTab !== "suggestion" && (
-            <>
+            <Box sx={{ display: "flex", gap: 1, mr: 1, position: "relative", zIndex: 2 }}>
               <IconButton
                 onClick={() => handleViewModeChange("table")}
-                color={viewMode === "table" ? "primary" : "default"}
-                sx={{ ml: 2 }}
+                sx={{
+                  borderRadius: "12px",
+                  p: 1.5,
+                  position: "relative",
+                  overflow: "hidden",
+                  background:
+                    viewMode === "table"
+                      ? theme.palette.mode === "dark"
+                        ? "linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2))"
+                        : "linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.1))"
+                      : "transparent",
+                  border:
+                    viewMode === "table"
+                      ? theme.palette.mode === "dark"
+                        ? "2px solid rgba(139, 92, 246, 0.5)"
+                        : "2px solid rgba(139, 92, 246, 0.3)"
+                      : theme.palette.mode === "dark"
+                        ? "2px solid rgba(255, 255, 255, 0.1)"
+                        : "2px solid rgba(0, 0, 0, 0.1)",
+                  color:
+                    viewMode === "table"
+                      ? theme.palette.mode === "dark"
+                        ? "#a78bfa"
+                        : "#8b5cf6"
+                      : theme.palette.mode === "dark"
+                        ? "#94a3b8"
+                        : "#64748b",
+                  transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                  boxShadow:
+                    viewMode === "table"
+                      ? theme.palette.mode === "dark"
+                        ? "0 0 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                        : "0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+                      : "none",
+                  "&:hover": {
+                    transform: "translateY(-2px) scale(1.05)",
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.1))"
+                        : "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05))",
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 8px 25px rgba(139, 92, 246, 0.3)"
+                        : "0 8px 25px rgba(139, 92, 246, 0.2)",
+                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                  },
+                }}
                 aria-label="table view"
               >
-                <ViewListIcon sx={{ fontSize: 32 }} />
+                <ViewListIcon sx={{ fontSize: 28, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
               </IconButton>
               <IconButton
                 onClick={() => handleViewModeChange("card")}
-                color={viewMode === "card" ? "primary" : "default"}
-                sx={{ ml: 1 }}
+                sx={{
+                  borderRadius: "12px",
+                  p: 1.5,
+                  position: "relative",
+                  overflow: "hidden",
+                  background:
+                    viewMode === "card"
+                      ? theme.palette.mode === "dark"
+                        ? "linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2))"
+                        : "linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.1))"
+                      : "transparent",
+                  border:
+                    viewMode === "card"
+                      ? theme.palette.mode === "dark"
+                        ? "2px solid rgba(139, 92, 246, 0.5)"
+                        : "2px solid rgba(139, 92, 246, 0.3)"
+                      : theme.palette.mode === "dark"
+                        ? "2px solid rgba(255, 255, 255, 0.1)"
+                        : "2px solid rgba(0, 0, 0, 0.1)",
+                  color:
+                    viewMode === "card"
+                      ? theme.palette.mode === "dark"
+                        ? "#a78bfa"
+                        : "#8b5cf6"
+                      : theme.palette.mode === "dark"
+                        ? "#94a3b8"
+                        : "#64748b",
+                  transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                  boxShadow:
+                    viewMode === "card"
+                      ? theme.palette.mode === "dark"
+                        ? "0 0 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                        : "0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
+                      : "none",
+                  "&:hover": {
+                    transform: "translateY(-2px) scale(1.05)",
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.1))"
+                        : "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05))",
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 8px 25px rgba(139, 92, 246, 0.3)"
+                        : "0 8px 25px rgba(139, 92, 246, 0.2)",
+                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                  },
+                }}
                 aria-label="card view"
               >
-                <ViewModuleIcon sx={{ fontSize: 32 }} />
+                <ViewModuleIcon sx={{ fontSize: 28, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
               </IconButton>
-            </>
+            </Box>
           )}
 
           {/* 글쓰기 버튼 */}
           {session?.user && (
             <Button
               variant="contained"
-              startIcon={<CreateIcon />}
+              startIcon={<CreateIcon sx={{ fontSize: 22 }} />}
               onClick={handleWritePost}
               sx={{
-                background:
+                mr: 2,
+                position: "relative",
+                zIndex: 2,
+                borderRadius: "14px",
+                fontWeight: 700,
+                fontSize: "1rem",
+                px: 3,
+                py: 1.5,
+                minWidth: "120px",
+                overflow: "hidden",
+                textTransform: "none",
+                transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                background: "linear-gradient(135deg, #8b5cf6, #06b6d4, #22c55e)",
+                color: "white",
+                border:
                   theme.palette.mode === "dark"
-                    ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
-                    : "linear-gradient(135deg, #1976d2, #42a5f5)",
-                "&:hover": {
-                  background:
-                    theme.palette.mode === "dark"
-                      ? "linear-gradient(135deg, rgba(139, 92, 246, 1), rgba(6, 182, 212, 1))"
-                      : "linear-gradient(135deg, #1565c0, #1976d2)",
-                },
+                    ? "2px solid rgba(139, 92, 246, 0.6)"
+                    : "2px solid rgba(139, 92, 246, 0.4)",
                 boxShadow:
                   theme.palette.mode === "dark"
-                    ? "0 0 20px rgba(139, 92, 246, 0.4)"
-                    : "0 4px 12px rgba(25, 118, 210, 0.3)",
-                ml: 1,
-                mr: 2,
+                    ? "0 0 25px rgba(139, 92, 246, 0.4), 0 0 50px rgba(139, 92, 246, 0.2)"
+                    : "0 0 25px rgba(139, 92, 246, 0.3), 0 8px 32px rgba(0, 0, 0, 0.1)",
+                textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                "&::before": {
+                  content: '""',
+                  position: "absolute",
+                  top: 0,
+                  left: "-100%",
+                  width: "100%",
+                  height: "100%",
+                  background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
+                  transition: "left 0.6s ease",
+                },
+                "&:hover": {
+                  transform: "translateY(-3px) scale(1.05)",
+                  background: "linear-gradient(135deg, #7c3aed, #0891b2, #16a34a)",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 0 35px rgba(139, 92, 246, 0.6), 0 0 70px rgba(139, 92, 246, 0.3)"
+                      : "0 0 35px rgba(139, 92, 246, 0.4), 0 12px 40px rgba(0, 0, 0, 0.15)",
+                  "&::before": {
+                    left: "100%",
+                  },
+                },
+                "&:active": {
+                  transform: "translateY(-1px) scale(1.02)",
+                },
+                "& .MuiButton-startIcon": {
+                  filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
+                },
               }}
             >
               글쓰기
@@ -1900,22 +2270,99 @@ const ChannelDetailPage = () => {
             </Box>
           )}
 
-          {/* 하단 컨트롤 영역 (MainView 스타일) */}
+          {/* 하단 컨트롤 영역 (메탈릭 테마) */}
           <Box
             sx={{
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              mt: 2,
-              height: "35px",
+              borderRadius: "16px",
+              position: "relative",
+              overflow: "hidden",
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(45, 48, 71, 0.95) 100%)"
+                  : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)",
+              border:
+                theme.palette.mode === "dark"
+                  ? "2px solid rgba(139, 92, 246, 0.25)"
+                  : "2px solid rgba(139, 92, 246, 0.15)",
+              boxShadow:
+                theme.palette.mode === "dark"
+                  ? "0 0 25px rgba(139, 92, 246, 0.2), 0 0 50px rgba(139, 92, 246, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08)"
+                  : "0 0 25px rgba(139, 92, 246, 0.15), 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)"
+                    : "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)",
+                opacity: 0.05,
+                animation: "borderGlow 5s linear infinite",
+                zIndex: 0,
+              },
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                top: "50%",
+                left: "-100%",
+                width: "200%",
+                height: "1px",
+                background:
+                  theme.palette.mode === "dark"
+                    ? "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent)"
+                    : "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent)",
+                transform: "translateY(-50%)",
+                animation: "scanLine 4s ease-in-out infinite",
+                zIndex: 1,
+                pointerEvents: "none",
+              },
             }}
           >
             {/* 왼쪽: 정렬 옵션과 추천 랭킹 버튼 - 건의사항 탭이 아닐 때만 표시 */}
-            <Box sx={{ flex: 1, display: "flex", gap: 1 }}>
+            <Box sx={{ flex: 1, display: "flex", gap: 2, position: "relative", zIndex: 2 }}>
               {currentTab !== "suggestion" && (
                 <>
                   <FormControl size="small">
-                    <Select value={sortOrder} onChange={handleSortChange}>
+                    <Select
+                      value={sortOrder}
+                      onChange={handleSortChange}
+                      sx={{
+                        borderRadius: "12px",
+                        background:
+                          theme.palette.mode === "dark"
+                            ? "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05))"
+                            : "linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.95))",
+                        border:
+                          theme.palette.mode === "dark"
+                            ? "1px solid rgba(139, 92, 246, 0.3)"
+                            : "1px solid rgba(139, 92, 246, 0.2)",
+                        boxShadow:
+                          theme.palette.mode === "dark"
+                            ? "0 4px 15px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                            : "0 4px 15px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+                        "& .MuiSelect-select": {
+                          color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
+                          fontWeight: 600,
+                          textShadow: theme.palette.mode === "dark" ? "0 1px 2px rgba(0, 0, 0, 0.3)" : "none",
+                        },
+                        "& .MuiOutlinedInput-notchedOutline": {
+                          border: "none",
+                        },
+                        "&:hover": {
+                          transform: "translateY(-1px)",
+                          boxShadow:
+                            theme.palette.mode === "dark"
+                              ? "0 6px 20px rgba(139, 92, 246, 0.3)"
+                              : "0 6px 20px rgba(139, 92, 246, 0.15)",
+                        },
+                      }}
+                    >
                       <MenuItem value="recent">최신순</MenuItem>
                       <MenuItem value="view">조회순</MenuItem>
                       <MenuItem value="recommend">추천순</MenuItem>
@@ -1923,27 +2370,64 @@ const ChannelDetailPage = () => {
                   </FormControl>
                   <Button
                     variant="contained"
-                    startIcon={<EmojiEventsIcon sx={{ fontSize: 24, color: "rgba(255, 255, 255, 0.8)" }} />}
+                    startIcon={
+                      <EmojiEventsIcon sx={{ fontSize: 24, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
+                    }
                     sx={{
-                      backgroundImage:
-                        theme.palette.mode === "dark"
-                          ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"
-                          : "linear-gradient(45deg, #ff9800, #f77d58)",
+                      borderRadius: "12px",
+                      fontWeight: 700,
+                      fontSize: "0.95rem",
+                      position: "relative",
+                      overflow: "hidden",
+                      textTransform: "none",
+                      transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                      background: recommendRankingMode
+                        ? "linear-gradient(135deg, #ef4444, #f97316, #eab308)"
+                        : "linear-gradient(135deg, #8b5cf6, #06b6d4, #22c55e)",
                       color: "white",
-                      fontWeight: "bold",
-                      borderRadius: "8px",
-                      padding: "8px 16px",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0px 4px 15px rgba(139, 92, 246, 0.4)"
-                          : "0px 4px 10px rgba(0,0,0,0.2)",
+                      border: recommendRankingMode
+                        ? theme.palette.mode === "dark"
+                          ? "2px solid rgba(239, 68, 68, 0.5)"
+                          : "2px solid rgba(239, 68, 68, 0.3)"
+                        : theme.palette.mode === "dark"
+                          ? "2px solid rgba(139, 92, 246, 0.5)"
+                          : "2px solid rgba(139, 92, 246, 0.3)",
+                      boxShadow: recommendRankingMode
+                        ? theme.palette.mode === "dark"
+                          ? "0 0 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.2)"
+                          : "0 0 20px rgba(239, 68, 68, 0.3), 0 6px 20px rgba(0, 0, 0, 0.1)"
+                        : theme.palette.mode === "dark"
+                          ? "0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2)"
+                          : "0 0 20px rgba(139, 92, 246, 0.3), 0 6px 20px rgba(0, 0, 0, 0.1)",
+                      textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        top: 0,
+                        left: "-100%",
+                        width: "100%",
+                        height: "100%",
+                        background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)",
+                        transition: "left 0.6s ease",
+                      },
                       "&:hover": {
-                        backgroundImage:
-                          theme.palette.mode === "dark"
-                            ? "linear-gradient(45deg, #7c3aed, #0891b2)"
-                            : "linear-gradient(45deg, #e65100, #bf360c)",
-                        boxShadow: theme.palette.mode === "dark" ? "0px 6px 20px rgba(139, 92, 246, 0.6)" : undefined,
-                        transform: theme.palette.mode === "dark" ? "translateY(-1px)" : undefined,
+                        transform: "translateY(-3px) scale(1.02)",
+                        background: recommendRankingMode
+                          ? "linear-gradient(135deg, #dc2626, #ea580c, #d97706)"
+                          : "linear-gradient(135deg, #7c3aed, #0891b2, #16a34a)",
+                        boxShadow: recommendRankingMode
+                          ? theme.palette.mode === "dark"
+                            ? "0 0 30px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.3)"
+                            : "0 0 30px rgba(239, 68, 68, 0.4), 0 10px 30px rgba(0, 0, 0, 0.15)"
+                          : theme.palette.mode === "dark"
+                            ? "0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(139, 92, 246, 0.3)"
+                            : "0 0 30px rgba(139, 92, 246, 0.4), 0 10px 30px rgba(0, 0, 0, 0.15)",
+                        "&::before": {
+                          left: "100%",
+                        },
+                      },
+                      "&:active": {
+                        transform: "translateY(-1px) scale(0.98)",
                       },
                     }}
                     onClick={toggleRecommendRanking}
@@ -1955,59 +2439,129 @@ const ChannelDetailPage = () => {
             </Box>
 
             {/* 가운데: 페이지네이션 */}
-            <Box sx={{ display: "flex", justifyContent: "center", flex: 1 }}>
-              <Pagination
-                pageCount={Math.ceil(currentTotal / viewCount)}
-                onPageChange={handlePageClick}
-                currentPage={currentPage}
-              />
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                flex: 1,
+                position: "relative",
+                zIndex: 2,
+              }}
+            >
+              <Box
+                sx={{
+                  borderRadius: "12px",
+                  p: 1,
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.04))"
+                      : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.9))",
+                  border:
+                    theme.palette.mode === "dark"
+                      ? "1px solid rgba(139, 92, 246, 0.2)"
+                      : "1px solid rgba(139, 92, 246, 0.15)",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 4px 15px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                      : "0 4px 15px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+                }}
+              >
+                <Pagination
+                  pageCount={Math.ceil(currentTotal / viewCount)}
+                  onPageChange={handlePageClick}
+                  currentPage={currentPage}
+                />
+              </Box>
             </Box>
 
-            {/* 오른쪽: 건의사항 탭일 때 건의하기 버튼 */}
-            <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end" }}>
-              {currentTab === "suggestion" && session?.user && (
+            {/* 오른쪽: 검색바 (건의사항 탭이 아닐 때) 또는 건의하기 버튼 (건의사항 탭일 때) */}
+            <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 2 }}>
+              {currentTab === "suggestion" && session?.user ? (
                 <Button
                   variant="contained"
-                  startIcon={<CreateIcon />}
+                  startIcon={<CreateIcon sx={{ fontSize: 22, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />}
                   onClick={() => router.push(`/write/suggestion?channel=${params?.slug || ""}`)}
                   sx={{
-                    background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
-                    color: "white",
-                    fontWeight: 600,
-                    borderRadius: "12px",
+                    borderRadius: "14px",
+                    fontWeight: 700,
+                    fontSize: "1rem",
                     px: 3,
                     py: 1.5,
+                    position: "relative",
+                    overflow: "hidden",
+                    textTransform: "none",
+                    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                    background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
+                    color: "white",
+                    border:
+                      theme.palette.mode === "dark"
+                        ? "2px solid rgba(233, 64, 87, 0.5)"
+                        : "2px solid rgba(233, 64, 87, 0.3)",
                     boxShadow:
                       theme.palette.mode === "dark"
-                        ? "0 4px 15px rgba(233, 64, 87, 0.4)"
-                        : "0 4px 12px rgba(233, 64, 87, 0.3)",
+                        ? "0 0 25px rgba(233, 64, 87, 0.4), 0 0 50px rgba(233, 64, 87, 0.2)"
+                        : "0 0 25px rgba(233, 64, 87, 0.3), 0 8px 32px rgba(0, 0, 0, 0.1)",
+                    textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
+                    "&::before": {
+                      content: '""',
+                      position: "absolute",
+                      top: 0,
+                      left: "-100%",
+                      width: "100%",
+                      height: "100%",
+                      background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
+                      transition: "left 0.6s ease",
+                    },
                     "&:hover": {
+                      transform: "translateY(-3px) scale(1.05)",
                       background: "linear-gradient(135deg, #7a1d77, #d93a4f, #e2671e)",
                       boxShadow:
                         theme.palette.mode === "dark"
-                          ? "0 6px 20px rgba(233, 64, 87, 0.5)"
-                          : "0 6px 16px rgba(233, 64, 87, 0.4)",
-                      transform: "translateY(-2px)",
+                          ? "0 0 35px rgba(233, 64, 87, 0.6), 0 0 70px rgba(233, 64, 87, 0.3)"
+                          : "0 0 35px rgba(233, 64, 87, 0.4), 0 12px 40px rgba(0, 0, 0, 0.15)",
+                      "&::before": {
+                        left: "100%",
+                      },
+                    },
+                    "&:active": {
+                      transform: "translateY(-1px) scale(1.02)",
                     },
                   }}
                 >
                   건의하기
                 </Button>
+              ) : (
+                currentTab !== "suggestion" && (
+                  <Box
+                    sx={{
+                      borderRadius: "12px",
+                      p: 1.5,
+                      background:
+                        theme.palette.mode === "dark"
+                          ? "linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.04))"
+                          : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.9))",
+                      border:
+                        theme.palette.mode === "dark"
+                          ? "1px solid rgba(139, 92, 246, 0.2)"
+                          : "1px solid rgba(139, 92, 246, 0.15)",
+                      boxShadow:
+                        theme.palette.mode === "dark"
+                          ? "0 4px 15px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+                          : "0 4px 15px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+                      maxWidth: "320px",
+                    }}
+                  >
+                    <SearchBar
+                      onSearch={handleSearch}
+                      onClearSearch={handleClearSearch}
+                      currentQuery={searchParamsState?.query || ""}
+                      currentCategory={searchParamsState?.type || "all"}
+                    />
+                  </Box>
+                )
               )}
             </Box>
           </Box>
-
-          {/* 검색바 - 건의사항 탭이 아닐 때만 표시 */}
-          {currentTab !== "suggestion" && (
-            <Box sx={{ display: "flex", justifyContent: "center", mt: 2, mb: 2 }}>
-              <SearchBar
-                onSearch={handleSearch}
-                onClearSearch={handleClearSearch}
-                currentQuery={searchParamsState?.query || ""}
-                currentCategory={searchParamsState?.type || "all"}
-              />
-            </Box>
-          )}
         </>
       )}
     </MainContainer>

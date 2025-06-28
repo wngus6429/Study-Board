@@ -63,7 +63,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       sx={{
         display: "flex",
         alignItems: "center",
-        width: "400px",
+        width: "300px",
         backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "rgba(255, 255, 255, 0.9)",
         borderRadius: 2,
         border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid rgba(0, 0, 0, 0.1)",
@@ -101,7 +101,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
         fullWidth
         variant="outlined"
         size="small"
-        placeholder="검색어를 입력하세요."
+        placeholder="검색어 입력"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={handleKeyDown}

@@ -216,12 +216,32 @@ export const getMetallicTextStyle = (theme: Theme, variant: "title" | "subtitle"
   if (variant === "title") {
     return {
       fontWeight: 800,
-      background: theme.palette.mode === "dark" ? colors.metallic.platinum.dark : colors.metallic.platinum.light,
-      WebkitBackgroundClip: "text",
-      WebkitTextFillColor: "transparent",
-      backgroundClip: "text",
-      textShadow: theme.palette.mode === "dark" ? "0 2px 8px rgba(139, 92, 246, 0.3)" : "0 2px 8px rgba(0, 0, 0, 0.1)",
-      filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1))",
+      color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
+      textShadow:
+        theme.palette.mode === "dark"
+          ? "0 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(139, 92, 246, 0.5)"
+          : "0 2px 4px rgba(255, 255, 255, 0.9), 0 1px 2px rgba(0, 0, 0, 0.3)",
+      position: "relative" as const,
+      "&::before": {
+        content: '""',
+        position: "absolute" as const,
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background:
+          theme.palette.mode === "dark"
+            ? "linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.1) 50%, transparent 70%)"
+            : "linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.05) 50%, transparent 70%)",
+        animation: "titleShine 3s ease-in-out infinite",
+        pointerEvents: "none" as const,
+        borderRadius: "8px",
+      },
+      "@keyframes titleShine": {
+        "0%": { transform: "translateX(-100%)" },
+        "50%": { transform: "translateX(100%)" },
+        "100%": { transform: "translateX(-100%)" },
+      },
     };
   } else {
     return {

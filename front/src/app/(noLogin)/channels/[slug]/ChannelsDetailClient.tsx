@@ -761,11 +761,87 @@ const ChannelDetailPage = () => {
 
               <Box>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                  <MetallicTitle variant="h5">{channelData.channel_name}</MetallicTitle>
+                  {/* 채널 이름 컨테이너 - 빛나는 배경 효과 */}
+                  <Box
+                    sx={{
+                      position: "relative",
+                      padding: "8px 16px",
+                      borderRadius: "12px",
+                      background:
+                        theme.palette.mode === "dark"
+                          ? "linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(45, 48, 71, 0.9) 100%)"
+                          : "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.95) 100%)",
+                      border:
+                        theme.palette.mode === "dark"
+                          ? "2px solid rgba(139, 92, 246, 0.3)"
+                          : "2px solid rgba(139, 92, 246, 0.2)",
+                      boxShadow:
+                        theme.palette.mode === "dark"
+                          ? "0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
+                          : "0 0 20px rgba(139, 92, 246, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+                      "&::before": {
+                        content: '""',
+                        position: "absolute",
+                        top: "-2px",
+                        left: "-2px",
+                        right: "-2px",
+                        bottom: "-2px",
+                        background:
+                          theme.palette.mode === "dark"
+                            ? "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)"
+                            : "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)",
+                        borderRadius: "14px",
+                        opacity: 0.6,
+                        animation: "borderGlow 3s linear infinite",
+                        zIndex: -1,
+                      },
+                      "&::after": {
+                        content: '""',
+                        position: "absolute",
+                        top: "50%",
+                        left: "-50%",
+                        width: "200%",
+                        height: "2px",
+                        background:
+                          theme.palette.mode === "dark"
+                            ? "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.8), transparent)"
+                            : "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.6), transparent)",
+                        transform: "translateY(-50%)",
+                        animation: "scanLine 2s ease-in-out infinite",
+                        zIndex: 1,
+                        pointerEvents: "none",
+                      },
+                      "@keyframes borderGlow": {
+                        "0%": {
+                          backgroundPosition: "0% 50%",
+                          filter: "hue-rotate(0deg)",
+                        },
+                        "50%": {
+                          backgroundPosition: "100% 50%",
+                          filter: "hue-rotate(180deg)",
+                        },
+                        "100%": {
+                          backgroundPosition: "0% 50%",
+                          filter: "hue-rotate(360deg)",
+                        },
+                      },
+                      "@keyframes scanLine": {
+                        "0%": { left: "-50%", opacity: 0 },
+                        "50%": { left: "50%", opacity: 1 },
+                        "100%": { left: "150%", opacity: 0 },
+                      },
+                    }}
+                  >
+                    <MetallicTitle variant="h5" sx={{ position: "relative", zIndex: 2 }}>
+                      {channelData.channel_name}
+                    </MetallicTitle>
+                  </Box>
+
                   <VerifiedIcon
                     sx={{
                       color: theme.palette.mode === "dark" ? "#22d3ee" : "#06b6d4",
                       fontSize: 20,
+                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
                     }}
                   />
                   {channelData.story_count > 50 && (
@@ -777,6 +853,7 @@ const ChannelDetailPage = () => {
                         background: "linear-gradient(135deg, #ff6b6b, #ff8e53)",
                         color: "#ffffff",
                         fontWeight: "bold",
+                        boxShadow: "0 4px 12px rgba(255, 107, 107, 0.4)",
                       }}
                     />
                   )}

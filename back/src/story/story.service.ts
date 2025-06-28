@@ -259,7 +259,7 @@ export class StoryService {
    * @description 다양한 검색 타입으로 게시글을 검색합니다.
    * @param offset 시작 위치 (기본값: 0)
    * @param limit 조회할 게시글 수 (기본값: 10)
-   * @param type 검색 타입 (all, title_content, title, content, author, comment)
+   * @param type 검색 타입 (title, content, author, comment)
    * @param query 검색어
    * @param category 카테고리 필터 (선택사항)
    * @param channelId 채널 ID 필터 (선택사항)
@@ -268,7 +268,7 @@ export class StoryService {
   async searchStory(
     offset = 0,
     limit = 10,
-    type: string = 'all',
+    type: string = 'title',
     query: string,
     category?: string,
     channelId?: number,
@@ -286,13 +286,7 @@ export class StoryService {
 
     // 검색 타입에 따른 기본 조건 구성
     let baseConditions: any;
-    if (type === 'title_content' || type === 'all') {
-      // 제목 또는 내용 검색
-      baseConditions = [
-        { title: ILike(likeQuery), isNotice: false },
-        { content: ILike(likeQuery), isNotice: false },
-      ];
-    } else if (type === 'title') {
+    if (type === 'title') {
       // 제목 검색
       baseConditions = { title: ILike(likeQuery), isNotice: false };
     } else if (type === 'content') {
@@ -423,11 +417,8 @@ export class StoryService {
         throw new Error('댓글 검색 중 오류가 발생했습니다.');
       }
     } else {
-      // 정의되지 않은 타입의 경우 기본적으로 제목과 내용 조건 사용
-      baseConditions = [
-        { title: ILike(likeQuery), isNotice: false },
-        { content: ILike(likeQuery), isNotice: false },
-      ];
+      // 정의되지 않은 타입의 경우 기본적으로 제목 검색
+      baseConditions = { title: ILike(likeQuery), isNotice: false };
     }
 
     // 카테고리 필터 병합: category 값이 있고 'all'이 아닐 경우 조건에 추가
@@ -507,7 +498,7 @@ export class StoryService {
    * @description 검색 기능을 구현합니다.
    * @param offset 시작 위치 (기본값: 0)
    * @param limit 조회할 게시글 수 (기본값: 10)
-   * @param type 검색 타입 (all, title_content, title, content, author, comment)
+   * @param type 검색 타입 (title, content, author, comment)
    * @param query 검색어
    * @param category 카테고리 필터 (선택사항)
    * @param channelId 채널 ID 필터 (선택사항)
@@ -516,7 +507,7 @@ export class StoryService {
   async cardSearchStory(
     offset = 0,
     limit = 10,
-    type: string = 'all',
+    type: string = 'title',
     query: string,
     category?: string,
     channelId?: number,
@@ -534,13 +525,7 @@ export class StoryService {
 
     // 검색 옵션에 따른 기본 조건 구성 (카테고리 조건은 나중에 병합)
     let baseConditions: any;
-    if (type === 'title_content' || type === 'all') {
-      // 제목 OR 내용 검색 조건
-      baseConditions = [
-        { title: ILike(likeQuery), isNotice: false },
-        { content: ILike(likeQuery), isNotice: false },
-      ];
-    } else if (type === 'title') {
+    if (type === 'title') {
       // 제목 검색 조건
       baseConditions = { title: ILike(likeQuery), isNotice: false };
     } else if (type === 'content') {
@@ -671,11 +656,8 @@ export class StoryService {
         throw new Error('댓글 검색 중 오류가 발생했습니다.');
       }
     } else {
-      // 정의되지 않은 타입의 경우 기본적으로 제목과 내용 조건 사용
-      baseConditions = [
-        { title: ILike(likeQuery), isNotice: false },
-        { content: ILike(likeQuery), isNotice: false },
-      ];
+      // 정의되지 않은 타입의 경우 기본적으로 제목 검색
+      baseConditions = { title: ILike(likeQuery), isNotice: false };
     }
 
     // 카테고리 필터 병합: category 값이 있고 'all'이 아닐 경우 조건에 추가

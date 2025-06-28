@@ -154,7 +154,7 @@ export class StoryTransactionService {
   async searchStoryOptimized(
     offset = 0,
     limit = 10,
-    type: string = 'all',
+    type: string = 'title',
     query: string,
     category?: string,
     channelId?: number,
@@ -168,21 +168,21 @@ export class StoryTransactionService {
     total: number;
   }> {
     return this.dataSource.transaction(async (manager) => {
-      console.log('🔍 [searchStoryOptimized] 트랜잭션 시작:', {
+      console.log('🔍 [searchStoryOptimized] 트랜잭션 검색 시작:', {
         type,
         query,
         category,
         channelId,
+        offset,
+        limit,
       });
 
       const likeQuery = `%${query}%`;
 
-      // 기본 쿼리빌더 구성
       const baseQuery = manager
         .createQueryBuilder(Story, 'story')
         .leftJoinAndSelect('story.User', 'user')
-        .leftJoinAndSelect('story.StoryImage', 'image')
-        .leftJoin('story.Channel', 'channel')
+        .leftJoinAndSelect('story.StoryImage', 'storyImage')
         .where('story.isNotice = :isNotice', { isNotice: false });
 
       // 검색 타입에 따른 조건 분기
@@ -211,13 +211,8 @@ export class StoryTransactionService {
             .andWhere(`story.id IN (${subQuery.getQuery()})`)
             .setParameters(subQuery.getParameters());
           break;
-        case 'title_content':
-        case 'all':
         default:
-          baseQuery.andWhere(
-            '(story.title ILIKE :query OR story.content ILIKE :query)',
-            { query: likeQuery },
-          );
+          baseQuery.andWhere('story.title ILIKE :query', { query: likeQuery });
           break;
       }
 

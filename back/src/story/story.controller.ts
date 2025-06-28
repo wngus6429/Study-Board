@@ -143,7 +143,7 @@ export class StoryController {
    * @description 검색어와 검색 타입에 따라 게시글을 검색합니다.
    * @param offset 시작 위치
    * @param limit 조회할 게시글 수
-   * @param type 검색 타입 (all, title_content, title, content, author, comment)
+   * @param type 검색 타입 (title, content, author, comment)
    * @param query 검색어
    * @param category 카테고리 필터 (선택사항)
    * @param channelId 채널 ID 필터 (선택사항)
@@ -153,7 +153,7 @@ export class StoryController {
   async searchStories(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
-    @Query('type') type: string = 'all',
+    @Query('type') type: string = 'title',
     @Query('query') query: string,
     @Query('category') category?: string,
     @Query('channelId') channelId?: number,
@@ -183,7 +183,7 @@ export class StoryController {
    * @description 검색어와 검색 타입에 따라 게시글을 카드 형태로 검색합니다.
    * @param offset 시작 위치
    * @param limit 조회할 게시글 수
-   * @param type 검색 타입 (all, title_content, title, content, author, comment)
+   * @param type 검색 타입 (title, content, author, comment)
    * @param query 검색어
    * @param category 카테고리 필터 (선택사항)
    * @param channelId 채널 ID 필터 (선택사항)
@@ -193,7 +193,7 @@ export class StoryController {
   async cardSearchStories(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
-    @Query('type') type: string = 'all',
+    @Query('type') type: string = 'title',
     @Query('query') query: string,
     @Query('category') category?: string,
     @Query('channelId') channelId?: number,

@@ -237,7 +237,7 @@ export class StorySqlService {
   async searchStory(
     offset = 0,
     limit = 10,
-    type: string = 'all',
+    type: string = 'title',
     query: string,
     category?: string,
     channelId?: number,
@@ -252,12 +252,6 @@ export class StorySqlService {
 
     // 검색 타입에 따른 조건 설정
     switch (type) {
-      case 'title_content':
-      case 'all':
-        searchCondition = `(s.title ILIKE $${paramIndex} OR s.content ILIKE $${paramIndex + 1})`;
-        params.push(likeQuery, likeQuery);
-        paramIndex += 2;
-        break;
       case 'title':
         searchCondition = `s.title ILIKE $${paramIndex}`;
         params.push(likeQuery);
@@ -274,9 +268,9 @@ export class StorySqlService {
         paramIndex++;
         break;
       default:
-        searchCondition = `(s.title ILIKE $${paramIndex} OR s.content ILIKE $${paramIndex + 1})`;
-        params.push(likeQuery, likeQuery);
-        paramIndex += 2;
+        searchCondition = `s.title ILIKE $${paramIndex}`;
+        params.push(likeQuery);
+        paramIndex++;
     }
 
     // 기본 WHERE 조건

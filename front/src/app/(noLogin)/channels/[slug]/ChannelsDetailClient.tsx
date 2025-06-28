@@ -1993,8 +1993,7 @@ const ChannelDetailPage = () => {
               "& .MuiTab-root": {
                 fontWeight: 700,
                 fontSize: "1.1rem",
-                py: 2.5,
-                px: 3,
+                py: 1,
                 position: "relative",
                 overflow: "hidden",
                 borderRadius: "12px",
@@ -2555,7 +2554,7 @@ const ChannelDetailPage = () => {
                       onSearch={handleSearch}
                       onClearSearch={handleClearSearch}
                       currentQuery={searchParamsState?.query || ""}
-                      currentCategory={searchParamsState?.type || "all"}
+                      currentCategory={searchParamsState?.type || "title"}
                     />
                   </Box>
                 )

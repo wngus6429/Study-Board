@@ -13,8 +13,6 @@ interface SearchBarProps {
 }
 
 const SEARCH_OPTIONS = [
-  { label: "전체", value: "all" },
-  { label: "제목/내용", value: "title_content" },
   { label: "제목", value: "title" },
   { label: "내용", value: "content" },
   { label: "글쓴이", value: "author" },
@@ -25,7 +23,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
   onClearSearch,
   currentQuery = "",
-  currentCategory = "all",
+  currentCategory = "title",
 }) => {
   const [query, setQuery] = useState(currentQuery);
   const [category, setCategory] = useState(currentCategory);
@@ -45,7 +43,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
   // 검색 초기화 함수
   const handleClearSearch = () => {
     setQuery("");
-    setCategory("all");
+    setCategory("title");
     if (onClearSearch) {
       onClearSearch();
     }

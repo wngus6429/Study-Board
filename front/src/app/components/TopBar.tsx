@@ -186,31 +186,44 @@ export default function MenuBar() {
 
   return (
     <div className={styles.container}>
-      <Link
-        href="/channels"
-        aria-label="Home"
-        className={styles.title}
-        onClick={() => setCurrentPage(1)}
+      {/* 채널 이름과 다크모드 토글을 하나의 컨테이너로 묶음 */}
+      <div
         style={{
-          fontSize: "2rem",
-          fontWeight: "bold",
-          color: theme.palette.mode === "dark" ? "#A78BFA" : "#7C3AED",
-          padding: "0.5rem 1rem",
-          borderRadius: "12px",
-          textDecoration: "none",
-          transition: "all 0.4s ease",
-          display: "inline-block",
-          letterSpacing: "1px",
-          cursor: "pointer",
-          textShadow:
-            theme.palette.mode === "dark"
-              ? "0 0 20px rgba(167, 139, 250, 0.4), 0 2px 4px rgba(0,0,0,0.3)"
-              : "0 0 15px rgba(124, 58, 237, 0.3), 0 2px 4px rgba(0,0,0,0.1)",
-          filter: theme.palette.mode === "dark" ? "brightness(1.1)" : "brightness(1)",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
         }}
       >
-        Hobby Channel
-      </Link>
+        <Link
+          href="/channels"
+          aria-label="Home"
+          className={styles.title}
+          onClick={() => setCurrentPage(1)}
+          style={{
+            fontSize: "2rem",
+            fontWeight: "bold",
+            color: theme.palette.mode === "dark" ? "#A78BFA" : "#7C3AED",
+            padding: "0.5rem 1rem",
+            borderRadius: "12px",
+            textDecoration: "none",
+            transition: "all 0.4s ease",
+            display: "inline-block",
+            letterSpacing: "1px",
+            cursor: "pointer",
+            textShadow:
+              theme.palette.mode === "dark"
+                ? "0 0 20px rgba(167, 139, 250, 0.4), 0 2px 4px rgba(0,0,0,0.3)"
+                : "0 0 15px rgba(124, 58, 237, 0.3), 0 2px 4px rgba(0,0,0,0.1)",
+            filter: theme.palette.mode === "dark" ? "brightness(1.1)" : "brightness(1)",
+          }}
+        >
+          Hobby Channel
+        </Link>
+
+        {/* 다크모드 토글 버튼 - 채널 이름 바로 오른쪽에 위치 */}
+        <DarkModeToggle />
+      </div>
+
       <Box
         sx={{
           width: 64,
@@ -462,9 +475,6 @@ export default function MenuBar() {
             프로필
           </Button>
         )}
-
-        {/* 다크모드 토글 버튼 */}
-        <DarkModeToggle />
 
         {/* 설정 메뉴 - 로그인한 사용자에게만 표시 */}
         {user?.user && (

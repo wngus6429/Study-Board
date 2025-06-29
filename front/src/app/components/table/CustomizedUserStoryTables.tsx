@@ -90,9 +90,9 @@ const CustomizedUserTables = ({
         >
           <TableHead>
             <TableRow>
-              <StyledTableCell sx={{ width: "120px", textAlign: "center" }}>채널</StyledTableCell>
+              <StyledTableCell sx={{ width: "170px", textAlign: "center" }}>채널</StyledTableCell>
               <StyledTableCell sx={{ width: "200px" }}>제목</StyledTableCell>
-              <StyledTableCell sx={{ width: "150px", textAlign: "right" }}>등록일</StyledTableCell>
+              <StyledTableCell sx={{ width: "100px", textAlign: "right" }}>등록일</StyledTableCell>
               {showDeleteButton && <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>삭제</StyledTableCell>}
             </TableRow>
           </TableHead>

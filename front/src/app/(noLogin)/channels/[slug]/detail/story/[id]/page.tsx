@@ -22,6 +22,7 @@ import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import React, { ReactNode, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -1173,24 +1174,27 @@ export default function page({ params }: { params: { id: string; slug: string } 
           </CardContent>
         </Card>
       )}
-      {detail && (
-        <RecommendButtonsWithCount
-          like={detail?.like_count} // 초기 추천 수
-          dislike={detail?.dislike_count} // 초기 비추천 수
-          likeFunc={(vote: "like" | "dislike") => {
-            if (!session?.user?.id) {
-              showMessage("로그인 해야합니다.", "error");
-              return;
-            }
-            // 자신이 작성한 글인지 체크
-            if (detail?.User?.id === session?.user?.id) {
-              showMessage("자신이 작성한 글에는 추천/비추천을 할 수 없습니다.", "warning");
-              return;
-            }
-            likeOrUnlike.mutate({ storyId: detail?.id, vote }); // API 호출
-          }}
-        />
-      )}
+      {detail &&
+        typeof window !== "undefined" &&
+        createPortal(
+          <RecommendButtonsWithCount
+            like={detail?.like_count} // 초기 추천 수
+            dislike={detail?.dislike_count} // 초기 비추천 수
+            likeFunc={(vote: "like" | "dislike") => {
+              if (!session?.user?.id) {
+                showMessage("로그인 해야합니다.", "error");
+                return;
+              }
+              // 자신이 작성한 글인지 체크
+              if (detail?.User?.id === session?.user?.id) {
+                showMessage("자신이 작성한 글에는 추천/비추천을 할 수 없습니다.", "warning");
+                return;
+              }
+              likeOrUnlike.mutate({ storyId: detail?.id, vote }); // API 호출
+            }}
+          />,
+          document.body
+        )}
 
       {/* 이미지 뷰어 다이얼로그 */}
       <Dialog

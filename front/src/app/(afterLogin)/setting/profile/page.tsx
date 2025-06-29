@@ -245,6 +245,26 @@ function UserProfileEdit() {
   const [verifyPassword, setVerifyPassword] = useState<boolean>(false);
   const [verifyInputPassword, setVerifyInputPassword] = useState<string>("");
 
+  // 비밀번호 변경 상태 초기화 함수
+  const resetPasswordChangeState = () => {
+    setVerifyPassword(false);
+    setVerifyInputPassword("");
+    setIsVerified(false);
+    setNewPassword("");
+    setConfirmPassword("");
+  };
+
+  // 비밀번호 변경 버튼 클릭 핸들러
+  const handlePasswordChangeToggle = () => {
+    if (verifyPassword || isVerified) {
+      // 현재 비밀번호 변경 모드이면 전체 초기화
+      resetPasswordChangeState();
+    } else {
+      // 비밀번호 변경 모드 시작
+      setVerifyPassword(true);
+    }
+  };
+
   // 현재 비밀번호 검증 함수 (API 엔드포인트는 실제 상황에 맞게 수정하세요)
   const handleVerifyCurrentPassword = async () => {
     try {
@@ -258,7 +278,8 @@ function UserProfileEdit() {
       );
       if (res.data) {
         setIsVerified(true);
-        setVerifyPassword(false);
+        setVerifyPassword(false); // 원래 비밀번호 입력 단계 숨김
+        setVerifyInputPassword(""); // 입력값 초기화
         showMessage("현재 비밀번호 확인 완료", "success");
       } else {
         showMessage("현재 비밀번호가 일치하지 않습니다.", "error");
@@ -351,7 +372,8 @@ function UserProfileEdit() {
         { withCredentials: true }
       );
       showMessage("비밀번호 변경 완료", "success");
-      setIsVerified(false);
+      // 모든 비밀번호 관련 상태 초기화
+      resetPasswordChangeState();
     } catch (error) {
       showMessage("비밀번호 변경 실패", "error");
     }
@@ -587,9 +609,9 @@ function UserProfileEdit() {
               color="error"
               fullWidth
               sx={{ py: 1.5, fontWeight: "bold" }}
-              onClick={() => setVerifyPassword(!verifyPassword)}
+              onClick={handlePasswordChangeToggle}
             >
-              {verifyPassword ? "비밀번호 변경 취소" : "비밀번호 변경"}
+              {verifyPassword || isVerified ? "비밀번호 변경 취소" : "비밀번호 변경"}
             </Button>
 
             {verifyPassword && (

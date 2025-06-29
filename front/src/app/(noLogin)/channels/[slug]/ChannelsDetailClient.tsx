@@ -2332,6 +2332,7 @@ const ChannelDetailPage = () => {
                       value={sortOrder}
                       onChange={handleSortChange}
                       sx={{
+                        ml: 2,
                         borderRadius: "12px",
                         background:
                           theme.palette.mode === "dark"
@@ -2384,13 +2385,7 @@ const ChannelDetailPage = () => {
                         ? "linear-gradient(135deg, #ef4444, #f97316, #eab308)"
                         : "linear-gradient(135deg, #8b5cf6, #06b6d4, #22c55e)",
                       color: "white",
-                      border: recommendRankingMode
-                        ? theme.palette.mode === "dark"
-                          ? "2px solid rgba(239, 68, 68, 0.5)"
-                          : "2px solid rgba(239, 68, 68, 0.3)"
-                        : theme.palette.mode === "dark"
-                          ? "2px solid rgba(139, 92, 246, 0.5)"
-                          : "2px solid rgba(139, 92, 246, 0.3)",
+
                       boxShadow: recommendRankingMode
                         ? theme.palette.mode === "dark"
                           ? "0 0 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.2)"

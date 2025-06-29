@@ -2,7 +2,7 @@
   display: flex;
   justify-content: center; /* 중앙 정렬 */
   min-height: calc(100vh - 70px); /* TopBar 높이를 제외한 화면 높이 */
-  position: relative;
+  /* position: relative; 제거 - fixed position 요소들의 positioning 방해 */
   width: 100%;
 }
 

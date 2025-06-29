@@ -177,7 +177,7 @@ const ChannelNotificationDropdown = () => {
         slotProps={{
           paper: {
             sx: {
-              width: 350,
+              width: 400,
               maxHeight: 500,
               overflow: "auto",
             },

@@ -16,39 +16,10 @@ import usePageStore from "../store/pageStore";
 import NotificationDropdown from "./NotificationDropdown";
 import ChannelNotificationDropdown from "./ChannelNotificationDropdown";
 import DarkModeToggle from "./DarkModeToggle";
-import DisplaySettingsIcon from "@mui/icons-material/DisplaySettings";
 import MessageIcon from "@mui/icons-material/Message";
 import HistoryIcon from "@mui/icons-material/History";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
-
-// const SearchBox = styled("div")(({ theme }) => ({
-//   position: "relative",
-//   borderRadius: theme.shape.borderRadius,
-//   background: `linear-gradient(45deg, ${alpha(theme.palette.common.white, 0.15)}, ${alpha(theme.palette.common.white, 0.25)})`,
-//   "&:hover": {
-//     background: `linear-gradient(45deg, ${alpha(theme.palette.common.white, 0.25)}, ${alpha(theme.palette.common.white, 0.35)})`,
-//   },
-//   marginLeft: 0,
-//   width: "100%",
-//   [theme.breakpoints.up("sm")]: {
-//     marginLeft: theme.spacing(1),
-//     width: "auto",
-//   },
-// }));
-
-// const StyledInputBase = styled(InputBase)(({ theme }) => ({
-//   color: "inherit",
-//   "& .MuiInputBase-input": {
-//     padding: theme.spacing(1, 1, 1, 0),
-//     paddingLeft: `calc(1em + ${theme.spacing(4)})`,
-//     transition: theme.transitions.create("width"),
-//     width: "100%",
-//     [theme.breakpoints.up("md")]: {
-//       width: "20ch",
-//     },
-//   },
-// }));
 
 export default function MenuBar() {
   const router = useRouter();

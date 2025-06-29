@@ -43,8 +43,8 @@ body {
 
   /* 레이아웃 안정성을 위한 속성들 */
   will-change: auto;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  /* transform: translateZ(0); 제거 - fixed position 요소들의 positioning 방해 */
+  /* backface-visibility: hidden; 제거 - positioning context 문제 방지 */
 }
 
 /* 스크롤바 스타일 (라이트모드 기본) */
@@ -95,9 +95,9 @@ body {
 .content_wrapper,
 .main_content {
   will-change: auto;
-  contain: layout;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  /* contain: layout; 제거 - fixed position 요소들의 positioning 방해 */
+  /* transform: translateZ(0); 제거 - stacking context 문제 방지 */
+  /* backface-visibility: hidden; 제거 - positioning context 문제 방지 */
 }
 
 a {

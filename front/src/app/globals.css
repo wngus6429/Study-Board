@@ -36,15 +36,9 @@ body {
   font-family: "Inter", "Roboto", "Helvetica", "Arial", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* transition 제거로 레이아웃 안정화 */
-  /* transition:
-    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-    color 0.3s cubic-bezier(0.4, 0, 0.2, 1); */
 
   /* 레이아웃 안정성을 위한 속성들 */
   will-change: auto;
-  /* transform: translateZ(0); 제거 - fixed position 요소들의 positioning 방해 */
-  /* backface-visibility: hidden; 제거 - positioning context 문제 방지 */
 }
 
 /* 스크롤바 스타일 (라이트모드 기본) */

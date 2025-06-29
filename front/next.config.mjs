@@ -12,6 +12,15 @@ const nextConfig = {
       },
     ];
   },
+  // 컴파일시 console.log 제거, error는 냅둠
+  compiler: {
+    removeConsole:
+      process.env.NODE_ENV === "production"
+        ? {
+            exclude: ["error"], // error는 유지
+          }
+        : false,
+  },
 };
 
 export default nextConfig;

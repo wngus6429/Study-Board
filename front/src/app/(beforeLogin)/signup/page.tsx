@@ -13,7 +13,8 @@ import {
   Container,
   Alert,
   useTheme,
-} from "@mui/material/";
+  CircularProgress,
+} from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
@@ -34,11 +35,55 @@ const SignupPage = (): ReactNode => {
     setChecked(!checked);
   };
 
+  // 닉네임 중복 확인
+  const handleNicknameCheck = async (): Promise<void> => {
+    if (!nickname.trim()) {
+      showMessage("닉네임을 입력해주세요.", "warning");
+      return;
+    }
+
+    setNicknameCheckLoading(true);
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/check-nickname/${encodeURIComponent(nickname)}`
+      );
+
+      const { isAvailable, message } = response.data;
+      setNicknameAvailable(isAvailable);
+      setNicknameChecked(true);
+      setNicknameCheckMessage(message);
+
+      showMessage(message, isAvailable ? "success" : "error");
+    } catch (error: any) {
+      console.error("닉네임 중복 확인 실패:", error);
+      setNicknameAvailable(false);
+      setNicknameChecked(false);
+      setNicknameCheckMessage("중복 확인 중 오류가 발생했습니다.");
+      showMessage("중복 확인 중 오류가 발생했습니다.", "error");
+    } finally {
+      setNicknameCheckLoading(false);
+    }
+  };
+
+  // 닉네임 변경 시 중복 확인 상태 초기화
+  const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
+    setNickname(e.target.value);
+    setNicknameChecked(false);
+    setNicknameAvailable(false);
+    setNicknameCheckMessage("");
+  };
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [rePassword, setRePassword] = useState<string>("");
   const [nickname, setNickname] = useState<string>("");
   const [error, setError] = useState<string>("");
+
+  // 닉네임 중복 확인 관련
+  const [nicknameChecked, setNicknameChecked] = useState<boolean>(false);
+  const [nicknameAvailable, setNicknameAvailable] = useState<boolean>(false);
+  const [nicknameCheckLoading, setNicknameCheckLoading] = useState<boolean>(false);
+  const [nicknameCheckMessage, setNicknameCheckMessage] = useState<string>("");
 
   // 비밀번호 일치 여부 확인
   const isPasswordMismatch = password !== "" && rePassword !== "" && password !== rePassword;
@@ -52,6 +97,10 @@ const SignupPage = (): ReactNode => {
     }
     if (!checked) {
       showMessage("약관에 동의해주세요.", "info");
+      return;
+    }
+    if (!nicknameChecked || !nicknameAvailable) {
+      showMessage("닉네임 중복 확인을 해주세요.", "warning");
       return;
     }
     const data = { user_email: email, password, nickname };
@@ -180,40 +229,109 @@ const SignupPage = (): ReactNode => {
                   />
                 </Grid>
                 <Grid size={12}>
-                  <TextField
-                    required
-                    autoFocus
-                    fullWidth
-                    type="text"
-                    id="nickname"
-                    name="nickname"
-                    label="닉네임"
-                    value={nickname}
-                    onChange={(e) => setNickname(e.target.value)}
-                    sx={{
-                      "& .MuiOutlinedInput-root": {
-                        backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
-                        "& fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(0, 0, 0, 0.2)",
+                  <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
+                    <TextField
+                      required
+                      autoFocus
+                      fullWidth
+                      type="text"
+                      id="nickname"
+                      name="nickname"
+                      label="닉네임"
+                      value={nickname}
+                      onChange={handleNicknameChange}
+                      error={nicknameChecked && !nicknameAvailable}
+                      helperText={nicknameCheckMessage}
+                      sx={{
+                        "& .MuiOutlinedInput-root": {
+                          backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
+                          "& fieldset": {
+                            borderColor:
+                              nicknameChecked && !nicknameAvailable
+                                ? "#f44336"
+                                : nicknameChecked && nicknameAvailable
+                                  ? "#4caf50"
+                                  : theme.palette.mode === "dark"
+                                    ? "rgba(139, 92, 246, 0.5)"
+                                    : "rgba(0, 0, 0, 0.2)",
+                          },
+                          "&:hover fieldset": {
+                            borderColor:
+                              nicknameChecked && !nicknameAvailable
+                                ? "#f44336"
+                                : nicknameChecked && nicknameAvailable
+                                  ? "#4caf50"
+                                  : theme.palette.mode === "dark"
+                                    ? "rgba(139, 92, 246, 0.8)"
+                                    : "#1976d2",
+                          },
+                          "&.Mui-focused fieldset": {
+                            borderColor:
+                              nicknameChecked && !nicknameAvailable
+                                ? "#f44336"
+                                : nicknameChecked && nicknameAvailable
+                                  ? "#4caf50"
+                                  : theme.palette.mode === "dark"
+                                    ? "rgba(139, 92, 246, 1)"
+                                    : "#1976d2",
+                          },
                         },
-                        "&:hover fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
+                        "& .MuiInputLabel-root": {
+                          color:
+                            nicknameChecked && !nicknameAvailable
+                              ? "#f44336"
+                              : theme.palette.mode === "dark"
+                                ? "rgba(255, 255, 255, 0.7)"
+                                : "rgba(0, 0, 0, 0.6)",
+                          "&.Mui-focused": {
+                            color:
+                              nicknameChecked && !nicknameAvailable
+                                ? "#f44336"
+                                : theme.palette.mode === "dark"
+                                  ? "rgba(139, 92, 246, 1)"
+                                  : "#1976d2",
+                          },
                         },
-                        "&.Mui-focused fieldset": {
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
+                        "& .MuiOutlinedInput-input": {
+                          color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
                         },
-                      },
-                      "& .MuiInputLabel-root": {
-                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "rgba(0, 0, 0, 0.6)",
-                        "&.Mui-focused": {
-                          color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
+                        "& .MuiFormHelperText-root": {
+                          color:
+                            nicknameChecked && !nicknameAvailable
+                              ? "#f44336"
+                              : nicknameChecked && nicknameAvailable
+                                ? "#4caf50"
+                                : theme.palette.mode === "dark"
+                                  ? "rgba(255, 255, 255, 0.7)"
+                                  : "rgba(0, 0, 0, 0.6)",
+                          fontWeight: "500",
                         },
-                      },
-                      "& .MuiOutlinedInput-input": {
-                        color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
-                      },
-                    }}
-                  />
+                      }}
+                    />
+                    <Button
+                      variant="outlined"
+                      onClick={handleNicknameCheck}
+                      disabled={!nickname.trim() || nicknameCheckLoading}
+                      sx={{
+                        minWidth: "100px",
+                        height: "56px",
+                        borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.7)" : "#1976d2",
+                        color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1976d2",
+                        "&:hover": {
+                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1565c0",
+                          backgroundColor:
+                            theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(25, 118, 210, 0.04)",
+                        },
+                        "&:disabled": {
+                          borderColor:
+                            theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(25, 118, 210, 0.3)",
+                          color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.26)",
+                        },
+                      }}
+                    >
+                      {nicknameCheckLoading ? <CircularProgress size={20} /> : "중복확인"}
+                    </Button>
+                  </Box>
                 </Grid>
                 <Grid size={12}>
                   <TextField

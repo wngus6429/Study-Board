@@ -29,6 +29,13 @@ function UserProfileEdit() {
   const [profileImage, setProfileImage] = useState<any>(null);
   const [previewImage, setPreviewImage] = useState<any>(null);
   const { showMessage } = useMessage((state) => state);
+
+  // 닉네임 중복 확인 관련
+  const [nicknameChecked, setNicknameChecked] = useState<boolean>(false);
+  const [nicknameAvailable, setNicknameAvailable] = useState<boolean>(false);
+  const [nicknameCheckLoading, setNicknameCheckLoading] = useState<boolean>(false);
+  const [nicknameCheckMessage, setNicknameCheckMessage] = useState<string>("");
+  const [originalNickname, setOriginalNickname] = useState<string>(""); // 기존 닉네임 저장용
   const theme = useTheme();
 
   const router = useRouter();
@@ -147,11 +154,16 @@ function UserProfileEdit() {
         : null;
       setPreviewImage(profileImageUrl);
       setNickname(userDetail.nickname);
+      setOriginalNickname(userDetail.nickname); // 원래 닉네임 저장
     }
   }, [userDetail]);
 
   const handleNicknameChange = (event: any) => {
     setNickname(event.target.value);
+    // 닉네임이 변경되면 중복 확인 상태 초기화
+    setNicknameChecked(false);
+    setNicknameAvailable(false);
+    setNicknameCheckMessage("");
   };
 
   const handleImageChange = (event: any) => {
@@ -202,14 +214,56 @@ function UserProfileEdit() {
     },
   });
 
+  // 프로필 저장 핸들러
+  const handleProfileSave = async () => {
+    // 닉네임이 변경된 경우 먼저 중복 확인
+    if (nickname !== originalNickname) {
+      if (!nickname.trim()) {
+        showMessage("닉네임을 입력해주세요.", "warning");
+        return;
+      }
+
+      // 닉네임 중복 확인을 먼저 수행
+      try {
+        setNicknameCheckLoading(true);
+        const response = await axios.get(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/check-nickname/${encodeURIComponent(nickname)}`
+        );
+
+        const { isAvailable, message } = response.data;
+
+        if (!isAvailable) {
+          showMessage(message, "error");
+          setNicknameAvailable(false);
+          setNicknameChecked(true);
+          setNicknameCheckMessage(message);
+          return; // 중복이면 저장 중단
+        }
+
+        // 사용 가능한 닉네임이면 상태 업데이트
+        setNicknameAvailable(true);
+        setNicknameChecked(true);
+        setNicknameCheckMessage(message);
+      } catch (error: any) {
+        console.error("닉네임 중복 확인 실패:", error);
+        showMessage("중복 확인 중 오류가 발생했습니다.", "error");
+        return;
+      } finally {
+        setNicknameCheckLoading(false);
+      }
+    }
+
+    // 닉네임 확인이 완료되었거나 변경되지 않았으면 저장 진행
+    mutation.mutate();
+  };
+
   const mutation = useMutation({
-    mutationFn: async (e: FormEvent) => {
+    mutationFn: async () => {
       if (!session?.user.id) {
         showMessage("로그인 해라", "error");
         return;
       }
       if (session != null) {
-        e.preventDefault();
         // FormData 객체에 닉네임과 프로필 이미지 추가
         const formData = new FormData();
         formData.append("nickname", nickname);
@@ -232,6 +286,13 @@ function UserProfileEdit() {
       // 기존에 있던 이미지 캐쉬파일 삭제해서, 다시 프로필 페이지 왔을때 원래 있던 사진이 잠시 보이는걸 방지함
       await queryClient.invalidateQueries({ queryKey: ["userInfo", session?.user.id] });
       await queryClient.refetchQueries({ queryKey: ["userTopImage", session?.user.id] });
+
+      // 닉네임 중복 확인 상태 초기화
+      setOriginalNickname(res?.data.nickname || nickname);
+      setNicknameChecked(false);
+      setNicknameAvailable(false);
+      setNicknameCheckMessage("");
+
       showMessage("프로필 변경 완료", "success");
       router.push("/");
     },
@@ -596,9 +657,13 @@ function UserProfileEdit() {
                   color="primary"
                   fullWidth
                   sx={{ py: 1.5, fontWeight: "bold" }}
-                  onClick={mutation.mutate}
+                  onClick={handleProfileSave}
+                  disabled={nicknameCheckLoading || mutation.isPending}
+                  startIcon={
+                    nicknameCheckLoading || mutation.isPending ? <CircularProgress size={20} color="inherit" /> : null
+                  }
                 >
-                  저장하기
+                  {nicknameCheckLoading ? "닉네임 확인 중..." : mutation.isPending ? "저장 중..." : "저장하기"}
                 </Button>
               </Box>
             </Box>

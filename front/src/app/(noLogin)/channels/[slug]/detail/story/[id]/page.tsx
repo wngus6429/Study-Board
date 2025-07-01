@@ -703,16 +703,37 @@ export default function page({ params }: { params: { id: string; slug: string } 
     setReportLoading(true);
 
     try {
-      // TODO: 실제 신고 API 호출
-      const finalReason = reason === "기타" ? customReason : reason;
+      // 실제 신고 API 호출
+      const requestData = {
+        reason: reason,
+        custom_reason: reason === "기타" ? customReason : undefined,
+      };
 
-      // 임시로 성공 메시지만 표시 (나중에 실제 API로 대체)
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // 로딩 시뮬레이션
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/report/${params?.id}`,
+        requestData,
+        { withCredentials: true }
+      );
 
-      showMessage("신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다.", "success");
-    } catch (error) {
+      if (response.status === 201) {
+        showMessage("신고가 접수되었습니다. 검토 후 적절한 조치를 취하겠습니다.", "success");
+        setReportModalOpen(false); // 신고 모달 닫기
+      }
+    } catch (error: any) {
       console.error("신고 실패:", error);
-      showMessage("신고 처리 중 오류가 발생했습니다.", "error");
+
+      // 서버에서 온 에러 메시지 처리
+      if (error.response?.data?.message) {
+        showMessage(error.response.data.message, "error");
+      } else if (error.response?.status === 400) {
+        showMessage("이미 신고한 게시글입니다.", "warning");
+      } else if (error.response?.status === 404) {
+        showMessage("게시글을 찾을 수 없습니다.", "error");
+      } else if (error.response?.status === 401) {
+        showMessage("로그인이 필요합니다.", "warning");
+      } else {
+        showMessage("신고 처리 중 오류가 발생했습니다.", "error");
+      }
     } finally {
       setReportLoading(false);
     }

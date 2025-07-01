@@ -1797,7 +1797,7 @@ export class StoryService {
     const existingReport = await this.reportRepository.findOne({
       where: {
         story_id: storyId,
-        reporter_id: Number(reporterUserIdStr),
+        reporter_id: reporterUserIdStr,
       },
     });
 
@@ -1808,7 +1808,7 @@ export class StoryService {
     // 신고 데이터 생성
     const report = this.reportRepository.create({
       story_id: storyId,
-      reporter_id: Number(reporterUserIdStr),
+      reporter_id: reporterUserIdStr,
       reason: createReportDto.reason,
       custom_reason: createReportDto.custom_reason,
       status: ReportStatus.PENDING,
@@ -1915,7 +1915,7 @@ export class StoryService {
     // 신고 상태 업데이트
     report.status = reviewReportDto.status;
     report.admin_comment = reviewReportDto.admin_comment;
-    report.reviewed_by = Number(reviewerIdStr);
+    report.reviewed_by = reviewerIdStr;
     report.reviewed_at = new Date();
 
     // 신고가 승인된 경우 해당 게시글을 삭제할지 결정
@@ -2024,7 +2024,7 @@ export class StoryService {
       { story_id: storyId },
       {
         status: ReportStatus.APPROVED,
-        reviewed_by: Number(adminUserIdStr), // User id는 string이지만 Report의 reviewed_by는 number
+        reviewed_by: adminUserIdStr,
         reviewed_at: new Date(),
         admin_comment: '신고 검토 후 게시글 삭제됨',
       },

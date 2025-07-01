@@ -20,6 +20,7 @@ import MessageIcon from "@mui/icons-material/Message";
 import HistoryIcon from "@mui/icons-material/History";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import ReportIcon from "@mui/icons-material/Report";
 
 export default function MenuBar() {
   const router = useRouter();
@@ -153,6 +154,12 @@ export default function MenuBar() {
     handleSettingsMenuClose();
     // 블라인드 페이지로 이동
     router.push("/blinds");
+  };
+
+  const handleReports = () => {
+    handleSettingsMenuClose();
+    // 신고 목록 페이지로 이동
+    router.push("/reports");
   };
 
   return (
@@ -546,6 +553,12 @@ export default function MenuBar() {
               <VisibilityOffIcon fontSize="small" />
             </ListItemIcon>
             <ListItemText>블라인드</ListItemText>
+          </MenuItem>
+          <MenuItem onClick={handleReports}>
+            <ListItemIcon>
+              <ReportIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>신고 목록</ListItemText>
           </MenuItem>
         </Menu>
       </nav>

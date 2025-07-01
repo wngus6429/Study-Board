@@ -64,11 +64,11 @@ export class Report {
   admin_comment: string;
 
   @Column({
-    type: 'int',
+    type: 'varchar',
     nullable: true,
     comment: '검토한 관리자 ID',
   })
-  reviewed_by: number;
+  reviewed_by: string;
 
   @Column({
     type: 'datetime',
@@ -93,11 +93,11 @@ export class Report {
   reporter: User;
 
   @Column({
-    type: 'int',
+    type: 'varchar',
     comment: '신고한 사용자 ID',
   })
   @Index()
-  reporter_id: number;
+  reporter_id: string;
 
   // 신고당한 게시글과의 관계
   @ManyToOne(() => Story, { onDelete: 'CASCADE' })

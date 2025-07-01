@@ -1,7 +1,7 @@
 "use client";
 // 채널 상세 페이지
 import Loading from "@/app/components/common/Loading";
-import { StoryImageType, StoryVideoType } from "@/app/types/imageTypes";
+import { StoryImageType } from "@/app/types/imageTypes";
 import {
   Avatar,
   Box,
@@ -10,7 +10,6 @@ import {
   CardContent,
   CircularProgress,
   Dialog,
-  Fade,
   IconButton,
   Slide,
   Tooltip,

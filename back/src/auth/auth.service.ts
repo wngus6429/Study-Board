@@ -46,30 +46,77 @@ export class AuthService {
   ) {}
 
   /**
+   * 🏷️ 닉네임 중복 확인
+   *
+   * 입력받은 닉네임이 이미 사용 중인지 확인합니다.
+   *
+   * @param nickname - 확인할 닉네임
+   * @returns 중복 여부 정보 { isAvailable: boolean, message: string }
+   */
+  async checkNicknameAvailability(nickname: string): Promise<{
+    isAvailable: boolean;
+    message: string;
+  }> {
+    const existUser = await this.userRepository.findOne({
+      where: { nickname },
+    });
+
+    if (existUser) {
+      console.log('🚫 닉네임 중복:', nickname);
+      return {
+        isAvailable: false,
+        message: '이미 사용 중인 닉네임입니다.',
+      };
+    }
+
+    console.log('✅ 닉네임 사용 가능:', nickname);
+    return {
+      isAvailable: true,
+      message: '사용 가능한 닉네임입니다.',
+    };
+  }
+
+  /**
    * 👤 사용자 회원가입
    *
-   * 새로운 사용자를 등록합니다. 이메일 중복 검사와 비밀번호 암호화를 수행합니다.
+   * 새로운 사용자를 등록합니다. 이메일과 닉네임 중복 검사와 비밀번호 암호화를 수행합니다.
    *
    * @param userData - 회원가입 정보 (이메일, 비밀번호, 닉네임)
-   * @throws ConflictException - 이메일이 이미 존재하는 경우
+   * @throws ConflictException - 이메일 또는 닉네임이 이미 존재하는 경우
    * @throws InternalServerErrorException - 데이터베이스 저장 실패 시
    *
    * @process
    * 1. 이메일 중복 검사
-   * 2. bcrypt로 비밀번호 해시화 (salt 생성)
-   * 3. 사용자 엔티티 생성 및 저장
-   * 4. 에러 처리 (중복 이메일, 저장 실패)
+   * 2. 닉네임 중복 검사
+   * 3. bcrypt로 비밀번호 해시화 (salt 생성)
+   * 4. 사용자 엔티티 생성 및 저장
+   * 5. 에러 처리 (중복 이메일/닉네임, 저장 실패)
    */
   async signUp(userData: SignupUserDto): Promise<void> {
     const { user_email, password, nickname } = userData;
 
     // 📧 이메일 중복 검사
-    const existUser = await this.userRepository.findOne({
+    const existUserByEmail = await this.userRepository.findOne({
       where: { user_email },
     });
-    if (existUser) {
-      console.log('🚫 회원가입 실패 - 이메일 중복:', existUser.user_email);
+    if (existUserByEmail) {
+      console.log(
+        '🚫 회원가입 실패 - 이메일 중복:',
+        existUserByEmail.user_email,
+      );
       throw new ConflictException('이메일이 이미 존재합니다.');
+    }
+
+    // 🏷️ 닉네임 중복 검사
+    const existUserByNickname = await this.userRepository.findOne({
+      where: { nickname },
+    });
+    if (existUserByNickname) {
+      console.log(
+        '🚫 회원가입 실패 - 닉네임 중복:',
+        existUserByNickname.nickname,
+      );
+      throw new ConflictException('닉네임이 이미 존재합니다.');
     }
 
     // 🔒 비밀번호 암호화 (bcrypt + salt)

@@ -1117,6 +1117,12 @@ export class StoryService {
     // content에서 실제 사용되는 파일들 분석
     const content = updateStoryDto.content || '';
 
+    console.log('🔍 [updateStory] 분석할 content:', content);
+    console.log(
+      '🔍 [updateStory] 기존 StoryVideo:',
+      story.StoryVideo?.map((v) => v.video_name),
+    );
+
     // content에서 사용되는 이미지 파일명들 추출
     const usedImagePaths = [];
     const imageMatches = content.match(/src="[^"]*\/upload\/([^"]+)"/g);
@@ -1131,12 +1137,47 @@ export class StoryService {
 
     // content에서 사용되는 동영상 파일명들 추출
     const usedVideoPaths = [];
+
+    // 1. video 태그의 src 속성에서 동영상 파일 찾기
     const videoMatches = content.match(/src="[^"]*\/videoUpload\/([^"]+)"/g);
+    console.log('🔍 [updateStory] video src 매치:', videoMatches);
     if (videoMatches) {
       videoMatches.forEach((match) => {
         const pathMatch = match.match(/\/videoUpload\/([^"]+)/);
         if (pathMatch) {
           usedVideoPaths.push(pathMatch[1]);
+        }
+      });
+    }
+
+    // 2. source 태그의 src 속성에서도 동영상 파일 찾기 (자체 닫는 태그 포함)
+    const sourceMatches = content.match(
+      /<source[^>]*src="[^"]*\/videoUpload\/([^"]+)"[^>]*\/?>/g,
+    );
+    console.log('🔍 [updateStory] source src 매치:', sourceMatches);
+    if (sourceMatches) {
+      sourceMatches.forEach((match) => {
+        const pathMatch = match.match(/\/videoUpload\/([^"]+)/);
+        if (pathMatch) {
+          // 중복 제거
+          if (!usedVideoPaths.includes(pathMatch[1])) {
+            usedVideoPaths.push(pathMatch[1]);
+          }
+        }
+      });
+    }
+
+    // 3. 파일명 직접 언급된 경우도 찾기 (p 태그 내의 파일명)
+    if (story.StoryVideo && story.StoryVideo.length > 0) {
+      story.StoryVideo.forEach((video) => {
+        // content에 파일명이 직접 언급되어 있는지 확인
+        if (content.includes(video.video_name)) {
+          if (!usedVideoPaths.includes(video.video_name)) {
+            usedVideoPaths.push(video.video_name);
+            console.log(
+              `🔍 [updateStory] 파일명으로 추가된 동영상: ${video.video_name}`,
+            );
+          }
         }
       });
     }
@@ -1162,6 +1203,28 @@ export class StoryService {
       '삭제할 동영상들:',
       videosToDelete.map((video) => video.video_name),
     );
+
+    // 추가 디버깅: 각 동영상이 왜 삭제 대상이 되는지 확인
+    if (story.StoryVideo && story.StoryVideo.length > 0) {
+      console.log('=== 동영상 삭제 여부 상세 분석 ===');
+      story.StoryVideo.forEach((video) => {
+        const isUsed = usedVideoPaths.includes(video.video_name);
+        console.log(
+          `동영상 "${video.video_name}": ${isUsed ? '사용됨' : '삭제 대상'}`,
+        );
+        if (!isUsed) {
+          console.log(
+            `  - content에서 "${video.video_name}" 검색 결과:`,
+            content.includes(video.video_name),
+          );
+          console.log(
+            `  - content에서 "/videoUpload/${video.video_name}" 검색 결과:`,
+            content.includes(`/videoUpload/${video.video_name}`),
+          );
+        }
+      });
+      console.log('=== 동영상 분석 완료 ===');
+    }
 
     // 이미지 파일 삭제
     if (imagesToDelete.length > 0) {

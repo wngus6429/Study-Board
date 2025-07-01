@@ -684,6 +684,21 @@ export default function page({ params }: { params: { id: string; slug: string } 
       });
     }
 
+    // 동영상 URL도 처리 - 상대 경로를 절대 경로로 변환
+    if (detail.StoryVideo && detail.StoryVideo.length > 0) {
+      // <source> 태그 내의 상대 경로를 절대 경로로 변환
+      content = content.replace(
+        /<source([^>]*)src="\/videoUpload\/([^"]+)"([^>]*)>/g,
+        `<source$1src="${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/$2"$3>`
+      );
+
+      // <video> 태그 내의 상대 경로를 절대 경로로 변환
+      content = content.replace(
+        /src="\/videoUpload\/([^"]+)"/g,
+        `src="${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/$1"`
+      );
+    }
+
     // content에 나타나는 순서대로 이미지 배열 재구성
     const contentImageOrder: StoryImageType[] = [];
     const imageMatches = content.match(/<img[^>]*>/g);

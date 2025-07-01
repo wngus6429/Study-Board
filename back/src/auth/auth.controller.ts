@@ -61,6 +61,28 @@ export class AuthController {
   // ═══════════════════════════════════════════════════════════════════════════════════════
 
   /**
+   * 닉네임 중복 확인을 처리합니다.
+   *
+   * @description
+   * - 입력받은 닉네임이 이미 사용 중인지 확인
+   * - 실시간 중복 확인 기능 지원
+   * - 회원가입 전 사전 검증
+   *
+   * @param nickname - 확인할 닉네임
+   * @returns 중복 여부와 메시지
+   *
+   * @example
+   * GET /api/auth/check-nickname/사용자닉네임
+   * Response: { "isAvailable": true, "message": "사용 가능한 닉네임입니다." }
+   */
+  @Get('check-nickname/:nickname')
+  async checkNickname(
+    @Param('nickname') nickname: string,
+  ): Promise<{ isAvailable: boolean; message: string }> {
+    return await this.authUserService.checkNicknameAvailability(nickname);
+  }
+
+  /**
    * 새로운 사용자 회원가입을 처리합니다.
    *
    * @description

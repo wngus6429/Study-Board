@@ -74,6 +74,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
 
       console.log("1. 원본 컨텐츠:", storyDetail.content);
       console.log("2. StoryImage 배열:", storyDetail.StoryImage);
+      console.log("3. StoryVideo 배열:", storyDetail.StoryVideo);
 
       if (baseUrl && storyDetail.StoryImage && storyDetail.StoryImage.length > 0) {
         // StoryImage 배열을 이용해 blob URL을 실제 파일 경로로 매핑
@@ -107,17 +108,55 @@ export default function EditPage({ params }: { params: { id: string } }) {
             `src="${baseUrl}${imageInfo.link}" title="${baseFileName}.jpg"`
           );
         });
+      }
 
-        // 동영상도 비슷하게 처리
-        if (storyDetail.StoryVideo && storyDetail.StoryVideo.length > 0) {
-          storyDetail.StoryVideo.forEach((videoInfo: any) => {
-            const baseFileName = videoInfo.video_name.replace(/_\d{8}\.\w+$/, "");
+      // 동영상 처리를 개선
+      if (baseUrl && storyDetail.StoryVideo && storyDetail.StoryVideo.length > 0) {
+        console.log("=== 동영상 처리 시작 ===");
+        console.log("baseUrl:", baseUrl);
+        console.log("StoryVideo 배열:", storyDetail.StoryVideo);
 
-            const regex = new RegExp(`src="blob:[^"]*"([^>]*(?:alt|title)="[^"]*${baseFileName}[^"]*")`, "g");
+        storyDetail.StoryVideo.forEach((videoInfo: any, index: number) => {
+          console.log(`\n--- 동영상 ${index + 1} 처리 ---`);
+          console.log("videoInfo:", videoInfo);
 
-            processedContent = processedContent.replace(regex, `src="${baseUrl}${videoInfo.link}"$1`);
-          });
-        }
+          // 원본 컨텐츠 일부 확인
+          console.log("처리 전 content 일부:", processedContent.substring(0, 500));
+
+          // 1. <source> 태그의 빈 src 또는 blob URL을 실제 URL로 교체
+          processedContent = processedContent.replace(
+            /<source([^>]*)src=""([^>]*)/g,
+            `<source$1src="${baseUrl}${videoInfo.link}"$2`
+          );
+
+          processedContent = processedContent.replace(
+            /<source([^>]*)src="blob:[^"]*"([^>]*)/g,
+            `<source$1src="${baseUrl}${videoInfo.link}"$2`
+          );
+
+          // 2. <video> 태그의 빈 src 또는 blob URL을 실제 URL로 교체
+          processedContent = processedContent.replace(
+            /<video([^>]*)src=""([^>]*)/g,
+            `<video$1src="${baseUrl}${videoInfo.link}"$2`
+          );
+
+          processedContent = processedContent.replace(
+            /<video([^>]*)src="blob:[^"]*"([^>]*)/g,
+            `<video$1src="${baseUrl}${videoInfo.link}"$2`
+          );
+
+          // 3. 파일명 정보 업데이트 (🎬로 시작하는 부분)
+          const fileSizeMB = videoInfo.file_size ? (videoInfo.file_size / 1024 / 1024).toFixed(2) : "0.00";
+          const newVideoInfo = `🎬 ${videoInfo.video_name} (${fileSizeMB}MB)`;
+
+          // 기존 파일명 패턴들을 교체
+          processedContent = processedContent.replace(/🎬\s+[^(]+\([^)]+MB\)/g, newVideoInfo);
+          processedContent = processedContent.replace(/🎬[^<]+(?=<)/g, newVideoInfo);
+
+          console.log("처리 후 content 일부:", processedContent.substring(0, 500));
+        });
+
+        console.log("=== 동영상 처리 완료 ===");
       }
 
       // 혹시 이미 상대 경로로 저장된 것들도 처리
@@ -126,6 +165,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
         processedContent = processedContent.replace(/src="\/videoUpload\/([^"]+)"/g, `src="${baseUrl}/videoUpload/$1"`);
       }
 
+      console.log("4. 최종 처리된 컨텐츠:", processedContent);
       setContent(processedContent);
       setSelectedCategory(storyDetail.category || DEFAULT_SELECT_OPTION);
       console.log("수정 페이지용 데이터", storyDetail);
@@ -182,25 +222,43 @@ export default function EditPage({ params }: { params: { id: string } }) {
     // 에디터의 컨텐츠에서 절대 URL을 다시 상대 URL로 변경하여 저장
     let contentToSave = content;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+
+    console.log("=== 저장 전 컨텐츠 변환 시작 ===");
+    console.log("원본 content:", content);
+    console.log("baseUrl:", baseUrl);
+
     if (baseUrl) {
       // 이미지 절대 경로를 상대 경로로 변환
       const escapedBaseUrl = baseUrl.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-      contentToSave = contentToSave.replace(
-        new RegExp(`src="${escapedBaseUrl}/upload/([^"]+)"`, "g"),
-        'src="/upload/$1"'
-      );
-      contentToSave = contentToSave.replace(
-        new RegExp(`src="${escapedBaseUrl}/videoUpload/([^"]+)"`, "g"),
-        'src="/videoUpload/$1"'
-      );
+      const imageRegex = new RegExp(`src="${escapedBaseUrl}/upload/([^"]+)"`, "g");
+      const imageMatches = content.match(imageRegex);
+      console.log("이미지 매치 결과:", imageMatches);
+
+      contentToSave = contentToSave.replace(imageRegex, 'src="/upload/$1"');
+
+      // 동영상 절대 경로를 상대 경로로 변환 (video 태그)
+      const videoRegex = new RegExp(`src="${escapedBaseUrl}/videoUpload/([^"]+)"`, "g");
+      const videoMatches = content.match(videoRegex);
+      console.log("video 태그 매치 결과:", videoMatches);
+
+      contentToSave = contentToSave.replace(videoRegex, 'src="/videoUpload/$1"');
+
+      // 동영상 절대 경로를 상대 경로로 변환 (source 태그)
+      const sourceRegex = new RegExp(`<source([^>]*)src="${escapedBaseUrl}/videoUpload/([^"]+)"([^>]*)>`, "g");
+      const sourceMatches = content.match(sourceRegex);
+      console.log("source 태그 매치 결과:", sourceMatches);
+
+      contentToSave = contentToSave.replace(sourceRegex, '<source$1src="/videoUpload/$2"$3>');
 
       // blob URL도 제거 (새로 추가된 파일들은 서버에서 처리됨)
-      contentToSave = contentToSave.replace(/src="blob:[^"]*"/g, 'src=""');
+      const blobRegex = /src="blob:[^"]*"/g;
+      const blobMatches = content.match(blobRegex);
+      console.log("blob URL 매치 결과:", blobMatches);
 
-      console.log("=== 저장 전 컨텐츠 변환 ===");
-      console.log("원본:", content);
-      console.log("변환 후:", contentToSave);
-      console.log("=== 변환 완료 ===");
+      contentToSave = contentToSave.replace(blobRegex, 'src=""');
+
+      console.log("변환 후 content:", contentToSave);
+      console.log("=== 저장 전 컨텐츠 변환 완료 ===");
     }
 
     formData.append("content", contentToSave);

@@ -161,7 +161,7 @@ export default function ChannelTopStories() {
                     <Typography variant="caption" color="text.secondary">
                       {story.nickname} · {dayjs(story.created_at).fromNow()}
                     </Typography>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 1 }}>
                       <Favorite sx={{ fontSize: "14px", color: "error.main" }} />
                       <Typography variant="caption" color="error.main" sx={{ fontWeight: "bold" }}>
                         {story.recommend_Count}

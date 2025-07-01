@@ -16,6 +16,7 @@ import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
 import { Channels } from 'src/entities/Channels.entity';
+import { Report } from 'src/entities/Report.entity';
 import { ChannelNotificationModule } from '../channel-notification/channel-notification.module';
 import { NotificationModule } from '../notification/notification.module';
 
@@ -118,6 +119,7 @@ import { NotificationModule } from '../notification/notification.module';
       Likes,
       RecommendRanking,
       Channels,
+      Report,
     ]),
     AuthModule, // 인증/인가 모듈
     ChannelNotificationModule, // 채널 알림 모듈

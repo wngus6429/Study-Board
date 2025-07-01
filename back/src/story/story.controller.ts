@@ -19,12 +19,15 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { CreateStoryDto } from './dto/create-story.dto';
+import { CreateReportDto } from './dto/create-report.dto';
+import { ReviewReportDto } from './dto/review-report.dto';
 import { StoryService } from './story.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
 import { User } from 'src/entities/User.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Story } from 'src/entities/Story.entity';
+import { Report, ReportStatus } from 'src/entities/Report.entity';
 
 /**
  * Story 컨트롤러
@@ -454,5 +457,141 @@ export class StoryController {
   ): Promise<{ results: Partial<Story>[]; total: number }> {
     console.log('공지사항 목록 가져오기 - channel:', channel, 'limit:', limit);
     return await this.storyService.findNotices(limit, channel);
+  }
+
+  // ========== 신고 관련 엔드포인트들 ==========
+
+  /**
+   * 게시글 신고
+   *
+   * @description 특정 게시글을 신고합니다. 로그인된 사용자만 신고 가능.
+   * @param storyId 신고할 게시글 ID
+   * @param createReportDto 신고 정보 (사유, 기타 내용)
+   * @param userData 인증된 사용자 정보
+   * @returns 생성된 신고 정보
+   */
+  @Post('/report/:id')
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  async reportStory(
+    @Param('id', ParseIntPipe) storyId: number,
+    @Body() createReportDto: CreateReportDto,
+    @GetUser() userData: User,
+  ): Promise<Report> {
+    console.log('게시글 신고:', storyId, createReportDto, userData.id);
+    return await this.storyService.reportStory(
+      storyId,
+      userData.id,
+      createReportDto,
+    );
+  }
+
+  /**
+   * 신고 목록 조회 (관리자용)
+   *
+   * @description 관리자가 신고 목록을 조회합니다.
+   * @param userData 인증된 사용자 정보 (관리자 권한 확인용)
+   * @param offset 시작 위치 (기본값: 0)
+   * @param limit 조회할 신고 수 (기본값: 20)
+   * @param status 처리 상태 필터 (선택사항)
+   * @returns 신고 목록과 총 개수
+   */
+  @Get('/admin/reports')
+  @UseGuards(AuthGuard())
+  async getReports(
+    @GetUser() userData: User,
+    @Query('offset') offset = 0,
+    @Query('limit') limit = 20,
+    @Query('status') status?: ReportStatus,
+  ): Promise<{ results: any[]; total: number }> {
+    // 관리자 권한 확인 (관리자 이메일로 확인)
+    if (userData.user_email !== 'admin@example.com') {
+      throw new UnauthorizedException('관리자 권한이 필요합니다.');
+    }
+
+    console.log('신고 목록 조회 - 관리자:', userData.id, 'status:', status);
+    return await this.storyService.getReports(offset, limit, status);
+  }
+
+  /**
+   * 신고 검토 및 처리 (관리자용)
+   *
+   * @description 관리자가 신고를 검토하고 처리합니다.
+   * @param reportId 신고 ID
+   * @param reviewReportDto 검토 정보 (상태, 관리자 의견)
+   * @param userData 인증된 사용자 정보 (관리자 권한 확인용)
+   * @returns 업데이트된 신고 정보
+   */
+  @Put('/admin/reports/:id/review')
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  async reviewReport(
+    @Param('id', ParseIntPipe) reportId: number,
+    @Body() reviewReportDto: ReviewReportDto,
+    @GetUser() userData: User,
+  ): Promise<Report> {
+    // 관리자 권한 확인 (관리자 이메일로 확인)
+    if (userData.user_email !== 'admin@example.com') {
+      throw new UnauthorizedException('관리자 권한이 필요합니다.');
+    }
+
+    console.log('신고 검토:', reportId, reviewReportDto, userData.id);
+    return await this.storyService.reviewReport(
+      reportId,
+      userData.id,
+      reviewReportDto,
+    );
+  }
+
+  /**
+   * 특정 게시글의 신고 현황 조회 (관리자용)
+   *
+   * @description 특정 게시글에 대한 신고 현황을 조회합니다.
+   * @param storyId 게시글 ID
+   * @param userData 인증된 사용자 정보 (관리자 권한 확인용)
+   * @returns 신고 현황 정보
+   */
+  @Get('/admin/story/:id/reports')
+  @UseGuards(AuthGuard())
+  async getStoryReports(
+    @Param('id', ParseIntPipe) storyId: number,
+    @GetUser() userData: User,
+  ): Promise<{
+    total: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    reports: any[];
+  }> {
+    // 관리자 권한 확인 (관리자 이메일로 확인)
+    if (userData.user_email !== 'admin@example.com') {
+      throw new UnauthorizedException('관리자 권한이 필요합니다.');
+    }
+
+    console.log('게시글 신고 현황 조회:', storyId, userData.id);
+    return await this.storyService.getStoryReports(storyId);
+  }
+
+  /**
+   * 신고된 게시글 삭제 (관리자용)
+   *
+   * @description 관리자가 신고를 검토한 후 해당 게시글을 삭제합니다.
+   * @param storyId 삭제할 게시글 ID
+   * @param userData 인증된 사용자 정보 (관리자 권한 확인용)
+   * @returns 성공 시 void
+   */
+  @Delete('/admin/story/:id/delete')
+  @UseGuards(AuthGuard())
+  async deleteReportedStory(
+    @Param('id', ParseIntPipe) storyId: number,
+    @GetUser() userData: User,
+  ): Promise<void> {
+    // 관리자 권한 확인 (관리자 이메일로 확인)
+    if (userData.user_email !== 'admin@example.com') {
+      throw new UnauthorizedException('관리자 권한이 필요합니다.');
+    }
+
+    console.log('신고된 게시글 삭제:', storyId, userData.id);
+    return await this.storyService.deleteReportedStory(storyId, userData.id);
   }
 }

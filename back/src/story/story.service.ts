@@ -18,6 +18,9 @@ import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
 import { Channels } from 'src/entities/Channels.entity';
+import { Report, ReportStatus } from 'src/entities/Report.entity';
+import { CreateReportDto } from './dto/create-report.dto';
+import { ReviewReportDto } from './dto/review-report.dto';
 import { ChannelNotificationService } from '../channel-notification/channel-notification.service';
 import { NotificationService } from '../notification/notification.service';
 
@@ -46,6 +49,8 @@ export class StoryService {
     private recommendRankingRepository: Repository<RecommendRanking>,
     @InjectRepository(Channels)
     private channelsRepository: Repository<Channels>,
+    @InjectRepository(Report)
+    private reportRepository: Repository<Report>,
     private channelNotificationService: ChannelNotificationService,
     private notificationService: NotificationService,
   ) {}
@@ -1755,5 +1760,278 @@ export class StoryService {
     });
 
     return { results, total };
+  }
+
+  // ========== 신고 관련 메서드들 ==========
+
+  /**
+   * 게시글 신고
+   *
+   * @description 특정 게시글을 신고합니다. 자신이 작성한 글은 신고할 수 없습니다.
+   * @param storyId 신고할 게시글 ID
+   * @param reporterUserId 신고자 사용자 ID
+   * @param createReportDto 신고 정보 (사유, 기타 내용)
+   * @returns 생성된 신고 정보
+   */
+  async reportStory(
+    storyId: number,
+    reporterUserIdStr: string,
+    createReportDto: CreateReportDto,
+  ): Promise<Report> {
+    // 게시글 존재 여부 확인
+    const story = await this.storyRepository.findOne({
+      where: { id: storyId },
+      relations: ['User'],
+    });
+
+    if (!story) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
+    // 자신이 작성한 글은 신고할 수 없음
+    if (story.User.id === reporterUserIdStr) {
+      throw new BadRequestException('자신이 작성한 글은 신고할 수 없습니다.');
+    }
+
+    // 이미 신고한 게시글인지 확인
+    const existingReport = await this.reportRepository.findOne({
+      where: {
+        story_id: storyId,
+        reporter_id: Number(reporterUserIdStr),
+      },
+    });
+
+    if (existingReport) {
+      throw new BadRequestException('이미 신고한 게시글입니다.');
+    }
+
+    // 신고 데이터 생성
+    const report = this.reportRepository.create({
+      story_id: storyId,
+      reporter_id: Number(reporterUserIdStr),
+      reason: createReportDto.reason,
+      custom_reason: createReportDto.custom_reason,
+      status: ReportStatus.PENDING,
+    });
+
+    // 신고 저장
+    const savedReport = await this.reportRepository.save(report);
+
+    console.log(
+      `🚨 신고 접수 - 게시글ID: ${storyId}, 신고자ID: ${reporterUserIdStr}, 사유: ${createReportDto.reason}`,
+    );
+
+    return savedReport;
+  }
+
+  /**
+   * 신고 목록 조회 (관리자용)
+   *
+   * @description 관리자가 신고 목록을 조회합니다.
+   * @param offset 시작 위치 (기본값: 0)
+   * @param limit 조회할 신고 수 (기본값: 20)
+   * @param status 처리 상태 필터 (선택사항)
+   * @returns 신고 목록과 총 개수
+   */
+  async getReports(
+    offset = 0,
+    limit = 20,
+    status?: ReportStatus,
+  ): Promise<{
+    results: any[];
+    total: number;
+  }> {
+    const query = this.reportRepository
+      .createQueryBuilder('report')
+      .leftJoinAndSelect('report.story', 'story')
+      .leftJoinAndSelect('report.reporter', 'reporter')
+      .leftJoinAndSelect('report.reviewer', 'reviewer')
+      .orderBy('report.created_at', 'DESC')
+      .skip(offset)
+      .take(limit);
+
+    // 상태 필터 적용
+    if (status) {
+      query.andWhere('report.status = :status', { status });
+    }
+
+    const [reports, total] = await query.getManyAndCount();
+
+    // 결과 데이터 가공
+    const results = reports.map((report) => ({
+      id: report.id,
+      reason: report.reason,
+      custom_reason: report.custom_reason,
+      status: report.status,
+      admin_comment: report.admin_comment,
+      created_at: report.created_at,
+      reviewed_at: report.reviewed_at,
+      story: {
+        id: report.story.id,
+        title: report.story.title,
+        content: report.story.content.substring(0, 100) + '...',
+        category: report.story.category,
+        created_at: report.story.created_at,
+        author: report.story.User?.nickname,
+      },
+      reporter: {
+        id: report.reporter.id,
+        nickname: report.reporter.nickname,
+      },
+      reviewer: report.reviewer
+        ? {
+            id: report.reviewer.id,
+            nickname: report.reviewer.nickname,
+          }
+        : null,
+    }));
+
+    return { results, total };
+  }
+
+  /**
+   * 신고 검토 및 처리 (관리자용)
+   *
+   * @description 관리자가 신고를 검토하고 처리합니다.
+   * @param reportId 신고 ID
+   * @param reviewerId 검토자(관리자) ID
+   * @param reviewReportDto 검토 정보
+   * @returns 업데이트된 신고 정보
+   */
+  async reviewReport(
+    reportId: number,
+    reviewerIdStr: string,
+    reviewReportDto: ReviewReportDto,
+  ): Promise<Report> {
+    // 신고 존재 여부 확인
+    const report = await this.reportRepository.findOne({
+      where: { id: reportId },
+    });
+
+    if (!report) {
+      throw new NotFoundException('신고를 찾을 수 없습니다.');
+    }
+
+    // 신고 상태 업데이트
+    report.status = reviewReportDto.status;
+    report.admin_comment = reviewReportDto.admin_comment;
+    report.reviewed_by = Number(reviewerIdStr);
+    report.reviewed_at = new Date();
+
+    // 신고가 승인된 경우 해당 게시글을 삭제할지 결정
+    if (reviewReportDto.status === ReportStatus.APPROVED) {
+      // 여기서 게시글 삭제 로직을 추가할 수 있음
+      // 예: await this.deleteStory(report.story_id, adminUser);
+      console.log(`⚠️ 신고 승인됨 - 게시글 ID ${report.story_id} 처리 필요`);
+    }
+
+    const updatedReport = await this.reportRepository.save(report);
+
+    console.log(
+      `✅ 신고 검토 완료 - 신고ID: ${reportId}, 상태: ${reviewReportDto.status}, 검토자ID: ${reviewerIdStr}`,
+    );
+
+    return updatedReport;
+  }
+
+  /**
+   * 특정 게시글의 신고 현황 조회
+   *
+   * @description 특정 게시글에 대한 신고 현황을 조회합니다.
+   * @param storyId 게시글 ID
+   * @returns 신고 현황 정보
+   */
+  async getStoryReports(storyId: number): Promise<{
+    total: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    reports: any[];
+  }> {
+    const reports = await this.reportRepository.find({
+      where: { story_id: storyId },
+      relations: ['reporter'],
+      order: { created_at: 'DESC' },
+    });
+
+    const total = reports.length;
+    const pending = reports.filter(
+      (r) => r.status === ReportStatus.PENDING,
+    ).length;
+    const approved = reports.filter(
+      (r) => r.status === ReportStatus.APPROVED,
+    ).length;
+    const rejected = reports.filter(
+      (r) => r.status === ReportStatus.REJECTED,
+    ).length;
+
+    const reportDetails = reports.map((report) => ({
+      id: report.id,
+      reason: report.reason,
+      custom_reason: report.custom_reason,
+      status: report.status,
+      created_at: report.created_at,
+      reporter: {
+        id: report.reporter.id,
+        nickname: report.reporter.nickname,
+      },
+    }));
+
+    return {
+      total,
+      pending,
+      approved,
+      rejected,
+      reports: reportDetails,
+    };
+  }
+
+  /**
+   * 관리자가 신고된 게시글 삭제
+   *
+   * @description 관리자가 신고를 검토한 후 해당 게시글을 삭제합니다.
+   * @param storyId 삭제할 게시글 ID
+   * @param adminUserId 관리자 사용자 ID
+   * @returns 삭제 성공 여부
+   */
+  async deleteReportedStory(
+    storyId: number,
+    adminUserIdStr: string,
+  ): Promise<void> {
+    // 게시글 존재 여부 확인
+    const story = await this.storyRepository.findOne({
+      where: { id: storyId },
+    });
+
+    if (!story) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
+    // 관리자 권한 확인 (이메일 기반)
+    const adminUser = await this.userRepository.findOne({
+      where: { id: adminUserIdStr },
+    });
+
+    if (!adminUser || adminUser.user_email !== 'admin@example.com') {
+      throw new ForbiddenException('관리자 권한이 필요합니다.');
+    }
+
+    // 게시글과 관련된 모든 데이터 삭제 (cascade로 처리됨)
+    await this.storyRepository.remove(story);
+
+    // 해당 게시글의 모든 신고를 승인 상태로 변경
+    await this.reportRepository.update(
+      { story_id: storyId },
+      {
+        status: ReportStatus.APPROVED,
+        reviewed_by: Number(adminUserIdStr), // User id는 string이지만 Report의 reviewed_by는 number
+        reviewed_at: new Date(),
+        admin_comment: '신고 검토 후 게시글 삭제됨',
+      },
+    );
+
+    console.log(
+      `🗑️ 신고된 게시글 삭제 완료 - 게시글ID: ${storyId}, 관리자ID: ${adminUserIdStr}`,
+    );
   }
 }

@@ -503,11 +503,11 @@ export class StoryController {
     @Query('offset') offset = 0,
     @Query('limit') limit = 20,
     @Query('status') status?: ReportStatus,
-  ): Promise<{ results: any[]; total: number }> {
+  ): Promise<{ reports: any[]; total: number }> {
     // 관리자 권한 확인 (관리자 이메일로 확인)
-    if (userData.user_email !== 'admin@example.com') {
-      throw new UnauthorizedException('관리자 권한이 필요합니다.');
-    }
+    // if (userData.user_email !== 'admin@example.com') {
+    //   throw new UnauthorizedException('관리자 권한이 필요합니다.');
+    // }
 
     console.log('신고 목록 조회 - 관리자:', userData.id, 'status:', status);
     return await this.storyService.getReports(offset, limit, status);

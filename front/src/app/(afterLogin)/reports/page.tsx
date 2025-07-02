@@ -249,7 +249,7 @@ export default function ReportsPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {reportsData?.reports.map((report) => (
+              {reportsData?.reports?.map((report) => (
                 <TableRow key={report.id}>
                   <TableCell>{report.id}</TableCell>
                   <TableCell>

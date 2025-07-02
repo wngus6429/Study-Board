@@ -1838,12 +1838,13 @@ export class StoryService {
     limit = 20,
     status?: ReportStatus,
   ): Promise<{
-    results: any[];
+    reports: any[];
     total: number;
   }> {
     const query = this.reportRepository
       .createQueryBuilder('report')
       .leftJoinAndSelect('report.story', 'story')
+      .leftJoinAndSelect('story.User', 'storyUser')
       .leftJoinAndSelect('report.reporter', 'reporter')
       .leftJoinAndSelect('report.reviewer', 'reviewer')
       .orderBy('report.created_at', 'DESC')
@@ -1886,7 +1887,9 @@ export class StoryService {
         : null,
     }));
 
-    return { results, total };
+    console.log('🔥 신고 목록 조회 결과:', results);
+
+    return { reports: results, total };
   }
 
   /**

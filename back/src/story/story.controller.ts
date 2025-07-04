@@ -28,6 +28,11 @@ import { User } from 'src/entities/User.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Story } from 'src/entities/Story.entity';
 import { Report, ReportStatus } from 'src/entities/Report.entity';
+import { AdminGuard } from '../auth/admin.guard';
+import {
+  SuperAdminRequired,
+  ChannelAdminRequired,
+} from '../common/decorators/admin.decorator';
 
 /**
  * Story 컨트롤러
@@ -593,5 +598,86 @@ export class StoryController {
 
     console.log('신고된 게시글 삭제:', storyId, userData.id);
     return await this.storyService.deleteReportedStory(storyId, userData.id);
+  }
+
+  // ========== 관리자 전용 기능들 ==========
+
+  /**
+   * 관리자 권한으로 게시글 강제 삭제 (총 관리자 전용)
+   *
+   * @description 총 관리자가 모든 게시글을 삭제할 수 있습니다.
+   * @param storyId 삭제할 게시글 ID
+   * @param userData 인증된 사용자 정보 (총 관리자 권한 확인)
+   * @returns 성공 시 void
+   */
+  @Delete('/admin/force-delete/:id')
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
+  async forceDeleteStory(
+    @Param('id', ParseIntPipe) storyId: number,
+    @GetUser() userData: User,
+  ): Promise<void> {
+    console.log(
+      '관리자 강제 삭제 - 게시글 ID:',
+      storyId,
+      '관리자:',
+      userData.user_email,
+    );
+    return await this.storyService.forceDeleteStory(storyId, userData.id);
+  }
+
+  /**
+   * 채널 관리자 권한으로 게시글 삭제 (채널 관리자 전용)
+   *
+   * @description 채널 관리자가 본인 채널의 게시글을 삭제할 수 있습니다.
+   * @param storyId 삭제할 게시글 ID
+   * @param userData 인증된 사용자 정보 (채널 관리자 권한 확인)
+   * @returns 성공 시 void
+   */
+  @Delete('/admin/channel-delete/:id')
+  @UseGuards(AdminGuard)
+  @ChannelAdminRequired()
+  async channelAdminDeleteStory(
+    @Param('id', ParseIntPipe) storyId: number,
+    @GetUser() userData: User,
+  ): Promise<void> {
+    console.log(
+      '채널 관리자 삭제 - 게시글 ID:',
+      storyId,
+      '관리자:',
+      userData.user_email,
+    );
+    return await this.storyService.channelAdminDeleteStory(
+      storyId,
+      userData.id,
+    );
+  }
+
+  /**
+   * 관리자 권한으로 여러 게시글 일괄 삭제 (총 관리자 전용)
+   *
+   * @description 총 관리자가 여러 게시글을 한 번에 삭제할 수 있습니다.
+   * @param body 삭제할 게시글 ID 목록
+   * @param userData 인증된 사용자 정보 (총 관리자 권한 확인)
+   * @returns 삭제된 게시글 개수
+   */
+  @Delete('/admin/batch-delete')
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
+  async batchDeleteStories(
+    @Body() body: { storyIds: number[] },
+    @GetUser() userData: User,
+  ): Promise<{ deletedCount: number }> {
+    console.log(
+      '관리자 일괄 삭제 - 게시글 개수:',
+      body.storyIds.length,
+      '관리자:',
+      userData.user_email,
+    );
+    const deletedCount = await this.storyService.batchDeleteStories(
+      body.storyIds,
+      userData.id,
+    );
+    return { deletedCount };
   }
 }

@@ -7,6 +7,7 @@ import { Notification } from 'src/entities/Notification.entity';
 import { PassportModule } from '@nestjs/passport';
 import { CommentController } from './comment.controller';
 import { CommentService } from './comment.service';
+import { AdminGuard } from '../auth/admin.guard';
 
 @Module({
   imports: [
@@ -14,7 +15,7 @@ import { CommentService } from './comment.service';
     PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
   controllers: [CommentController],
-  providers: [CommentService],
+  providers: [CommentService, AdminGuard],
   exports: [CommentService],
 })
-export class CommentModule {} 
+export class CommentModule {}

@@ -19,6 +19,7 @@ import { Channels } from 'src/entities/Channels.entity';
 import { Report } from 'src/entities/Report.entity';
 import { ChannelNotificationModule } from '../channel-notification/channel-notification.module';
 import { NotificationModule } from '../notification/notification.module';
+import { AdminGuard } from '../auth/admin.guard';
 
 /**
  * Story 모듈
@@ -126,6 +127,6 @@ import { NotificationModule } from '../notification/notification.module';
     NotificationModule, // 일반 알림 모듈
   ],
   controllers: [StoryController], // 게시글 관련 API 컨트롤러
-  providers: [StoryService], // 게시글 관련 비즈니스 로직 서비스
+  providers: [StoryService, AdminGuard], // 게시글 관련 비즈니스 로직 서비스 및 관리자 가드
 })
 export class StoryModule {}

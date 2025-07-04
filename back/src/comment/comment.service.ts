@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, Repository, In } from 'typeorm';
 import { Comments } from 'src/entities/Comments.entity';
 import { Story } from 'src/entities/Story.entity';
 import { User } from 'src/entities/User.entity';
@@ -470,5 +475,216 @@ export class CommentService {
     const totalPages = Math.ceil(allFlattenedComments.length / limit);
 
     return { page, totalPages };
+  }
+
+  // ========== 관리자 전용 댓글 삭제 기능들 ==========
+
+  /**
+   * 관리자 권한으로 댓글 강제 삭제 (총 관리자 전용)
+   *
+   * @description 총 관리자가 모든 댓글을 강제 삭제할 수 있습니다.
+   * @param commentId 삭제할 댓글 ID
+   * @param adminUserId 관리자 사용자 ID
+   * @returns 삭제 성공 여부
+   */
+  async forceDeleteComment(
+    commentId: number,
+    adminUserIdStr: string,
+  ): Promise<void> {
+    await this.dataSource.transaction(async (manager) => {
+      const commentRepository = manager.getRepository(Comments);
+      const storyRepository = manager.getRepository(Story);
+      const userRepository = manager.getRepository(User);
+
+      // 댓글 존재 여부 확인 (관련 정보 포함)
+      const comment = await commentRepository.findOne({
+        where: { id: commentId },
+        relations: ['User', 'Story'],
+      });
+
+      if (!comment) {
+        throw new NotFoundException('댓글을 찾을 수 없습니다.');
+      }
+
+      // 관리자 권한 확인 (is_super_admin 필드 확인)
+      const adminUser = await userRepository.findOne({
+        where: { id: adminUserIdStr },
+        select: ['id', 'user_email', 'is_super_admin'],
+      });
+
+      if (!adminUser || !adminUser.is_super_admin) {
+        throw new ForbiddenException('총 관리자 권한이 필요합니다.');
+      }
+
+      // 댓글 물리적 삭제
+      await commentRepository.remove(comment);
+
+      // 스토리의 comment_count 감소
+      if (comment.Story) {
+        await storyRepository.decrement(
+          { id: comment.Story.id },
+          'comment_count',
+          1,
+        );
+      }
+
+      console.log(
+        `🛡️ 관리자 강제 댓글 삭제 완료 - 댓글ID: ${commentId}, 내용: "${comment.content}", 작성자: ${comment.User.nickname}, 관리자: ${adminUser.user_email}`,
+      );
+    });
+  }
+
+  /**
+   * 채널 관리자 권한으로 댓글 삭제 (채널 관리자 전용)
+   *
+   * @description 채널 관리자가 본인 채널의 댓글을 삭제할 수 있습니다.
+   * @param commentId 삭제할 댓글 ID
+   * @param adminUserId 관리자 사용자 ID
+   * @returns 삭제 성공 여부
+   */
+  async channelAdminDeleteComment(
+    commentId: number,
+    adminUserIdStr: string,
+  ): Promise<void> {
+    await this.dataSource.transaction(async (manager) => {
+      const commentRepository = manager.getRepository(Comments);
+      const storyRepository = manager.getRepository(Story);
+      const userRepository = manager.getRepository(User);
+
+      // 댓글 존재 여부 확인 (채널 정보 포함)
+      const comment = await commentRepository.findOne({
+        where: { id: commentId },
+        relations: ['User', 'Story', 'Story.Channel', 'Story.Channel.creator'],
+      });
+
+      if (!comment) {
+        throw new NotFoundException('댓글을 찾을 수 없습니다.');
+      }
+
+      if (!comment.Story) {
+        throw new BadRequestException(
+          '댓글이 연결된 게시글을 찾을 수 없습니다.',
+        );
+      }
+
+      if (!comment.Story.Channel) {
+        throw new BadRequestException('댓글이 채널에 속하지 않습니다.');
+      }
+
+      // 관리자 권한 확인 (총 관리자이거나 해당 채널의 생성자)
+      const adminUser = await userRepository.findOne({
+        where: { id: adminUserIdStr },
+        select: ['id', 'user_email', 'is_super_admin'],
+      });
+
+      if (!adminUser) {
+        throw new ForbiddenException('사용자를 찾을 수 없습니다.');
+      }
+
+      // 총 관리자이거나 해당 채널의 생성자인지 확인
+      const isChannelCreator =
+        comment.Story.Channel.creator.id === adminUserIdStr;
+      const isSuperAdmin = adminUser.is_super_admin;
+
+      if (!isChannelCreator && !isSuperAdmin) {
+        throw new ForbiddenException(
+          '이 채널의 관리자 권한이 필요합니다. 채널 생성자만 삭제할 수 있습니다.',
+        );
+      }
+
+      // 댓글 물리적 삭제
+      await commentRepository.remove(comment);
+
+      // 스토리의 comment_count 감소
+      await storyRepository.decrement(
+        { id: comment.Story.id },
+        'comment_count',
+        1,
+      );
+
+      console.log(
+        `🏗️ 채널 관리자 댓글 삭제 완료 - 댓글ID: ${commentId}, 채널: "${comment.Story.Channel.channel_name}", 관리자: ${adminUser.user_email}, 권한: ${isSuperAdmin ? '총관리자' : '채널생성자'}`,
+      );
+    });
+  }
+
+  /**
+   * 관리자 권한으로 여러 댓글 일괄 삭제 (총 관리자 전용)
+   *
+   * @description 총 관리자가 여러 댓글을 한 번에 삭제할 수 있습니다.
+   * @param commentIds 삭제할 댓글 ID 목록
+   * @param adminUserId 관리자 사용자 ID
+   * @returns 삭제된 댓글 개수
+   */
+  async batchDeleteComments(
+    commentIds: number[],
+    adminUserIdStr: string,
+  ): Promise<number> {
+    if (!commentIds || commentIds.length === 0) {
+      throw new BadRequestException('삭제할 댓글 ID 목록이 비어있습니다.');
+    }
+
+    return await this.dataSource.transaction(async (manager) => {
+      const commentRepository = manager.getRepository(Comments);
+      const storyRepository = manager.getRepository(Story);
+      const userRepository = manager.getRepository(User);
+
+      // 관리자 권한 확인 (is_super_admin 필드 확인)
+      const adminUser = await userRepository.findOne({
+        where: { id: adminUserIdStr },
+        select: ['id', 'user_email', 'is_super_admin'],
+      });
+
+      if (!adminUser || !adminUser.is_super_admin) {
+        throw new ForbiddenException('총 관리자 권한이 필요합니다.');
+      }
+
+      // 존재하는 댓글들 조회
+      const comments = await commentRepository.find({
+        where: { id: In(commentIds) },
+        relations: ['User', 'Story'],
+      });
+
+      if (comments.length === 0) {
+        throw new NotFoundException('삭제할 댓글을 찾을 수 없습니다.');
+      }
+
+      // 스토리별 댓글 개수 카운트 (comment_count 업데이트용)
+      const storyCommentCounts = new Map<number, number>();
+      comments.forEach((comment) => {
+        if (comment.Story) {
+          const storyId = comment.Story.id;
+          storyCommentCounts.set(
+            storyId,
+            (storyCommentCounts.get(storyId) || 0) + 1,
+          );
+        }
+      });
+
+      // 댓글들 일괄 삭제
+      await commentRepository.remove(comments);
+
+      // 각 스토리의 comment_count 감소
+      for (const [storyId, count] of storyCommentCounts.entries()) {
+        await storyRepository.decrement(
+          { id: storyId },
+          'comment_count',
+          count,
+        );
+      }
+
+      console.log(
+        `🔄 댓글 일괄 삭제 완료 - 요청: ${commentIds.length}개, 실제 삭제: ${comments.length}개, 관리자: ${adminUser.user_email}`,
+      );
+
+      // 삭제된 댓글 정보 로그
+      comments.forEach((comment) => {
+        console.log(
+          `   - 삭제된 댓글: ID ${comment.id}, 내용: "${comment.content}", 작성자: ${comment.User.nickname}`,
+        );
+      });
+
+      return comments.length;
+    });
   }
 }

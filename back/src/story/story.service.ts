@@ -2037,4 +2037,153 @@ export class StoryService {
       `🗑️ 신고된 게시글 삭제 완료 - 게시글ID: ${storyId}, 관리자ID: ${adminUserIdStr}`,
     );
   }
+
+  // ========== 관리자 전용 삭제 기능들 ==========
+
+  /**
+   * 관리자 권한으로 게시글 강제 삭제 (총 관리자 전용)
+   *
+   * @description 총 관리자가 모든 게시글을 강제 삭제할 수 있습니다. 작성자 권한 확인 없이 삭제됩니다.
+   * @param storyId 삭제할 게시글 ID
+   * @param adminUserId 관리자 사용자 ID
+   * @returns 삭제 성공 여부
+   */
+  async forceDeleteStory(
+    storyId: number,
+    adminUserIdStr: string,
+  ): Promise<void> {
+    // 게시글 존재 여부 확인
+    const story = await this.storyRepository.findOne({
+      where: { id: storyId },
+      relations: ['User'],
+    });
+
+    if (!story) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
+    // 관리자 권한 확인 (is_super_admin 필드 확인)
+    const adminUser = await this.userRepository.findOne({
+      where: { id: adminUserIdStr },
+      select: ['id', 'user_email', 'is_super_admin'],
+    });
+
+    if (!adminUser || !adminUser.is_super_admin) {
+      throw new ForbiddenException('총 관리자 권한이 필요합니다.');
+    }
+
+    // 게시글과 관련된 모든 데이터 삭제 (cascade로 처리됨)
+    await this.storyRepository.remove(story);
+
+    console.log(
+      `🛡️ 관리자 강제 삭제 완료 - 게시글ID: ${storyId}, 제목: "${story.title}", 작성자: ${story.User.nickname}, 관리자: ${adminUser.user_email}`,
+    );
+  }
+
+  /**
+   * 채널 관리자 권한으로 게시글 삭제 (채널 관리자 전용)
+   *
+   * @description 채널 관리자가 본인 채널의 게시글을 삭제할 수 있습니다.
+   * @param storyId 삭제할 게시글 ID
+   * @param adminUserId 관리자 사용자 ID
+   * @returns 삭제 성공 여부
+   */
+  async channelAdminDeleteStory(
+    storyId: number,
+    adminUserIdStr: string,
+  ): Promise<void> {
+    // 게시글 존재 여부 확인 (채널 정보 포함)
+    const story = await this.storyRepository.findOne({
+      where: { id: storyId },
+      relations: ['User', 'Channel', 'Channel.creator'],
+    });
+
+    if (!story) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
+    if (!story.Channel) {
+      throw new BadRequestException('채널이 없는 게시글입니다.');
+    }
+
+    // 관리자 권한 확인 (총 관리자이거나 해당 채널의 생성자)
+    const adminUser = await this.userRepository.findOne({
+      where: { id: adminUserIdStr },
+      select: ['id', 'user_email', 'is_super_admin'],
+    });
+
+    if (!adminUser) {
+      throw new ForbiddenException('사용자를 찾을 수 없습니다.');
+    }
+
+    // 총 관리자이거나 해당 채널의 생성자인지 확인
+    const isChannelCreator = story.Channel.creator.id === adminUserIdStr;
+    const isSuperAdmin = adminUser.is_super_admin;
+
+    if (!isChannelCreator && !isSuperAdmin) {
+      throw new ForbiddenException(
+        '이 채널의 관리자 권한이 필요합니다. 채널 생성자만 삭제할 수 있습니다.',
+      );
+    }
+
+    // 게시글과 관련된 모든 데이터 삭제 (cascade로 처리됨)
+    await this.storyRepository.remove(story);
+
+    console.log(
+      `🏗️ 채널 관리자 삭제 완료 - 게시글ID: ${storyId}, 채널: "${story.Channel.channel_name}", 관리자: ${adminUser.user_email}, 권한: ${isSuperAdmin ? '총관리자' : '채널생성자'}`,
+    );
+  }
+
+  /**
+   * 관리자 권한으로 여러 게시글 일괄 삭제 (총 관리자 전용)
+   *
+   * @description 총 관리자가 여러 게시글을 한 번에 삭제할 수 있습니다.
+   * @param storyIds 삭제할 게시글 ID 목록
+   * @param adminUserId 관리자 사용자 ID
+   * @returns 삭제된 게시글 개수
+   */
+  async batchDeleteStories(
+    storyIds: number[],
+    adminUserIdStr: string,
+  ): Promise<number> {
+    if (!storyIds || storyIds.length === 0) {
+      throw new BadRequestException('삭제할 게시글 ID 목록이 비어있습니다.');
+    }
+
+    // 관리자 권한 확인 (is_super_admin 필드 확인)
+    const adminUser = await this.userRepository.findOne({
+      where: { id: adminUserIdStr },
+      select: ['id', 'user_email', 'is_super_admin'],
+    });
+
+    if (!adminUser || !adminUser.is_super_admin) {
+      throw new ForbiddenException('총 관리자 권한이 필요합니다.');
+    }
+
+    // 존재하는 게시글들 조회
+    const stories = await this.storyRepository.find({
+      where: { id: In(storyIds) },
+      relations: ['User'],
+    });
+
+    if (stories.length === 0) {
+      throw new NotFoundException('삭제할 게시글을 찾을 수 없습니다.');
+    }
+
+    // 게시글들 일괄 삭제
+    await this.storyRepository.remove(stories);
+
+    console.log(
+      `🔄 일괄 삭제 완료 - 요청: ${storyIds.length}개, 실제 삭제: ${stories.length}개, 관리자: ${adminUser.user_email}`,
+    );
+
+    // 삭제된 게시글 정보 로그
+    stories.forEach((story) => {
+      console.log(
+        `   - 삭제된 게시글: ID ${story.id}, 제목: "${story.title}", 작성자: ${story.User.nickname}`,
+      );
+    });
+
+    return stories.length;
+  }
 }

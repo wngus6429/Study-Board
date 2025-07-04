@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseIntPipe,
@@ -14,6 +15,13 @@ import {
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { AuthGuard } from '@nestjs/passport';
+import { AdminGuard } from '../auth/admin.guard';
+import {
+  SuperAdminRequired,
+  ChannelAdminRequired,
+} from '../common/decorators/admin.decorator';
+import { GetUser } from '../common/decorators/get-user.decorator';
+import { User } from '../entities/User.entity';
 
 @Controller('api/story')
 export class CommentController {
@@ -93,5 +101,89 @@ export class CommentController {
       commentId,
       limit,
     );
+  }
+
+  // ========== 관리자 전용 댓글 관리 기능들 ==========
+
+  /**
+   * 관리자 권한으로 댓글 강제 삭제 (총 관리자 전용)
+   *
+   * @description 총 관리자가 모든 댓글을 강제 삭제할 수 있습니다.
+   * @param commentId 삭제할 댓글 ID
+   * @param userData 인증된 사용자 정보 (총 관리자 권한 확인)
+   * @returns 성공 시 void
+   */
+  @Delete('/admin/comment/:id/force-delete')
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
+  async forceDeleteComment(
+    @Param('id', ParseIntPipe) commentId: number,
+    @GetUser() userData: User,
+  ): Promise<void> {
+    console.log(
+      '관리자 강제 삭제 - 댓글 ID:',
+      commentId,
+      '관리자:',
+      userData.user_email,
+    );
+    return await this.commentsService.forceDeleteComment(
+      commentId,
+      userData.id,
+    );
+  }
+
+  /**
+   * 채널 관리자 권한으로 댓글 삭제 (채널 관리자 전용)
+   *
+   * @description 채널 관리자가 본인 채널의 댓글을 삭제할 수 있습니다.
+   * @param commentId 삭제할 댓글 ID
+   * @param userData 인증된 사용자 정보 (채널 관리자 권한 확인)
+   * @returns 성공 시 void
+   */
+  @Delete('/admin/comment/:id/channel-delete')
+  @UseGuards(AdminGuard)
+  @ChannelAdminRequired()
+  async channelAdminDeleteComment(
+    @Param('id', ParseIntPipe) commentId: number,
+    @GetUser() userData: User,
+  ): Promise<void> {
+    console.log(
+      '채널 관리자 삭제 - 댓글 ID:',
+      commentId,
+      '관리자:',
+      userData.user_email,
+    );
+    return await this.commentsService.channelAdminDeleteComment(
+      commentId,
+      userData.id,
+    );
+  }
+
+  /**
+   * 관리자 권한으로 여러 댓글 일괄 삭제 (총 관리자 전용)
+   *
+   * @description 총 관리자가 여러 댓글을 한 번에 삭제할 수 있습니다.
+   * @param body 삭제할 댓글 ID 목록
+   * @param userData 인증된 사용자 정보 (총 관리자 권한 확인)
+   * @returns 삭제된 댓글 개수
+   */
+  @Delete('/admin/comment/batch-delete')
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
+  async batchDeleteComments(
+    @Body() body: { commentIds: number[] },
+    @GetUser() userData: User,
+  ): Promise<{ deletedCount: number }> {
+    console.log(
+      '관리자 일괄 삭제 - 댓글 개수:',
+      body.commentIds.length,
+      '관리자:',
+      userData.user_email,
+    );
+    const deletedCount = await this.commentsService.batchDeleteComments(
+      body.commentIds,
+      userData.id,
+    );
+    return { deletedCount };
   }
 }

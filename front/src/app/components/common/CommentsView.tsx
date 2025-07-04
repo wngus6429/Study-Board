@@ -1,6 +1,17 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Box, TextField, Button, Typography, Avatar, Alert, Pagination, useTheme } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  Avatar,
+  Alert,
+  Pagination,
+  useTheme,
+  IconButton,
+  Tooltip,
+} from "@mui/material";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -11,6 +22,9 @@ import ConfirmDialog from "./ConfirmDialog";
 import { useMessage } from "@/app/store/messageStore";
 import { COMMENT_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import BlindWrapper from "../BlindWrapper";
+import { useAdmin } from "../../hooks/useAdmin";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 interface Comment {
   id: number;
@@ -33,13 +47,18 @@ interface CommentResponse {
   totalCount: number; // 전체 댓글 수 추가 (대댓글 포함)
 }
 
-const CommentsView = () => {
+interface CommentsViewProps {
+  channelId?: number; // 채널 ID 추가 (채널 관리자 권한 체크용)
+}
+
+const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
   // URL 파라미터에서 스토리 ID 가져오기
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
   const { showMessage } = useMessage((state) => state);
   const { data: session, status } = useSession();
   const queryClient = useQueryClient(); // queryClient 추가
   const theme = useTheme();
+  const admin = useAdmin(); // 관리자 훅 추가
   // 댓글 작성 내용
   const [content, setContent] = useState("");
   // 현재 열려 있는 답글 대상 ID 관리
@@ -297,6 +316,17 @@ const CommentsView = () => {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
 
+  // 관리자 삭제 확인 다이얼로그 상태
+  const [adminDeleteDialog, setAdminDeleteDialog] = useState<{
+    open: boolean;
+    commentId: number | null;
+    content: string;
+  }>({
+    open: false,
+    commentId: null,
+    content: "",
+  });
+
   const handleDeleteClick = (commentId: number) => {
     setCommentToDelete(commentId);
     setOpenConfirmDialog(true);
@@ -313,6 +343,38 @@ const CommentsView = () => {
   const cancelDelete = () => {
     setCommentToDelete(null);
     setOpenConfirmDialog(false);
+  };
+
+  // 관리자 삭제 핸들러
+  const handleAdminDeleteComment = (commentId: number, content: string) => {
+    setAdminDeleteDialog({
+      open: true,
+      commentId,
+      content,
+    });
+  };
+
+  // 관리자 삭제 확인 처리
+  const confirmAdminDelete = async () => {
+    if (!adminDeleteDialog.commentId) return;
+
+    await admin.deleteComment(
+      adminDeleteDialog.commentId,
+      channelId,
+      () => {
+        setAdminDeleteDialog({ open: false, commentId: null, content: "" });
+        refetch(); // 댓글 목록 새로고침
+        showMessage("댓글이 삭제되었습니다.", "success");
+      },
+      (error) => {
+        showMessage(`삭제 실패: ${error.message}`, "error");
+      }
+    );
+  };
+
+  // 관리자 삭제 취소 처리
+  const cancelAdminDelete = () => {
+    setAdminDeleteDialog({ open: false, commentId: null, content: "" });
   };
 
   const handleEditSubmit = (commentId: number, newContent: string) => {
@@ -335,12 +397,14 @@ const CommentsView = () => {
     handleReplySubmit,
     replyTo,
     handleEditSubmit,
+    handleAdminDeleteComment,
   }: {
     comments: Comment[];
     toggleReply: (commentId: number) => void;
     handleReplySubmit: (parentId: number, content: string) => void;
     replyTo: number | null;
     handleEditSubmit: (commentId: number, newContent: string) => void;
+    handleAdminDeleteComment: (commentId: number, content: string) => void;
   }) => {
     const [localReplyContent, setLocalReplyContent] = useState("");
     const [editCommentId, setEditCommentId] = useState<number | null>(null);
@@ -533,6 +597,20 @@ const CommentsView = () => {
                     </Button>
                   </>
                 )}
+                {/* 관리자 삭제 버튼 */}
+                {admin.hasAdminPermission(channelId) && (
+                  <Tooltip title={`관리자 삭제 (${admin.getAdminBadgeText(channelId)})`}>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => handleAdminDeleteComment(comment.id, comment.content)}
+                      disabled={admin.isLoading}
+                      sx={{ ml: 1 }}
+                    >
+                      <AdminPanelSettingsIcon fontSize="small" />
+                    </IconButton>
+                  </Tooltip>
+                )}
               </Box>
             )}
 
@@ -592,6 +670,18 @@ const CommentsView = () => {
           cancelText="취소"
         />
       )}
+      {/* 관리자 삭제 확인 다이얼로그 */}
+      {adminDeleteDialog.open && (
+        <ConfirmDialog
+          open={adminDeleteDialog.open}
+          title="🛡️ 관리자 권한으로 댓글 삭제"
+          description={`다음 댓글을 삭제하시겠습니까?\n\n"${adminDeleteDialog.content}"\n\n⚠️ 이 작업은 되돌릴 수 없습니다.`}
+          onConfirm={confirmAdminDelete}
+          onCancel={cancelAdminDelete}
+          confirmText={admin.isLoading ? "삭제 중..." : "삭제"}
+          cancelText="취소"
+        />
+      )}
       <Typography
         variant="h6"
         gutterBottom
@@ -617,6 +707,7 @@ const CommentsView = () => {
         handleReplySubmit={handleReplySubmit}
         replyTo={replyTo}
         handleEditSubmit={handleEditSubmit}
+        handleAdminDeleteComment={handleAdminDeleteComment}
       />
       {session?.user?.id && (
         <Box

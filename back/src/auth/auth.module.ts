@@ -28,6 +28,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../entities/User.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
+import { AdminGuard } from './admin.guard';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -185,8 +186,9 @@ import { Comments } from 'src/entities/Comments.entity';
    * @providers
    * - AuthService: 인증 비즈니스 로직 처리
    * - JwtStrategy: JWT 토큰 검증 전략
+   * - AdminGuard: 관리자 권한 검증 가드
    */
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, AdminGuard],
 
   // ═══════════════════════════════════════════════════════════════════════════════════════
   // 📤 모듈 내보내기

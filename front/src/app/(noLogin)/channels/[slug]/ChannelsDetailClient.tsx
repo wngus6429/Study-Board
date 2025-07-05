@@ -7,7 +7,6 @@ import {
   Card,
   CardContent,
   Button,
-  Avatar,
   Chip,
   Tab,
   Tabs,
@@ -64,7 +63,7 @@ import SearchBar from "@/app/components/common/SearchBar";
 import Loading from "@/app/components/common/Loading";
 import ErrorView from "@/app/components/common/ErrorView";
 // API 함수들 import
-import { getChannel, getChannelBySlug, subscribeChannel, unsubscribeChannel, Channel } from "@/app/api/channelsApi";
+import { getChannelBySlug, subscribeChannel, unsubscribeChannel, Channel } from "@/app/api/channelsApi";
 // 기존 커스텀 훅들 import
 import { useStories } from "@/app/components/api/useStories";
 import { useCardStories } from "@/app/components/api/useCardStories";

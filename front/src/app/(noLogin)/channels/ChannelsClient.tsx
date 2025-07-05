@@ -15,25 +15,20 @@ import {
   Avatar,
   IconButton,
   Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   CircularProgress,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import PeopleIcon from "@mui/icons-material/People";
 import ArticleIcon from "@mui/icons-material/Article";
 import AddIcon from "@mui/icons-material/Add";
-import CloudUploadIcon from "@mui/icons-material/CloudUpload";
-import DeleteIcon from "@mui/icons-material/Delete";
-import ImageIcon from "@mui/icons-material/Image";
 import EditIcon from "@mui/icons-material/Edit";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import Loading from "@/app/components/common/Loading";
+import CreateChannelDialog from "@/app/components/common/CreateChannelDialog";
+import EditChannelImageDialog from "@/app/components/common/EditChannelImageDialog";
 // API 함수들 import
 import { getChannels, createChannel, uploadChannelImage, deleteChannelImage, Channel } from "@/app/api/channelsApi";
 
@@ -620,228 +615,34 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
       </Grid>
 
       {/* 채널 생성 다이얼로그 */}
-      <Dialog open={openCreateDialog} onClose={handleCancelCreate} maxWidth="sm" fullWidth>
-        <DialogTitle
-          sx={{
-            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#f8f9fa",
-            color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
-            fontWeight: "bold",
-          }}
-        >
-          새 채널 만들기
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
-            pt: 2,
-          }}
-        >
-          <TextField
-            autoFocus
-            margin="dense"
-            label="채널 이름"
-            fullWidth
-            variant="outlined"
-            value={newChannelName}
-            onChange={(e) => setNewChannelName(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="채널 URL (영어 소문자, 숫자, 하이픈만 가능)"
-            fullWidth
-            variant="outlined"
-            value={newChannelSlug}
-            onChange={(e) => setNewChannelSlug(e.target.value.toLowerCase())}
-            sx={{ mb: 2 }}
-          />
-
-          {/* 이미지 업로드 */}
-          <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2" sx={{ mb: 1 }}>
-              채널 이미지 (선택사항)
-            </Typography>
-            <input
-              accept="image/*"
-              style={{ display: "none" }}
-              id="channel-image-upload"
-              type="file"
-              onChange={handleImageChange}
-            />
-            <label htmlFor="channel-image-upload">
-              <Button variant="outlined" component="span" startIcon={<CloudUploadIcon />} sx={{ mb: 1 }} fullWidth>
-                이미지 선택
-              </Button>
-            </label>
-
-            {channelImagePreview && (
-              <Box sx={{ mt: 2, textAlign: "center" }}>
-                <Box
-                  component="img"
-                  src={channelImagePreview}
-                  alt="미리보기"
-                  sx={{
-                    maxWidth: "100%",
-                    maxHeight: 200,
-                    borderRadius: 1,
-                    border: "1px solid",
-                    borderColor: theme.palette.divider,
-                  }}
-                />
-                <Box sx={{ mt: 1 }}>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    startIcon={<DeleteIcon />}
-                    onClick={handleRemoveImage}
-                  >
-                    이미지 제거
-                  </Button>
-                </Box>
-              </Box>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#f8f9fa",
-            px: 3,
-            pb: 2,
-          }}
-        >
-          <Button onClick={handleCancelCreate} disabled={createChannelMutation.isPending}>
-            취소
-          </Button>
-          <Button
-            onClick={handleConfirmCreate}
-            variant="contained"
-            disabled={createChannelMutation.isPending}
-            sx={{
-              background:
-                theme.palette.mode === "dark"
-                  ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
-                  : "linear-gradient(135deg, #1976d2, #42a5f5)",
-            }}
-          >
-            {createChannelMutation.isPending ? <CircularProgress size={20} sx={{ color: "inherit" }} /> : "생성"}
-          </Button>
-        </DialogActions>
-      </Dialog>
+      <CreateChannelDialog
+        open={openCreateDialog}
+        onClose={handleCancelCreate}
+        channelName={newChannelName}
+        onChannelNameChange={setNewChannelName}
+        channelSlug={newChannelSlug}
+        onChannelSlugChange={setNewChannelSlug}
+        imageFile={channelImageFile}
+        imagePreview={channelImagePreview}
+        onImageChange={handleImageChange}
+        onImageRemove={handleRemoveImage}
+        onConfirm={handleConfirmCreate}
+        createMutation={createChannelMutation}
+      />
 
       {/* 기존 채널 이미지 수정 다이얼로그 */}
-      <Dialog open={openEditImageDialog} onClose={handleCancelEditImage} maxWidth="sm" fullWidth>
-        <DialogTitle
-          sx={{
-            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#f8f9fa",
-            color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
-            fontWeight: "bold",
-          }}
-        >
-          채널 이미지 수정
-        </DialogTitle>
-        <DialogContent
-          sx={{
-            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
-            pt: 2,
-          }}
-        >
-          <Box sx={{ mb: 2 }}>
-            <input
-              accept="image/*"
-              style={{ display: "none" }}
-              id="edit-channel-image-upload"
-              type="file"
-              onChange={handleEditImageChange}
-            />
-            <label htmlFor="edit-channel-image-upload">
-              <Button variant="outlined" component="span" startIcon={<ImageIcon />} sx={{ mb: 1 }} fullWidth>
-                새 이미지 선택
-              </Button>
-            </label>
-
-            {editImagePreview && (
-              <Box sx={{ mt: 2, textAlign: "center" }}>
-                <Box
-                  component="img"
-                  src={editImagePreview}
-                  alt="미리보기"
-                  sx={{
-                    maxWidth: "100%",
-                    maxHeight: 200,
-                    borderRadius: 1,
-                    border: "1px solid",
-                    borderColor: theme.palette.divider,
-                  }}
-                />
-                <Box sx={{ mt: 1 }}>
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    size="small"
-                    startIcon={<DeleteIcon />}
-                    onClick={handleRemoveEditImage}
-                  >
-                    선택 취소
-                  </Button>
-                </Box>
-              </Box>
-            )}
-          </Box>
-        </DialogContent>
-        <DialogActions
-          sx={{
-            background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#f8f9fa",
-            px: 3,
-            pb: 2,
-            justifyContent: "space-between",
-          }}
-        >
-          <Button
-            onClick={handleDeleteExistingImage}
-            variant="outlined"
-            color="error"
-            disabled={uploadExistingChannelImageMutation.isPending || deleteExistingChannelImageMutation.isPending}
-            startIcon={<DeleteIcon />}
-          >
-            {deleteExistingChannelImageMutation.isPending ? (
-              <CircularProgress size={20} sx={{ color: "inherit" }} />
-            ) : (
-              "현재 이미지 삭제"
-            )}
-          </Button>
-          <Box>
-            <Button
-              onClick={handleCancelEditImage}
-              disabled={uploadExistingChannelImageMutation.isPending || deleteExistingChannelImageMutation.isPending}
-              sx={{ mr: 1 }}
-            >
-              취소
-            </Button>
-            <Button
-              onClick={handleConfirmEditImage}
-              variant="contained"
-              disabled={
-                !editImageFile ||
-                uploadExistingChannelImageMutation.isPending ||
-                deleteExistingChannelImageMutation.isPending
-              }
-              sx={{
-                background:
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
-                    : "linear-gradient(135deg, #1976d2, #42a5f5)",
-              }}
-            >
-              {uploadExistingChannelImageMutation.isPending ? (
-                <CircularProgress size={20} sx={{ color: "inherit" }} />
-              ) : (
-                "이미지 업데이트"
-              )}
-            </Button>
-          </Box>
-        </DialogActions>
-      </Dialog>
+      <EditChannelImageDialog
+        open={openEditImageDialog}
+        onClose={handleCancelEditImage}
+        imageFile={editImageFile}
+        imagePreview={editImagePreview}
+        onImageChange={handleEditImageChange}
+        onImageRemove={handleRemoveEditImage}
+        onConfirm={handleConfirmEditImage}
+        onDeleteExisting={handleDeleteExistingImage}
+        uploadMutation={uploadExistingChannelImageMutation}
+        deleteMutation={deleteExistingChannelImageMutation}
+      />
     </Box>
   );
 };

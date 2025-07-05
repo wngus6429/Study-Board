@@ -7,6 +7,7 @@ export interface Channel {
   slug: string;
   story_count: number;
   subscriber_count: number;
+  description: string;
   created_at: string;
   updated_at: string;
   creator: {

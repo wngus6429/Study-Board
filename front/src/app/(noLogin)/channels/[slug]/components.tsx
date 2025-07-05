@@ -3,7 +3,6 @@ import { Box, Card, Button, Typography } from "@mui/material";
 import {
   colors,
   shadows,
-  getCardStyle,
   getGradientButtonStyle,
   getTextGradientStyle,
   getMetallicCardStyle,

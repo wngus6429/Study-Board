@@ -35,9 +35,7 @@ import {
   EmojiEvents as EmojiEventsIcon,
   Verified as VerifiedIcon,
   Person as PersonIcon,
-  Edit as EditIcon,
   Announcement as AnnouncementIcon,
-  FiberNew as FiberNewIcon,
   Chat as ChatIcon,
   Hub as HubIcon,
   AutoAwesome as AutoAwesomeIcon,
@@ -62,6 +60,7 @@ import Pagination from "@/app/components/common/Pagination";
 import SearchBar from "@/app/components/common/SearchBar";
 import Loading from "@/app/components/common/Loading";
 import ErrorView from "@/app/components/common/ErrorView";
+import ChannelNoticeModal from "@/app/components/common/ChannelNoticeModal";
 // API 함수들 import
 import { getChannelBySlug, subscribeChannel, unsubscribeChannel, Channel } from "@/app/api/channelsApi";
 // 기존 커스텀 훅들 import
@@ -1405,252 +1404,13 @@ const ChannelDetailPage = () => {
 
       {/* 공지사항 모달 */}
       {showNotice && (
-        <Card
-          sx={{
-            borderRadius: "20px",
-            position: "relative",
-            overflow: "hidden",
-            background:
-              theme.palette.mode === "dark"
-                ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(45, 48, 71, 0.98) 100%)"
-                : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.99) 100%)",
-            backdropFilter: "blur(20px)",
-            border:
-              theme.palette.mode === "dark"
-                ? "2px solid rgba(139, 92, 246, 0.4)"
-                : "2px solid rgba(139, 92, 246, 0.25)",
-            boxShadow:
-              theme.palette.mode === "dark"
-                ? "0 0 40px rgba(139, 92, 246, 0.3), 0 0 80px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                : "0 0 40px rgba(139, 92, 246, 0.2), 0 20px 60px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: "-2px",
-              left: "-2px",
-              right: "-2px",
-              bottom: "-2px",
-              background: "linear-gradient(45deg, #8a2387, #e94057, #f27121, #8a2387)",
-              borderRadius: "22px",
-              opacity: 0.7,
-              animation: "borderGlow 4s linear infinite",
-              zIndex: -1,
-            },
-            "&::after": {
-              content: '""',
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "6px",
-              background: "linear-gradient(90deg, #8a2387, #e94057, #f27121)",
-              animation: "gradientShift 3s ease-in-out infinite",
-            },
-            "@keyframes gradientShift": {
-              "0%": {
-                background: "linear-gradient(90deg, #8a2387, #e94057, #f27121)",
-                filter: "hue-rotate(0deg)",
-              },
-              "50%": {
-                background: "linear-gradient(90deg, #e94057, #f27121, #8a2387)",
-                filter: "hue-rotate(60deg)",
-              },
-              "100%": {
-                background: "linear-gradient(90deg, #8a2387, #e94057, #f27121)",
-                filter: "hue-rotate(0deg)",
-              },
-            },
-          }}
-        >
-          {/* 헤더 섹션 */}
-          <Box sx={{ p: 3, pb: 2 }}>
-            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 1 }}>
-              {/* 왼쪽: 제목과 설명 */}
-              <Box>
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: 700,
-                    color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
-                    mb: 1,
-                  }}
-                >
-                  <AnnouncementIcon sx={{ color: "#e94057" }} />
-                  {channelData.channel_name} 채널 공지사항
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)",
-                    fontSize: "0.875rem",
-                  }}
-                >
-                  채널의 최신 공지사항을 확인하세요
-                </Typography>
-              </Box>
-
-              {/* 오른쪽: 공지사항 작성 버튼 */}
-              {session?.user && channelData.creator?.id === session.user.id && (
-                <Button
-                  onClick={handleWriteNotice}
-                  variant="outlined"
-                  startIcon={<EditIcon />}
-                  sx={{
-                    borderRadius: "12px",
-                    px: 3,
-                    py: 1.5,
-                    background:
-                      theme.palette.mode === "dark"
-                        ? "linear-gradient(135deg, rgba(233, 64, 87, 0.1), rgba(242, 113, 33, 0.1))"
-                        : "linear-gradient(135deg, rgba(233, 64, 87, 0.05), rgba(242, 113, 33, 0.05))",
-                    border:
-                      theme.palette.mode === "dark"
-                        ? "1px solid rgba(233, 64, 87, 0.3)"
-                        : "1px solid rgba(233, 64, 87, 0.2)",
-                    color: "#e94057",
-                    fontWeight: "600",
-                    fontSize: "0.9rem",
-                    transition: "all 0.3s ease",
-                    minWidth: "160px",
-                    "&:hover": {
-                      background:
-                        theme.palette.mode === "dark"
-                          ? "linear-gradient(135deg, rgba(233, 64, 87, 0.2), rgba(242, 113, 33, 0.2))"
-                          : "linear-gradient(135deg, rgba(233, 64, 87, 0.1), rgba(242, 113, 33, 0.1))",
-                      transform: "translateY(-2px)",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0 8px 25px rgba(233, 64, 87, 0.3)"
-                          : "0 8px 25px rgba(233, 64, 87, 0.2)",
-                    },
-                  }}
-                >
-                  새 공지사항 작성
-                </Button>
-              )}
-            </Box>
-          </Box>
-
-          {/* 공지사항 목록 */}
-          <Box sx={{ px: 3, pb: 3, maxHeight: "400px", overflowY: "auto" }}>
-            {noticesLoading ? (
-              <Box sx={{ textAlign: "center", py: 3 }}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)",
-                    fontStyle: "italic",
-                  }}
-                >
-                  공지사항을 불러오는 중...
-                </Typography>
-              </Box>
-            ) : channelNotices.length > 0 ? (
-              channelNotices.map((notice: any, index: number) => (
-                <Box
-                  key={notice.id}
-                  onClick={() => handleNoticeClick(notice.id)}
-                  sx={{
-                    borderRadius: "10px",
-                    p: 2,
-                    mb: 1,
-                    backgroundColor:
-                      theme.palette.mode === "dark" ? "rgba(45, 48, 56, 0.6)" : "rgba(249, 250, 251, 0.8)",
-                    border:
-                      theme.palette.mode === "dark"
-                        ? "1px solid rgba(255, 255, 255, 0.05)"
-                        : "1px solid rgba(0, 0, 0, 0.05)",
-                    transition: "all 0.3s ease",
-                    cursor: "pointer",
-                    "&:hover": {
-                      backgroundColor:
-                        theme.palette.mode === "dark" ? "rgba(55, 58, 66, 0.8)" : "rgba(233, 64, 87, 0.05)",
-                      transform: "translateX(8px)",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0 4px 15px rgba(0, 0, 0, 0.3)"
-                          : "0 4px 15px rgba(0, 0, 0, 0.1)",
-                      borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(233, 64, 87, 0.2)",
-                    },
-                    "&:last-child": {
-                      mb: 0,
-                    },
-                  }}
-                >
-                  <Box sx={{ width: "100%" }}>
-                    <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                      <Typography
-                        variant="body1"
-                        sx={{
-                          fontWeight: 600,
-                          color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
-                          fontSize: "0.95rem",
-                          lineHeight: 1.3,
-                        }}
-                      >
-                        {truncateTitle(notice.title)}
-                      </Typography>
-                      {isNewNotice(notice.created_at) && (
-                        <Chip
-                          icon={<FiberNewIcon sx={{ fontSize: "0.8rem" }} />}
-                          label="NEW"
-                          size="small"
-                          sx={{
-                            height: "22px",
-                            fontSize: "0.7rem",
-                            fontWeight: "bold",
-                            backgroundColor: "#e94057",
-                            color: "white",
-                            "& .MuiChip-icon": {
-                              color: "white",
-                            },
-                          }}
-                        />
-                      )}
-                    </Box>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
-                        fontSize: "0.8rem",
-                      }}
-                    >
-                      {new Date(notice.created_at).toLocaleDateString("ko-KR", {
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    </Typography>
-                  </Box>
-                </Box>
-              ))
-            ) : (
-              <Box sx={{ textAlign: "center", py: 4 }}>
-                <AnnouncementIcon
-                  sx={{
-                    fontSize: "3rem",
-                    color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.3)",
-                    mb: 2,
-                  }}
-                />
-                <Typography
-                  variant="body2"
-                  sx={{
-                    color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)",
-                    fontStyle: "italic",
-                  }}
-                >
-                  등록된 공지사항이 없습니다
-                </Typography>
-              </Box>
-            )}
-          </Box>
-        </Card>
+        <ChannelNoticeModal
+          channelData={channelData}
+          channelNotices={channelNotices}
+          noticesLoading={noticesLoading}
+          onNoticeClick={handleNoticeClick}
+          onWriteNotice={handleWriteNotice}
+        />
       )}
 
       {/* 채널 정보 모달 */}

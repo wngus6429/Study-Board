@@ -1,5 +1,14 @@
 import React from "react";
-import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Button, Box } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button,
+  Box,
+  useTheme,
+} from "@mui/material";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -20,6 +29,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   confirmText = "확인", // 기본 확인 텍스트
   cancelText = "취소", // 기본 취소 텍스트
 }) => {
+  const theme = useTheme();
+
   return (
     <Dialog
       open={open}
@@ -30,8 +41,10 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
         "& .MuiDialog-paper": {
           borderRadius: "16px", // 둥근 모서리
           padding: "10px", // 내부 여백
-          backgroundColor: "#f9f9f9", // 배경 색상
-          boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.1)", // 그림자 효과
+          backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#f9f9f9", // 테마별 배경 색상
+          boxShadow:
+            theme.palette.mode === "dark" ? "0px 8px 25px rgba(139, 92, 246, 0.15)" : "0px 4px 10px rgba(0, 0, 0, 0.1)", // 테마별 그림자 효과
+          border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
         },
       }}
     >
@@ -41,7 +54,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           fontWeight: "bold",
           fontSize: "1.5rem",
           textAlign: "center",
-          color: "#3f51b5", // 강조 색상
+          color: theme.palette.mode === "dark" ? "#a78bfa" : "#3f51b5", // 테마별 강조 색상
         }}
       >
         {title}
@@ -58,7 +71,8 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           id="confirm-dialog-description"
           sx={{
             fontSize: "1rem",
-            color: "#555",
+            color: theme.palette.mode === "dark" ? "#e2e8f0" : "#555", // 테마별 텍스트 색상
+            whiteSpace: "pre-line", // 줄바꿈 지원 추가
           }}
         >
           {description}
@@ -81,6 +95,12 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             fontWeight: "bold",
             borderRadius: "8px",
             padding: "8px 16px",
+            color: theme.palette.mode === "dark" ? "#a78bfa" : "#3f51b5",
+            borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "#3f51b5",
+            "&:hover": {
+              backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(63, 81, 181, 0.04)",
+              borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#3f51b5",
+            },
           }}
         >
           {cancelText}
@@ -94,9 +114,9 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             fontWeight: "bold",
             borderRadius: "8px",
             padding: "8px 16px",
-            backgroundColor: "#f44336",
+            backgroundColor: theme.palette.mode === "dark" ? "#dc2626" : "#f44336",
             "&:hover": {
-              backgroundColor: "#d32f2f", // 호버 시 색상 변경
+              backgroundColor: theme.palette.mode === "dark" ? "#b91c1c" : "#d32f2f", // 테마별 호버 색상
             },
           }}
         >

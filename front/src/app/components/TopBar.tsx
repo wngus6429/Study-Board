@@ -31,6 +31,7 @@ export default function MenuBar() {
   const { setCurrentPage } = usePageStore();
   const [settingsMenuAnchor, setSettingsMenuAnchor] = useState<null | HTMLElement>(null);
 
+  console.log("유저", user);
   // 현대적인 버튼 스타일
   const modernButtonStyle = {
     borderRadius: "12px",

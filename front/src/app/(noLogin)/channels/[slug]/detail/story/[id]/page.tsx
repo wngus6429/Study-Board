@@ -56,6 +56,7 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import ReportIcon from "@mui/icons-material/Report";
 import FlagIcon from "@mui/icons-material/Flag";
 import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
+import { useAdmin } from "@/app/hooks/useAdmin";
 
 export default function page({ params }: { params: { id: string; slug: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -64,6 +65,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
   const { data: session } = useSession();
   const queryClient = useQueryClient();
   const theme = useTheme();
+  const admin = useAdmin();
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
   const { openCloseComments } = useComment();
@@ -387,6 +389,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [detailToDelete, setDetailToDelete] = useState<number | null>(null);
 
+  // 관리자 삭제 관련 상태
+  const [openAdminDeleteDialog, setOpenAdminDeleteDialog] = useState(false);
+  const [adminDeleteTarget, setAdminDeleteTarget] = useState<number | null>(null);
+
   const handleDeleteClick = (id: number) => {
     setDetailToDelete(id);
     setOpenConfirmDialog(true);
@@ -403,6 +409,41 @@ export default function page({ params }: { params: { id: string; slug: string } 
   const cancelDelete = () => {
     setDetailToDelete(null);
     setOpenConfirmDialog(false);
+  };
+
+  // 관리자 삭제 핸들러들
+  const handleAdminDeleteClick = (id: number) => {
+    setAdminDeleteTarget(id);
+    setOpenAdminDeleteDialog(true);
+  };
+
+  const confirmAdminDelete = async () => {
+    if (adminDeleteTarget !== null) {
+      await admin.deleteStory(
+        adminDeleteTarget,
+        undefined, // 채널 ID (현재 상세 페이지에서는 불필요)
+        () => {
+          setAdminDeleteTarget(null);
+          setOpenAdminDeleteDialog(false);
+          setIsDeleted(true);
+          showMessage("관리자 권한으로 게시글이 삭제되었습니다.", "success");
+          // 채널 페이지가 있으면 해당 채널로, 없으면 메인으로 이동
+          if (params.slug) {
+            router.push(`/channels/${params.slug}`);
+          } else {
+            router.push("/");
+          }
+        },
+        (error) => {
+          showMessage(`관리자 삭제 실패: ${error.message}`, "error");
+        }
+      );
+    }
+  };
+
+  const cancelAdminDelete = () => {
+    setAdminDeleteTarget(null);
+    setOpenAdminDeleteDialog(false);
   };
 
   // 이미지 클릭 핸들러
@@ -1333,6 +1374,29 @@ export default function page({ params }: { params: { id: string; slug: string } 
                     </Button>
                   </>
                 )}
+
+                {/* 관리자 삭제 버튼 - 관리자 권한이 있고 자신의 글이 아닐 때만 표시 (카테고리 무관) */}
+                {admin.isSuperAdmin && detail.User?.id !== session?.user?.id && (
+                  <Button
+                    size="medium"
+                    variant="contained"
+                    color="error"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleAdminDeleteClick(detail.id);
+                    }}
+                    disabled={admin.isLoading}
+                    startIcon={admin.isLoading ? <CircularProgress size={20} /> : <FlagIcon />}
+                    sx={{
+                      background: "linear-gradient(45deg, #f44336, #d32f2f)",
+                      "&:hover": {
+                        background: "linear-gradient(45deg, #d32f2f, #b71c1c)",
+                      },
+                    }}
+                  >
+                    {admin.isLoading ? "삭제 중..." : `관리자 삭제 (${admin.getAdminBadgeText()})`}
+                  </Button>
+                )}
               </Box>
             </Box>
             <Typography
@@ -1688,6 +1752,55 @@ export default function page({ params }: { params: { id: string; slug: string } 
         onSubmit={handleReportSubmit}
         loading={reportLoading}
       />
+
+      {/* 관리자 삭제 확인 다이얼로그 */}
+      <Dialog open={openAdminDeleteDialog} onClose={cancelAdminDelete} aria-labelledby="admin-delete-dialog-title">
+        <DialogTitle
+          id="admin-delete-dialog-title"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            color: "error.main",
+          }}
+        >
+          <FlagIcon />
+          관리자 권한으로 게시글 삭제
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body1" sx={{ mb: 2, color: "text.primary" }}>
+            부적절한 내용으로 판단되어 이 게시글을 삭제하시겠습니까?
+          </Typography>
+          {detail && (
+            <Typography
+              variant="body2"
+              sx={{
+                p: 2,
+                bgcolor: "action.hover",
+                borderRadius: 1,
+                maxWidth: "400px",
+                wordBreak: "break-word",
+                color: "text.primary",
+                border: "1px solid",
+                borderColor: "divider",
+              }}
+            >
+              "{detail.title}"
+            </Typography>
+          )}
+          <Typography variant="caption" color="error" sx={{ mt: 1, display: "block" }}>
+            ⚠️ 이 작업은 되돌릴 수 없습니다. 관리자 권한으로 실행됩니다.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={cancelAdminDelete} color="primary">
+            취소
+          </Button>
+          <Button onClick={confirmAdminDelete} color="error" variant="contained" disabled={admin.isLoading}>
+            {admin.isLoading ? "삭제 중..." : "관리자 삭제"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

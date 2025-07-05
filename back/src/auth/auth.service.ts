@@ -153,7 +153,7 @@ export class AuthService {
    * 성공 시 사용자 정보(비밀번호 제외)와 프로필 이미지를 반환합니다.
    *
    * @param userData - 로그인 정보 (이메일, 비밀번호)
-   * @returns 사용자 정보 (id, email, nickname, image) 또는 null
+   * @returns 사용자 정보 (id, email, nickname, image, is_super_admin) 또는 null
    * @throws ConflictException - 이메일이 존재하지 않거나 비밀번호가 틀린 경우
    *
    * @process
@@ -166,6 +166,7 @@ export class AuthService {
     user_email: string;
     nickname: string;
     image: string;
+    is_super_admin: boolean;
   } | null> {
     const { user_email, password } = userData;
 
@@ -201,6 +202,7 @@ export class AuthService {
       user_email: user.user_email,
       nickname: user.nickname,
       image: imageLink,
+      is_super_admin: user.is_super_admin,
     };
   }
 

@@ -1,13 +1,24 @@
 import { useState } from "react";
-import { useUserStore } from "../store/userInfoStore";
+import { useSession } from "next-auth/react";
 import adminApi, { AdminPermission } from "../api/adminApi";
 
 /**
  * 관리자 기능을 위한 커스텀 훅
  */
 export const useAdmin = () => {
-  const { isSuperAdmin, isChannelAdmin, hasAdminPermission, currentUser } = useUserStore();
+  const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
+
+  const currentUser = session?.user || null;
+  const isSuperAdmin = () => currentUser?.is_super_admin === true;
+  const isChannelAdmin = (channelId?: number) => {
+    if (!currentUser || !channelId) return false;
+    // createdChannels 정보는 필요시 별도 API로 가져오도록 구현
+    return false; // 임시로 false 반환
+  };
+  const hasAdminPermission = (channelId?: number) => {
+    return isSuperAdmin() || isChannelAdmin(channelId);
+  };
 
   /**
    * 현재 사용자의 관리자 권한 정보 반환
@@ -47,37 +58,6 @@ export const useAdmin = () => {
       }
 
       await adminApi.utils.deleteByPermission("story", storyId, permission);
-      onSuccess?.();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error : new Error("알 수 없는 오류가 발생했습니다.");
-      onError?.(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * 댓글 삭제 (관리자 권한)
-   * @param commentId 댓글 ID
-   * @param channelId 채널 ID (선택사항)
-   * @param onSuccess 성공 콜백
-   * @param onError 에러 콜백
-   */
-  const deleteComment = async (
-    commentId: number,
-    channelId?: number,
-    onSuccess?: () => void,
-    onError?: (error: Error) => void
-  ) => {
-    try {
-      setIsLoading(true);
-      const permission = getAdminPermission(channelId);
-
-      if (!permission.hasAnyAdminPermission) {
-        throw new Error("관리자 권한이 없습니다.");
-      }
-
-      await adminApi.utils.deleteByPermission("comment", commentId, permission);
       onSuccess?.();
     } catch (error) {
       const errorMessage = error instanceof Error ? error : new Error("알 수 없는 오류가 발생했습니다.");
@@ -154,7 +134,6 @@ export const useAdmin = () => {
 
     // 삭제 기능
     deleteStory,
-    deleteComment,
     batchDelete,
 
     // 상태

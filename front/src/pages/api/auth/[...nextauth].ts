@@ -25,7 +25,7 @@ export const authOptions: NextAuthOptions = {
           console.log("로그인 요청", res);
           if (!res.ok) return null;
 
-          // API에서 반환된 객체 형태: { id, user_email, nickname, image }
+          // API에서 반환된 객체 형태: { id, user_email, nickname, image, is_super_admin }
           const user = await res.json();
 
           // 리턴하는 객체에 **반드시** 우리가 사용할 모든 커스텀 필드를 포함시켜야 합니다.
@@ -34,6 +34,7 @@ export const authOptions: NextAuthOptions = {
             user_email: user.user_email,
             nickname: user.nickname,
             image: user.image, // UserImage.link
+            is_super_admin: user.is_super_admin,
           };
         } catch (error) {
           console.error("로그인 실패:", error);
@@ -49,6 +50,7 @@ export const authOptions: NextAuthOptions = {
         token.user_email = user.user_email;
         token.nickname = user.nickname;
         token.image = user.image as string;
+        token.is_super_admin = user.is_super_admin;
       }
 
       // 2) update() 호출 시 trigger==="update", newSession에 인자로 넘긴 객체가 들어옴
@@ -70,6 +72,7 @@ export const authOptions: NextAuthOptions = {
       session.user.user_email = token.user_email as string;
       session.user.nickname = token.nickname as string;
       session.user.image = token.image as string | null;
+      session.user.is_super_admin = token.is_super_admin as boolean;
       return session;
     },
   },

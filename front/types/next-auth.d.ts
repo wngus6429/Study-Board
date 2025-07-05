@@ -1,5 +1,3 @@
-// next-auth.d.ts (루트에 생성)
-
 import NextAuth, { DefaultSession, DefaultUser } from "next-auth";
 import type { JWT as DefaultJWT } from "next-auth/jwt";
 
@@ -15,6 +13,7 @@ declare module "next-auth" {
       id: string;
       user_email: string;
       nickname: string;
+      is_super_admin: boolean;
     };
   }
 
@@ -23,7 +22,8 @@ declare module "next-auth" {
     id: string;
     user_email: string;
     nickname: string;
-    image: string;
+    image: string | null; // 수정: null 가능하도록
+    is_super_admin: boolean;
   }
 }
 
@@ -33,6 +33,7 @@ declare module "next-auth/jwt" {
     id: string;
     user_email: string;
     nickname: string;
-    image: string;
+    image: string | null; // 수정: null 가능하도록
+    is_super_admin: boolean;
   }
 }

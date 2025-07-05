@@ -354,22 +354,18 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
     });
   };
 
-  // 관리자 삭제 확인 처리
+  // 관리자 삭제 확인 처리 (일반 삭제 함수 사용)
   const confirmAdminDelete = async () => {
     if (!adminDeleteDialog.commentId) return;
 
-    await admin.deleteComment(
-      adminDeleteDialog.commentId,
-      channelId,
-      () => {
-        setAdminDeleteDialog({ open: false, commentId: null, content: "" });
-        refetch(); // 댓글 목록 새로고침
-        showMessage("댓글이 삭제되었습니다.", "success");
-      },
-      (error) => {
-        showMessage(`삭제 실패: ${error.message}`, "error");
-      }
-    );
+    // 일반 삭제 함수 사용 (소프트 삭제로 대댓글 유지)
+    deleteMutation.mutate({
+      commentId: adminDeleteDialog.commentId,
+      storyId,
+    });
+
+    setAdminDeleteDialog({ open: false, commentId: null, content: "" });
+    showMessage("댓글이 삭제되었습니다.", "success");
   };
 
   // 관리자 삭제 취소 처리

@@ -11,30 +11,15 @@ import Paper from "@mui/material/Paper";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useRouter } from "next/navigation";
-import {
-  Box,
-  Typography,
-  Chip,
-  IconButton,
-  Tooltip,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-} from "@mui/material";
+import { Box, Typography, Chip } from "@mui/material";
 import { TableStoryType } from "../../types/tableType";
 import ImageIcon from "@mui/icons-material/Image";
 import VideoLibraryIcon from "@mui/icons-material/VideoLibrary";
-import NotificationsIcon from "@mui/icons-material/Notifications";
 import QuestionAnswerIcon from "@mui/icons-material/QuestionAnswer";
 import ThumbUpAltIcon from "@mui/icons-material/ThumbUpAlt";
 import VisibilityIcon from "@mui/icons-material/Visibility";
-import DeleteIcon from "@mui/icons-material/Delete";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import { useTheme } from "@mui/material/styles";
 import BlindWrapper from "../BlindWrapper";
-import { useAdmin } from "../../hooks/useAdmin";
 
 // 추가 아이콘 import
 import ForumIcon from "@mui/icons-material/Forum";
@@ -91,66 +76,11 @@ const NoticeRow = styled(TableRow)(({ theme }) => ({
 interface CustomizedTablesProps {
   tableData: any;
   onRowClick?: (postId: number) => void;
-  channelId?: number; // 채널 ID 추가 (채널 관리자 권한 체크용)
-  onDataChange?: () => void; // 데이터 변경 시 콜백
 }
 
-const CustomizedTables = ({
-  tableData,
-  onRowClick,
-  channelId,
-  onDataChange,
-}: CustomizedTablesProps): React.ReactNode => {
+const CustomizedTables = ({ tableData, onRowClick }: CustomizedTablesProps): React.ReactNode => {
   const router = useRouter();
   const theme = useTheme();
-  const admin = useAdmin();
-
-  // 삭제 확인 다이얼로그 상태
-  const [deleteDialog, setDeleteDialog] = React.useState<{
-    open: boolean;
-    storyId: number | null;
-    title: string;
-  }>({
-    open: false,
-    storyId: null,
-    title: "",
-  });
-
-  // 관리자 삭제 핸들러
-  const handleAdminDelete = (storyId: number, title: string, event: React.MouseEvent) => {
-    event.stopPropagation(); // 행 클릭 이벤트 방지
-    setDeleteDialog({
-      open: true,
-      storyId,
-      title,
-    });
-  };
-
-  // 삭제 확인 처리
-  const handleConfirmDelete = async () => {
-    if (!deleteDialog.storyId) return;
-
-    await admin.deleteStory(
-      deleteDialog.storyId,
-      channelId,
-      () => {
-        setDeleteDialog({ open: false, storyId: null, title: "" });
-        onDataChange?.(); // 데이터 새로고침
-        alert("게시글이 삭제되었습니다.");
-      },
-      (error) => {
-        alert(`삭제 실패: ${error.message}`);
-      }
-    );
-  };
-
-  // 삭제 취소 처리
-  const handleCancelDelete = () => {
-    setDeleteDialog({ open: false, storyId: null, title: "" });
-  };
-
-  // 관리자 권한이 있는지 체크
-  const hasAdminPermission = admin.hasAdminPermission(channelId);
 
   // 카테고리별 Chip을 렌더링하는 헬퍼 함수
   const getCategoryChip = (category: string) => {
@@ -202,20 +132,12 @@ const CustomizedTables = ({
                   추천
                 </Box>
               </StyledTableCell>
-              {hasAdminPermission && (
-                <StyledTableCell sx={{ width: "80px", textAlign: "center" }}>
-                  <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <AdminPanelSettingsIcon fontSize="small" sx={{ mr: 0.5 }} />
-                    관리
-                  </Box>
-                </StyledTableCell>
-              )}
             </TableRow>
           </TableHead>
           <TableBody>
             {tableData.length === 0 ? (
               <StyledTableRow>
-                <StyledTableCell colSpan={hasAdminPermission ? 7 : 6} align="center" sx={{ height: "120px" }}>
+                <StyledTableCell colSpan={6} align="center" sx={{ height: "120px" }}>
                   <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 1 }}>
                     <Typography variant="h6">😊 게시글이 없습니다</Typography>
                     <Typography variant="body2" color="text.secondary">
@@ -321,70 +243,12 @@ const CustomizedTables = ({
                   </StyledTableCell>
                   <StyledTableCell sx={{ textAlign: "center" }}>{row.read_count}</StyledTableCell>
                   <StyledTableCell sx={{ textAlign: "center" }}>{row.recommend_Count}</StyledTableCell>
-                  {hasAdminPermission && (
-                    <StyledTableCell sx={{ textAlign: "center" }}>
-                      <Tooltip title={`관리자 삭제 (${admin.getAdminBadgeText(channelId)})`}>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={(event) => handleAdminDelete(row.id, row.title, event)}
-                          disabled={admin.isLoading}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                    </StyledTableCell>
-                  )}
                 </StyledTableRow>
               ))
             )}
           </TableBody>
         </Table>
       </TableContainer>
-
-      {/* 관리자 삭제 확인 다이얼로그 */}
-      <Dialog open={deleteDialog.open} onClose={handleCancelDelete} aria-labelledby="admin-delete-dialog-title">
-        <DialogTitle
-          id="admin-delete-dialog-title"
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            color: "error.main",
-          }}
-        >
-          <AdminPanelSettingsIcon />
-          관리자 권한으로 게시글 삭제
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            다음 게시글을 삭제하시겠습니까?
-          </Typography>
-          <Typography
-            variant="body2"
-            sx={{
-              p: 2,
-              bgcolor: "grey.100",
-              borderRadius: 1,
-              maxWidth: "400px",
-              wordBreak: "break-word",
-            }}
-          >
-            "{deleteDialog.title}"
-          </Typography>
-          <Typography variant="caption" color="error" sx={{ mt: 1, display: "block" }}>
-            ⚠️ 이 작업은 되돌릴 수 없습니다.
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelDelete} color="primary">
-            취소
-          </Button>
-          <Button onClick={handleConfirmDelete} color="error" variant="contained" disabled={admin.isLoading}>
-            {admin.isLoading ? "삭제 중..." : "삭제"}
-          </Button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 };

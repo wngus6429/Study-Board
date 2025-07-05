@@ -71,7 +71,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       }}
     >
       {/* 검색 범위 선택 */}
-      <FormControl sx={{ minWidth: 120 }}>
+      <FormControl sx={{ minWidth: 100 }}>
         <Select
           value={category}
           onChange={(e) => setCategory(e.target.value)}

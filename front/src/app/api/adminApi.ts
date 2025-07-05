@@ -42,43 +42,6 @@ export const adminStoryApi = {
 };
 
 /**
- * 관리자 전용 댓글 관리 API
- */
-export const adminCommentApi = {
-  /**
-   * 총 관리자 권한으로 댓글 강제 삭제
-   * @param commentId 삭제할 댓글 ID
-   * @returns Promise<void>
-   */
-  forceDeleteComment: async (commentId: number): Promise<void> => {
-    const response = await instance.delete(`/api/story/admin/comment/${commentId}/force-delete`);
-    return response.data;
-  },
-
-  /**
-   * 채널 관리자 권한으로 댓글 삭제
-   * @param commentId 삭제할 댓글 ID
-   * @returns Promise<void>
-   */
-  channelAdminDeleteComment: async (commentId: number): Promise<void> => {
-    const response = await instance.delete(`/api/story/admin/comment/${commentId}/channel-delete`);
-    return response.data;
-  },
-
-  /**
-   * 관리자 권한으로 여러 댓글 일괄 삭제
-   * @param commentIds 삭제할 댓글 ID 목록
-   * @returns Promise<{ deletedCount: number }>
-   */
-  batchDeleteComments: async (commentIds: number[]): Promise<{ deletedCount: number }> => {
-    const response = await instance.delete("/api/story/admin/comment/batch-delete", {
-      data: { commentIds },
-    });
-    return response.data;
-  },
-};
-
-/**
  * 관리자 권한 체크 타입 정의
  */
 export interface AdminPermission {
@@ -104,14 +67,14 @@ export const adminUtils = {
       if (type === "story") {
         return adminStoryApi.forceDeleteStory(id);
       } else {
-        return adminCommentApi.forceDeleteComment(id);
+        throw new Error("댓글 삭제는 일반 삭제 함수를 사용하세요.");
       }
     } else if (permission.isChannelAdmin) {
       // 채널 관리자는 채널 관리자 삭제
       if (type === "story") {
         return adminStoryApi.channelAdminDeleteStory(id);
       } else {
-        return adminCommentApi.channelAdminDeleteComment(id);
+        throw new Error("댓글 삭제는 일반 삭제 함수를 사용하세요.");
       }
     } else {
       throw new Error("관리자 권한이 없습니다.");
@@ -137,7 +100,7 @@ export const adminUtils = {
     if (type === "story") {
       return adminStoryApi.batchDeleteStories(ids);
     } else {
-      return adminCommentApi.batchDeleteComments(ids);
+      throw new Error("댓글 일괄 삭제는 지원되지 않습니다.");
     }
   },
 };
@@ -153,6 +116,5 @@ export interface AdminDeleteOptions {
 
 export default {
   story: adminStoryApi,
-  comment: adminCommentApi,
   utils: adminUtils,
 };

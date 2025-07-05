@@ -57,6 +57,7 @@ import ReportIcon from "@mui/icons-material/Report";
 import FlagIcon from "@mui/icons-material/Flag";
 import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
 import { useAdmin } from "@/app/hooks/useAdmin";
+import { getChannelBySlug } from "@/app/api/channelsApi";
 
 export default function page({ params }: { params: { id: string; slug: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -136,6 +137,14 @@ export default function page({ params }: { params: { id: string; slug: string } 
     },
     enabled: !!session?.user && !!params?.id && !isDeleted,
     staleTime: 1000 * 60 * 2,
+  });
+
+  //! 채널 정보 조회 (관리자 권한 확인용)
+  const { data: channelData } = useQuery({
+    queryKey: ["channel", "slug", params?.slug],
+    queryFn: () => getChannelBySlug(params.slug),
+    enabled: !!params?.slug,
+    staleTime: 1000 * 60 * 5, // 5분 캐시
   });
 
   useEffect(() => {
@@ -1376,7 +1385,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 )}
 
                 {/* 관리자 삭제 버튼 - 관리자 권한이 있을 때 표시 (카테고리 무관) */}
-                {admin.hasAdminPermission() && (
+                {admin.hasAdminPermission({ channelId: channelData?.id, creatorId: channelData?.creator?.id }) && (
                   <Button
                     size="medium"
                     variant="contained"
@@ -1394,7 +1403,9 @@ export default function page({ params }: { params: { id: string; slug: string } 
                       },
                     }}
                   >
-                    {admin.isLoading ? "삭제 중..." : `관리자 삭제 (${admin.getAdminBadgeText()})`}
+                    {admin.isLoading
+                      ? "삭제 중..."
+                      : `관리자 삭제 (${admin.getAdminBadgeText({ channelId: channelData?.id, creatorId: channelData?.creator?.id })})`}
                   </Button>
                 )}
               </Box>

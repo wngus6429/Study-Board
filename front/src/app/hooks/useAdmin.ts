@@ -1,6 +1,15 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import adminApi, { AdminPermission } from "../api/adminApi";
+
+/**
+ * 채널 관리자 권한 체크를 위한 인터페이스
+ */
+interface ChannelAdminCheckProps {
+  channelId?: number;
+  channelSlug?: string;
+  creatorId?: string; // 채널 생성자 ID가 직접 전달된 경우
+}
 
 /**
  * 관리자 기능을 위한 커스텀 훅
@@ -11,14 +20,52 @@ export const useAdmin = () => {
 
   const currentUser = session?.user || null;
   const isSuperAdmin = () => currentUser?.is_super_admin === true;
-  const isChannelAdmin = (channelId?: number) => {
-    if (!currentUser || !channelId) return false;
-    // createdChannels 정보는 필요시 별도 API로 가져오도록 구현
-    return false; // 임시로 false 반환
-  };
-  const hasAdminPermission = (channelId?: number) => {
-    return isSuperAdmin() || isChannelAdmin(channelId);
-  };
+
+  /**
+   * 채널 관리자 권한 확인
+   * @param channelIdOrOptions 채널 ID (기존 호환성) 또는 채널 정보 객체
+   * @returns 채널 관리자 여부
+   */
+  const isChannelAdmin = useCallback(
+    (channelIdOrOptions?: number | ChannelAdminCheckProps) => {
+      if (!currentUser) return false;
+
+      // 숫자가 전달된 경우 (기존 호환성)
+      if (typeof channelIdOrOptions === "number") {
+        // 기존 방식: 채널 ID만으로는 생성자 확인 불가
+        return false;
+      }
+
+      // 객체가 전달된 경우
+      const options = channelIdOrOptions as ChannelAdminCheckProps | undefined;
+
+      // 생성자 ID가 직접 전달된 경우
+      if (options?.creatorId) {
+        return currentUser.id === options.creatorId;
+      }
+
+      // 채널 ID나 슬러그가 없으면 false
+      if (!options?.channelId && !options?.channelSlug) {
+        return false;
+      }
+
+      // 채널 정보를 통한 권한 확인은 별도 컴포넌트에서 처리
+      return false;
+    },
+    [currentUser]
+  );
+
+  /**
+   * 관리자 권한 확인 (총 관리자 또는 채널 관리자)
+   * @param channelIdOrOptions 채널 ID (기존 호환성) 또는 채널 정보 객체
+   * @returns 관리자 권한 여부
+   */
+  const hasAdminPermission = useCallback(
+    (channelIdOrOptions?: number | ChannelAdminCheckProps) => {
+      return isSuperAdmin() || isChannelAdmin(channelIdOrOptions);
+    },
+    [isChannelAdmin]
+  );
 
   /**
    * 현재 사용자의 관리자 권한 정보 반환
@@ -100,23 +147,25 @@ export const useAdmin = () => {
 
   /**
    * 관리자 권한별 표시 텍스트 반환
-   * @param channelId 채널 ID (선택사항)
+   * @param channelIdOrOptions 채널 ID (기존 호환성) 또는 채널 정보 객체
    * @returns 권한 표시 텍스트
    */
-  const getAdminBadgeText = (channelId?: number): string => {
+  const getAdminBadgeText = (channelIdOrOptions?: number | ChannelAdminCheckProps): string => {
     if (isSuperAdmin()) return "총관리자";
-    if (isChannelAdmin(channelId)) return "채널관리자";
+    if (isChannelAdmin(channelIdOrOptions)) return "채널관리자";
     return "";
   };
 
   /**
    * 관리자 권한별 색상 반환
-   * @param channelId 채널 ID (선택사항)
+   * @param channelIdOrOptions 채널 ID (기존 호환성) 또는 채널 정보 객체
    * @returns 권한별 색상
    */
-  const getAdminBadgeColor = (channelId?: number): "error" | "warning" | "default" => {
+  const getAdminBadgeColor = (
+    channelIdOrOptions?: number | ChannelAdminCheckProps
+  ): "error" | "warning" | "default" => {
     if (isSuperAdmin()) return "error";
-    if (isChannelAdmin(channelId)) return "warning";
+    if (isChannelAdmin(channelIdOrOptions)) return "warning";
     return "default";
   };
 

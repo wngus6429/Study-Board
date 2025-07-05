@@ -36,9 +36,10 @@ interface CommentResponse {
 
 interface CommentsViewProps {
   channelId?: number; // 채널 ID 추가 (채널 관리자 권한 체크용)
+  channelCreatorId?: string; // 채널 생성자 ID 추가
 }
 
-const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
+const CommentsView = ({ channelId, channelCreatorId }: CommentsViewProps = {}) => {
   // URL 파라미터에서 스토리 ID 가져오기
   const { id: storyId } = useParams() as { id: string }; // 타입 단언 추가
   const { showMessage } = useMessage((state) => state);
@@ -589,12 +590,13 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
                   </>
                 )}
                 {/* 삭제 버튼 - 본인 댓글이거나 관리자 권한이 있을 때 표시 */}
-                {(comment.userId === session?.user.id || admin.hasAdminPermission(channelId)) && (
+                {(comment.userId === session?.user.id ||
+                  admin.hasAdminPermission({ channelId, creatorId: channelCreatorId })) && (
                   <Button
                     size="small"
                     onClick={() => {
                       // 관리자 권한이 있으면 관리자 삭제, 아니면 일반 삭제
-                      if (admin.hasAdminPermission(channelId)) {
+                      if (admin.hasAdminPermission({ channelId, creatorId: channelCreatorId })) {
                         handleAdminDeleteComment(comment.id, comment.content);
                       } else {
                         handleDeleteClick(comment.id);
@@ -614,7 +616,7 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
                     }}
                     disabled={admin.isLoading}
                   >
-                    {admin.hasAdminPermission(channelId) ? "관리자 삭제" : "삭제"}
+                    {admin.hasAdminPermission({ channelId, creatorId: channelCreatorId }) ? "관리자 삭제" : "삭제"}
                   </Button>
                 )}
               </Box>

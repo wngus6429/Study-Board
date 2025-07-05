@@ -1,4 +1,4 @@
-# Next.js 프론트엔드 컴포넌트 구조 분석
+# Next.js 프론트엔드 컴포넌트 구조 분석 (최신화)
 
 ## 📋 개요
 
@@ -38,11 +38,13 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 ### 🎨 UI 컴포넌트 (서버 컴포넌트)
 
-| 파일 경로                  | 역할                                         |
-| -------------------------- | -------------------------------------------- |
-| `components/ImageCard.tsx` | **이미지 카드** - 이미지 표시 카드           |
-| `components/VideoCard.tsx` | **비디오 카드** - 비디오 표시 카드           |
-| `components/MainView.tsx`  | **메인 뷰** - 메인 페이지 콘텐츠 (주석 처리) |
+| 파일 경로                  | 역할                                                |
+| -------------------------- | --------------------------------------------------- |
+| `components/ImageCard.tsx` | **이미지 카드** - 이미지 표시 카드                  |
+| `components/VideoCard.tsx` | **비디오 카드** - 비디오 표시 카드                  |
+| `components/HtmlTable.tsx` | **HTML 테이블** - 범용 HTML 테이블 컴포넌트         |
+| `app/loading.tsx`          | **로딩 페이지** - 전역 로딩 상태 표시               |
+| `app/not-found.tsx`        | **404 에러 페이지** - 페이지를 찾을 수 없을 때 표시 |
 
 ---
 
@@ -64,7 +66,9 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | 파일 경로                                              | 역할                                                      |
 | ------------------------------------------------------ | --------------------------------------------------------- |
 | `(noLogin)/channels/page.tsx`                          | **채널 목록 페이지** - 모든 채널 표시                     |
+| `(noLogin)/channels/ChannelsClient.tsx`                | **채널 목록 클라이언트** - 채널 목록 인터랙션 처리        |
 | `(noLogin)/channels/[slug]/page.tsx`                   | **채널 상세 페이지** - 특정 채널의 게시글 목록            |
+| `(noLogin)/channels/[slug]/ChannelsDetailClient.tsx`   | **채널 상세 클라이언트** - 채널 상세 인터랙션 처리        |
 | `(noLogin)/channels/[slug]/detail/story/[id]/page.tsx` | **게시글 상세 페이지** - 게시글 내용 및 댓글              |
 | `(noLogin)/channels/backup/page.tsx`                   | **채널 백업 페이지** - 채널 목록 백업 버전 (주석 처리)    |
 | `(noLogin)/channel-notifications/page.tsx`             | **채널 알림 설정 페이지** - 채널별 알림 구독 관리         |
@@ -92,12 +96,7 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | `(afterLogin)/scraps/page.tsx`          | **스크랩 페이지** - 스크랩한 게시글 목록                 |
 | `(afterLogin)/recent-views/page.tsx`    | **최근 본 글 페이지** - 최근 조회한 게시글 목록          |
 | `(afterLogin)/blinds/page.tsx`          | **블라인드 페이지** - 블라인드 처리된 게시글 관리        |
-
-#### 🚫 오류 페이지
-
-| 파일 경로       | 역할                                                |
-| --------------- | --------------------------------------------------- |
-| `not-found.tsx` | **404 에러 페이지** - 페이지를 찾을 수 없을 때 표시 |
+| `(afterLogin)/reports/page.tsx`         | **신고 관리 페이지** - 신고 목록 및 관리 (관리자용)      |
 
 ### 🧩 공통 컴포넌트들
 
@@ -109,13 +108,25 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | `components/NavMenuBar.tsx` | **네비게이션 메뉴** - 사이드바 메뉴    |
 | `components/NavBar.tsx`     | **하단 네비게이션** - 모바일용 하단 바 |
 
-#### 🔧 기능성 컴포넌트
+#### 🔧 Provider 컴포넌트
 
-| 파일 경로                       | 역할                                                   |
-| ------------------------------- | ------------------------------------------------------ |
-| `components/RQProvider.tsx`     | **React Query 프로바이더** - 데이터 fetching 상태 관리 |
-| `components/ThemeProvider.tsx`  | **테마 프로바이더** - 다크/라이트 모드 제공            |
-| `components/DarkModeToggle.tsx` | **다크모드 토글** - 테마 전환 버튼                     |
+| 파일 경로                                      | 역할                                                   |
+| ---------------------------------------------- | ------------------------------------------------------ |
+| `components/Provider/RQProvider.tsx`           | **React Query 프로바이더** - 데이터 fetching 상태 관리 |
+| `components/Provider/ThemeProvider.tsx`        | **테마 프로바이더** - 다크/라이트 모드 제공            |
+| `components/Provider/AuthSessionCom.tsx`       | **세션 관리** - NextAuth 세션 프로바이더               |
+| `components/Provider/SitePasswordGate.tsx`     | **사이트 비밀번호 게이트** - 사이트 접근 제한          |
+| `components/Provider/SubscriptionProvider.tsx` | **구독 프로바이더** - 알림 구독 관리                   |
+| `components/Provider/BrowserNotification.tsx`  | **브라우저 알림** - 웹 푸시 알림                       |
+
+#### 🎛️ 기능성 컴포넌트
+
+| 파일 경로                        | 역할                                         |
+| -------------------------------- | -------------------------------------------- |
+| `components/DarkModeToggle.tsx`  | **다크모드 토글** - 테마 전환 버튼           |
+| `components/RecommendButton.tsx` | **추천 버튼** - 게시글 추천/비추천 버튼      |
+| `components/BlindWrapper.tsx`    | **블라인드 래퍼** - 블라인드 처리 컨테이너   |
+| `components/BlindedContent.tsx`  | **블라인드 콘텐츠** - 블라인드 처리된 콘텐츠 |
 
 #### 🔔 알림 및 드롭다운
 
@@ -137,63 +148,49 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 #### 🎛️ 공통 UI 컴포넌트
 
-| 파일 경로                                 | 역할                                                   |
-| ----------------------------------------- | ------------------------------------------------------ |
-| `components/common/AuthSessionCom.tsx`    | **세션 관리** - NextAuth 세션 프로바이더               |
-| `components/common/Loading.tsx`           | **로딩 컴포넌트** - 데이터 로딩 시 표시                |
-| `components/common/ErrorView.tsx`         | **에러 뷰** - 에러 상황 표시                           |
-| `components/common/Pagination.tsx`        | **페이지네이션** - 페이지 이동 컨트롤                  |
-| `components/common/ProfilePagination.tsx` | **프로필 페이지네이션** - 프로필 페이지용 페이지네이션 |
-| `components/common/SearchBar.tsx`         | **검색 바** - 게시글 검색 기능                         |
-| `components/common/ScrollUpButton.tsx`    | **상단 이동 버튼** - 페이지 최상단으로 스크롤          |
-| `components/common/RightView.tsx`         | **우측 뷰** - 우측 사이드바 컨텐츠                     |
-| `components/common/ChannelTopStories.tsx` | **채널 인기 게시글** - 채널별 인기 게시글 표시         |
-| `components/common/Advertisement.tsx`     | **광고 컴포넌트** - 광고 표시 영역                     |
-| `components/common/CommentsView.tsx`      | **댓글 뷰** - 댓글 목록 및 작성 폼                     |
-| `components/common/ConfirmDialog.tsx`     | **확인 다이얼로그** - 확인/취소 다이얼로그             |
-| `components/common/ConfirmModal.tsx`      | **확인 모달** - 모달 형태 확인 창                      |
-| `components/common/CustomSelect.tsx`      | **커스텀 셀렉트** - 커스텀 드롭다운 선택 컴포넌트      |
-| `components/common/CustomSnackBar.tsx`    | **커스텀 스낵바** - 알림 메시지 표시                   |
-| `components/common/InputFileUpload.tsx`   | **파일 업로드** - 파일 업로드 입력 컴포넌트            |
-| `components/common/RichTextEditor.tsx`    | **리치 텍스트 에디터** - 게시글 작성용 에디터          |
-| `components/common/SendMessageModal.tsx`  | **메시지 전송 모달** - 쪽지 전송 모달                  |
-| `components/common/UserMenuPopover.tsx`   | **사용자 메뉴 팝오버** - 사용자 메뉴 드롭다운          |
+| 파일 경로                                  | 역할                                                   |
+| ------------------------------------------ | ------------------------------------------------------ |
+| `components/common/Loading.tsx`            | **로딩 컴포넌트** - 데이터 로딩 시 표시                |
+| `components/common/ErrorView.tsx`          | **에러 뷰** - 에러 상황 표시                           |
+| `components/common/Pagination.tsx`         | **페이지네이션** - 페이지 이동 컨트롤                  |
+| `components/common/ProfilePagination.tsx`  | **프로필 페이지네이션** - 프로필 페이지용 페이지네이션 |
+| `components/common/SearchBar.tsx`          | **검색 바** - 게시글 검색 기능                         |
+| `components/common/ScrollUpButton.tsx`     | **상단 이동 버튼** - 페이지 최상단으로 스크롤          |
+| `components/common/RightView.tsx`          | **우측 뷰** - 우측 사이드바 컨텐츠                     |
+| `components/common/ChannelTopStories.tsx`  | **채널 인기 게시글** - 채널별 인기 게시글 표시         |
+| `components/common/Advertisement.tsx`      | **광고 컴포넌트** - 광고 표시 영역                     |
+| `components/common/CommentsView.tsx`       | **댓글 뷰** - 댓글 목록 및 작성 폼                     |
+| `components/common/ConfirmDialog.tsx`      | **확인 다이얼로그** - 확인/취소 다이얼로그             |
+| `components/common/ConfirmModal.tsx`       | **확인 모달** - 모달 형태 확인 창                      |
+| `components/common/CustomSelect.tsx`       | **커스텀 셀렉트** - 커스텀 드롭다운 선택 컴포넌트      |
+| `components/common/CustomSnackBar.tsx`     | **커스텀 스낵바** - 알림 메시지 표시                   |
+| `components/common/InputFileUpload.tsx`    | **파일 업로드** - 파일 업로드 입력 컴포넌트            |
+| `components/common/RichTextEditor.tsx`     | **리치 텍스트 에디터** - 게시글 작성용 에디터          |
+| `components/common/SendMessageModal.tsx`   | **메시지 전송 모달** - 쪽지 전송 모달                  |
+| `components/common/UserMenuPopover.tsx`    | **사용자 메뉴 팝오버** - 사용자 메뉴 드롭다운          |
+| `components/common/MessageView.tsx`        | **메시지 뷰** - 개인 메시지 표시                       |
+| `components/common/ReportModal.tsx`        | **신고 모달** - 게시글/댓글 신고 모달                  |
+| `components/common/ChannelNoticeModal.tsx` | **채널 공지 모달** - 채널 공지사항 모달                |
+
+#### 🏗️ 다이얼로그 컴포넌트
+
+| 파일 경로                                                    | 역할                                                    |
+| ------------------------------------------------------------ | ------------------------------------------------------- |
+| `components/common/ChannelDialog/CreateChannelDialog.tsx`    | **채널 생성 다이얼로그** - 새 채널 생성 모달            |
+| `components/common/ChannelDialog/EditChannelImageDialog.tsx` | **채널 이미지 편집 다이얼로그** - 채널 이미지 수정 모달 |
 
 #### 💬 채팅 및 메시지
 
-| 파일 경로                           | 역할                                  |
-| ----------------------------------- | ------------------------------------- |
-| `components/chat/ChannelChat.tsx`   | **채널 채팅** - 실시간 채널 채팅 기능 |
-| `components/common/MessageView.tsx` | **메시지 뷰** - 개인 메시지 표시      |
-
-#### 🎨 콘텐츠 표시 컴포넌트
-
-| 파일 경로                        | 역할                                        |
-| -------------------------------- | ------------------------------------------- |
-| `components/HtmlTable.tsx`       | **HTML 테이블** - 범용 HTML 테이블 컴포넌트 |
-| `components/RecommendButton.tsx` | **추천 버튼** - 게시글 추천/비추천 버튼     |
-
-#### 🔒 보안 및 접근 제어
-
-| 파일 경로                                | 역할                                          |
-| ---------------------------------------- | --------------------------------------------- |
-| `components/common/SitePasswordGate.tsx` | **사이트 비밀번호 게이트** - 사이트 접근 제한 |
-| `components/BlindWrapper.tsx`            | **블라인드 래퍼** - 블라인드 처리 컨테이너    |
-| `components/BlindedContent.tsx`          | **블라인드 콘텐츠** - 블라인드 처리된 콘텐츠  |
-
-#### 🔔 브라우저 기능
-
-| 파일 경로                                    | 역할                                 |
-| -------------------------------------------- | ------------------------------------ |
-| `components/common/BrowserNotification.tsx`  | **브라우저 알림** - 웹 푸시 알림     |
-| `components/common/SubscriptionProvider.tsx` | **구독 프로바이더** - 알림 구독 관리 |
+| 파일 경로                         | 역할                                  |
+| --------------------------------- | ------------------------------------- |
+| `components/chat/ChannelChat.tsx` | **채널 채팅** - 실시간 채널 채팅 기능 |
 
 #### 💾 백업 컴포넌트
 
-| 파일 경로                                    | 역할                                          |
-| -------------------------------------------- | --------------------------------------------- |
-| `components/BackUp/MainView.backup.tsx`      | **메인 뷰 백업** - 메인 뷰 백업 버전          |
-| `components/BackUp/MainViewClientBackUp.tsx` | **메인 뷰 클라이언트 백업** - 클라이언트 백업 |
+| 파일 경로                                    | 역할                                                      |
+| -------------------------------------------- | --------------------------------------------------------- |
+| `components/BackUp/MainView.backup.tsx`      | **메인 뷰 백업** - 메인 뷰 백업 버전 (주석 처리)          |
+| `components/BackUp/MainViewClientBackUp.tsx` | **메인 뷰 클라이언트 백업** - 클라이언트 백업 (주석 처리) |
 
 ---
 
@@ -231,6 +228,7 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | `api/blind.ts`                  | **블라인드 API** - 블라인드 관련 API   |
 | `api/channelChatApi.ts`         | **채널 채팅 API** - 채널 채팅 API 호출 |
 | `api/channelNotificationApi.ts` | **채널 알림 API** - 채널 알림 API 호출 |
+| `api/adminApi.ts`               | **관리자 API** - 관리자 기능 API 호출  |
 
 ### 커스텀 훅
 
@@ -239,6 +237,7 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | `components/api/useStories.ts`     | **게시글 훅** - 게시글 데이터 관리 훅         |
 | `components/api/useCardStories.ts` | **카드 게시글 훅** - 카드 형태 게시글 관리 훅 |
 | `hooks/useBlind.ts`                | **블라인드 훅** - 블라인드 기능 관리 훅       |
+| `hooks/useAdmin.ts`                | **관리자 훅** - 관리자 기능 관리 훅           |
 
 ### 유틸리티
 
@@ -271,6 +270,24 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 ---
 
+## ⚠️ 주의사항 및 현재 상태
+
+### 주석 처리된 컴포넌트들
+
+- `components/MainView.tsx` - 전체 코드가 주석 처리되어 현재 사용하지 않음
+- `components/BackUp/` 폴더의 백업 컴포넌트들 - 주석 처리 상태
+
+### 실제 사용 중인 클라이언트 컴포넌트들
+
+대부분의 페이지와 인터랙티브 컴포넌트들이 클라이언트 컴포넌트로 구성되어 있으며, 다음과 같은 특징을 가집니다:
+
+- **상태 관리**: React Hook, Zustand 상태 관리 라이브러리 사용
+- **데이터 페칭**: React Query (TanStack Query) 사용
+- **실시간 기능**: WebSocket, Server-Sent Events 활용
+- **UI 인터랙션**: Material-UI 컴포넌트 활용한 복잡한 인터랙션
+
+---
+
 ## 🎯 주요 특징
 
 ### 서버 컴포넌트의 장점
@@ -293,10 +310,12 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 ---
 
-## 🔄 최근 업데이트 (2024년 12월)
+## 🔄 최신 업데이트 (2024년 12월)
 
 ### 새로 추가된 기능
 
+- ✅ **관리자 신고 관리**: 신고 목록 조회 및 처리 시스템
+- ✅ **채널 관리 시스템**: 채널 생성, 이미지 업로드, 구독 관리
 - ✅ **채널 알림 시스템**: 채널별 알림 구독 관리 페이지 및 컴포넌트
 - ✅ **스크랩 기능**: 게시글 스크랩 및 관리 시스템
 - ✅ **최근 조회 기능**: 최근 본 글 추적 및 표시
@@ -309,15 +328,17 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 ### 개선된 기능
 
 - 🔧 **상태 관리 확장**: 12개의 전문화된 Zustand 스토어
-- 🔧 **API 모듈화**: 기능별 API 모듈 분리
+- 🔧 **API 모듈화**: 기능별 API 모듈 분리 및 관리자 API 추가
 - 🔧 **컴포넌트 세분화**: 재사용 가능한 공통 컴포넌트 확장
 - 🔧 **타입 안전성**: TypeScript 타입 정의 강화
 - 🔧 **UI/UX 개선**: 다크모드, 반응형 디자인 지원
+- 🔧 **채널 시스템**: 채널 중심의 아키텍처로 개선
 
-### 삭제된 기능
+### 아키텍처 개선사항
 
-- ❌ **건의사항 상세 페이지 (noLogin)**: `(noLogin)/channels/[slug]/detail/suggestion/[id]/page.tsx` 제거
-- ❌ **일부 백업 파일**: 주석 처리된 백업 컴포넌트들
+- 🏗️ **클라이언트 컴포넌트 분리**: 페이지별 Client 컴포넌트 분리로 성능 최적화
+- 🏗️ **Provider 패턴**: 다양한 Provider 컴포넌트로 관심사 분리
+- 🏗️ **모듈화**: 기능별 모듈 분리로 유지보수성 향상
 
 ---
 
@@ -327,7 +348,7 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 **개발팀**: StudyBoard Team  
 **프로젝트**: Study Board Frontend Components  
-**버전**: 2.0.0  
+**버전**: 2.1.0  
 **마지막 업데이트**: 2024년 12월
 
 ---

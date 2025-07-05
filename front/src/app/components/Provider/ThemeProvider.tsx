@@ -1,8 +1,8 @@
 "use client";
 import React, { useLayoutEffect, useCallback } from "react";
 import { ThemeProvider as MuiThemeProvider, CssBaseline } from "@mui/material";
-import { useThemeStore } from "../store/themeStore";
-import { lightTheme, darkTheme } from "../theme/theme";
+import { useThemeStore } from "../../store/themeStore";
+import { lightTheme, darkTheme } from "../../theme/theme";
 
 interface ThemeProviderProps {
   children: React.ReactNode;

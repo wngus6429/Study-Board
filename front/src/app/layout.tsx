@@ -3,17 +3,17 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import NavMenuBar from "./components/NavMenuBar";
-import RQProvider from "./components/RQProvider";
+import RQProvider from "./components/Provider/RQProvider";
 import TopBar from "./components/TopBar";
-import AuthSession from "./components/common/AuthSessionCom";
+import AuthSession from "./components/Provider/AuthSessionCom";
 import MessageView from "./components/common/MessageView";
 import RightView from "./components/common/RightView";
-import SubscriptionProvider from "./components/common/SubscriptionProvider";
+import SubscriptionProvider from "./components/Provider/SubscriptionProvider";
 import style from "./layout.module.css";
 import ScrollUpButton from "./components/common/ScrollUpButton";
-import ThemeProvider from "./components/ThemeProvider";
-import SitePasswordGate from "./components/common/SitePasswordGate";
-import BrowserNotification from "./components/common/BrowserNotification";
+import ThemeProvider from "./components/Provider/ThemeProvider";
+import SitePasswordGate from "./components/Provider/SitePasswordGate";
+import BrowserNotification from "./components/Provider/BrowserNotification";
 
 const inter = Inter({ subsets: ["latin"] });
 

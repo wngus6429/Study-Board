@@ -13,7 +13,7 @@ import {
   Alert,
 } from "@mui/material";
 import { Lock as LockIcon, Visibility, VisibilityOff, VpnKey as KeyIcon } from "@mui/icons-material";
-import Loading from "./Loading";
+import Loading from "../common/Loading";
 
 interface SitePasswordGateProps {
   children: React.ReactNode;

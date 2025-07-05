@@ -27,10 +27,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import Loading from "@/app/components/common/Loading";
-import CreateChannelDialog from "@/app/components/common/CreateChannelDialog";
-import EditChannelImageDialog from "@/app/components/common/EditChannelImageDialog";
 // API 함수들 import
 import { getChannels, createChannel, uploadChannelImage, deleteChannelImage, Channel } from "@/app/api/channelsApi";
+import CreateChannelDialog from "@/app/components/common/ChannelDialog/CreateChannelDialog";
+import EditChannelImageDialog from "@/app/components/common/ChannelDialog/EditChannelImageDialog";
 
 interface ChannelsClientProps {
   initialChannels: Channel[];

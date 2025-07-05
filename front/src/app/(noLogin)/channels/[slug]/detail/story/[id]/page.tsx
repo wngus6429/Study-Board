@@ -1375,8 +1375,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   </>
                 )}
 
-                {/* 관리자 삭제 버튼 - 관리자 권한이 있고 자신의 글이 아닐 때만 표시 (카테고리 무관) */}
-                {admin.isSuperAdmin && detail.User?.id !== session?.user?.id && (
+                {/* 관리자 삭제 버튼 - 관리자 권한이 있을 때 표시 (카테고리 무관) */}
+                {admin.hasAdminPermission() && (
                   <Button
                     size="medium"
                     variant="contained"

@@ -544,10 +544,18 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
                 {session?.user.id && (
                   <Button
                     size="small"
-                    variant="outlined"
+                    variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
                     onClick={() => toggleReply(comment.id)}
                     color="primary"
-                    sx={{ textTransform: "none" }}
+                    sx={{
+                      textTransform: "none",
+                      ...(theme.palette.mode === "dark" && {
+                        background: "linear-gradient(45deg, #3b82f6, #1e40af)",
+                        "&:hover": {
+                          background: "linear-gradient(45deg, #2563eb, #1d4ed8)",
+                        },
+                      }),
+                    }}
                   >
                     답글
                   </Button>
@@ -558,13 +566,22 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
                     {editCommentId !== comment.id && (
                       <Button
                         size="small"
-                        variant="outlined"
+                        variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
                         onClick={() => {
                           setEditCommentId(comment.id);
                           setEditContent(comment.content);
                         }}
                         color="secondary"
-                        sx={{ textTransform: "none", ml: 1 }}
+                        sx={{
+                          textTransform: "none",
+                          ml: 1,
+                          ...(theme.palette.mode === "dark" && {
+                            background: "linear-gradient(45deg, #8b5cf6, #7c3aed)",
+                            "&:hover": {
+                              background: "linear-gradient(45deg, #7c3aed, #6d28d9)",
+                            },
+                          }),
+                        }}
                       >
                         수정
                       </Button>
@@ -583,9 +600,18 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
                         handleDeleteClick(comment.id);
                       }
                     }}
-                    variant="outlined"
+                    variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
                     color="error"
-                    sx={{ textTransform: "none", ml: 1 }}
+                    sx={{
+                      textTransform: "none",
+                      ml: 1,
+                      ...(theme.palette.mode === "dark" && {
+                        background: "linear-gradient(45deg, #ef4444, #dc2626)",
+                        "&:hover": {
+                          background: "linear-gradient(45deg, #dc2626, #b91c1c)",
+                        },
+                      }),
+                    }}
                     disabled={admin.isLoading}
                   >
                     {admin.hasAdminPermission(channelId) ? "관리자 삭제" : "삭제"}
@@ -611,7 +637,17 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
                   }}
                   variant="contained"
                   size="small"
-                  sx={{ mt: 1 }}
+                  sx={{
+                    mt: 1,
+                    ...(theme.palette.mode === "dark" && {
+                      background: "linear-gradient(45deg, #10b981, #059669)",
+                      "&:hover": {
+                        background: "linear-gradient(45deg, #059669, #047857)",
+                        boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+                        transform: "translateY(-1px)",
+                      },
+                    }),
+                  }}
                 >
                   댓글 작성
                 </Button>
@@ -773,7 +809,22 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
           <Typography variant="body2" color="error">
             댓글 작성을 위한, 로그인 정보를 가져오는 중 문제가 발생했습니다.
           </Typography>
-          <Button variant="outlined" color="primary" onClick={() => refetch()} sx={{ mt: 1 }}>
+          <Button
+            variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
+            color="primary"
+            onClick={() => refetch()}
+            sx={{
+              mt: 1,
+              ...(theme.palette.mode === "dark" && {
+                background: "linear-gradient(45deg, #3b82f6, #1e40af)",
+                "&:hover": {
+                  background: "linear-gradient(45deg, #2563eb, #1d4ed8)",
+                  boxShadow: "0 4px 12px rgba(59, 130, 246, 0.3)",
+                  transform: "translateY(-1px)",
+                },
+              }),
+            }}
+          >
             다시 시도
           </Button>
         </Box>

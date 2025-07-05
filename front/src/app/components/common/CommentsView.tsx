@@ -1,17 +1,6 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Avatar,
-  Alert,
-  Pagination,
-  useTheme,
-  IconButton,
-  Tooltip,
-} from "@mui/material";
+import { Box, TextField, Button, Typography, Avatar, Alert, Pagination, useTheme } from "@mui/material";
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -23,8 +12,6 @@ import { useMessage } from "@/app/store/messageStore";
 import { COMMENT_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import BlindWrapper from "../BlindWrapper";
 import { useAdmin } from "../../hooks/useAdmin";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
-import DeleteIcon from "@mui/icons-material/Delete";
 
 interface Comment {
   id: number;
@@ -565,7 +552,7 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
                     답글
                   </Button>
                 )}
-                {/* 로그인 상태이고 댓글 작성자일 때 수정, 삭제 버튼 표시 */}
+                {/* 로그인 상태이고 댓글 작성자일 때 수정 버튼 표시 */}
                 {comment.userId === session?.user.id && (
                   <>
                     {editCommentId !== comment.id && (
@@ -582,30 +569,27 @@ const CommentsView = ({ channelId }: CommentsViewProps = {}) => {
                         수정
                       </Button>
                     )}
-                    <Button
-                      size="small"
-                      onClick={() => handleDeleteClick(comment.id)}
-                      variant="outlined"
-                      color="error"
-                      sx={{ textTransform: "none", ml: 1 }}
-                    >
-                      삭제
-                    </Button>
                   </>
                 )}
-                {/* 관리자 삭제 버튼 */}
-                {admin.hasAdminPermission(channelId) && (
-                  <Tooltip title={`관리자 삭제 (${admin.getAdminBadgeText(channelId)})`}>
-                    <IconButton
-                      size="small"
-                      color="error"
-                      onClick={() => handleAdminDeleteComment(comment.id, comment.content)}
-                      disabled={admin.isLoading}
-                      sx={{ ml: 1 }}
-                    >
-                      <AdminPanelSettingsIcon fontSize="small" />
-                    </IconButton>
-                  </Tooltip>
+                {/* 삭제 버튼 - 본인 댓글이거나 관리자 권한이 있을 때 표시 */}
+                {(comment.userId === session?.user.id || admin.hasAdminPermission(channelId)) && (
+                  <Button
+                    size="small"
+                    onClick={() => {
+                      // 관리자 권한이 있으면 관리자 삭제, 아니면 일반 삭제
+                      if (admin.hasAdminPermission(channelId)) {
+                        handleAdminDeleteComment(comment.id, comment.content);
+                      } else {
+                        handleDeleteClick(comment.id);
+                      }
+                    }}
+                    variant="outlined"
+                    color="error"
+                    sx={{ textTransform: "none", ml: 1 }}
+                    disabled={admin.isLoading}
+                  >
+                    {admin.hasAdminPermission(channelId) ? "관리자 삭제" : "삭제"}
+                  </Button>
                 )}
               </Box>
             )}

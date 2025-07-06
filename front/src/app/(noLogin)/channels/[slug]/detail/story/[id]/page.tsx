@@ -8,22 +8,15 @@ import {
   Button,
   Card,
   CardContent,
-  CircularProgress,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  Radio,
-  RadioGroup,
-  Slide,
-  TextField,
-  Tooltip,
   Typography,
   useTheme,
 } from "@mui/material";
+import ImageViewer from "@/app/(noLogin)/channels/[slug]/detail/story/[id]/components/ImageViewer";
+import StoryActions from "@/app/(noLogin)/channels/[slug]/detail/story/[id]/components/StoryActions";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
@@ -40,20 +33,11 @@ import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 import ImageCard from "@/app/components/ImageCard";
 import VideoCard from "@/app/components/VideoCard";
 import { StoryType } from "@/app/types/storyDetailType";
-import CloseIcon from "@mui/icons-material/Close";
-import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
-import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
-import ZoomInIcon from "@mui/icons-material/ZoomIn";
-import ZoomOutIcon from "@mui/icons-material/ZoomOut";
-import { TransitionProps } from "@mui/material/transitions";
 import UserMenuPopover from "@/app/components/common/UserMenuPopover";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
 import ReportModal from "@/app/components/common/ReportModal";
 import { useRecentViews } from "@/app/store/recentViewsStore";
 import { useChannelPageStore } from "@/app/store/channelPageStore";
-import BookmarkIcon from "@mui/icons-material/Bookmark";
-import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
-import ReportIcon from "@mui/icons-material/Report";
 import FlagIcon from "@mui/icons-material/Flag";
 import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
 import { useAdmin } from "@/app/hooks/useAdmin";
@@ -79,13 +63,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
   const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
   const [openImageViewer, setOpenImageViewer] = useState(false);
 
-  // handleImageClick 함수 근처에 줌 관련 상태와 함수 추가
-  const [zoomLevel, setZoomLevel] = useState<number>(1);
-
-  // 드래그 관련 상태 추가
-  const [imagePosition, setImagePosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [isDragging, setIsDragging] = useState<boolean>(false);
-  const [dragStart, setDragStart] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  // 이미지 뷰어 관련 상태들은 ImageViewer 컴포넌트로 이동됨
 
   // 사용자 메뉴 관련 상태
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<HTMLElement | null>(null);
@@ -459,8 +437,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
   const handleImageClick = (image: StoryImageType, index: number) => {
     setSelectedImage(image);
     setCurrentImageIndex(index);
-    setZoomLevel(1); // 줌 레벨 초기화
-    setImagePosition({ x: 0, y: 0 }); // 이미지 위치 초기화
     setOpenImageViewer(true);
   };
 
@@ -468,9 +444,14 @@ export default function page({ params }: { params: { id: string; slug: string } 
   const handleCloseImageViewer = () => {
     setOpenImageViewer(false);
     setSelectedImage(null);
-    setZoomLevel(1); // 줌 레벨 초기화
-    setImagePosition({ x: 0, y: 0 }); // 이미지 위치 초기화
-    setIsDragging(false); // 드래그 상태 초기화
+  };
+
+  // 이미지 변경 핸들러 (ImageViewer 컴포넌트에서 사용)
+  const handleImageChange = (index: number) => {
+    setCurrentImageIndex(index);
+    if (contentOrderedImages && contentOrderedImages[index]) {
+      setSelectedImage(contentOrderedImages[index]);
+    }
   };
 
   // content 순서대로 재구성된 이미지 배열 생성
@@ -507,132 +488,9 @@ export default function page({ params }: { params: { id: string; slug: string } 
     return contentImageOrder;
   }, [detail?.content, detail?.StoryImage]);
 
-  // 다음 이미지로 이동
-  const handleNextImage = () => {
-    if (contentOrderedImages && currentImageIndex < contentOrderedImages.length - 1) {
-      const nextIndex = currentImageIndex + 1;
-      setCurrentImageIndex(nextIndex);
-      setSelectedImage(contentOrderedImages[nextIndex]);
-      setZoomLevel(1); // 줌 레벨 초기화
-      setImagePosition({ x: 0, y: 0 }); // 이미지 위치 초기화
-    }
-  };
+  // 이미지 네비게이션과 줌/드래그 기능은 ImageViewer 컴포넌트로 이동됨
 
-  // 이전 이미지로 이동
-  const handlePrevImage = () => {
-    if (contentOrderedImages && currentImageIndex > 0) {
-      const prevIndex = currentImageIndex - 1;
-      setCurrentImageIndex(prevIndex);
-      setSelectedImage(contentOrderedImages[prevIndex]);
-      setZoomLevel(1); // 줌 레벨 초기화
-      setImagePosition({ x: 0, y: 0 }); // 이미지 위치 초기화
-    }
-  };
-
-  // 확대/축소 기능 추가
-  const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(prev + 0.25, 3)); // 최대 3배까지 확대
-  };
-
-  const handleZoomOut = () => {
-    const newZoomLevel = Math.max(zoomLevel - 0.25, 0.5);
-    setZoomLevel(newZoomLevel);
-
-    // 줌 레벨이 1배 이하가 되면 이미지 위치도 초기화
-    if (newZoomLevel <= 1) {
-      setImagePosition({ x: 0, y: 0 });
-    }
-  };
-
-  // 드래그 관련 핸들러들
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (zoomLevel <= 1) return; // 확대된 상태에서만 드래그 가능
-
-    setIsDragging(true);
-    setDragStart({
-      x: e.clientX - imagePosition.x,
-      y: e.clientY - imagePosition.y,
-    });
-    e.preventDefault();
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || zoomLevel <= 1) return;
-
-    setImagePosition({
-      x: e.clientX - dragStart.x,
-      y: e.clientY - dragStart.y,
-    });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  // 키보드 이벤트 처리 업데이트
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!openImageViewer) return;
-
-      if (e.key === "ArrowRight") {
-        handleNextImage();
-      } else if (e.key === "ArrowLeft") {
-        handlePrevImage();
-      } else if (e.key === "Escape") {
-        handleCloseImageViewer();
-      } else if (e.key === "+" || e.key === "=") {
-        handleZoomIn();
-      } else if (e.key === "-") {
-        handleZoomOut();
-      } else if (e.key === "r" || e.key === "R") {
-        // R키로 이미지 위치 리셋
-        setImagePosition({ x: 0, y: 0 });
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [openImageViewer, currentImageIndex, contentOrderedImages, zoomLevel]);
-
-  // 드래그 상태를 전역 마우스 이벤트로도 처리 (이미지 밖으로 나가도 처리)
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (!isDragging || zoomLevel <= 1) return;
-
-      setImagePosition({
-        x: e.clientX - dragStart.x,
-        y: e.clientY - dragStart.y,
-      });
-    };
-
-    const handleGlobalMouseUp = () => {
-      setIsDragging(false);
-    };
-
-    document.addEventListener("mousemove", handleGlobalMouseMove);
-    document.addEventListener("mouseup", handleGlobalMouseUp);
-
-    return () => {
-      document.removeEventListener("mousemove", handleGlobalMouseMove);
-      document.removeEventListener("mouseup", handleGlobalMouseUp);
-    };
-  }, [isDragging, dragStart, zoomLevel]);
-
-  // Slide 트랜지션 커스텀 컴포넌트
-  const SlideTransition = React.forwardRef(function Transition(
-    props: TransitionProps & {
-      children: React.ReactElement;
-    },
-    ref: React.Ref<unknown>
-  ) {
-    return <Slide direction="up" ref={ref} {...props} />;
-  });
+  // Slide 트랜지션은 ImageViewer 컴포넌트에서 더 이상 사용하지 않음
 
   // ★ 모든 훅은 조건부 return 전에 호출되어야 합니다.
   const memoizedImageCards = useMemo(() => {
@@ -1096,6 +954,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
     return elements;
   };
 
+  // 페이지 렌더링
   return (
     <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 1, overflow: "hidden" }}>
       {openConfirmDialog && (
@@ -1116,299 +975,32 @@ export default function page({ params }: { params: { id: string; slug: string } 
               <Typography variant="h4" component="div" sx={{ fontWeight: "bold" }}>
                 {detail.title}
               </Typography>
-              <Box display="flex" gap={1.5}>
-                {/* 신고 버튼 - 로그인한 사용자이고 자신의 글이 아닐 때만 표시 */}
-                {session?.user && detail.User?.id !== session?.user?.id && (
-                  <Tooltip title="신고하기">
-                    <Button
-                      size="medium"
-                      variant="outlined"
-                      onClick={handleReportClick}
-                      startIcon={<ReportIcon sx={{ fontSize: 22 }} />}
-                      sx={{
-                        borderRadius: "14px",
-                        fontWeight: 700,
-                        px: 3,
-                        py: 1.5,
-                        position: "relative",
-                        overflow: "hidden",
-                        textTransform: "none",
-                        transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                        background:
-                          theme.palette.mode === "dark"
-                            ? "linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05))"
-                            : "linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.95))",
-                        border:
-                          theme.palette.mode === "dark"
-                            ? "2px solid rgba(239, 68, 68, 0.4)"
-                            : "2px solid rgba(239, 68, 68, 0.3)",
-                        color: theme.palette.mode === "dark" ? "#fca5a5" : "#dc2626",
-                        boxShadow:
-                          theme.palette.mode === "dark"
-                            ? "0 0 10px rgba(239, 68, 68, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                            : "0 0 10px rgba(239, 68, 68, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
-                        "&::before": {
-                          content: '""',
-                          position: "absolute",
-                          top: "-2px",
-                          left: "-2px",
-                          right: "-2px",
-                          bottom: "-2px",
-                          background: "linear-gradient(45deg, #ef4444, #dc2626, #b91c1c, #ef4444)",
-                          borderRadius: "16px",
-                          opacity: 0.15,
-                          animation: "borderGlow 6s linear infinite",
-                          zIndex: -1,
-                        },
-                        "&::after": {
-                          content: '""',
-                          position: "absolute",
-                          top: "50%",
-                          left: "-100%",
-                          width: "200%",
-                          height: "1px",
-                          background:
-                            theme.palette.mode === "dark"
-                              ? "linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.4), transparent)"
-                              : "linear-gradient(90deg, transparent, rgba(239, 68, 68, 0.3), transparent)",
-                          transform: "translateY(-50%)",
-                          animation: "scanLine 5s ease-in-out infinite",
-                          zIndex: 1,
-                          pointerEvents: "none",
-                        },
-                        "@keyframes borderGlow": {
-                          "0%": {
-                            backgroundPosition: "0% 50%",
-                            filter: "hue-rotate(0deg)",
-                          },
-                          "50%": {
-                            backgroundPosition: "100% 50%",
-                            filter: "hue-rotate(60deg)",
-                          },
-                          "100%": {
-                            backgroundPosition: "0% 50%",
-                            filter: "hue-rotate(0deg)",
-                          },
-                        },
-                        "@keyframes scanLine": {
-                          "0%": { left: "-100%", opacity: 0 },
-                          "50%": { left: "50%", opacity: 1 },
-                          "100%": { left: "200%", opacity: 0 },
-                        },
-                        "&:hover": {
-                          transform: "translateY(-1px) scale(1.01)",
-                          background:
-                            theme.palette.mode === "dark"
-                              ? "linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(220, 38, 38, 0.08))"
-                              : "linear-gradient(135deg, rgba(239, 68, 68, 0.03), rgba(220, 38, 38, 0.01))",
-                          boxShadow:
-                            theme.palette.mode === "dark"
-                              ? "0 0 15px rgba(239, 68, 68, 0.25)"
-                              : "0 0 15px rgba(239, 68, 68, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08)",
-                        },
-                        "&:active": {
-                          transform: "translateY(-1px) scale(0.98)",
-                        },
-                        "& .MuiButton-startIcon": {
-                          filter: "drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))",
-                        },
-                      }}
-                    >
-                      신고하기
-                    </Button>
-                  </Tooltip>
-                )}
-
-                {/* 스크랩 버튼 - 로그인한 사용자이고 자신의 글이 아닐 때만 표시 */}
-                {session?.user && detail.User?.id !== session?.user?.id && (
-                  <Tooltip title={isScraped ? "스크랩 취소" : "스크랩"}>
-                    <Button
-                      size="medium"
-                      variant={isScraped ? "contained" : "outlined"}
-                      onClick={handleScrapClick}
-                      disabled={scrapLoading}
-                      startIcon={
-                        scrapLoading ? (
-                          <CircularProgress size={20} />
-                        ) : isScraped ? (
-                          <BookmarkIcon sx={{ fontSize: 22 }} />
-                        ) : (
-                          <BookmarkBorderIcon sx={{ fontSize: 22 }} />
-                        )
-                      }
-                      sx={{
-                        borderRadius: "14px",
-                        fontWeight: 700,
-                        px: 3,
-                        py: 1.5,
-                        position: "relative",
-                        overflow: "hidden",
-                        textTransform: "none",
-                        transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                        background: isScraped
-                          ? theme.palette.mode === "dark"
-                            ? "linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.2))"
-                            : "linear-gradient(135deg, #22c55e, #16a34a, #15803d)"
-                          : theme.palette.mode === "dark"
-                            ? "linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.05))"
-                            : "linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.95))",
-                        border: isScraped
-                          ? theme.palette.mode === "dark"
-                            ? "2px solid rgba(34, 197, 94, 0.6)"
-                            : "2px solid rgba(34, 197, 94, 0.4)"
-                          : theme.palette.mode === "dark"
-                            ? "2px solid rgba(34, 197, 94, 0.4)"
-                            : "2px solid rgba(34, 197, 94, 0.3)",
-                        color: isScraped ? "white" : theme.palette.mode === "dark" ? "#86efac" : "#16a34a",
-                        boxShadow: isScraped
-                          ? theme.palette.mode === "dark"
-                            ? "0 0 12px rgba(34, 197, 94, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                            : "0 0 12px rgba(34, 197, 94, 0.15), 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6)"
-                          : theme.palette.mode === "dark"
-                            ? "0 0 10px rgba(34, 197, 94, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                            : "0 0 10px rgba(34, 197, 94, 0.1), 0 2px 8px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.6)",
-                        "&::before": {
-                          content: '""',
-                          position: "absolute",
-                          top: "-2px",
-                          left: "-2px",
-                          right: "-2px",
-                          bottom: "-2px",
-                          background: "linear-gradient(45deg, #22c55e, #16a34a, #15803d, #22c55e)",
-                          borderRadius: "16px",
-                          opacity: 0.2,
-                          animation: "borderGlow 6s linear infinite",
-                          zIndex: -1,
-                        },
-                        "&::after": {
-                          content: '""',
-                          position: "absolute",
-                          top: "50%",
-                          left: "-100%",
-                          width: "200%",
-                          height: "1px",
-                          background:
-                            theme.palette.mode === "dark"
-                              ? "linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.4), transparent)"
-                              : "linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.3), transparent)",
-                          transform: "translateY(-50%)",
-                          animation: "scanLine 5s ease-in-out infinite",
-                          animationDelay: "1s",
-                          zIndex: 1,
-                          pointerEvents: "none",
-                        },
-                        "@keyframes borderGlow": {
-                          "0%": {
-                            backgroundPosition: "0% 50%",
-                            filter: "hue-rotate(0deg)",
-                          },
-                          "50%": {
-                            backgroundPosition: "100% 50%",
-                            filter: "hue-rotate(120deg)",
-                          },
-                          "100%": {
-                            backgroundPosition: "0% 50%",
-                            filter: "hue-rotate(0deg)",
-                          },
-                        },
-                        "@keyframes scanLine": {
-                          "0%": { left: "-100%", opacity: 0 },
-                          "50%": { left: "50%", opacity: 1 },
-                          "100%": { left: "200%", opacity: 0 },
-                        },
-                        "&:hover": {
-                          transform: "translateY(-1px) scale(1.01)",
-                          background: isScraped
-                            ? theme.palette.mode === "dark"
-                              ? "linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.15))"
-                              : "linear-gradient(135deg, #16a34a, #15803d, #166534)"
-                            : theme.palette.mode === "dark"
-                              ? "linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(22, 163, 74, 0.08))"
-                              : "linear-gradient(135deg, rgba(34, 197, 94, 0.03), rgba(22, 163, 74, 0.01))",
-                          boxShadow: isScraped
-                            ? theme.palette.mode === "dark"
-                              ? "0 0 18px rgba(34, 197, 94, 0.3)"
-                              : "0 0 18px rgba(34, 197, 94, 0.2), 0 4px 12px rgba(0, 0, 0, 0.08)"
-                            : theme.palette.mode === "dark"
-                              ? "0 0 15px rgba(34, 197, 94, 0.25)"
-                              : "0 0 15px rgba(34, 197, 94, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08)",
-                        },
-                        "&:active": {
-                          transform: "translateY(-1px) scale(0.98)",
-                        },
-                        "&:disabled": {
-                          background: isScraped
-                            ? "linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.2))"
-                            : "linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.05))",
-                          transform: "none",
-                          boxShadow: "none",
-                        },
-                        "& .MuiButton-startIcon": {
-                          filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                        },
-                      }}
-                    >
-                      {isScraped ? "스크랩 취소" : "스크랩"}
-                    </Button>
-                  </Tooltip>
-                )}
-
-                {/* 수정/삭제 버튼 - 자신의 글일 때만 표시 */}
-                {detail?.category !== "question" && detail.User?.id === session?.user?.id && (
-                  <>
-                    <Button
-                      size="medium"
-                      variant="outlined"
-                      color="warning"
-                      onClick={(e) => {
-                        setEditFlag(true);
-                        e.preventDefault();
-                        router.push(`/edit/story/${detail.id}`);
-                      }}
-                      disabled={editFlag}
-                      startIcon={editFlag ? <CircularProgress size={20} /> : null}
-                    >
-                      수정
-                    </Button>
-                    <Button
-                      size="medium"
-                      variant="outlined"
-                      color="error"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleDeleteClick(detail.id);
-                      }}
-                    >
-                      삭제
-                    </Button>
-                  </>
-                )}
-
-                {/* 관리자 삭제 버튼 - 관리자 권한이 있을 때 표시 (카테고리 무관) */}
-                {admin.hasAdminPermission({ channelId: channelData?.id, creatorId: channelData?.creator?.id }) && (
-                  <Button
-                    size="medium"
-                    variant="contained"
-                    color="error"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      handleAdminDeleteClick(detail.id);
-                    }}
-                    disabled={admin.isLoading}
-                    startIcon={admin.isLoading ? <CircularProgress size={20} /> : <FlagIcon />}
-                    sx={{
-                      background: "linear-gradient(45deg, #f44336, #d32f2f)",
-                      "&:hover": {
-                        background: "linear-gradient(45deg, #d32f2f, #b71c1c)",
-                      },
-                    }}
-                  >
-                    {admin.isLoading
-                      ? "삭제 중..."
-                      : `관리자 삭제 (${admin.getAdminBadgeText({ channelId: channelData?.id, creatorId: channelData?.creator?.id })})`}
-                  </Button>
-                )}
-              </Box>
+              <StoryActions
+                currentUserId={session?.user?.id}
+                authorId={detail.User?.id}
+                category={detail.category}
+                storyId={detail.id}
+                isScraped={isScraped}
+                scrapLoading={scrapLoading}
+                onScrapClick={handleScrapClick}
+                onReportClick={handleReportClick}
+                editFlag={editFlag}
+                onEditClick={() => {
+                  setEditFlag(true);
+                  router.push(`/edit/story/${detail.id}`);
+                }}
+                onDeleteClick={() => handleDeleteClick(detail.id)}
+                hasAdminPermission={admin.hasAdminPermission({
+                  channelId: channelData?.id,
+                  creatorId: channelData?.creator?.id,
+                })}
+                adminLoading={admin.isLoading}
+                adminBadgeText={admin.getAdminBadgeText({
+                  channelId: channelData?.id,
+                  creatorId: channelData?.creator?.id,
+                })}
+                onAdminDeleteClick={() => handleAdminDeleteClick(detail.id)}
+              />
             </Box>
             <Typography
               variant="subtitle2"
@@ -1443,9 +1035,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
                     작성자: {detail.User.nickname}
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                    <Button onClick={() => router.back()} size="small" variant="contained" color="primary">
-                      뒤로가기
-                    </Button>
                     <Button
                       onClick={handleGoToMain}
                       size="small"
@@ -1589,156 +1178,15 @@ export default function page({ params }: { params: { id: string; slug: string } 
           document.body
         )}
 
-      {/* 이미지 뷰어 다이얼로그 */}
-      <Dialog
+      {/* 새로운 ImageViewer 컴포넌트 사용 */}
+      <ImageViewer
         open={openImageViewer}
+        selectedImage={selectedImage}
+        currentImageIndex={currentImageIndex}
+        images={contentOrderedImages || []}
         onClose={handleCloseImageViewer}
-        maxWidth={false}
-        fullWidth
-        PaperProps={{
-          sx: {
-            bgcolor: "rgba(0, 0, 0, 0.92)",
-            border: "1px solid rgba(192, 192, 192, 0.5)",
-            boxShadow: "0 0 20px rgba(255, 255, 255, 0.1)",
-            position: "relative",
-            height: "85vh",
-            width: "80vw",
-            margin: "20px",
-            borderRadius: "8px",
-            overflow: "hidden",
-          },
-        }}
-      >
-        {/* 상단 컨트롤 바 */}
-        <Box
-          sx={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            display: "flex",
-            justifyContent: "flex-end",
-            alignItems: "center",
-            p: 1.5,
-            zIndex: 10,
-          }}
-        >
-          {/* 줌 컨트롤 */}
-          <IconButton
-            onClick={handleZoomOut}
-            sx={{
-              color: "silver",
-              "&:hover": { color: "white" },
-              mr: 1,
-              fontSize: "1.8rem",
-            }}
-          >
-            <ZoomOutIcon sx={{ fontSize: "1.8rem" }} />
-          </IconButton>
-
-          <Typography
-            variant="body1"
-            sx={{
-              color: "silver",
-              mx: 1,
-              fontSize: "1.1rem",
-            }}
-          >
-            {(zoomLevel * 100).toFixed(0)}%
-          </Typography>
-
-          <IconButton
-            onClick={handleZoomIn}
-            sx={{
-              color: "silver",
-              "&:hover": { color: "white" },
-              mr: 1,
-              fontSize: "1.8rem",
-            }}
-          >
-            <ZoomInIcon sx={{ fontSize: "1.8rem" }} />
-          </IconButton>
-
-          {/* 닫기 버튼 */}
-          <IconButton
-            onClick={handleCloseImageViewer}
-            sx={{
-              color: "silver",
-              "&:hover": { color: "white" },
-              fontSize: "1.8rem",
-            }}
-          >
-            <CloseIcon sx={{ fontSize: "1.8rem" }} />
-          </IconButton>
-        </Box>
-
-        {/* 이미지 컨테이너 */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            height: "100%",
-            width: "100%",
-            position: "relative",
-          }}
-        >
-          {/* 이전 이미지 네비게이션 버튼 */}
-          {currentImageIndex > 0 && (
-            <IconButton
-              onClick={handlePrevImage}
-              sx={{
-                position: "absolute",
-                left: { xs: 8, md: 24 },
-                color: "silver",
-                "&:hover": { color: "white" },
-                fontSize: "2rem",
-              }}
-            >
-              <ArrowBackIosNewIcon sx={{ fontSize: "2rem" }} />
-            </IconButton>
-          )}
-
-          {/* 이미지 */}
-          {selectedImage && (
-            <Box
-              component="img"
-              src={`${process.env.NEXT_PUBLIC_BASE_URL}${selectedImage.link}`}
-              alt="Selected"
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              onMouseLeave={handleMouseLeave}
-              sx={{
-                maxWidth: "90%",
-                maxHeight: "80vh",
-                objectFit: "contain",
-                transform: `scale(${zoomLevel}) translate(${imagePosition.x / zoomLevel}px, ${imagePosition.y / zoomLevel}px)`,
-                transition: isDragging ? "none" : "transform 0.2s ease-out",
-                border: "1px solid rgba(192, 192, 192, 0.2)",
-                cursor: zoomLevel > 1 ? (isDragging ? "grabbing" : "grab") : "default",
-                userSelect: "none", // 텍스트 선택 방지
-              }}
-              draggable={false} // HTML 드래그 방지
-            />
-          )}
-
-          {/* 다음 이미지 네비게이션 버튼 */}
-          {contentOrderedImages && currentImageIndex < contentOrderedImages.length - 1 && (
-            <IconButton
-              onClick={handleNextImage}
-              sx={{
-                position: "absolute",
-                right: { xs: 8, md: 24 },
-                color: "silver",
-                "&:hover": { color: "white" },
-                fontSize: "2rem",
-              }}
-            >
-              <ArrowForwardIosIcon sx={{ fontSize: "2rem" }} />
-            </IconButton>
-          )}
-        </Box>
-      </Dialog>
+        onImageChange={handleImageChange}
+      />
 
       {/* 사용자 메뉴 팝오버 */}
       <UserMenuPopover

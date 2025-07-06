@@ -942,20 +942,11 @@ const ChannelDetailPage = () => {
                     fontSize: "0.95rem",
                     fontWeight: 700,
                     borderRadius: "16px",
-                    position: "relative",
-                    overflow: "hidden",
-                    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
                     textTransform: "none",
-                    boxShadow: showChat
-                      ? theme.palette.mode === "dark"
-                        ? "0 8px 32px rgba(239, 68, 68, 0.4), 0 0 20px rgba(239, 68, 68, 0.3)"
-                        : "0 8px 28px rgba(239, 68, 68, 0.3), 0 0 16px rgba(239, 68, 68, 0.2)"
-                      : theme.palette.mode === "dark"
-                        ? "0 8px 32px rgba(34, 197, 94, 0.4), 0 0 20px rgba(34, 197, 94, 0.3)"
-                        : "0 8px 28px rgba(34, 197, 94, 0.3), 0 0 16px rgba(34, 197, 94, 0.2)",
+                    transition: "all 0.3s ease",
                     background: showChat
-                      ? "linear-gradient(135deg, #ef4444, #dc2626, #b91c1c)"
-                      : "linear-gradient(135deg, #22c55e, #16a34a, #15803d)",
+                      ? "linear-gradient(135deg, #ef4444, #dc2626)"
+                      : "linear-gradient(135deg, #22c55e, #16a34a)",
                     color: "white",
                     border: showChat
                       ? theme.palette.mode === "dark"
@@ -964,75 +955,36 @@ const ChannelDetailPage = () => {
                       : theme.palette.mode === "dark"
                         ? "2px solid rgba(34, 197, 94, 0.6)"
                         : "2px solid rgba(34, 197, 94, 0.4)",
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      top: 0,
-                      left: "-100%",
-                      width: "100%",
-                      height: "100%",
-                      background: showChat
-                        ? "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent)"
-                        : "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
-                      transition: "left 0.6s ease",
-                    },
+                    boxShadow: showChat
+                      ? theme.palette.mode === "dark"
+                        ? "0 8px 32px rgba(239, 68, 68, 0.4)"
+                        : "0 8px 28px rgba(239, 68, 68, 0.3)"
+                      : theme.palette.mode === "dark"
+                        ? "0 8px 32px rgba(34, 197, 94, 0.4)"
+                        : "0 8px 28px rgba(34, 197, 94, 0.3)",
                     "&:hover": {
                       transform: "translateY(-3px) scale(1.02)",
                       background: showChat
-                        ? "linear-gradient(135deg, #dc2626, #b91c1c, #991b1b)"
-                        : "linear-gradient(135deg, #16a34a, #15803d, #166534)",
+                        ? "linear-gradient(135deg, #dc2626, #b91c1c)"
+                        : "linear-gradient(135deg, #16a34a, #15803d)",
                       boxShadow: showChat
                         ? theme.palette.mode === "dark"
-                          ? "0 12px 40px rgba(239, 68, 68, 0.5), 0 0 25px rgba(239, 68, 68, 0.4)"
-                          : "0 12px 35px rgba(239, 68, 68, 0.4), 0 0 20px rgba(239, 68, 68, 0.3)"
+                          ? "0 12px 40px rgba(239, 68, 68, 0.5)"
+                          : "0 12px 35px rgba(239, 68, 68, 0.4)"
                         : theme.palette.mode === "dark"
-                          ? "0 12px 40px rgba(34, 197, 94, 0.5), 0 0 25px rgba(34, 197, 94, 0.4)"
-                          : "0 12px 35px rgba(34, 197, 94, 0.4), 0 0 20px rgba(34, 197, 94, 0.3)",
-                      "&::before": {
-                        left: "100%",
-                      },
+                          ? "0 12px 40px rgba(34, 197, 94, 0.5)"
+                          : "0 12px 35px rgba(34, 197, 94, 0.4)",
                     },
                     "&:active": {
                       transform: "translateY(-1px) scale(0.98)",
                     },
-                    "& .MuiButton-startIcon": {
-                      marginRight: "8px",
-                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                    },
                   }}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 0.5,
-                      position: "relative",
-                      zIndex: 1,
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontWeight: 800,
-                        fontSize: "1rem",
-                        textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-                        letterSpacing: "0.5px",
-                      }}
-                    >
-                      {showChat ? "채팅 종료" : "실시간채팅"}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        fontSize: "0.7rem",
-                        opacity: 0.9,
-                        fontWeight: 600,
-                        textShadow: "0 1px 2px rgba(0, 0, 0, 0.3)",
-                      }}
-                    >
+                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.3 }}>
+                    <Box sx={{ fontSize: "1rem", fontWeight: 800 }}>{showChat ? "채팅 종료" : "실시간채팅"}</Box>
+                    <Box sx={{ fontSize: "0.7rem", opacity: 0.9, fontWeight: 600 }}>
                       {showChat ? "클릭하여 나가기" : "참여하기"}
-                    </Typography>
+                    </Box>
                   </Box>
                 </Button>
               </Box>
@@ -1050,10 +1002,8 @@ const ChannelDetailPage = () => {
                     fontSize: "0.9rem",
                     fontWeight: 700,
                     borderRadius: "14px",
-                    position: "relative",
-                    overflow: "hidden",
                     textTransform: "none",
-                    background: "linear-gradient(135deg, #f59e0b, #f97316, #ea580c)",
+                    background: "linear-gradient(135deg, #f59e0b, #f97316)",
                     color: "white",
                     border:
                       theme.palette.mode === "dark"
@@ -1061,59 +1011,23 @@ const ChannelDetailPage = () => {
                         : "2px solid rgba(245, 158, 11, 0.3)",
                     boxShadow:
                       theme.palette.mode === "dark"
-                        ? "0 6px 24px rgba(245, 158, 11, 0.4), 0 0 16px rgba(245, 158, 11, 0.2)"
-                        : "0 6px 20px rgba(245, 158, 11, 0.3), 0 0 12px rgba(245, 158, 11, 0.15)",
-                    transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      top: 0,
-                      left: "-100%",
-                      width: "100%",
-                      height: "100%",
-                      background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)",
-                      transition: "left 0.5s ease",
-                    },
+                        ? "0 6px 24px rgba(245, 158, 11, 0.4)"
+                        : "0 6px 20px rgba(245, 158, 11, 0.3)",
+                    transition: "all 0.3s ease",
                     "&:hover": {
                       transform: "translateY(-2px) scale(1.05)",
-                      background: "linear-gradient(135deg, #f97316, #ea580c, #dc2626)",
+                      background: "linear-gradient(135deg, #f97316, #ea580c)",
                       boxShadow:
                         theme.palette.mode === "dark"
-                          ? "0 8px 32px rgba(245, 158, 11, 0.5), 0 0 20px rgba(245, 158, 11, 0.3)"
-                          : "0 8px 28px rgba(245, 158, 11, 0.4), 0 0 16px rgba(245, 158, 11, 0.2)",
-                      "&::before": {
-                        left: "100%",
-                      },
+                          ? "0 8px 32px rgba(245, 158, 11, 0.5)"
+                          : "0 8px 28px rgba(245, 158, 11, 0.4)",
                     },
                     "&:active": {
                       transform: "translateY(-1px) scale(1.02)",
                     },
-                    "& .MuiButton-startIcon": {
-                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                    },
                   }}
                 >
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 0.5,
-                      position: "relative",
-                      zIndex: 1,
-                    }}
-                  >
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontWeight: 800,
-                        fontSize: "0.9rem",
-                        textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-                        letterSpacing: "0.3px",
-                      }}
-                    >
-                      공지사항
-                    </Typography>
-                  </Box>
+                  공지사항
                 </Button>
 
                 {/* 채널 정보 버튼 */}
@@ -1127,10 +1041,8 @@ const ChannelDetailPage = () => {
                     fontSize: "0.85rem",
                     fontWeight: 700,
                     borderRadius: "12px",
-                    position: "relative",
-                    overflow: "hidden",
                     textTransform: "none",
-                    background: "linear-gradient(135deg, #0ea5e9, #0284c7, #0369a1)",
+                    background: "linear-gradient(135deg, #0ea5e9, #0284c7)",
                     color: "white",
                     border:
                       theme.palette.mode === "dark"
@@ -1138,51 +1050,23 @@ const ChannelDetailPage = () => {
                         : "2px solid rgba(14, 165, 233, 0.3)",
                     boxShadow:
                       theme.palette.mode === "dark"
-                        ? "0 4px 20px rgba(14, 165, 233, 0.4), 0 0 12px rgba(14, 165, 233, 0.2)"
-                        : "0 4px 16px rgba(14, 165, 233, 0.3), 0 0 8px rgba(14, 165, 233, 0.15)",
-                    transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      top: 0,
-                      left: "-100%",
-                      width: "100%",
-                      height: "100%",
-                      background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)",
-                      transition: "left 0.5s ease",
-                    },
+                        ? "0 4px 20px rgba(14, 165, 233, 0.4)"
+                        : "0 4px 16px rgba(14, 165, 233, 0.3)",
+                    transition: "all 0.3s ease",
                     "&:hover": {
                       transform: "translateY(-2px) scale(1.05)",
-                      background: "linear-gradient(135deg, #0284c7, #0369a1, #075985)",
+                      background: "linear-gradient(135deg, #0284c7, #0369a1)",
                       boxShadow:
                         theme.palette.mode === "dark"
-                          ? "0 6px 28px rgba(14, 165, 233, 0.5), 0 0 16px rgba(14, 165, 233, 0.3)"
-                          : "0 6px 24px rgba(14, 165, 233, 0.4), 0 0 12px rgba(14, 165, 233, 0.2)",
-                      "&::before": {
-                        left: "100%",
-                      },
+                          ? "0 6px 28px rgba(14, 165, 233, 0.5)"
+                          : "0 6px 24px rgba(14, 165, 233, 0.4)",
                     },
                     "&:active": {
                       transform: "translateY(-1px) scale(1.02)",
                     },
-                    "& .MuiButton-startIcon": {
-                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                    },
                   }}
                 >
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: "0.85rem",
-                      textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-                      letterSpacing: "0.3px",
-                      position: "relative",
-                      zIndex: 1,
-                    }}
-                  >
-                    채널정보
-                  </Typography>
+                  채널정보
                 </Button>
               </Box>
 
@@ -1205,13 +1089,11 @@ const ChannelDetailPage = () => {
                       minWidth: 150,
                       height: "60px",
                       fontSize: "1rem",
-                      position: "relative",
-                      overflow: "hidden",
                       textTransform: "none",
-                      transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                      transition: "all 0.3s ease",
                       background: isSubscribed
-                        ? "linear-gradient(135deg, #ef4444, #dc2626, #b91c1c)"
-                        : "linear-gradient(135deg, #8b5cf6, #7c3aed, #6366f1)",
+                        ? "linear-gradient(135deg, #ef4444, #dc2626)"
+                        : "linear-gradient(135deg, #8b5cf6, #7c3aed)",
                       color: "white",
                       border: isSubscribed
                         ? theme.palette.mode === "dark"
@@ -1222,36 +1104,23 @@ const ChannelDetailPage = () => {
                           : "2px solid rgba(139, 92, 246, 0.4)",
                       boxShadow: isSubscribed
                         ? theme.palette.mode === "dark"
-                          ? "0 6px 28px rgba(239, 68, 68, 0.4), 0 0 16px rgba(239, 68, 68, 0.3)"
-                          : "0 6px 24px rgba(239, 68, 68, 0.3), 0 0 12px rgba(239, 68, 68, 0.2)"
+                          ? "0 6px 28px rgba(239, 68, 68, 0.4)"
+                          : "0 6px 24px rgba(239, 68, 68, 0.3)"
                         : theme.palette.mode === "dark"
-                          ? "0 6px 28px rgba(139, 92, 246, 0.4), 0 0 16px rgba(139, 92, 246, 0.3)"
-                          : "0 6px 24px rgba(139, 92, 246, 0.3), 0 0 12px rgba(139, 92, 246, 0.2)",
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        top: 0,
-                        left: "-100%",
-                        width: "100%",
-                        height: "100%",
-                        background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
-                        transition: "left 0.6s ease",
-                      },
+                          ? "0 6px 28px rgba(139, 92, 246, 0.4)"
+                          : "0 6px 24px rgba(139, 92, 246, 0.3)",
                       "&:hover": {
                         transform: "translateY(-3px) scale(1.02)",
                         background: isSubscribed
-                          ? "linear-gradient(135deg, #dc2626, #b91c1c, #991b1b)"
-                          : "linear-gradient(135deg, #7c3aed, #6366f1, #4f46e5)",
+                          ? "linear-gradient(135deg, #dc2626, #b91c1c)"
+                          : "linear-gradient(135deg, #7c3aed, #6366f1)",
                         boxShadow: isSubscribed
                           ? theme.palette.mode === "dark"
-                            ? "0 8px 35px rgba(239, 68, 68, 0.5), 0 0 20px rgba(239, 68, 68, 0.4)"
-                            : "0 8px 30px rgba(239, 68, 68, 0.4), 0 0 16px rgba(239, 68, 68, 0.3)"
+                            ? "0 8px 35px rgba(239, 68, 68, 0.5)"
+                            : "0 8px 30px rgba(239, 68, 68, 0.4)"
                           : theme.palette.mode === "dark"
-                            ? "0 8px 35px rgba(139, 92, 246, 0.5), 0 0 20px rgba(139, 92, 246, 0.4)"
-                            : "0 8px 30px rgba(139, 92, 246, 0.4), 0 0 16px rgba(139, 92, 246, 0.3)",
-                        "&::before": {
-                          left: "100%",
-                        },
+                            ? "0 8px 35px rgba(139, 92, 246, 0.5)"
+                            : "0 8px 30px rgba(139, 92, 246, 0.4)",
                       },
                       "&:active": {
                         transform: "translateY(-1px) scale(0.98)",
@@ -1263,39 +1132,15 @@ const ChannelDetailPage = () => {
                         transform: "none",
                         boxShadow: "none",
                       },
-                      "& .MuiButton-startIcon": {
-                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                      },
                     }}
                   >
-                    <Box
-                      sx={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 0.5,
-                        position: "relative",
-                        zIndex: 1,
-                      }}
-                    >
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: 800,
-                          fontSize: "1rem",
-                          textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-                          letterSpacing: "0.5px",
-                        }}
-                      >
-                        {subscribeMutation.isPending || unsubscribeMutation.isPending ? (
-                          <CircularProgress size={20} sx={{ color: "inherit" }} />
-                        ) : isSubscribed ? (
-                          "구독 중"
-                        ) : (
-                          "구독하기"
-                        )}
-                      </Typography>
-                    </Box>
+                    {subscribeMutation.isPending || unsubscribeMutation.isPending ? (
+                      <CircularProgress size={20} sx={{ color: "inherit" }} />
+                    ) : isSubscribed ? (
+                      "구독 중"
+                    ) : (
+                      "구독하기"
+                    )}
                   </Button>
 
                   {/* 알림받기 버튼 */}
@@ -1318,13 +1163,11 @@ const ChannelDetailPage = () => {
                       fontSize: "0.85rem",
                       fontWeight: 700,
                       borderRadius: "12px",
-                      position: "relative",
-                      overflow: "hidden",
                       textTransform: "none",
-                      transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
+                      transition: "all 0.3s ease",
                       background: isNotificationEnabled
-                        ? "linear-gradient(135deg, #f59e0b, #f97316, #ea580c)"
-                        : "linear-gradient(135deg, #6b7280, #4b5563, #374151)",
+                        ? "linear-gradient(135deg, #f59e0b, #f97316)"
+                        : "linear-gradient(135deg, #6b7280, #4b5563)",
                       color: "white",
                       border: isNotificationEnabled
                         ? theme.palette.mode === "dark"
@@ -1335,36 +1178,23 @@ const ChannelDetailPage = () => {
                           : "2px solid rgba(107, 114, 128, 0.3)",
                       boxShadow: isNotificationEnabled
                         ? theme.palette.mode === "dark"
-                          ? "0 4px 20px rgba(245, 158, 11, 0.4), 0 0 12px rgba(245, 158, 11, 0.2)"
-                          : "0 4px 16px rgba(245, 158, 11, 0.3), 0 0 8px rgba(245, 158, 11, 0.15)"
+                          ? "0 4px 20px rgba(245, 158, 11, 0.4)"
+                          : "0 4px 16px rgba(245, 158, 11, 0.3)"
                         : theme.palette.mode === "dark"
-                          ? "0 4px 20px rgba(107, 114, 128, 0.3), 0 0 8px rgba(107, 114, 128, 0.2)"
-                          : "0 4px 16px rgba(107, 114, 128, 0.2), 0 0 6px rgba(107, 114, 128, 0.1)",
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        top: 0,
-                        left: "-100%",
-                        width: "100%",
-                        height: "100%",
-                        background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)",
-                        transition: "left 0.5s ease",
-                      },
+                          ? "0 4px 20px rgba(107, 114, 128, 0.3)"
+                          : "0 4px 16px rgba(107, 114, 128, 0.2)",
                       "&:hover": {
                         transform: "translateY(-2px) scale(1.05)",
                         background: isNotificationEnabled
-                          ? "linear-gradient(135deg, #f97316, #ea580c, #dc2626)"
-                          : "linear-gradient(135deg, #4b5563, #374151, #1f2937)",
+                          ? "linear-gradient(135deg, #f97316, #ea580c)"
+                          : "linear-gradient(135deg, #4b5563, #374151)",
                         boxShadow: isNotificationEnabled
                           ? theme.palette.mode === "dark"
-                            ? "0 6px 28px rgba(245, 158, 11, 0.5), 0 0 16px rgba(245, 158, 11, 0.3)"
-                            : "0 6px 24px rgba(245, 158, 11, 0.4), 0 0 12px rgba(245, 158, 11, 0.2)"
+                            ? "0 6px 28px rgba(245, 158, 11, 0.5)"
+                            : "0 6px 24px rgba(245, 158, 11, 0.4)"
                           : theme.palette.mode === "dark"
-                            ? "0 6px 28px rgba(107, 114, 128, 0.4), 0 0 12px rgba(107, 114, 128, 0.3)"
-                            : "0 6px 24px rgba(107, 114, 128, 0.3), 0 0 8px rgba(107, 114, 128, 0.2)",
-                        "&::before": {
-                          left: "100%",
-                        },
+                            ? "0 6px 28px rgba(107, 114, 128, 0.4)"
+                            : "0 6px 24px rgba(107, 114, 128, 0.3)",
                       },
                       "&:active": {
                         transform: "translateY(-1px) scale(1.02)",
@@ -1376,24 +1206,9 @@ const ChannelDetailPage = () => {
                         transform: "none",
                         boxShadow: "none",
                       },
-                      "& .MuiButton-startIcon": {
-                        filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                      },
                     }}
                   >
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        fontWeight: 800,
-                        fontSize: "0.85rem",
-                        textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-                        letterSpacing: "0.3px",
-                        position: "relative",
-                        zIndex: 1,
-                      }}
-                    >
-                      {isNotificationEnabled ? "알림 끄기" : "알림 받기"}
-                    </Typography>
+                    {isNotificationEnabled ? "알림 끄기" : "알림 받기"}
                   </Button>
                 </Box>
               )}
@@ -1417,116 +1232,45 @@ const ChannelDetailPage = () => {
       {showChannelInfo && (
         <Card
           sx={{
-            borderRadius: "20px",
-            position: "relative",
-            overflow: "hidden",
-            p: 4,
-            background:
-              theme.palette.mode === "dark"
-                ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(45, 48, 71, 0.98) 100%)"
-                : "linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(248, 250, 252, 0.99) 100%)",
-            backdropFilter: "blur(20px)",
+            borderRadius: "12px",
+            p: 3,
+            background: theme.palette.mode === "dark" ? "#1e293b" : "#ffffff",
             border:
-              theme.palette.mode === "dark"
-                ? "2px solid rgba(139, 92, 246, 0.4)"
-                : "2px solid rgba(139, 92, 246, 0.25)",
+              theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid rgba(139, 92, 246, 0.2)",
             boxShadow:
-              theme.palette.mode === "dark"
-                ? "0 0 30px rgba(139, 92, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                : "0 0 30px rgba(139, 92, 246, 0.2), 0 15px 45px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9)",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: "-2px",
-              left: "-2px",
-              right: "-2px",
-              bottom: "-2px",
-              background: "linear-gradient(45deg, #06b6d4, #8b5cf6, #06b6d4, #8b5cf6)",
-              borderRadius: "22px",
-              opacity: 0.6,
-              animation: "borderGlow 5s linear infinite",
-              zIndex: -1,
-            },
-            "&::after": {
-              content: '""',
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              height: "4px",
-              background: "linear-gradient(90deg, #06b6d4, #8b5cf6, #22c55e)",
-              animation: "gradientShift 4s ease-in-out infinite",
-            },
+              theme.palette.mode === "dark" ? "0 4px 12px rgba(0, 0, 0, 0.3)" : "0 4px 12px rgba(0, 0, 0, 0.1)",
           }}
         >
           <Typography
             variant="h6"
             sx={{
               color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
-              mb: 3,
-              fontWeight: 800,
-              fontSize: "1.4rem",
+              mb: 2,
+              fontWeight: 700,
+              fontSize: "1.2rem",
               display: "flex",
               alignItems: "center",
-              gap: 1.5,
-              textShadow: theme.palette.mode === "dark" ? "0 2px 4px rgba(0, 0, 0, 0.3)" : "none",
-              position: "relative",
-              zIndex: 2,
+              gap: 1,
             }}
           >
-            <Box
+            <PeopleIcon
               sx={{
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                width: 48,
-                height: 48,
-                borderRadius: "12px",
-                background:
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2))"
-                    : "linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.1))",
-                border:
-                  theme.palette.mode === "dark"
-                    ? "2px solid rgba(139, 92, 246, 0.5)"
-                    : "2px solid rgba(139, 92, 246, 0.3)",
-                boxShadow:
-                  theme.palette.mode === "dark"
-                    ? "0 0 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                    : "0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
+                color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
+                fontSize: 24,
               }}
-            >
-              <PeopleIcon
-                sx={{
-                  color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                  fontSize: 28,
-                  filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                }}
-              />
-            </Box>
+            />
             채널 정보
           </Typography>
 
-          {/* 한 줄로 간격을 띄워서 표시 */}
           <Box
             sx={{
-              position: "relative",
-              zIndex: 2,
-              p: 3,
-              borderRadius: "16px",
-              background:
-                theme.palette.mode === "dark"
-                  ? "linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.04))"
-                  : "linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(248, 250, 252, 0.9))",
+              p: 2,
+              borderRadius: "8px",
+              background: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(139, 92, 246, 0.05)",
               border:
                 theme.palette.mode === "dark"
                   ? "1px solid rgba(139, 92, 246, 0.2)"
                   : "1px solid rgba(139, 92, 246, 0.15)",
-              boxShadow:
-                theme.palette.mode === "dark"
-                  ? "0 4px 15px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                  : "0 4px 15px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
             }}
           >
             <Typography
@@ -1534,10 +1278,9 @@ const ChannelDetailPage = () => {
               sx={{
                 color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
                 textAlign: "center",
-                lineHeight: 1.8,
-                fontSize: "1.1rem",
-                fontWeight: 600,
-                textShadow: theme.palette.mode === "dark" ? "0 1px 2px rgba(0, 0, 0, 0.3)" : "none",
+                lineHeight: 1.6,
+                fontSize: "1rem",
+                fontWeight: 500,
               }}
             >
               📅 생성일:{" "}
@@ -1545,7 +1288,7 @@ const ChannelDetailPage = () => {
                 component="span"
                 sx={{
                   color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                  fontWeight: 700,
+                  fontWeight: 600,
                 }}
               >
                 {new Date(channelData.created_at).toLocaleDateString("ko-KR", {
@@ -1559,7 +1302,7 @@ const ChannelDetailPage = () => {
                 component="span"
                 sx={{
                   color: theme.palette.mode === "dark" ? "#22d3ee" : "#06b6d4",
-                  fontWeight: 700,
+                  fontWeight: 600,
                 }}
               >
                 {channelData.creator?.nickname || "알수없음"}
@@ -1569,7 +1312,7 @@ const ChannelDetailPage = () => {
                 component="span"
                 sx={{
                   color: theme.palette.mode === "dark" ? "#22c55e" : "#16a34a",
-                  fontWeight: 700,
+                  fontWeight: 600,
                 }}
               >
                 구독자 {channelData.subscriber_count.toLocaleString()}명 · 게시글{" "}

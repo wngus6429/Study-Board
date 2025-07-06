@@ -7,14 +7,7 @@ import {
   Card,
   CardContent,
   Button,
-  Chip,
-  Tab,
-  Tabs,
-  IconButton,
   useTheme,
-  FormControl,
-  Select,
-  MenuItem,
   SelectChangeEvent,
   CircularProgress,
   Dialog,
@@ -22,28 +15,8 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import {
-  PersonAdd as PersonAddIcon,
-  Notifications as NotificationsIcon,
-  NotificationsOff as NotificationsOffIcon,
-  Create as CreateIcon,
-  Star as StarIcon,
-  People as PeopleIcon,
-  TrendingUp as TrendingUpIcon,
-  ViewList as ViewListIcon,
-  ViewModule as ViewModuleIcon,
-  EmojiEvents as EmojiEventsIcon,
-  Verified as VerifiedIcon,
-  Person as PersonIcon,
-  Announcement as AnnouncementIcon,
-  Chat as ChatIcon,
-  Hub as HubIcon,
-  AutoAwesome as AutoAwesomeIcon,
-  Diamond as DiamondIcon,
-  Psychology as PsychologyIcon,
-  Bolt as BoltIcon,
-} from "@mui/icons-material";
-import { useRouter, useParams } from "next/navigation";
+import { People as PeopleIcon, Person as PersonIcon } from "@mui/icons-material";
+import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -52,52 +25,50 @@ import { useSubscriptionStore } from "@/app/store/subscriptionStore";
 import { useChannelNotificationStore } from "@/app/store/channelNotificationStore";
 import { useChannelPageStore } from "@/app/store/channelPageStore";
 import { TABLE_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
-import { TAB_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
 import CustomizedTables from "@/app/components/table/CustomizedTables";
 import CustomizedCardView from "@/app/components/table/CustomizedCardView";
 import CustomizedSuggestionTable from "@/app/components/table/CustomizedSuggestionTable";
-import Pagination from "@/app/components/common/Pagination";
-import SearchBar from "@/app/components/common/SearchBar";
 import Loading from "@/app/components/common/Loading";
 import ErrorView from "@/app/components/common/ErrorView";
 import ChannelNoticeModal from "@/app/components/common/ChannelNoticeModal";
 // API 함수들 import
 import { getChannelBySlug, subscribeChannel, unsubscribeChannel, Channel } from "@/app/api/channelsApi";
+import {
+  subscribeToChannelNotifications,
+  unsubscribeFromChannelNotifications,
+  getChannelNotificationStatus,
+} from "@/app/api/channelNotificationApi";
 // 기존 커스텀 훅들 import
 import { useStories } from "@/app/components/api/useStories";
 import { useCardStories } from "@/app/components/api/useCardStories";
-
 // 채팅 컴포넌트 import
 import ChannelChat from "@/app/components/chat/ChannelChat";
-
 // 스타일 컴포넌트 import
-import {
-  MainContainer,
-  ChannelInfoCard,
-  LoadingContainer,
-  MetallicAvatar,
-  MetallicTitle,
-  MetallicSubtitle,
-} from "./components";
+import { MainContainer, ChannelInfoCard, LoadingContainer } from "./components";
+// 분리된 컴포넌트들 import
+import ChannelHeader from "./components/ChannelHeader";
+import ChannelActionButtons from "./components/ChannelActionButtons";
+import ChannelTabNavigation from "./components/ChannelTabNavigation";
+import ChannelControlPanel from "./components/ChannelControlPanel";
 
 const ChannelDetailPage = () => {
-  const theme = useTheme();
-  const router = useRouter();
-  const params = useParams();
-  const channelSlug = params?.slug as string;
-  const { data: session } = useSession();
-  const { showMessage } = useMessage();
-  const queryClient = useQueryClient();
-  const { currentPage, setCurrentPage } = usePageStore();
+  const theme = useTheme(); // 테마 상태 가져오기
+  const router = useRouter(); // 라우터 인스턴스 가져오기
+  const params = useParams(); // 파라미터 가져오기
+  const channelSlug = params?.slug as string; // 채널 슬러그 가져오기
+  const { data: session } = useSession(); // 세션 데이터 가져오기
+  const { showMessage } = useMessage(); // 메시지 표시 함수 가져오기
+  const queryClient = useQueryClient(); // 쿼리 클라이언트 인스턴스 가져오기
+  const { currentPage, setCurrentPage } = usePageStore(); // 페이지 스토어 상태 가져오기
   const {
     isSubscribed: checkIsSubscribed,
     addSubscription,
     removeSubscription,
     loadSubscriptions,
-  } = useSubscriptionStore();
+  } = useSubscriptionStore(); // 구독 스토어 상태 가져오기
 
-  const { subscribeToChannel, unsubscribeFromChannel, isSubscribedToNotifications } = useChannelNotificationStore();
-  const { setChannelPageData } = useChannelPageStore();
+  const { subscribeToChannel, unsubscribeFromChannel, isSubscribedToNotifications } = useChannelNotificationStore(); // 채널 알림 스토어 상태 가져오기
+  const { setChannelPageData } = useChannelPageStore(); // 채널 페이지 스토어 상태 가져오기
 
   // 상태 관리
   const [currentTab, setCurrentTab] = useState("all");
@@ -134,6 +105,37 @@ const ChannelDetailPage = () => {
 
   // 현재 채널의 알림 구독 상태
   const isNotificationEnabled = isSubscribedToNotifications(channelId);
+
+  // 실제 백엔드 알림 구독 상태 확인 및 동기화
+  useEffect(() => {
+    const syncNotificationStatus = async () => {
+      if (!channelId || !session?.user || !channelData) return;
+
+      try {
+        const response = await getChannelNotificationStatus(channelId);
+        const actualStatus = response.isSubscribed;
+        const frontendStatus = isSubscribedToNotifications(channelId);
+
+        // 상태가 다르면 프론트엔드 상태를 실제 상태로 동기화
+        if (actualStatus !== frontendStatus) {
+          if (actualStatus) {
+            // 실제로는 구독되어 있는데 프론트엔드에서 구독되지 않은 것으로 표시된 경우
+            subscribeToChannel(channelId, channelData.channel_name, channelData.slug);
+          } else {
+            // 실제로는 구독되지 않았는데 프론트엔드에서 구독된 것으로 표시된 경우
+            unsubscribeFromChannel(channelId);
+          }
+        }
+      } catch (error) {
+        console.error("알림 상태 확인 실패:", error);
+      }
+    };
+
+    // 약간의 딜레이를 두어 채널 데이터가 완전히 로드된 후 실행
+    const timeoutId = setTimeout(syncNotificationStatus, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [channelId, session?.user?.id, channelData?.id]);
 
   // URL 파라미터에서 상태 초기화 (MainView 방식)
   useEffect(() => {
@@ -416,10 +418,7 @@ const ChannelDetailPage = () => {
 
   // 채널 알림 구독 mutation
   const notificationSubscribeMutation = useMutation({
-    mutationFn: async () => {
-      const { subscribeToChannelNotifications } = await import("@/app/api/channelNotificationApi");
-      return subscribeToChannelNotifications(channelId);
-    },
+    mutationFn: () => subscribeToChannelNotifications(channelId),
     onSuccess: () => {
       if (channelData) {
         subscribeToChannel(channelId, channelData.channel_name, channelData.slug);
@@ -428,23 +427,36 @@ const ChannelDetailPage = () => {
     },
     onError: (error: any) => {
       console.error("채널 알림 구독 실패:", error);
-      showMessage(error.response?.data?.message || "채널 알림 구독에 실패했습니다.", "error");
+
+      // 409 에러 (이미 구독된 상태)인 경우 정상적으로 처리
+      if (error.response?.status === 409) {
+        if (channelData) {
+          subscribeToChannel(channelId, channelData.channel_name, channelData.slug);
+        }
+        showMessage("채널 알림이 이미 켜져있었습니다.", "info");
+      } else {
+        showMessage(error.response?.data?.message || "채널 알림 구독에 실패했습니다.", "error");
+      }
     },
   });
 
   // 채널 알림 구독 해제 mutation
   const notificationUnsubscribeMutation = useMutation({
-    mutationFn: async () => {
-      const { unsubscribeFromChannelNotifications } = await import("@/app/api/channelNotificationApi");
-      return unsubscribeFromChannelNotifications(channelId);
-    },
+    mutationFn: () => unsubscribeFromChannelNotifications(channelId),
     onSuccess: () => {
       unsubscribeFromChannel(channelId);
       showMessage("채널 알림을 끝습니다.", "info");
     },
     onError: (error: any) => {
       console.error("채널 알림 구독 해제 실패:", error);
-      showMessage(error.response?.data?.message || "채널 알림 구독 해제에 실패했습니다.", "error");
+
+      // 404 에러 (이미 구독하지 않은 상태)인 경우 정상적으로 처리
+      if (error.response?.status === 404) {
+        unsubscribeFromChannel(channelId);
+        showMessage("채널 알림이 이미 꺼져있었습니다.", "info");
+      } else {
+        showMessage(error.response?.data?.message || "채널 알림 구독 해제에 실패했습니다.", "error");
+      }
     },
   });
 
@@ -457,6 +469,11 @@ const ChannelDetailPage = () => {
 
     if (!channelData) {
       showMessage("채널 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.", "warning");
+      return;
+    }
+
+    if (!channelId || channelId === 0) {
+      showMessage("채널 ID를 확인할 수 없습니다. 잠시 후 다시 시도해주세요.", "warning");
       return;
     }
 
@@ -693,526 +710,24 @@ const ChannelDetailPage = () => {
         <CardContent sx={{ p: 3 }}>
           <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             {/* 왼쪽: 채널 정보 */}
-            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-              <MetallicAvatar>
-                <Box
-                  sx={{
-                    position: "relative",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    width: "100%",
-                    height: "100%",
-                  }}
-                >
-                  {/* 메인 아이콘 */}
-                  <HubIcon
-                    sx={{
-                      fontSize: "2.2rem",
-                      position: "relative",
-                      zIndex: 2,
-                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                    }}
-                  />
-
-                  {/* 배경 장식 아이콘들 */}
-                  <AutoAwesomeIcon
-                    sx={{
-                      position: "absolute",
-                      top: "8px",
-                      right: "12px",
-                      fontSize: "0.8rem",
-                      opacity: 0.7,
-                      animation: "sparkle 2s ease-in-out infinite",
-                      "@keyframes sparkle": {
-                        "0%, 100%": { opacity: 0.4, transform: "scale(0.8)" },
-                        "50%": { opacity: 1, transform: "scale(1.2)" },
-                      },
-                    }}
-                  />
-
-                  <DiamondIcon
-                    sx={{
-                      position: "absolute",
-                      bottom: "6px",
-                      left: "8px",
-                      fontSize: "0.6rem",
-                      opacity: 0.6,
-                      animation: "sparkle 2.5s ease-in-out infinite",
-                      animationDelay: "0.5s",
-                    }}
-                  />
-
-                  <BoltIcon
-                    sx={{
-                      position: "absolute",
-                      top: "6px",
-                      left: "10px",
-                      fontSize: "0.7rem",
-                      opacity: 0.5,
-                      animation: "sparkle 3s ease-in-out infinite",
-                      animationDelay: "1s",
-                    }}
-                  />
-                </Box>
-              </MetallicAvatar>
-
-              <Box>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
-                  {/* 채널 이름 컨테이너 - 빛나는 배경 효과 */}
-                  <Box
-                    sx={{
-                      position: "relative",
-                      padding: "8px 16px",
-                      borderRadius: "12px",
-                      background:
-                        theme.palette.mode === "dark"
-                          ? "linear-gradient(135deg, rgba(26, 26, 46, 0.8) 0%, rgba(45, 48, 71, 0.9) 100%)"
-                          : "linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.95) 100%)",
-                      border:
-                        theme.palette.mode === "dark"
-                          ? "2px solid rgba(139, 92, 246, 0.3)"
-                          : "2px solid rgba(139, 92, 246, 0.2)",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0 0 20px rgba(139, 92, 246, 0.3), 0 0 40px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                          : "0 0 20px rgba(139, 92, 246, 0.2), 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        top: "-2px",
-                        left: "-2px",
-                        right: "-2px",
-                        bottom: "-2px",
-                        background:
-                          theme.palette.mode === "dark"
-                            ? "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)"
-                            : "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)",
-                        borderRadius: "14px",
-                        opacity: 0.6,
-                        animation: "borderGlow 3s linear infinite",
-                        zIndex: -1,
-                      },
-                      "&::after": {
-                        content: '""',
-                        position: "absolute",
-                        top: "50%",
-                        left: "-50%",
-                        width: "200%",
-                        height: "2px",
-                        background:
-                          theme.palette.mode === "dark"
-                            ? "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.8), transparent)"
-                            : "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.6), transparent)",
-                        transform: "translateY(-50%)",
-                        animation: "scanLine 2s ease-in-out infinite",
-                        zIndex: 1,
-                        pointerEvents: "none",
-                      },
-                      "@keyframes borderGlow": {
-                        "0%": {
-                          backgroundPosition: "0% 50%",
-                          filter: "hue-rotate(0deg)",
-                        },
-                        "50%": {
-                          backgroundPosition: "100% 50%",
-                          filter: "hue-rotate(180deg)",
-                        },
-                        "100%": {
-                          backgroundPosition: "0% 50%",
-                          filter: "hue-rotate(360deg)",
-                        },
-                      },
-                      "@keyframes scanLine": {
-                        "0%": { left: "-50%", opacity: 0 },
-                        "50%": { left: "50%", opacity: 1 },
-                        "100%": { left: "150%", opacity: 0 },
-                      },
-                    }}
-                  >
-                    <MetallicTitle variant="h5" sx={{ position: "relative", zIndex: 2 }}>
-                      {channelData.channel_name}
-                    </MetallicTitle>
-                  </Box>
-
-                  <VerifiedIcon
-                    sx={{
-                      color: theme.palette.mode === "dark" ? "#22d3ee" : "#06b6d4",
-                      fontSize: 20,
-                      filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                    }}
-                  />
-                  {channelData.story_count > 50 && (
-                    <Chip
-                      icon={<TrendingUpIcon />}
-                      label="HOT"
-                      size="small"
-                      sx={{
-                        background: "linear-gradient(135deg, #ff6b6b, #ff8e53)",
-                        color: "#ffffff",
-                        fontWeight: "bold",
-                        boxShadow: "0 4px 12px rgba(255, 107, 107, 0.4)",
-                      }}
-                    />
-                  )}
-                </Box>
-
-                <MetallicSubtitle
-                  variant="body2"
-                  sx={{
-                    mb: 1,
-                    maxWidth: "500px",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {`${channelData.creator?.nickname || "알수없음"}님이 만든 채널입니다. 다양한 주제로 소통해보세요! ✨`}
-                </MetallicSubtitle>
-
-                <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <PeopleIcon
-                      sx={{
-                        fontSize: 16,
-                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
-                      }}
-                    />
-                    <MetallicSubtitle
-                      variant="body2"
-                      sx={{
-                        fontWeight: 600,
-                      }}
-                    >
-                      구독자 {formatSubscriberCount(channelData.subscriber_count)}명
-                    </MetallicSubtitle>
-                  </Box>
-
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                    <PersonIcon
-                      sx={{
-                        fontSize: 16,
-                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
-                      }}
-                    />
-                    <MetallicSubtitle variant="body2">
-                      생성자: {channelData.creator?.nickname || "알수없음"}
-                    </MetallicSubtitle>
-                    {/* 생성자에게 쪽지 보내기 버튼 */}
-                    {session?.user && channelData.creator?.nickname && session.user.id !== channelData.creator.id && (
-                      <Button
-                        size="small"
-                        variant="outlined"
-                        onClick={() => router.push(`/messages?to=${channelData.creator.nickname}`)}
-                        sx={{
-                          ml: 1,
-                          fontSize: "0.7rem",
-                          padding: "2px 8px",
-                          minWidth: "auto",
-                          borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "#8b5cf6",
-                          color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                          "&:hover": {
-                            backgroundColor:
-                              theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(139, 92, 246, 0.05)",
-                          },
-                        }}
-                      >
-                        쪽지
-                      </Button>
-                    )}
-                  </Box>
-
-                  <MetallicSubtitle variant="body2">
-                    게시글 {channelData.story_count.toLocaleString()}개
-                  </MetallicSubtitle>
-                </Box>
-              </Box>
-            </Box>
+            <ChannelHeader channelData={channelData} session={session} formatSubscriberCount={formatSubscriberCount} />
 
             {/* 오른쪽: 버튼 그리드 */}
-            <Box sx={{ display: "flex", gap: 1.5 }}>
-              {/* 왼쪽 열: 실시간 채팅 버튼 */}
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {/* 실시간 채팅 버튼 */}
-                <Button
-                  variant="contained"
-                  startIcon={<ChatIcon sx={{ fontSize: 22 }} />}
-                  onClick={handleChatToggle}
-                  sx={{
-                    minWidth: "130px",
-                    height: "95px",
-                    fontSize: "0.95rem",
-                    fontWeight: 700,
-                    borderRadius: "16px",
-                    textTransform: "none",
-                    transition: "all 0.3s ease",
-                    background: showChat
-                      ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                      : "linear-gradient(135deg, #22c55e, #16a34a)",
-                    color: "white",
-                    border: showChat
-                      ? theme.palette.mode === "dark"
-                        ? "2px solid rgba(239, 68, 68, 0.6)"
-                        : "2px solid rgba(239, 68, 68, 0.4)"
-                      : theme.palette.mode === "dark"
-                        ? "2px solid rgba(34, 197, 94, 0.6)"
-                        : "2px solid rgba(34, 197, 94, 0.4)",
-                    boxShadow: showChat
-                      ? theme.palette.mode === "dark"
-                        ? "0 8px 32px rgba(239, 68, 68, 0.4)"
-                        : "0 8px 28px rgba(239, 68, 68, 0.3)"
-                      : theme.palette.mode === "dark"
-                        ? "0 8px 32px rgba(34, 197, 94, 0.4)"
-                        : "0 8px 28px rgba(34, 197, 94, 0.3)",
-                    "&:hover": {
-                      transform: "translateY(-3px) scale(1.02)",
-                      background: showChat
-                        ? "linear-gradient(135deg, #dc2626, #b91c1c)"
-                        : "linear-gradient(135deg, #16a34a, #15803d)",
-                      boxShadow: showChat
-                        ? theme.palette.mode === "dark"
-                          ? "0 12px 40px rgba(239, 68, 68, 0.5)"
-                          : "0 12px 35px rgba(239, 68, 68, 0.4)"
-                        : theme.palette.mode === "dark"
-                          ? "0 12px 40px rgba(34, 197, 94, 0.5)"
-                          : "0 12px 35px rgba(34, 197, 94, 0.4)",
-                    },
-                    "&:active": {
-                      transform: "translateY(-1px) scale(0.98)",
-                    },
-                  }}
-                >
-                  <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.3 }}>
-                    <Box sx={{ fontSize: "1rem", fontWeight: 800 }}>{showChat ? "채팅 종료" : "실시간채팅"}</Box>
-                    <Box sx={{ fontSize: "0.7rem", opacity: 0.9, fontWeight: 600 }}>
-                      {showChat ? "클릭하여 나가기" : "참여하기"}
-                    </Box>
-                  </Box>
-                </Button>
-              </Box>
-
-              {/* 가운데 열: 공지사항, 채널정보 - 항상 표시 */}
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                {/* 공지사항 버튼 */}
-                <Button
-                  variant="contained"
-                  startIcon={<AnnouncementIcon sx={{ fontSize: 20 }} />}
-                  onClick={() => setShowNotice(!showNotice)}
-                  sx={{
-                    minWidth: "110px",
-                    height: "60px",
-                    fontSize: "0.9rem",
-                    fontWeight: 700,
-                    borderRadius: "14px",
-                    textTransform: "none",
-                    background: "linear-gradient(135deg, #f59e0b, #f97316)",
-                    color: "white",
-                    border:
-                      theme.palette.mode === "dark"
-                        ? "2px solid rgba(245, 158, 11, 0.5)"
-                        : "2px solid rgba(245, 158, 11, 0.3)",
-                    boxShadow:
-                      theme.palette.mode === "dark"
-                        ? "0 6px 24px rgba(245, 158, 11, 0.4)"
-                        : "0 6px 20px rgba(245, 158, 11, 0.3)",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-2px) scale(1.05)",
-                      background: "linear-gradient(135deg, #f97316, #ea580c)",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0 8px 32px rgba(245, 158, 11, 0.5)"
-                          : "0 8px 28px rgba(245, 158, 11, 0.4)",
-                    },
-                    "&:active": {
-                      transform: "translateY(-1px) scale(1.02)",
-                    },
-                  }}
-                >
-                  공지사항
-                </Button>
-
-                {/* 채널 정보 버튼 */}
-                <Button
-                  variant="contained"
-                  startIcon={<PeopleIcon sx={{ fontSize: 18 }} />}
-                  onClick={() => setShowChannelInfo(!showChannelInfo)}
-                  sx={{
-                    minWidth: "110px",
-                    height: "35px",
-                    fontSize: "0.85rem",
-                    fontWeight: 700,
-                    borderRadius: "12px",
-                    textTransform: "none",
-                    background: "linear-gradient(135deg, #0ea5e9, #0284c7)",
-                    color: "white",
-                    border:
-                      theme.palette.mode === "dark"
-                        ? "2px solid rgba(14, 165, 233, 0.5)"
-                        : "2px solid rgba(14, 165, 233, 0.3)",
-                    boxShadow:
-                      theme.palette.mode === "dark"
-                        ? "0 4px 20px rgba(14, 165, 233, 0.4)"
-                        : "0 4px 16px rgba(14, 165, 233, 0.3)",
-                    transition: "all 0.3s ease",
-                    "&:hover": {
-                      transform: "translateY(-2px) scale(1.05)",
-                      background: "linear-gradient(135deg, #0284c7, #0369a1)",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0 6px 28px rgba(14, 165, 233, 0.5)"
-                          : "0 6px 24px rgba(14, 165, 233, 0.4)",
-                    },
-                    "&:active": {
-                      transform: "translateY(-1px) scale(1.02)",
-                    },
-                  }}
-                >
-                  채널정보
-                </Button>
-              </Box>
-
-              {/* 오른쪽 열: 구독하기, 알림받기 - 로그인시에만 표시 */}
-              {session?.user && (
-                <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                  {/* 구독하기 버튼 */}
-                  <Button
-                    variant="contained"
-                    onClick={handleSubscribeToggle}
-                    disabled={subscribeMutation.isPending || unsubscribeMutation.isPending}
-                    startIcon={
-                      isSubscribed ? <StarIcon sx={{ fontSize: 22 }} /> : <PersonAddIcon sx={{ fontSize: 22 }} />
-                    }
-                    sx={{
-                      borderRadius: "16px",
-                      fontWeight: 700,
-                      px: 3,
-                      py: 1.5,
-                      minWidth: 150,
-                      height: "60px",
-                      fontSize: "1rem",
-                      textTransform: "none",
-                      transition: "all 0.3s ease",
-                      background: isSubscribed
-                        ? "linear-gradient(135deg, #ef4444, #dc2626)"
-                        : "linear-gradient(135deg, #8b5cf6, #7c3aed)",
-                      color: "white",
-                      border: isSubscribed
-                        ? theme.palette.mode === "dark"
-                          ? "2px solid rgba(239, 68, 68, 0.6)"
-                          : "2px solid rgba(239, 68, 68, 0.4)"
-                        : theme.palette.mode === "dark"
-                          ? "2px solid rgba(139, 92, 246, 0.6)"
-                          : "2px solid rgba(139, 92, 246, 0.4)",
-                      boxShadow: isSubscribed
-                        ? theme.palette.mode === "dark"
-                          ? "0 6px 28px rgba(239, 68, 68, 0.4)"
-                          : "0 6px 24px rgba(239, 68, 68, 0.3)"
-                        : theme.palette.mode === "dark"
-                          ? "0 6px 28px rgba(139, 92, 246, 0.4)"
-                          : "0 6px 24px rgba(139, 92, 246, 0.3)",
-                      "&:hover": {
-                        transform: "translateY(-3px) scale(1.02)",
-                        background: isSubscribed
-                          ? "linear-gradient(135deg, #dc2626, #b91c1c)"
-                          : "linear-gradient(135deg, #7c3aed, #6366f1)",
-                        boxShadow: isSubscribed
-                          ? theme.palette.mode === "dark"
-                            ? "0 8px 35px rgba(239, 68, 68, 0.5)"
-                            : "0 8px 30px rgba(239, 68, 68, 0.4)"
-                          : theme.palette.mode === "dark"
-                            ? "0 8px 35px rgba(139, 92, 246, 0.5)"
-                            : "0 8px 30px rgba(139, 92, 246, 0.4)",
-                      },
-                      "&:active": {
-                        transform: "translateY(-1px) scale(0.98)",
-                      },
-                      "&:disabled": {
-                        background: isSubscribed
-                          ? "linear-gradient(135deg, rgba(239, 68, 68, 0.5), rgba(220, 38, 38, 0.5))"
-                          : "linear-gradient(135deg, rgba(139, 92, 246, 0.5), rgba(124, 58, 237, 0.5))",
-                        transform: "none",
-                        boxShadow: "none",
-                      },
-                    }}
-                  >
-                    {subscribeMutation.isPending || unsubscribeMutation.isPending ? (
-                      <CircularProgress size={20} sx={{ color: "inherit" }} />
-                    ) : isSubscribed ? (
-                      "구독 중"
-                    ) : (
-                      "구독하기"
-                    )}
-                  </Button>
-
-                  {/* 알림받기 버튼 */}
-                  <Button
-                    variant="contained"
-                    startIcon={
-                      notificationSubscribeMutation.isPending || notificationUnsubscribeMutation.isPending ? (
-                        <CircularProgress size={18} sx={{ color: "inherit" }} />
-                      ) : isNotificationEnabled ? (
-                        <NotificationsIcon sx={{ fontSize: 20 }} />
-                      ) : (
-                        <NotificationsOffIcon sx={{ fontSize: 20 }} />
-                      )
-                    }
-                    onClick={handleNotificationToggle}
-                    disabled={notificationSubscribeMutation.isPending || notificationUnsubscribeMutation.isPending}
-                    sx={{
-                      minWidth: 150,
-                      height: "35px",
-                      fontSize: "0.85rem",
-                      fontWeight: 700,
-                      borderRadius: "12px",
-                      textTransform: "none",
-                      transition: "all 0.3s ease",
-                      background: isNotificationEnabled
-                        ? "linear-gradient(135deg, #f59e0b, #f97316)"
-                        : "linear-gradient(135deg, #6b7280, #4b5563)",
-                      color: "white",
-                      border: isNotificationEnabled
-                        ? theme.palette.mode === "dark"
-                          ? "2px solid rgba(245, 158, 11, 0.5)"
-                          : "2px solid rgba(245, 158, 11, 0.3)"
-                        : theme.palette.mode === "dark"
-                          ? "2px solid rgba(107, 114, 128, 0.5)"
-                          : "2px solid rgba(107, 114, 128, 0.3)",
-                      boxShadow: isNotificationEnabled
-                        ? theme.palette.mode === "dark"
-                          ? "0 4px 20px rgba(245, 158, 11, 0.4)"
-                          : "0 4px 16px rgba(245, 158, 11, 0.3)"
-                        : theme.palette.mode === "dark"
-                          ? "0 4px 20px rgba(107, 114, 128, 0.3)"
-                          : "0 4px 16px rgba(107, 114, 128, 0.2)",
-                      "&:hover": {
-                        transform: "translateY(-2px) scale(1.05)",
-                        background: isNotificationEnabled
-                          ? "linear-gradient(135deg, #f97316, #ea580c)"
-                          : "linear-gradient(135deg, #4b5563, #374151)",
-                        boxShadow: isNotificationEnabled
-                          ? theme.palette.mode === "dark"
-                            ? "0 6px 28px rgba(245, 158, 11, 0.5)"
-                            : "0 6px 24px rgba(245, 158, 11, 0.4)"
-                          : theme.palette.mode === "dark"
-                            ? "0 6px 28px rgba(107, 114, 128, 0.4)"
-                            : "0 6px 24px rgba(107, 114, 128, 0.3)",
-                      },
-                      "&:active": {
-                        transform: "translateY(-1px) scale(1.02)",
-                      },
-                      "&:disabled": {
-                        background: isNotificationEnabled
-                          ? "linear-gradient(135deg, rgba(245, 158, 11, 0.5), rgba(249, 115, 22, 0.5))"
-                          : "linear-gradient(135deg, rgba(107, 114, 128, 0.5), rgba(75, 85, 99, 0.5))",
-                        transform: "none",
-                        boxShadow: "none",
-                      },
-                    }}
-                  >
-                    {isNotificationEnabled ? "알림 끄기" : "알림 받기"}
-                  </Button>
-                </Box>
-              )}
-            </Box>
+            <ChannelActionButtons
+              showChat={showChat}
+              onChatToggle={handleChatToggle}
+              onShowNotice={() => setShowNotice(!showNotice)}
+              onShowChannelInfo={() => setShowChannelInfo(!showChannelInfo)}
+              hasSession={!!session?.user}
+              isSubscribed={isSubscribed}
+              onSubscribeToggle={handleSubscribeToggle}
+              subscribeMutationPending={subscribeMutation.isPending}
+              unsubscribeMutationPending={unsubscribeMutation.isPending}
+              isNotificationEnabled={isNotificationEnabled}
+              onNotificationToggle={handleNotificationToggle}
+              notificationSubscribeMutationPending={notificationSubscribeMutation.isPending}
+              notificationUnsubscribeMutationPending={notificationUnsubscribeMutation.isPending}
+            />
           </Box>
         </CardContent>
       </ChannelInfoCard>
@@ -1410,333 +925,15 @@ const ChannelDetailPage = () => {
 
       {/* 탭 네비게이션 - 채팅 모드가 아닐 때만 표시 */}
       {!showChat && (
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            width: "100%",
-            borderRadius: "16px",
-            position: "relative",
-            overflow: "hidden",
-            background:
-              theme.palette.mode === "dark"
-                ? "linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(45, 48, 71, 0.95) 100%)"
-                : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)",
-            border:
-              theme.palette.mode === "dark" ? "2px solid rgba(139, 92, 246, 0.3)" : "2px solid rgba(139, 92, 246, 0.2)",
-            boxShadow:
-              theme.palette.mode === "dark"
-                ? "0 0 30px rgba(139, 92, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                : "0 0 30px rgba(139, 92, 246, 0.2), 0 8px 32px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-            "&::before": {
-              content: '""',
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background:
-                theme.palette.mode === "dark"
-                  ? "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)"
-                  : "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)",
-              opacity: 0.1,
-              animation: "borderGlow 4s linear infinite",
-              zIndex: 0,
-            },
-            "&::after": {
-              content: '""',
-              position: "absolute",
-              top: "50%",
-              left: "-100%",
-              width: "200%",
-              height: "2px",
-              background:
-                theme.palette.mode === "dark"
-                  ? "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.6), transparent)"
-                  : "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent)",
-              transform: "translateY(-50%)",
-              animation: "scanLine 3s ease-in-out infinite",
-              zIndex: 1,
-              pointerEvents: "none",
-            },
-            "@keyframes borderGlow": {
-              "0%": {
-                backgroundPosition: "0% 50%",
-                filter: "hue-rotate(0deg)",
-              },
-              "50%": {
-                backgroundPosition: "100% 50%",
-                filter: "hue-rotate(180deg)",
-              },
-              "100%": {
-                backgroundPosition: "0% 50%",
-                filter: "hue-rotate(360deg)",
-              },
-            },
-            "@keyframes scanLine": {
-              "0%": { left: "-100%", opacity: 0 },
-              "50%": { left: "50%", opacity: 1 },
-              "100%": { left: "200%", opacity: 0 },
-            },
-          }}
-        >
-          <Tabs
-            value={currentTab}
-            onChange={handleTabChange}
-            textColor="secondary"
-            indicatorColor="secondary"
-            aria-label="channel tabs"
-            variant="scrollable"
-            scrollButtons="auto"
-            sx={{
-              flexGrow: 1,
-              position: "relative",
-              zIndex: 2,
-              "& .MuiTab-root": {
-                fontWeight: 700,
-                fontSize: "1.1rem",
-                py: 1,
-                position: "relative",
-                overflow: "hidden",
-                borderRadius: "12px",
-                margin: "6px 4px",
-                transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
-                textShadow: theme.palette.mode === "dark" ? "0 2px 4px rgba(0, 0, 0, 0.3)" : "none",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  background:
-                    theme.palette.mode === "dark"
-                      ? "linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(6, 182, 212, 0.05))"
-                      : "linear-gradient(135deg, rgba(139, 92, 246, 0.03), rgba(6, 182, 212, 0.03))",
-                  borderRadius: "12px",
-                  opacity: 0,
-                  transition: "opacity 0.3s ease",
-                  zIndex: -1,
-                },
-                "&:hover": {
-                  transform: "translateY(-2px) scale(1.02)",
-                  color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0 8px 25px rgba(139, 92, 246, 0.3), 0 0 15px rgba(139, 92, 246, 0.2)"
-                      : "0 8px 25px rgba(139, 92, 246, 0.2), 0 0 15px rgba(139, 92, 246, 0.1)",
-                  "&::before": {
-                    opacity: 1,
-                  },
-                },
-                "&.Mui-selected": {
-                  color: theme.palette.mode === "dark" ? "#ffffff" : "#8b5cf6",
-                  fontWeight: 800,
-                  background:
-                    theme.palette.mode === "dark"
-                      ? "linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2))"
-                      : "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05))",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0 0 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                      : "0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-                  border:
-                    theme.palette.mode === "dark"
-                      ? "1px solid rgba(139, 92, 246, 0.4)"
-                      : "1px solid rgba(139, 92, 246, 0.3)",
-                  transform: "translateY(-1px)",
-                },
-              },
-              "& .MuiTabs-indicator": {
-                display: "none",
-              },
-            }}
-          >
-            {TAB_SELECT_OPTIONS.filter((option) => {
-              // "건의" 탭은 로그인 상태일 때만 표시
-              if (option.value === "suggestion" && !session?.user) return false;
-              return true;
-            }).map((option) => (
-              <Tab key={option.value} icon={option.icon} label={option.name} value={option.value} />
-            ))}
-          </Tabs>
-
-          {/* 뷰 모드 토글 버튼 - 채팅 모드가 아니고 건의사항 탭이 아닐 때만 표시 */}
-          {!showChat && currentTab !== "suggestion" && (
-            <Box sx={{ display: "flex", gap: 1, mr: 1, position: "relative", zIndex: 2 }}>
-              <IconButton
-                onClick={() => handleViewModeChange("table")}
-                sx={{
-                  borderRadius: "12px",
-                  p: 1.5,
-                  position: "relative",
-                  overflow: "hidden",
-                  background:
-                    viewMode === "table"
-                      ? theme.palette.mode === "dark"
-                        ? "linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2))"
-                        : "linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.1))"
-                      : "transparent",
-                  border:
-                    viewMode === "table"
-                      ? theme.palette.mode === "dark"
-                        ? "2px solid rgba(139, 92, 246, 0.5)"
-                        : "2px solid rgba(139, 92, 246, 0.3)"
-                      : theme.palette.mode === "dark"
-                        ? "2px solid rgba(255, 255, 255, 0.1)"
-                        : "2px solid rgba(0, 0, 0, 0.1)",
-                  color:
-                    viewMode === "table"
-                      ? theme.palette.mode === "dark"
-                        ? "#a78bfa"
-                        : "#8b5cf6"
-                      : theme.palette.mode === "dark"
-                        ? "#94a3b8"
-                        : "#64748b",
-                  transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                  boxShadow:
-                    viewMode === "table"
-                      ? theme.palette.mode === "dark"
-                        ? "0 0 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                        : "0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
-                      : "none",
-                  "&:hover": {
-                    transform: "translateY(-2px) scale(1.05)",
-                    background:
-                      theme.palette.mode === "dark"
-                        ? "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.1))"
-                        : "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05))",
-                    boxShadow:
-                      theme.palette.mode === "dark"
-                        ? "0 8px 25px rgba(139, 92, 246, 0.3)"
-                        : "0 8px 25px rgba(139, 92, 246, 0.2)",
-                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                  },
-                }}
-                aria-label="table view"
-              >
-                <ViewListIcon sx={{ fontSize: 28, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
-              </IconButton>
-              <IconButton
-                onClick={() => handleViewModeChange("card")}
-                sx={{
-                  borderRadius: "12px",
-                  p: 1.5,
-                  position: "relative",
-                  overflow: "hidden",
-                  background:
-                    viewMode === "card"
-                      ? theme.palette.mode === "dark"
-                        ? "linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2))"
-                        : "linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(6, 182, 212, 0.1))"
-                      : "transparent",
-                  border:
-                    viewMode === "card"
-                      ? theme.palette.mode === "dark"
-                        ? "2px solid rgba(139, 92, 246, 0.5)"
-                        : "2px solid rgba(139, 92, 246, 0.3)"
-                      : theme.palette.mode === "dark"
-                        ? "2px solid rgba(255, 255, 255, 0.1)"
-                        : "2px solid rgba(0, 0, 0, 0.1)",
-                  color:
-                    viewMode === "card"
-                      ? theme.palette.mode === "dark"
-                        ? "#a78bfa"
-                        : "#8b5cf6"
-                      : theme.palette.mode === "dark"
-                        ? "#94a3b8"
-                        : "#64748b",
-                  transition: "all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                  boxShadow:
-                    viewMode === "card"
-                      ? theme.palette.mode === "dark"
-                        ? "0 0 20px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)"
-                        : "0 0 20px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.8)"
-                      : "none",
-                  "&:hover": {
-                    transform: "translateY(-2px) scale(1.05)",
-                    background:
-                      theme.palette.mode === "dark"
-                        ? "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(6, 182, 212, 0.1))"
-                        : "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05))",
-                    boxShadow:
-                      theme.palette.mode === "dark"
-                        ? "0 8px 25px rgba(139, 92, 246, 0.3)"
-                        : "0 8px 25px rgba(139, 92, 246, 0.2)",
-                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
-                  },
-                }}
-                aria-label="card view"
-              >
-                <ViewModuleIcon sx={{ fontSize: 28, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
-              </IconButton>
-            </Box>
-          )}
-
-          {/* 글쓰기 버튼 */}
-          {session?.user && (
-            <Button
-              variant="contained"
-              startIcon={<CreateIcon sx={{ fontSize: 22 }} />}
-              onClick={handleWritePost}
-              sx={{
-                mr: 2,
-                position: "relative",
-                zIndex: 2,
-                borderRadius: "14px",
-                fontWeight: 700,
-                fontSize: "1rem",
-                px: 3,
-                py: 1.5,
-                minWidth: "120px",
-                overflow: "hidden",
-                textTransform: "none",
-                transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                background: "linear-gradient(135deg, #8b5cf6, #06b6d4, #22c55e)",
-                color: "white",
-                border:
-                  theme.palette.mode === "dark"
-                    ? "2px solid rgba(139, 92, 246, 0.6)"
-                    : "2px solid rgba(139, 92, 246, 0.4)",
-                boxShadow:
-                  theme.palette.mode === "dark"
-                    ? "0 0 25px rgba(139, 92, 246, 0.4), 0 0 50px rgba(139, 92, 246, 0.2)"
-                    : "0 0 25px rgba(139, 92, 246, 0.3), 0 8px 32px rgba(0, 0, 0, 0.1)",
-                textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-                "&::before": {
-                  content: '""',
-                  position: "absolute",
-                  top: 0,
-                  left: "-100%",
-                  width: "100%",
-                  height: "100%",
-                  background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
-                  transition: "left 0.6s ease",
-                },
-                "&:hover": {
-                  transform: "translateY(-3px) scale(1.05)",
-                  background: "linear-gradient(135deg, #7c3aed, #0891b2, #16a34a)",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0 0 35px rgba(139, 92, 246, 0.6), 0 0 70px rgba(139, 92, 246, 0.3)"
-                      : "0 0 35px rgba(139, 92, 246, 0.4), 0 12px 40px rgba(0, 0, 0, 0.15)",
-                  "&::before": {
-                    left: "100%",
-                  },
-                },
-                "&:active": {
-                  transform: "translateY(-1px) scale(1.02)",
-                },
-                "& .MuiButton-startIcon": {
-                  filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))",
-                },
-              }}
-            >
-              글쓰기
-            </Button>
-          )}
-        </Box>
+        <ChannelTabNavigation
+          currentTab={currentTab}
+          onTabChange={handleTabChange}
+          hasSession={!!session?.user}
+          viewMode={viewMode}
+          onViewModeChange={handleViewModeChange}
+          onWritePost={handleWritePost}
+          showChat={showChat}
+        />
       )}
 
       {/* 메인 콘텐츠 - 채팅 모드와 기본 모드 전환 */}
@@ -1772,292 +969,22 @@ const ChannelDetailPage = () => {
           )}
 
           {/* 하단 컨트롤 영역 (메탈릭 테마) */}
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              borderRadius: "16px",
-              position: "relative",
-              overflow: "hidden",
-              background:
-                theme.palette.mode === "dark"
-                  ? "linear-gradient(135deg, rgba(26, 26, 46, 0.9) 0%, rgba(45, 48, 71, 0.95) 100%)"
-                  : "linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.98) 100%)",
-              border:
-                theme.palette.mode === "dark"
-                  ? "2px solid rgba(139, 92, 246, 0.25)"
-                  : "2px solid rgba(139, 92, 246, 0.15)",
-              boxShadow:
-                theme.palette.mode === "dark"
-                  ? "0 0 25px rgba(139, 92, 246, 0.2), 0 0 50px rgba(139, 92, 246, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.08)"
-                  : "0 0 25px rgba(139, 92, 246, 0.15), 0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-              "&::before": {
-                content: '""',
-                position: "absolute",
-                top: 0,
-                left: 0,
-                right: 0,
-                bottom: 0,
-                background:
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)"
-                    : "linear-gradient(45deg, #8b5cf6, #06b6d4, #8b5cf6, #06b6d4)",
-                opacity: 0.05,
-                animation: "borderGlow 5s linear infinite",
-                zIndex: 0,
-              },
-              "&::after": {
-                content: '""',
-                position: "absolute",
-                top: "50%",
-                left: "-100%",
-                width: "200%",
-                height: "1px",
-                background:
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), transparent)"
-                    : "linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent)",
-                transform: "translateY(-50%)",
-                animation: "scanLine 4s ease-in-out infinite",
-                zIndex: 1,
-                pointerEvents: "none",
-              },
-            }}
-          >
-            {/* 왼쪽: 정렬 옵션과 추천 랭킹 버튼 - 건의사항 탭이 아닐 때만 표시 */}
-            <Box sx={{ flex: 1, display: "flex", gap: 2, position: "relative", zIndex: 2 }}>
-              {currentTab !== "suggestion" && (
-                <>
-                  <FormControl size="small">
-                    <Select
-                      value={sortOrder}
-                      onChange={handleSortChange}
-                      sx={{
-                        ml: 2,
-                        borderRadius: "12px",
-                        background:
-                          theme.palette.mode === "dark"
-                            ? "linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(6, 182, 212, 0.05))"
-                            : "linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(248, 250, 252, 0.95))",
-                        border:
-                          theme.palette.mode === "dark"
-                            ? "1px solid rgba(139, 92, 246, 0.3)"
-                            : "1px solid rgba(139, 92, 246, 0.2)",
-                        boxShadow:
-                          theme.palette.mode === "dark"
-                            ? "0 4px 15px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                            : "0 4px 15px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-                        "& .MuiSelect-select": {
-                          color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
-                          fontWeight: 600,
-                          textShadow: theme.palette.mode === "dark" ? "0 1px 2px rgba(0, 0, 0, 0.3)" : "none",
-                        },
-                        "& .MuiOutlinedInput-notchedOutline": {
-                          border: "none",
-                        },
-                        "&:hover": {
-                          transform: "translateY(-1px)",
-                          boxShadow:
-                            theme.palette.mode === "dark"
-                              ? "0 6px 20px rgba(139, 92, 246, 0.3)"
-                              : "0 6px 20px rgba(139, 92, 246, 0.15)",
-                        },
-                      }}
-                    >
-                      <MenuItem value="recent">최신순</MenuItem>
-                      <MenuItem value="view">조회순</MenuItem>
-                      <MenuItem value="recommend">추천순</MenuItem>
-                    </Select>
-                  </FormControl>
-                  <Button
-                    variant="contained"
-                    startIcon={
-                      <EmojiEventsIcon sx={{ fontSize: 24, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
-                    }
-                    sx={{
-                      borderRadius: "12px",
-                      fontWeight: 700,
-                      fontSize: "0.95rem",
-                      position: "relative",
-                      overflow: "hidden",
-                      textTransform: "none",
-                      transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                      background: recommendRankingMode
-                        ? "linear-gradient(135deg, #ef4444, #f97316, #eab308)"
-                        : "linear-gradient(135deg, #8b5cf6, #06b6d4, #22c55e)",
-                      color: "white",
-
-                      boxShadow: recommendRankingMode
-                        ? theme.palette.mode === "dark"
-                          ? "0 0 20px rgba(239, 68, 68, 0.4), 0 0 40px rgba(239, 68, 68, 0.2)"
-                          : "0 0 20px rgba(239, 68, 68, 0.3), 0 6px 20px rgba(0, 0, 0, 0.1)"
-                        : theme.palette.mode === "dark"
-                          ? "0 0 20px rgba(139, 92, 246, 0.4), 0 0 40px rgba(139, 92, 246, 0.2)"
-                          : "0 0 20px rgba(139, 92, 246, 0.3), 0 6px 20px rgba(0, 0, 0, 0.1)",
-                      textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-                      "&::before": {
-                        content: '""',
-                        position: "absolute",
-                        top: 0,
-                        left: "-100%",
-                        width: "100%",
-                        height: "100%",
-                        background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent)",
-                        transition: "left 0.6s ease",
-                      },
-                      "&:hover": {
-                        transform: "translateY(-3px) scale(1.02)",
-                        background: recommendRankingMode
-                          ? "linear-gradient(135deg, #dc2626, #ea580c, #d97706)"
-                          : "linear-gradient(135deg, #7c3aed, #0891b2, #16a34a)",
-                        boxShadow: recommendRankingMode
-                          ? theme.palette.mode === "dark"
-                            ? "0 0 30px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.3)"
-                            : "0 0 30px rgba(239, 68, 68, 0.4), 0 10px 30px rgba(0, 0, 0, 0.15)"
-                          : theme.palette.mode === "dark"
-                            ? "0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(139, 92, 246, 0.3)"
-                            : "0 0 30px rgba(139, 92, 246, 0.4), 0 10px 30px rgba(0, 0, 0, 0.15)",
-                        "&::before": {
-                          left: "100%",
-                        },
-                      },
-                      "&:active": {
-                        transform: "translateY(-1px) scale(0.98)",
-                      },
-                    }}
-                    onClick={toggleRecommendRanking}
-                  >
-                    {recommendRankingMode ? "추천 랭킹 해제" : "추천 랭킹"}
-                  </Button>
-                </>
-              )}
-            </Box>
-
-            {/* 가운데: 페이지네이션 */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "center",
-                flex: 1,
-                position: "relative",
-                zIndex: 2,
-              }}
-            >
-              <Box
-                sx={{
-                  borderRadius: "12px",
-                  p: 1,
-                  background:
-                    theme.palette.mode === "dark"
-                      ? "linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.04))"
-                      : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.9))",
-                  border:
-                    theme.palette.mode === "dark"
-                      ? "1px solid rgba(139, 92, 246, 0.2)"
-                      : "1px solid rgba(139, 92, 246, 0.15)",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0 4px 15px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                      : "0 4px 15px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-                }}
-              >
-                <Pagination
-                  pageCount={Math.ceil(currentTotal / viewCount)}
-                  onPageChange={handlePageClick}
-                  currentPage={currentPage}
-                />
-              </Box>
-            </Box>
-
-            {/* 오른쪽: 검색바 (건의사항 탭이 아닐 때) 또는 건의하기 버튼 (건의사항 탭일 때) */}
-            <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 2 }}>
-              {currentTab === "suggestion" && session?.user ? (
-                <Button
-                  variant="contained"
-                  startIcon={<CreateIcon sx={{ fontSize: 22, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />}
-                  onClick={() => router.push(`/write/suggestion?channel=${params?.slug || ""}`)}
-                  sx={{
-                    borderRadius: "14px",
-                    fontWeight: 700,
-                    fontSize: "1rem",
-                    px: 3,
-                    py: 1.5,
-                    position: "relative",
-                    overflow: "hidden",
-                    textTransform: "none",
-                    transition: "all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)",
-                    background: "linear-gradient(135deg, #8a2387, #e94057, #f27121)",
-                    color: "white",
-                    border:
-                      theme.palette.mode === "dark"
-                        ? "2px solid rgba(233, 64, 87, 0.5)"
-                        : "2px solid rgba(233, 64, 87, 0.3)",
-                    boxShadow:
-                      theme.palette.mode === "dark"
-                        ? "0 0 25px rgba(233, 64, 87, 0.4), 0 0 50px rgba(233, 64, 87, 0.2)"
-                        : "0 0 25px rgba(233, 64, 87, 0.3), 0 8px 32px rgba(0, 0, 0, 0.1)",
-                    textShadow: "0 2px 4px rgba(0, 0, 0, 0.3)",
-                    "&::before": {
-                      content: '""',
-                      position: "absolute",
-                      top: 0,
-                      left: "-100%",
-                      width: "100%",
-                      height: "100%",
-                      background: "linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)",
-                      transition: "left 0.6s ease",
-                    },
-                    "&:hover": {
-                      transform: "translateY(-3px) scale(1.05)",
-                      background: "linear-gradient(135deg, #7a1d77, #d93a4f, #e2671e)",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0 0 35px rgba(233, 64, 87, 0.6), 0 0 70px rgba(233, 64, 87, 0.3)"
-                          : "0 0 35px rgba(233, 64, 87, 0.4), 0 12px 40px rgba(0, 0, 0, 0.15)",
-                      "&::before": {
-                        left: "100%",
-                      },
-                    },
-                    "&:active": {
-                      transform: "translateY(-1px) scale(1.02)",
-                    },
-                  }}
-                >
-                  건의하기
-                </Button>
-              ) : (
-                currentTab !== "suggestion" && (
-                  <Box
-                    sx={{
-                      borderRadius: "12px",
-                      p: 1.5,
-                      background:
-                        theme.palette.mode === "dark"
-                          ? "linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.04))"
-                          : "linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(248, 250, 252, 0.9))",
-                      border:
-                        theme.palette.mode === "dark"
-                          ? "1px solid rgba(139, 92, 246, 0.2)"
-                          : "1px solid rgba(139, 92, 246, 0.15)",
-                      boxShadow:
-                        theme.palette.mode === "dark"
-                          ? "0 4px 15px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
-                          : "0 4px 15px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
-                      maxWidth: "320px",
-                    }}
-                  >
-                    <SearchBar
-                      onSearch={handleSearch}
-                      onClearSearch={handleClearSearch}
-                      currentQuery={searchParamsState?.query || ""}
-                      currentCategory={searchParamsState?.type || "title"}
-                    />
-                  </Box>
-                )
-              )}
-            </Box>
-          </Box>
+          <ChannelControlPanel
+            currentTab={currentTab}
+            sortOrder={sortOrder}
+            onSortChange={handleSortChange}
+            recommendRankingMode={recommendRankingMode}
+            onToggleRecommendRanking={toggleRecommendRanking}
+            currentTotal={currentTotal}
+            viewCount={viewCount}
+            currentPage={currentPage}
+            onPageChange={handlePageClick}
+            hasSession={!!session?.user}
+            channelSlug={channelSlug}
+            searchParamsState={searchParamsState}
+            onSearch={handleSearch}
+            onClearSearch={handleClearSearch}
+          />
         </>
       )}
     </MainContainer>

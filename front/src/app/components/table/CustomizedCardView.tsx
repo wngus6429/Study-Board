@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { Card, CardMedia, CardContent, Typography, Grid, Box } from "@mui/material";
+import { Card, CardMedia, CardContent, Typography, Grid, Box, useTheme } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import EmojiEventsIcon from "@mui/icons-material/EmojiEvents";
 import ImageIcon from "@mui/icons-material/Image";
@@ -40,6 +40,8 @@ interface CustomizedCardViewProps {
 
 const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps): React.ReactElement => {
   const router = useRouter();
+  const theme = useTheme();
+
   return (
     <>
       {tableData.length === 0 ? (
@@ -51,16 +53,30 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
             justifyContent: "center",
             height: "200px",
             width: "100%",
-            border: "1px dashed #ccc",
+            border: theme.palette.mode === "dark" ? "1px dashed rgba(139, 92, 246, 0.3)" : "1px dashed #ccc",
             borderRadius: 2,
             p: 3,
-            backgroundColor: "#f9f9f9",
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(135deg, rgba(26, 26, 46, 0.8), rgba(45, 48, 71, 0.9))"
+                : "#f9f9f9",
           }}
         >
-          <Typography variant="h5" gutterBottom>
+          <Typography
+            variant="h5"
+            gutterBottom
+            sx={{
+              color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
+            }}
+          >
             😊 게시글이 없습니다
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography
+            variant="body2"
+            sx={{
+              color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
+            }}
+          >
             첫 번째 게시글을 작성해보세요!
           </Typography>
         </Box>
@@ -84,11 +100,33 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                 }}
                 sx={{
                   borderRadius: 2,
-                  transition: "transform 0.3s, box-shadow 0.3s",
-                  "&:hover": { transform: "scale(1.03)", boxShadow: 6 },
+                  transition: "all 0.3s ease",
                   display: "flex",
                   flexDirection: "column",
                   cursor: "pointer",
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(135deg, rgba(30, 32, 38, 0.95), rgba(45, 48, 71, 0.98))"
+                      : "rgba(255, 255, 255, 0.95)",
+                  border:
+                    theme.palette.mode === "dark"
+                      ? "1px solid rgba(139, 92, 246, 0.2)"
+                      : "1px solid rgba(0, 0, 0, 0.1)",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 4px 20px rgba(139, 92, 246, 0.15), 0 0 40px rgba(139, 92, 246, 0.05)"
+                      : "0 4px 20px rgba(0, 0, 0, 0.1)",
+                  "&:hover": {
+                    transform: "translateY(-5px) scale(1.02)",
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 8px 30px rgba(139, 92, 246, 0.3), 0 0 60px rgba(139, 92, 246, 0.1)"
+                        : "0 8px 30px rgba(0, 0, 0, 0.15)",
+                    border:
+                      theme.palette.mode === "dark"
+                        ? "1px solid rgba(139, 92, 246, 0.4)"
+                        : "1px solid rgba(139, 92, 246, 0.2)",
+                  },
                 }}
               >
                 {/* 상단: 제목 */}
@@ -142,7 +180,15 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                             }}
                           />
                         )}
-                        <Typography variant="h6" gutterBottom sx={{ wordBreak: "break-word" }}>
+                        <Typography
+                          variant="h6"
+                          gutterBottom
+                          sx={{
+                            wordBreak: "break-word",
+                            color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
+                            fontWeight: 600,
+                          }}
+                        >
                           {row.userId ? (
                             <BlindWrapper userId={row.userId} type="post">
                               {row.title}
@@ -154,8 +200,20 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                       </Box>
                     </Box>
                     <Box sx={{ display: "flex", alignItems: "center", ml: 1 }}>
-                      <FavoriteIcon fontSize="small" sx={{ mr: 0.5, color: "error.main" }} />
-                      <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                      <FavoriteIcon
+                        fontSize="small"
+                        sx={{
+                          mr: 0.5,
+                          color: theme.palette.mode === "dark" ? "#f87171" : "error.main",
+                        }}
+                      />
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
+                          fontWeight: 500,
+                        }}
+                      >
                         {row.recommend_Count ?? 0}
                       </Typography>
                     </Box>
@@ -179,12 +237,30 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
 
                 {/* 하단: 작성자, 번호 및 등록일 */}
                 <CardContent sx={{ pt: 1, flexGrow: 1 }}>
-                  <Typography variant="body2">작성자: {row.nickname}</Typography>
+                  <Typography
+                    variant="body2"
+                    sx={{
+                      color: theme.palette.mode === "dark" ? "#cbd5e1" : "inherit",
+                      fontWeight: 500,
+                    }}
+                  >
+                    작성자: {row.nickname}
+                  </Typography>
                   <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
+                      }}
+                    >
                       번호: {row.id}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
+                      }}
+                    >
                       {dayjs(row.created_at).isSame(dayjs(), "day")
                         ? dayjs(row.created_at).format("HH:mm")
                         : dayjs(row.created_at).format("YYYY/MM/DD")}

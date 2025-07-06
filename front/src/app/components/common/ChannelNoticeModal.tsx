@@ -1,7 +1,6 @@
 import React from "react";
 import { Box, Typography, Card, Button, Chip, useTheme } from "@mui/material";
 import { Announcement as AnnouncementIcon, Edit as EditIcon, FiberNew as FiberNewIcon } from "@mui/icons-material";
-import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
 interface ChannelNoticeModalProps {

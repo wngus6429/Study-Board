@@ -11,7 +11,7 @@ import Paper from "@mui/material/Paper";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { useRouter } from "next/navigation";
-import { Box, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
 // dayjs 플러그인 등록 (상대시간 등 필요하면 사용)

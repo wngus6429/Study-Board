@@ -10,7 +10,7 @@ import { USER_TABLE_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import CustomizedUserTables from "@/app/components/table/CustomizedUserStoryTables";
 import CustomizedUserCommentsTables from "@/app/components/table/CustomizedUserCommentsTables";
 import ProfilePagination from "@/app/components/common/ProfilePagination";
-import { Avatar, Box, Container, Typography, CircularProgress, useTheme } from "@mui/material";
+import { Avatar, Box, Typography, CircularProgress, useTheme } from "@mui/material";
 
 interface ApiStoryResponse {
   StoryResults: any[];
@@ -31,9 +31,6 @@ export default function UserProfileDetail() {
   const queryClient = useQueryClient();
   const { showMessage } = useMessage((state) => state);
   const theme = useTheme();
-
-  console.log("Raw username:", rawUsername);
-  console.log("Decoded username:", username);
 
   const [storyCurrentPage, setStoryCurrentPage] = useState<number>(1);
   const [commentsCurrentPage, setCommentsCurrentPage] = useState<number>(1);

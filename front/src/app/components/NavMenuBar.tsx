@@ -6,7 +6,6 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemText,
   Typography,
   Divider,
   Chip,

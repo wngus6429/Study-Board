@@ -1,17 +1,14 @@
 "use client";
 import Loading from "@/app/components/common/Loading";
-import { StoryImageType, StoryVideoType } from "@/app/types/imageTypes";
+import { StoryImageType } from "@/app/types/imageTypes";
 import {
   Avatar,
   Box,
   Button,
   Card,
   CardContent,
-  CircularProgress,
   Dialog,
-  Fade,
   IconButton,
-  Slide,
   Tooltip,
   Typography,
   useTheme,
@@ -20,7 +17,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
-import React, { ReactNode, useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useEffect, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -28,19 +25,15 @@ import { useComment } from "@/app/store/commentStore";
 import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 import ErrorView from "@/app/components/common/ErrorView";
 import ImageCard from "@/app/components/ImageCard";
-import VideoCard from "@/app/components/VideoCard";
 import { StoryType } from "@/app/types/storyDetailType";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowBackIosNewIcon from "@mui/icons-material/ArrowBackIosNew";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import ZoomInIcon from "@mui/icons-material/ZoomIn";
 import ZoomOutIcon from "@mui/icons-material/ZoomOut";
-import { TransitionProps } from "@mui/material/transitions";
 import UserMenuPopover from "@/app/components/common/UserMenuPopover";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
 import { useRecentViews } from "@/app/store/recentViewsStore";
-import BookmarkIcon from "@mui/icons-material/Bookmark";
-import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import CommentsView from "@/app/components/common/CommentsView";
 import Link from "next/link";
 
@@ -77,10 +70,6 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
 
   // 최근 본 게시물 관리
   const { addRecentView } = useRecentViews();
-
-  // 스크랩 관련 상태
-  const [isScraped, setIsScraped] = useState<boolean>(false);
-  const [scrapLoading, setScrapLoading] = useState<boolean>(false);
 
   //! 상세 데이터 가져오기
   const {
@@ -158,11 +147,6 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
 
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [detailToDelete, setDetailToDelete] = useState<number | null>(null);
-
-  const handleDeleteClick = (id: number) => {
-    setDetailToDelete(id);
-    setOpenConfirmDialog(true);
-  };
 
   const confirmDelete = () => {
     if (detailToDelete !== null) {

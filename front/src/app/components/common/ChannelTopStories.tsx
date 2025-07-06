@@ -3,7 +3,7 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { Box, Typography, List, ListItem, ListItemText, Chip, Divider, Card, CardContent } from "@mui/material";
+import { Box, Typography, List, ListItem, Chip, Divider, Card, CardContent } from "@mui/material";
 import { Favorite } from "@mui/icons-material";
 import axios from "axios";
 import dayjs from "dayjs";

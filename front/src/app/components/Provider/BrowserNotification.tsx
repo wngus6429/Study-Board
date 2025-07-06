@@ -1,12 +1,8 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { Box, Button, Card, CardContent, Typography, IconButton, Snackbar, Alert } from "@mui/material";
-import {
-  Notifications as NotificationsIcon,
-  NotificationsOff as NotificationsOffIcon,
-  Close as CloseIcon,
-} from "@mui/icons-material";
+import { Box, Button, Typography, IconButton, Snackbar, Alert } from "@mui/material";
+import { Notifications as NotificationsIcon, Close as CloseIcon } from "@mui/icons-material";
 
 interface BrowserNotificationProps {
   children?: React.ReactNode;

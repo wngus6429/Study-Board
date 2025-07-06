@@ -114,11 +114,11 @@ async function bootstrap() {
   await app.listen(9999);
 
   // 📊 서버 시작 로그
-  console.log('🚀 Study Board 서버가 포트 9999에서 실행 중입니다.');
-  console.log('📡 Socket.IO 실시간 채팅 서버가 활성화되었습니다.');
-  console.log('🔗 Socket.IO 엔드포인트: http://localhost:9999/socket.io/');
-  console.log('📚 API 문서: http://localhost:9999/api');
-  console.log('🌐 프론트엔드 연결: http://localhost:3000');
+  // console.log('🚀 Study Board 서버가 포트 9999에서 실행 중입니다.');
+  // console.log('📡 Socket.IO 실시간 채팅 서버가 활성화되었습니다.');
+  // console.log('🔗 Socket.IO 엔드포인트: http://localhost:9999/socket.io/');
+  // console.log('📚 API 문서: http://localhost:9999/api');
+  // console.log('🌐 프론트엔드 연결: http://localhost:3000');
 }
 
 // 애플리케이션 시작

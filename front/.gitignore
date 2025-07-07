@@ -10,8 +10,13 @@
 /coverage
 
 # next.js
-/.next/
-/out/
+# .next 전체 무시하되, 서버 실행에 필요한 일부만 제외 대상에서 복원
+.next/*
+!.next/server
+!.next/static
+!.next/build-manifest.json
+!.next/routes-manifest.json
+!.next/BUILD_ID
 
 # production
 /build

@@ -243,7 +243,7 @@ export class ChannelsService {
     // 새 이미지 생성 및 저장
     const newChannelImage = this.channelImageRepository.create({
       image_name: imageFile.filename,
-      link: `/channelUpload/${imageFile.filename}`,
+      link: (imageFile as any).location,
       Channel: channel,
     });
 

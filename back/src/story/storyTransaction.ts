@@ -327,10 +327,10 @@ export class StoryTransactionService {
       // 🚀 파일 엔티티들을 배치로 저장 (성능 향상)
       if (imageFiles.length > 0) {
         const imageEntities = imageFiles.map((file) => {
-          uploadedFiles.push(`/upload/${file.filename}`);
+          uploadedFiles.push((file as any).location);
           return queryRunner.manager.create(StoryImage, {
             image_name: file.filename,
-            link: `/upload/${file.filename}`,
+            link: (file as any).location,
             file_size: file.size,
             mime_type: file.mimetype,
             Story: savedStory,
@@ -341,10 +341,10 @@ export class StoryTransactionService {
 
       if (videoFiles.length > 0) {
         const videoEntities = videoFiles.map((file) => {
-          uploadedFiles.push(`/videoUpload/${file.filename}`);
+          uploadedFiles.push((file as any).location);
           return queryRunner.manager.create(StoryVideo, {
             video_name: file.filename,
-            link: `/videoUpload/${file.filename}`,
+            link: (file as any).location,
             file_size: file.size,
             mime_type: file.mimetype,
             Story: savedStory,

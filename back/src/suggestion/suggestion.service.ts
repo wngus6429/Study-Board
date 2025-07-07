@@ -152,7 +152,7 @@ export class SuggestionService {
       const imageEntities = files.map((file) => {
         const image = new SuggestionImage();
         image.image_name = file.filename;
-        image.link = `/suggestionUpload/${file.filename}`;
+        image.link = (file as any).location;
         image.Suggestion = singleSuggestion;
         return image;
       });
@@ -224,7 +224,7 @@ export class SuggestionService {
       const newImageEntities = newImages.map((file) => {
         const image = new SuggestionImage();
         image.image_name = file.filename;
-        image.link = `/suggestionUpload/${file.filename}`;
+        image.link = (file as any).location;
         image.Suggestion = suggestion;
         return image;
       });

@@ -25,7 +25,8 @@ class CustomSocketIOAdapter extends IoAdapter {
     const server = super.createIOServer(port, {
       ...options,
       cors: {
-        origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+        // origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+        origin: ['http://18.183.1.195:3000'],
         methods: ['GET', 'POST'],
         credentials: true, // 쿠키 기반 인증 허용
       },
@@ -111,7 +112,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document); // http://localhost:9999/api 에서 문서 확인 가능
 
   // 🚀 서버 시작
-  await app.listen(9999);
+  await app.listen(9999, '0.0.0.0');
 
   // 📊 서버 시작 로그
   // console.log('🚀 Study Board 서버가 포트 9999에서 실행 중입니다.');

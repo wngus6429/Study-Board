@@ -10,11 +10,11 @@ const nextConfig = {
     return [
       {
         source: "/upload/:slug",
-        destination: `${process.env.NEXT_PUBLIC_BASE_URL}/upload/:slug`, // Matched parameters can be used in the destination
+        destination: "https://api.park-aws-study.com/upload/:slug", // ✅ 프로토콜 포함
       },
       {
         source: "/videoUpload/:slug",
-        destination: `${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/:slug`, // 동영상 파일
+        destination: "https://api.park-aws-study.com/videoUpload/:slug", // ✅
       },
     ];
   },

@@ -26,7 +26,7 @@ class CustomSocketIOAdapter extends IoAdapter {
       ...options,
       cors: {
         // origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
-        origin: ['http://18.183.1.195:3000'],
+        origin: ['http://52.199.0.73:3000'],
         methods: ['GET', 'POST'],
         credentials: true, // 쿠키 기반 인증 허용
       },

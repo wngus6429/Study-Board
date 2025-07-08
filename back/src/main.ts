@@ -66,7 +66,12 @@ async function bootstrap() {
   // 🌐 CORS(Cross-Origin Resource Sharing) 설정
   // 프론트엔드(React)에서 백엔드 API 호출을 허용하기 위한 설정
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'], // 허용할 도메인
+    origin: [
+      'http://52.199.0.73:3000',
+      'http://localhost:3000',
+      'http://127.0.0.1:3000',
+      'http://52.199.0.73',
+    ], // 허용할 도메인
     credentials: true, // 쿠키 기반 세션 인증 허용
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // 허용할 HTTP 메서드
     allowedHeaders:

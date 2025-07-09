@@ -9,10 +9,12 @@ import { v4 as uuidv4 } from 'uuid';
 
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
-  },
+  // credentials: {
+  //   accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
+  //   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
+  // },
+  // credentials: {} 부분을 완전히 제거합니다.
+  // AWS SDK가 EC2 인스턴스 프로파일을 자동으로 감지합니다.
 });
 
 /**

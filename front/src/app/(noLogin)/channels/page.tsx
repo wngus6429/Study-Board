@@ -31,6 +31,11 @@ async function getInitialChannels() {
   try {
     // Next.js App Router의 서버 사이드에서 API 호출
     // 이 함수는 서버 컴포넌트에서 실행되므로 서버에서 직접 백엔드 API를 호출
+    // 빌드 시에는 API 호출 건너뛰기
+    if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_BASE_URL) {
+      return [];
+    }
+
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels`, {
       // 채널 목록은 자주 변경되지 않으므로 긴 캐시 시간 설정
       next: {

@@ -8,7 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 // 환경 변수로부터 영역(region)과 자격 증명을 읽어옵니다.
 
 const s3 = new S3Client({
-  region: process.env.AWS_REGION,
+  region: 'ap-northeast-1',
   // credentials: {
   //   accessKeyId: process.env.AWS_ACCESS_KEY_ID as string,
   //   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY as string,
@@ -26,7 +26,7 @@ export const createMulterS3Options = (folder = ''): any => {
   return {
     storage: multerS3({
       s3,
-      bucket: process.env.AWS_S3_BUCKET as string,
+      bucket: 'park-board',
       acl: 'public-read',
       contentType: multerS3.AUTO_CONTENT_TYPE,
       key: (_req, file, cb) => {

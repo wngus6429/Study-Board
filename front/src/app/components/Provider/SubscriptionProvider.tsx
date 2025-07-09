@@ -5,7 +5,7 @@ import { useSubscriptionStore } from "@/app/store/subscriptionStore";
 
 export default function SubscriptionProvider({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
-  const { subscribedChannels, loading, loadSubscriptions, clearSubscriptions } = useSubscriptionStore();
+  const { subscribedChannels, loading, loadSubscriptions, clearSubscriptions, isInitialized } = useSubscriptionStore();
   const hasLoadedRef = useRef(false);
 
   useEffect(() => {
@@ -14,7 +14,7 @@ export default function SubscriptionProvider({ children }: { children: React.Rea
       status === "authenticated" &&
       session?.user &&
       !loading &&
-      subscribedChannels.length === 0 &&
+      !isInitialized && // 🔥 변경: subscribedChannels.length === 0 대신 isInitialized 사용
       !hasLoadedRef.current
     ) {
       console.log("🔄 사용자 로그인 감지 - 구독 정보를 자동으로 로드합니다.");
@@ -28,7 +28,7 @@ export default function SubscriptionProvider({ children }: { children: React.Rea
       hasLoadedRef.current = false;
       clearSubscriptions();
     }
-  }, [status, session?.user, loading, subscribedChannels.length]);
+  }, [status, session?.user, loading, isInitialized]); // 🔥 변경: 의존성 배열에서 subscribedChannels.length 제거
 
   return <>{children}</>;
 }

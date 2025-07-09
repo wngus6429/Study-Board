@@ -74,7 +74,8 @@ async function bootstrap() {
       'http://54.250.190.92',
       'http://127.0.0.1:3000',
       'http://api.park-aws-study.com',
-      'http://park-aws-study.com',
+      'http://park-aws-study.com:3000',
+      'https://park-aws-study.com:3000',
     ], // 허용할 도메인
     credentials: true, // 쿠키 기반 세션 인증 허용
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // 허용할 HTTP 메서드

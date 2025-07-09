@@ -49,7 +49,7 @@ const LoginPage = () => {
       showMessage("로그인 성공", "success");
       // 세션 업데이트 및 페이지 이동
       await update();
-      router.refresh();
+      // router.refresh();
       router.push("/channels");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {

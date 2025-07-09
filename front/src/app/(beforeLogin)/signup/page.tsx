@@ -131,7 +131,7 @@ const SignupPage = (): ReactNode => {
               showMessage("회원가입, 로그인 성공", "success");
               // 세션 업데이트 강제
               await update();
-              // router.refresh();
+              router.refresh();
               router.push("/");
             }
           } catch (error) {

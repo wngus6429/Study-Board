@@ -77,20 +77,20 @@ export const authOptions: NextAuthOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET,
-  cookies: {
-    sessionToken: {
-      name: `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: false, // HTTP 환경에서는 false
-        // 🔥 도메인 설정 제거 또는 명시적 설정
-        // domain: '.park-aws-study.com', // 이 부분을 제거하거나
-        domain: undefined, // 명시적으로 undefined 설정
-      },
-    },
-  },
+  // cookies: {
+  //   sessionToken: {
+  //     name: `next-auth.session-token`,
+  //     options: {
+  //       httpOnly: true,
+  //       sameSite: "lax",
+  //       path: "/",
+  //       secure: false, // HTTP 환경에서는 false
+  //       // 🔥 도메인 설정 제거 또는 명시적 설정
+  //       // domain: '.park-aws-study.com', // 이 부분을 제거하거나
+  //       domain: undefined, // 명시적으로 undefined 설정
+  //     },
+  //   },
+  // },
   session: {
     strategy: "jwt",
     maxAge: 1800, // 30분

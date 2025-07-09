@@ -2,11 +2,8 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { StoryModule } from './story/story.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import path, { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { Today } from './common/helper/today';
+import { join } from 'path';
 import { SuggestionModule } from './suggestion/suggestion.module';
 import { CommentModule } from './comment/comment.module';
 import { NotificationModule } from './notification/notification.module';
@@ -17,6 +14,7 @@ import { ScrapModule } from './scrap/scrap.module';
 import { ChannelNotificationModule } from './channel-notification/channel-notification.module';
 import { BlindModule } from './blind/blind.module';
 import { ChannelChatModule } from './channel-chat/channel-chat.module';
+import { ConfigModule } from '@nestjs/config';
 
 /**
  * 🏗️ 애플리케이션 루트 모듈
@@ -46,6 +44,10 @@ import { ChannelChatModule } from './channel-chat/channel-chat.module';
  */
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // 2. 모든 모듈에서 process.env를 사용할 수 있도록 전역으로 설정
+      envFilePath: '.env', // 3. .env 파일 경로 지정
+    }),
     /**
      * 🗄️ TypeORM 데이터베이스 설정
      *
@@ -65,9 +67,9 @@ import { ChannelChatModule } from './channel-chat/channel-chat.module';
       type: 'mysql', // 데이터베이스 타입: MySQL
       host: 'localhost', // 데이터베이스 호스트 (개발: localhost, 운영: RDS 등)
       port: 3306, // MySQL 기본 포트
-      username: 'root', // 데이터베이스 사용자명
-      password: '6429', // 데이터베이스 비밀번호 (환경변수로 관리 권장)
-      database: 'board-study', // 사용할 데이터베이스명
+      username: process.env.DB_USERNAME, // 데이터베이스 사용자명
+      password: process.env.DB_PASSWORD, // 데이터베이스 비밀번호 (환경변수로 관리 권장)
+      database: process.env.DB_DATABASE, // 사용할 데이터베이스명
       entities: [__dirname + '/entities/*.entity{.ts,.js}'], // 엔티티 파일 경로 패턴
       logging: true, // SQL 쿼리 로그 출력 (개발 시에만 true 권장)
       synchronize: true, // 스키마 자동 동기화 (⚠️ 운영환경에서는 false 필수)

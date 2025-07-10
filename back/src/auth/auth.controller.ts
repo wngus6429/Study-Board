@@ -147,13 +147,13 @@ export class AuthController {
     // JWT Access Token 생성 (1시간 유효)
     const accessToken = this.jwtService.sign(
       { id: user.id, user_email: user.user_email },
-      { expiresIn: TOKEN_EXPIRATION_TIME, secret: 'park' },
+      { expiresIn: TOKEN_EXPIRATION_TIME, secret: 'park8812' },
     );
 
     // Refresh Token 생성 (7일 유효)
     const refreshToken = this.jwtService.sign(
       { id: user.id },
-      { expiresIn: '7d', secret: 'park' },
+      { expiresIn: '7d', secret: 'park8812' },
     );
 
     // Access Token을 HttpOnly 쿠키에 저장 (XSS 공격 방지)
@@ -545,7 +545,9 @@ export class AuthController {
     try {
       console.log('🔄 리프레시 토큰 검증 시작');
       // 리프레시 토큰 검증 및 payload 추출
-      const payload = this.jwtService.verify(refreshToken, { secret: 'park' });
+      const payload = this.jwtService.verify(refreshToken, {
+        secret: 'park8812',
+      });
       console.log('🔄 리프레시 토큰 payload:', payload);
 
       // payload에서 추출한 id로 사용자 조회
@@ -560,13 +562,13 @@ export class AuthController {
       // 새로운 액세스 토큰 생성 (id와 user_email 포함)
       const accessToken = this.jwtService.sign(
         { id: user.id, user_email: user.user_email },
-        { expiresIn: TOKEN_EXPIRATION_TIME, secret: 'park' },
+        { expiresIn: TOKEN_EXPIRATION_TIME, secret: 'park8812' },
       );
 
       // 새로운 리프레시 토큰 생성 (id만 포함)
       const newRefreshToken = this.jwtService.sign(
         { id: user.id },
-        { expiresIn: '7d', secret: 'park' },
+        { expiresIn: '7d', secret: 'park8812' },
       );
 
       // 새로운 액세스 토큰을 쿠키에 설정

@@ -26,7 +26,6 @@ import {
   Controller,
   Delete,
   Get,
-  InternalServerErrorException,
   Param,
   Post,
   Req,
@@ -42,8 +41,6 @@ import { Response, Request } from 'express'; // Express Response 객체를 impor
 import { SigninUserDto } from './dto/signin.user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
-import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { User } from 'src/entities/User.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { Story } from 'src/entities/Story.entity';
@@ -147,13 +144,13 @@ export class AuthController {
     // JWT Access Token 생성 (1시간 유효)
     const accessToken = this.jwtService.sign(
       { id: user.id, user_email: user.user_email },
-      { expiresIn: TOKEN_EXPIRATION_TIME, secret: 'park' },
+      { expiresIn: TOKEN_EXPIRATION_TIME, secret: process.env.SECRET_KEY },
     );
 
     // Refresh Token 생성 (7일 유효)
     const refreshToken = this.jwtService.sign(
       { id: user.id },
-      { expiresIn: '7d', secret: 'park' },
+      { expiresIn: '7d', secret: process.env.SECRET_KEY },
     );
 
     // Access Token을 HttpOnly 쿠키에 저장 (XSS 공격 방지)
@@ -560,13 +557,13 @@ export class AuthController {
       // 새로운 액세스 토큰 생성 (id와 user_email 포함)
       const accessToken = this.jwtService.sign(
         { id: user.id, user_email: user.user_email },
-        { expiresIn: TOKEN_EXPIRATION_TIME, secret: 'park' },
+        { expiresIn: TOKEN_EXPIRATION_TIME, secret: process.env.SECRET_KEY },
       );
 
       // 새로운 리프레시 토큰 생성 (id만 포함)
       const newRefreshToken = this.jwtService.sign(
         { id: user.id },
-        { expiresIn: '7d', secret: 'park' },
+        { expiresIn: '7d', secret: process.env.SECRET_KEY },
       );
 
       // 새로운 액세스 토큰을 쿠키에 설정

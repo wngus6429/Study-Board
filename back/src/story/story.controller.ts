@@ -45,7 +45,7 @@ export class StoryController {
 
   @Get('/health')
   healthCheck() {
-    return { status: 'ok씨발' };
+    return { status: `ok씨발 ${process.env.CHECK}` };
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 게시글 가져오기 API - 카테고리별 글 가져오기

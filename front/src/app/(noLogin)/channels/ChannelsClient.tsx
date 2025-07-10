@@ -70,7 +70,7 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
     queryKey: ["channels"],
     queryFn: getChannels,
     initialData: initialChannels,
-    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
+    // staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });

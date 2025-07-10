@@ -105,7 +105,7 @@ export default function MenuBar() {
       ]);
       if (logoutResponse.status === 200) {
         showMessage("로그아웃 성공", "warning");
-        router.refresh();
+        window.location.href = process.env.NEXTAUTH_URL || window.location.origin;
       }
     } catch (error) {
       // 에러 처리

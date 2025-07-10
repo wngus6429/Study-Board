@@ -26,8 +26,8 @@ class CustomSocketIOAdapter extends IoAdapter {
       ...options,
       cors: {
         origin: [
-          'http://54.250.190.92:3000',
-          'http://54.250.190.92',
+          'http://3.112.35.16:3000',
+          'http://3.112.35.16',
           'http://park-aws-study.com',
         ],
         methods: ['GET', 'POST'],
@@ -70,8 +70,8 @@ async function bootstrap() {
   // 프론트엔드(React)에서 백엔드 API 호출을 허용하기 위한 설정
   app.enableCors({
     origin: [
-      'http://54.250.190.92:3000',
-      'http://54.250.190.92',
+      'http://3.112.35.16:3000',
+      'http://3.112.35.16',
       'http://127.0.0.1:3000',
       'http://api.park-aws-study.com',
       'http://park-aws-study.com:3000',

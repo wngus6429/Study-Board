@@ -69,7 +69,7 @@ import { Comments } from 'src/entities/Comments.entity';
      * - 시크릿 키는 환경변수로 관리하는 것이 보안상 안전
      */
     JwtModule.register({
-      secret: 'park', // TODO: 환경변수로 변경 권장 (process.env.JWT_SECRET)
+      secret: process.env.SECRET_KEY, // TODO: 환경변수로 변경 권장 (process.env.JWT_SECRET)
       signOptions: { expiresIn: TOKEN_EXPIRATION_TIME }, // 토큰 만료 시간 (1시간)
     }),
 

@@ -89,8 +89,9 @@ export default function NotificationsPage() {
     if (!notification.isRead) {
       await markAsReadMutation.mutateAsync(notification.id);
     }
-    if (notification.comment?.storyId) {
-      const url = `/detail/story/${notification.comment.storyId}#comment-${notification.comment.id}`;
+
+    if (notification.comment?.storyId && notification.comment?.channelSlug) {
+      const url = `/channels/${notification.comment.channelSlug}/detail/story/${notification.comment.storyId}#comment-${notification.comment.id}`;
       router.push(url);
     }
   };

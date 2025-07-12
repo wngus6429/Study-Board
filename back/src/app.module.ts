@@ -69,7 +69,7 @@ import { ChannelChatModule } from './channel-chat/channel-chat.module';
       password: '6429', // 데이터베이스 비밀번호 (환경변수로 관리 권장)
       database: 'board-study', // 사용할 데이터베이스명
       entities: [__dirname + '/entities/*.entity{.ts,.js}'], // 엔티티 파일 경로 패턴
-      logging: true, // SQL 쿼리 로그 출력 (개발 시에만 true 권장)
+      logging: false, // SQL 쿼리 로그 출력 (개발 시에만 true 권장)
       synchronize: true, // 스키마 자동 동기화 (⚠️ 운영환경에서는 false 필수)
       keepConnectionAlive: true, // 애플리케이션 재시작 시 DB 연결 유지
       charset: 'utf8mb4_general_ci', // 문자셋: 이모지 및 다국어 지원

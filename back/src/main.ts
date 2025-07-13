@@ -122,7 +122,7 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document); // http://localhost:9999/api 에서 문서 확인 가능
 
   // 🚀 서버 시작
-  await app.listen(80, '0.0.0.0');
+  await app.listen(9999, '0.0.0.0');
 
   // 📊 서버 시작 로그
   // console.log('🚀 Study Board 서버가 포트 9999에서 실행 중입니다.');

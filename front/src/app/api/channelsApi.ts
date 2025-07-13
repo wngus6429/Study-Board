@@ -10,6 +10,7 @@ export interface Channel {
   description: string;
   created_at: string;
   updated_at: string;
+  is_hidden?: boolean; // 채널 숨김 상태
   creator: {
     id: string;
     nickname: string;
@@ -135,5 +136,29 @@ export const deleteChannelImage = async (channelId: number): Promise<{ message: 
   const response = await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${channelId}/image`, {
     withCredentials: true,
   });
+  return response.data;
+};
+
+// 채널 숨김 처리 (총관리자 또는 채널 생성자만 가능)
+export const hideChannel = async (id: number): Promise<{ message: string }> => {
+  const response = await axios.patch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${id}/hide`,
+    {},
+    {
+      withCredentials: true,
+    }
+  );
+  return response.data;
+};
+
+// 채널 표시 처리 (총관리자 또는 채널 생성자만 가능)
+export const showChannel = async (id: number): Promise<{ message: string }> => {
+  const response = await axios.patch(
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${id}/show`,
+    {},
+    {
+      withCredentials: true,
+    }
+  );
   return response.data;
 };

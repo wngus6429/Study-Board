@@ -22,13 +22,21 @@ import PeopleIcon from "@mui/icons-material/People";
 import ArticleIcon from "@mui/icons-material/Article";
 import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import Loading from "@/app/components/common/Loading";
 // API 함수들 import
-import { getChannels, createChannel, uploadChannelImage, deleteChannelImage, Channel } from "@/app/api/channelsApi";
+import {
+  getChannels,
+  createChannel,
+  uploadChannelImage,
+  deleteChannelImage,
+  deleteChannel,
+  Channel,
+} from "@/app/api/channelsApi";
 import CreateChannelDialog from "@/app/components/common/ChannelDialog/CreateChannelDialog";
 import EditChannelImageDialog from "@/app/components/common/ChannelDialog/EditChannelImageDialog";
 
@@ -42,6 +50,9 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
   const { data: session } = useSession();
   const { showMessage } = useMessage();
   const queryClient = useQueryClient();
+
+  // 관리자 권한 확인
+  const isSuperAdmin = session?.user?.is_super_admin === true;
 
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -142,6 +153,20 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
     onError: (error: any) => {
       console.error("채널 이미지 삭제 실패:", error);
       const errorMessage = error.response?.data?.message || "이미지 삭제에 실패했습니다.";
+      showMessage(errorMessage, "error");
+    },
+  });
+
+  // 채널 삭제 mutation
+  const deleteChannelMutation = useMutation({
+    mutationFn: (channelId: number) => deleteChannel(channelId),
+    onSuccess: () => {
+      showMessage("채널이 성공적으로 삭제되었습니다!", "success");
+      queryClient.invalidateQueries({ queryKey: ["channels"] });
+    },
+    onError: (error: any) => {
+      console.error("채널 삭제 실패:", error);
+      const errorMessage = error.response?.data?.message || "채널 삭제에 실패했습니다.";
       showMessage(errorMessage, "error");
     },
   });
@@ -320,6 +345,26 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
   const handleDeleteExistingImage = () => {
     if (!editChannelId) return;
     deleteExistingChannelImageMutation.mutate(editChannelId);
+  };
+
+  // 채널 삭제 핸들러
+  const handleDeleteChannel = (channel: Channel) => {
+    // 권한 확인: 총관리자이거나 채널 생성자인 경우만 삭제 가능
+    const isChannelCreator = session?.user?.id === channel.creator.id;
+
+    if (!isSuperAdmin && !isChannelCreator) {
+      showMessage("채널을 삭제할 권한이 없습니다. 총관리자 또는 채널 생성자만 삭제할 수 있습니다.", "warning");
+      return;
+    }
+
+    // 확인 다이얼로그 표시
+    if (
+      window.confirm(
+        `정말로 "${channel.channel_name}" 채널을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 채널의 모든 데이터가 영구적으로 삭제됩니다.`
+      )
+    ) {
+      deleteChannelMutation.mutate(channel.id);
+    }
   };
 
   if (isLoading && !initialChannels.length) {
@@ -511,6 +556,40 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
                     </Tooltip>
                   </Box>
                 )}
+
+                {/* 삭제 버튼 (총관리자 또는 채널 생성자만 보임) */}
+                {(isSuperAdmin || session?.user?.id === channel.creator.id) && (
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 8,
+                      left: 8,
+                      background: "rgba(220, 38, 38, 0.9)",
+                      borderRadius: "50%",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Tooltip title="채널 삭제">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDeleteChannel(channel)}
+                        sx={{
+                          color: "white",
+                          "&:hover": {
+                            background: "rgba(185, 28, 28, 0.9)",
+                          },
+                        }}
+                        disabled={deleteChannelMutation.isPending}
+                      >
+                        {deleteChannelMutation.isPending ? (
+                          <CircularProgress size={16} sx={{ color: "white" }} />
+                        ) : (
+                          <DeleteIcon fontSize="small" />
+                        )}
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                )}
               </Box>
 
               {/* 채널 정보 */}
@@ -583,30 +662,59 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
                   </Box>
                 </Box>
 
-                {/* 생성자 정보 */}
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 2 }}>
-                  <Avatar
-                    sx={{
-                      width: 24,
-                      height: 24,
-                      fontSize: 12,
-                      background:
-                        theme.palette.mode === "dark"
-                          ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
-                          : "linear-gradient(135deg, #1976d2, #42a5f5)",
-                    }}
-                  >
-                    {channel.creator.nickname.charAt(0)}
-                  </Avatar>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "text.secondary",
-                      fontWeight: 500,
-                    }}
-                  >
-                    {channel.creator.nickname}
-                  </Typography>
+                {/* 생성자 정보 및 삭제 버튼 */}
+                <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mt: 2 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Avatar
+                      sx={{
+                        width: 24,
+                        height: 24,
+                        fontSize: 12,
+                        background:
+                          theme.palette.mode === "dark"
+                            ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
+                            : "linear-gradient(135deg, #1976d2, #42a5f5)",
+                      }}
+                    >
+                      {channel.creator.nickname.charAt(0)}
+                    </Avatar>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "text.secondary",
+                        fontWeight: 500,
+                      }}
+                    >
+                      {channel.creator.nickname}
+                    </Typography>
+                  </Box>
+
+                  {/* 삭제 버튼 (총관리자 또는 채널 생성자만 보임) */}
+                  {(isSuperAdmin || session?.user?.id === channel.creator.id) && (
+                    <Tooltip title="채널 삭제">
+                      <IconButton
+                        size="small"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteChannel(channel);
+                        }}
+                        sx={{
+                          color: theme.palette.mode === "dark" ? "#ef4444" : "#dc2626",
+                          "&:hover": {
+                            background:
+                              theme.palette.mode === "dark" ? "rgba(239, 68, 68, 0.1)" : "rgba(220, 38, 38, 0.1)",
+                          },
+                        }}
+                        disabled={deleteChannelMutation.isPending}
+                      >
+                        {deleteChannelMutation.isPending ? (
+                          <CircularProgress size={16} />
+                        ) : (
+                          <DeleteIcon fontSize="small" />
+                        )}
+                      </IconButton>
+                    </Tooltip>
+                  )}
                 </Box>
               </CardContent>
             </Card>

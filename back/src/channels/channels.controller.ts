@@ -148,7 +148,7 @@ export class ChannelsController {
   @Delete(':id')
   @UseGuards(AuthGuard())
   @ApiBearerAuth()
-  @ApiOperation({ summary: '채널 삭제 (생성자만 가능)' })
+  @ApiOperation({ summary: '채널 삭제 (총관리자 또는 채널 생성자만 가능)' })
   @ApiResponse({ status: 200, description: '채널 삭제 성공' })
   @ApiResponse({ status: 403, description: '삭제 권한 없음' })
   @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })

@@ -355,4 +355,59 @@ export class ChannelsService {
       channelName: channel.channel_name,
     });
   }
+
+  // 채널 숨김 처리 (is_hidden = true)
+  async hideChannel(channelId: number, userId: string): Promise<void> {
+    const channel = await this.channelsRepository.findOne({
+      where: { id: channelId },
+      relations: ['creator'],
+    });
+    if (!channel) {
+      throw new NotFoundException(
+        `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
+      );
+    }
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(
+        `ID ${userId}에 해당하는 사용자를 찾을 수 없습니다.`,
+      );
+    }
+    const isSuperAdmin = user.is_super_admin === true;
+    const isChannelCreator = channel.creator.id === userId;
+    if (!isSuperAdmin && !isChannelCreator) {
+      throw new NotFoundException(
+        '채널을 숨김 처리할 권한이 없습니다. 총관리자 또는 채널 생성자만 숨김 처리할 수 있습니다.',
+      );
+    }
+    channel.is_hidden = true;
+    await this.channelsRepository.save(channel);
+  }
+
+  // 채널 표시 처리 (is_hidden = false, 총관리자만 가능)
+  async showChannel(channelId: number, userId: string): Promise<void> {
+    const channel = await this.channelsRepository.findOne({
+      where: { id: channelId },
+      relations: ['creator'],
+    });
+    if (!channel) {
+      throw new NotFoundException(
+        `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
+      );
+    }
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(
+        `ID ${userId}에 해당하는 사용자를 찾을 수 없습니다.`,
+      );
+    }
+    const isSuperAdmin = user.is_super_admin === true;
+    if (!isSuperAdmin) {
+      throw new NotFoundException(
+        '채널을 표시할 권한이 없습니다. 총관리자만 표시할 수 있습니다.',
+      );
+    }
+    channel.is_hidden = false;
+    await this.channelsRepository.save(channel);
+  }
 }

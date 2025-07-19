@@ -34,6 +34,9 @@ export class Channels {
   @Column({ default: 0 }) // 구독자 수
   subscriber_count: number;
 
+  @Column({ default: false }) // 채널 숨김 여부
+  is_hidden: boolean;
+
   @ManyToOne(() => User, (user) => user.createdChannels, { nullable: false })
   creator: User;
 

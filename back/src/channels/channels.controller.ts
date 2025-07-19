@@ -14,6 +14,7 @@ import {
   ParseIntPipe,
   UseInterceptors,
   UploadedFile,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -157,6 +158,34 @@ export class ChannelsController {
     console.log('채널 삭제 API:', { channelId: id, userId: req.user.id });
     await this.channelsService.deleteChannel(id, req.user.id);
     return { message: '채널이 삭제되었습니다.' };
+  }
+
+  @Patch('/:id/hide')
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  @ApiOperation({
+    summary: '채널 숨김 처리 (총관리자 또는 채널 생성자만 가능)',
+  })
+  @ApiResponse({ status: 200, description: '채널 숨김 처리 성공' })
+  @ApiResponse({ status: 403, description: '숨김 권한 없음' })
+  @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
+  async hideChannel(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    await this.channelsService.hideChannel(id, req.user.id);
+    return { message: '채널이 숨김 처리되었습니다.' };
+  }
+
+  @Patch('/:id/show')
+  @UseGuards(AuthGuard())
+  @UsePipes(ValidationPipe)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '채널 표시 처리 (총관리자만 가능)' })
+  @ApiResponse({ status: 200, description: '채널 표시 처리 성공' })
+  @ApiResponse({ status: 403, description: '표시 권한 없음' })
+  @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
+  @HttpCode(HttpStatus.OK)
+  async showChannel(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    await this.channelsService.showChannel(id, req.user.id);
+    return { message: '채널이 표시되었습니다.' };
   }
 
   // 채널 이미지 업로드 API

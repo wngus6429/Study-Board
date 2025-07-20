@@ -446,7 +446,7 @@ export class AuthService {
       // 새 이미지 엔티티 생성
       const newUserImage = new UserImage();
       newUserImage.image_name = profileImage.filename;
-      newUserImage.link = (profileImage as any).location;
+      newUserImage.link = `/userUpload/${profileImage.filename}`;
       newUserImage.User = user; // 사용자와 관계 설정
 
       // 새 이미지 저장 및 사용자에 할당

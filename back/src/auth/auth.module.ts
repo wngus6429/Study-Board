@@ -31,7 +31,9 @@ import { JwtStrategy } from './jwt.strategy';
 import { AdminGuard } from './admin.guard';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { MulterModule } from '@nestjs/platform-express';
-import { createMulterS3Options } from 'src/common/config/multerS3.config';
+import { diskStorage } from 'multer';
+import * as path from 'path';
+import { Today } from 'src/common/helper/today';
 import { TOKEN_EXPIRATION_TIME } from 'src/constants/tokenTime';
 import { Story } from 'src/entities/Story.entity';
 import { Comments } from 'src/entities/Comments.entity';
@@ -69,7 +71,7 @@ import { Comments } from 'src/entities/Comments.entity';
      * - 시크릿 키는 환경변수로 관리하는 것이 보안상 안전
      */
     JwtModule.register({
-      secret: process.env.SECRET_KEY, // TODO: 환경변수로 변경 권장 (process.env.JWT_SECRET)
+      secret: 'park', // TODO: 환경변수로 변경 권장 (process.env.JWT_SECRET)
       signOptions: { expiresIn: TOKEN_EXPIRATION_TIME }, // 토큰 만료 시간 (1시간)
     }),
 
@@ -116,7 +118,43 @@ import { Comments } from 'src/entities/Comments.entity';
      * // 원본: "프로필사진.jpg"
      * // 저장: "프로필사진_20231201_143022.jpg"
      */
-    MulterModule.register(createMulterS3Options('user-profile')),
+    MulterModule.register({
+      storage: diskStorage({
+        destination: './userUpload', // 파일 저장 경로
+        filename(req, file, done) {
+          const ext = path.extname(file.originalname); // 파일 확장자 추출
+
+          // 한글 파일명을 UTF-8로 올바르게 변환
+          const baseName = Buffer.from(
+            path.basename(file.originalname, ext),
+            'latin1',
+          ).toString('utf8');
+
+          // 고유한 파일명 생성: 원본명_타임스탬프.확장자
+          const uniqueFileName = `${baseName}_${Today()}${ext}`;
+
+          console.log('📁 파일 업로드:', {
+            original: file.originalname,
+            saved: uniqueFileName,
+            size: file.size,
+          });
+
+          done(null, uniqueFileName);
+        },
+      }),
+      // TODO: 추가 보안 설정 권장
+      // limits: {
+      //   fileSize: 5 * 1024 * 1024, // 5MB 제한
+      // },
+      // fileFilter: (req, file, cb) => {
+      //   // 이미지 파일만 허용
+      //   if (file.mimetype.startsWith('image/')) {
+      //     cb(null, true);
+      //   } else {
+      //     cb(new Error('이미지 파일만 업로드 가능합니다.'), false);
+      //   }
+      // },
+    }),
   ],
 
   // ═══════════════════════════════════════════════════════════════════════════════════════

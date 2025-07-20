@@ -936,7 +936,7 @@ export class StoryService {
         if (file.mimetype.startsWith('image/')) {
           const imageEntity = new StoryImage();
           imageEntity.image_name = file.filename;
-          imageEntity.link = (file as any).location;
+          imageEntity.link = `/upload/${file.filename}`;
           imageEntity.file_size = file.size;
           imageEntity.mime_type = file.mimetype;
           // imageEntity.upload_order = i; // 전체 파일 배열에서의 순서 (tiptap 사용으로 불필요)
@@ -946,7 +946,7 @@ export class StoryService {
         } else if (file.mimetype.startsWith('video/')) {
           const videoEntity = new StoryVideo();
           videoEntity.video_name = file.filename;
-          videoEntity.link = (file as any).location;
+          videoEntity.link = `/videoUpload/${file.filename}`;
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
           // videoEntity.upload_order = i; // 전체 파일 배열에서의 순서 (tiptap 사용으로 불필요)
@@ -1059,7 +1059,7 @@ export class StoryService {
       const imageEntities = noticeImageFiles.map((file) => {
         const imageEntity = new StoryImage();
         imageEntity.image_name = file.filename;
-        imageEntity.link = (file as any).location;
+        imageEntity.link = `/upload/${file.filename}`;
         imageEntity.file_size = file.size;
         imageEntity.mime_type = file.mimetype;
         imageEntity.Story = savedStory;
@@ -1075,7 +1075,7 @@ export class StoryService {
       const videoEntities = noticeVideoFiles.map((file) => {
         const videoEntity = new StoryVideo();
         videoEntity.video_name = file.filename;
-        videoEntity.link = (file as any).location;
+        videoEntity.link = `/videoUpload/${file.filename}`;
         videoEntity.file_size = file.size;
         videoEntity.mime_type = file.mimetype;
         videoEntity.Story = savedStory;
@@ -1288,7 +1288,7 @@ export class StoryService {
         const imageEntities = imageFiles.map((file, index) => {
           const imageEntity = new StoryImage();
           imageEntity.image_name = file.filename;
-          imageEntity.link = (file as any).location;
+          imageEntity.link = `/upload/${file.filename}`;
           imageEntity.file_size = file.size;
           imageEntity.mime_type = file.mimetype;
           // imageEntity.upload_order = maxOrder + 1 + index; // tiptap 사용으로 불필요
@@ -1312,7 +1312,7 @@ export class StoryService {
         const videoEntities = videoFiles.map((file, index) => {
           const videoEntity = new StoryVideo();
           videoEntity.video_name = file.filename;
-          videoEntity.link = (file as any).location;
+          videoEntity.link = `/videoUpload/${file.filename}`;
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
           // videoEntity.upload_order = maxOrder + 1 + imageFiles.length + index; // tiptap 사용으로 불필요

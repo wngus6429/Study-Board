@@ -33,6 +33,14 @@ import {
   SuperAdminRequired,
   ChannelAdminRequired,
 } from '../common/decorators/admin.decorator';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBody,
+} from '@nestjs/swagger';
 
 /**
  * Story 컨트롤러
@@ -41,6 +49,7 @@ import {
  * @description 게시글 생성, 조회, 수정, 삭제 및 추천/비추천 기능을 제공합니다.
  * @author StudyBoard Team
  */
+@ApiTags('Story')
 @Controller('api/story')
 export class StoryController {
   logger: any;
@@ -59,6 +68,13 @@ export class StoryController {
    * @returns 게시글 목록과 총 개수
    */
   @Get('/pageTableData')
+  @ApiOperation({ summary: '테이블 형태의 게시글 목록 조회' })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'category', required: false, type: String })
+  @ApiQuery({ name: 'channelId', required: false, type: Number })
+  @ApiQuery({ name: 'minRecommend', required: false, type: Number })
+  @ApiResponse({ status: 200, description: '게시글 목록 및 총 개수 반환' })
   async getPageStory(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
@@ -233,6 +249,9 @@ export class StoryController {
    * @returns 게시글 상세 정보 (작성자 정보 포함)
    */
   @Get('/detail/:id')
+  @ApiOperation({ summary: '게시글 상세 조회' })
+  @ApiParam({ name: 'id', description: '게시글 ID' })
+  @ApiResponse({ status: 200, description: '게시글 상세 정보 반환' })
   async getStoryDetail(@Param('id', ParseIntPipe) id: number): Promise<any> {
     const data = await this.storyService.findStoryOne(id);
     console.log('상세페이지 데이터:', data);
@@ -309,6 +328,9 @@ export class StoryController {
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   @UseInterceptors(FilesInterceptor('images'))
+  @ApiOperation({ summary: '새 게시글 작성' })
+  @ApiBody({ description: '게시글 생성 데이터', type: CreateStoryDto })
+  @ApiResponse({ status: 201, description: '게시글 생성 성공' })
   async createStory(
     @Body() createStoryDto: CreateStoryDto,
     @GetUser() userData: User,

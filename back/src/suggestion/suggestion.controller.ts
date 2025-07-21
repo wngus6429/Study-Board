@@ -15,6 +15,14 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBody,
+} from '@nestjs/swagger';
 // import { CreateStoryDto } from './dto/create-story.dto';
 import { SuggestionService } from './suggestion.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -23,13 +31,22 @@ import { User } from 'src/entities/User.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Suggestion } from 'src/entities/Suggestion.entity';
 
+@ApiTags('Suggestion')
 @Controller('api/suggestion')
 export class SuggestionController {
   logger: any;
   constructor(private readonly suggestionService: SuggestionService) {}
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 게시글 목록 조회 (채널별 + 사용자별 필터링)
+  /**
+   * 건의사항 목록 조회
+   */
   @Get('/pageTableData')
+  @ApiOperation({ summary: '건의사항 목록 조회' })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'channelId', required: false, type: Number })
+  @ApiQuery({ name: 'userId', required: false, type: String })
+  @ApiResponse({ status: 200, description: '건의사항 목록 및 총 개수 반환' })
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   async getPageSuggestion(
@@ -46,8 +63,13 @@ export class SuggestionController {
     );
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 건의사항 작성
+  /**
+   * 건의사항 생성
+   */
   @Post('/create')
+  @ApiOperation({ summary: '건의사항 생성' })
+  @ApiBody({ description: '건의사항 생성 데이터', type: Object })
+  @ApiResponse({ status: 201, description: '건의사항 생성 성공' })
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   @UseInterceptors(FilesInterceptor('images'))
@@ -65,8 +87,13 @@ export class SuggestionController {
     );
   }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 건의사항 상세 조회
+  /**
+   * 건의사항 상세 조회
+   */
   @Get('/detail/:id')
+  @ApiOperation({ summary: '건의사항 상세 조회' })
+  @ApiParam({ name: 'id', description: '건의사항 ID' })
+  @ApiResponse({ status: 200, description: '건의사항 상세 정보 반환' })
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   async getSuggestionDetail(

@@ -113,22 +113,29 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
         indicatorColor="secondary"
         aria-label="channel tabs"
         variant="scrollable"
-        scrollButtons="auto"
+        scrollButtons={"auto"}
         sx={{
           flexGrow: 1,
           position: "relative",
           zIndex: 2,
           "& .MuiTab-root": {
+            minWidth: "90px",
+            maxWidth: "120px",
+            width: "auto",
             fontWeight: 700,
-            fontSize: "1.1rem",
+            fontSize: "1rem", // 폰트 크기 약간 줄임
             py: 1,
+            px: 2, // 좌우 패딩 조정
             position: "relative",
             overflow: "hidden",
             borderRadius: "12px",
-            margin: "6px 4px",
+            margin: "6px 2px", // 좌우 마진 줄임
             transition: "all 0.3s ease",
             color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
             textShadow: theme.palette.mode === "dark" ? "0 2px 4px rgba(0, 0, 0, 0.3)" : "none",
+            // 텍스트가 길어질 경우 처리
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
             "&::before": {
               content: '""',
               position: "absolute",
@@ -158,7 +165,8 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
             },
             "&.Mui-selected": {
               color: theme.palette.mode === "dark" ? "#ffffff" : "#8b5cf6",
-              fontWeight: 800,
+              // fontWeight를 동일하게 유지하여 너비 변화 방지
+              fontWeight: 700,
               background:
                 theme.palette.mode === "dark"
                   ? "linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(6, 182, 212, 0.2))"
@@ -173,9 +181,22 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
                   : "1px solid rgba(139, 92, 246, 0.3)",
               transform: "translateY(-1px)",
             },
+            // 아이콘과 텍스트 간격 조정
+            "& .MuiTab-iconWrapper": {
+              marginBottom: "2px",
+              "& svg": {
+                fontSize: "20px", // 아이콘 크기 조정
+              },
+            },
           },
           "& .MuiTabs-indicator": {
             display: "none",
+          },
+          // 스크롤 버튼 스타일링
+          "& .MuiTabs-scrollButtons": {
+            "&.Mui-disabled": {
+              opacity: 0.3,
+            },
           },
         }}
       >
@@ -184,18 +205,35 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
           if (option.value === "suggestion" && !hasSession) return false;
           return true;
         }).map((option) => (
-          <Tab key={option.value} icon={option.icon} label={option.name} value={option.value} />
+          <Tab
+            key={option.value}
+            icon={option.icon}
+            label={option.name}
+            value={option.value}
+            // 접근성을 위한 aria-label 추가
+            aria-label={`${option.name} 탭`}
+          />
         ))}
       </Tabs>
 
       {/* 뷰 모드 토글 버튼 - 건의사항 탭이 아닐 때만 표시 */}
       {currentTab !== "suggestion" && (
-        <Box sx={{ display: "flex", gap: 1, mr: 1, position: "relative", zIndex: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            gap: 0.5, // 버튼 간격 줄임
+            mr: 1,
+            position: "relative",
+            zIndex: 2,
+          }}
+        >
           <IconButton
             onClick={() => onViewModeChange("table")}
             sx={{
               borderRadius: "12px",
-              p: 1.5,
+              p: 1.2, // 패딩 약간 줄임
+              width: "44px", // 고정 너비
+              height: "44px", // 고정 높이
               position: "relative",
               overflow: "hidden",
               background:
@@ -240,16 +278,18 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
                 color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
               },
             }}
-            aria-label="table view"
+            aria-label="테이블 뷰"
           >
-            <ViewListIcon sx={{ fontSize: 28, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
+            <ViewListIcon sx={{ fontSize: 24, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
           </IconButton>
 
           <IconButton
             onClick={() => onViewModeChange("card")}
             sx={{
               borderRadius: "12px",
-              p: 1.5,
+              p: 1.2, // 패딩 약간 줄임
+              width: "44px", // 고정 너비
+              height: "44px", // 고정 높이
               position: "relative",
               overflow: "hidden",
               background:
@@ -294,9 +334,9 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
                 color: theme.palette.mode === "dark" ? "#a78bfa" : "#8b5cf6",
               },
             }}
-            aria-label="card view"
+            aria-label="카드 뷰"
           >
-            <ViewModuleIcon sx={{ fontSize: 28, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
+            <ViewModuleIcon sx={{ fontSize: 24, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />
           </IconButton>
         </Box>
       )}
@@ -305,7 +345,7 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
       {hasSession && (
         <Button
           variant="contained"
-          startIcon={<CreateIcon sx={{ fontSize: 22 }} />}
+          startIcon={<CreateIcon sx={{ fontSize: 20 }} />}
           onClick={onWritePost}
           sx={{
             mr: 2,
@@ -313,10 +353,11 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
             zIndex: 2,
             borderRadius: "14px",
             fontWeight: 700,
-            fontSize: "1rem",
-            px: 3,
-            py: 1.5,
-            minWidth: "120px",
+            fontSize: "0.95rem", // 폰트 크기 약간 줄임
+            px: 2.5, // 좌우 패딩 줄임
+            py: 1.2, // 상하 패딩 줄임
+            minWidth: "100px", // 최소 너비 줄임
+            height: "44px", // 고정 높이로 다른 버튼들과 맞춤
             textTransform: "none",
             transition: "all 0.3s ease",
             background: "linear-gradient(135deg, #8b5cf6, #06b6d4, #22c55e)",

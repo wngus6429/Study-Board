@@ -191,7 +191,7 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                         >
                           {row.userId ? (
                             <BlindWrapper userId={row.userId} type="post">
-                              {row.title}
+                              {row.title.length > 12 ? `${row.title.slice(0, 12)}...` : row.title}
                             </BlindWrapper>
                           ) : (
                             row.title

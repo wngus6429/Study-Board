@@ -576,7 +576,7 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
                     alignItems: "center",
                     justifyContent: "center",
                     backgroundImage: channel.ChannelImage?.link
-                      ? `url(${process.env.NEXT_PUBLIC_BASE_URL}${channel.ChannelImage.link})`
+                      ? `url(${process.env.NEXT_PUBLIC_BASE_URL}${encodeURI(channel.ChannelImage.link)})`
                       : "none",
                     backgroundSize: "cover",
                     backgroundPosition: "center",

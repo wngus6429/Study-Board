@@ -21,7 +21,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
-import React, { ReactNode, useEffect, useMemo, useState } from "react";
+import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
@@ -54,7 +54,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
   const [isDeleted, setIsDeleted] = useState<boolean>(false); // 삭제 상태 추가
   const { openCloseComments } = useComment();
-  const [likeCalculate, setLikeCalculate] = useState<number>(0);
   // 버튼 여러번 연속 클릭 방지
   const [editFlag, setEditFlag] = useState<boolean>(false);
 
@@ -125,6 +124,12 @@ export default function page({ params }: { params: { id: string; slug: string } 
     staleTime: 1000 * 60 * 5, // 5분 캐시
   });
 
+  // likeCalculate를 상태 대신 메모이제이션된 계산값으로 변경
+  const likeCalculate = useMemo(() => {
+    if (!detail) return 0;
+    return detail.like_count - detail.dislike_count;
+  }, [detail?.like_count, detail?.dislike_count]);
+
   useEffect(() => {
     if (scrapStatus) {
       setIsScraped(scrapStatus.isScraped);
@@ -136,7 +141,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
       console.log("상세데이터", detail);
       document.title = `${detail.title}`;
       openCloseComments(true);
-      setLikeCalculate(detail.like_count + -detail.dislike_count);
 
       // 로그인한 사용자의 경우 최근 본 게시물에 추가
       if (session?.user) {
@@ -179,8 +183,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
     };
   }, []);
 
-  // 특정 댓글로 스크롤하는 함수
-  const scrollToComment = (commentId: string) => {
+  // 특정 댓글로 스크롤하는 함수 (메모이제이션)
+  const scrollToComment = useCallback((commentId: string) => {
     const element = document.getElementById(`comment-${commentId}`);
     if (element) {
       element.scrollIntoView({
@@ -212,7 +216,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
         }
       }, 3000); // 더 긴 대기 시간
     }
-  };
+  }, []);
 
   //! 데이터 없으면 not-found 위치로 이동
   useEffect(() => {
@@ -433,26 +437,18 @@ export default function page({ params }: { params: { id: string; slug: string } 
     setOpenAdminDeleteDialog(false);
   };
 
-  // 이미지 클릭 핸들러
-  const handleImageClick = (image: StoryImageType, index: number) => {
+  // 이미지 클릭 핸들러 (메모이제이션)
+  const handleImageClick = useCallback((image: StoryImageType, index: number) => {
     setSelectedImage(image);
     setCurrentImageIndex(index);
     setOpenImageViewer(true);
-  };
+  }, []);
 
-  // 이미지 뷰어 닫기
-  const handleCloseImageViewer = () => {
+  // 이미지 뷰어 닫기 (메모이제이션)
+  const handleCloseImageViewer = useCallback(() => {
     setOpenImageViewer(false);
     setSelectedImage(null);
-  };
-
-  // 이미지 변경 핸들러 (ImageViewer 컴포넌트에서 사용)
-  const handleImageChange = (index: number) => {
-    setCurrentImageIndex(index);
-    if (contentOrderedImages && contentOrderedImages[index]) {
-      setSelectedImage(contentOrderedImages[index]);
-    }
-  };
+  }, []);
 
   // content 순서대로 재구성된 이미지 배열 생성
   const contentOrderedImages = useMemo(() => {
@@ -488,6 +484,17 @@ export default function page({ params }: { params: { id: string; slug: string } 
     return contentImageOrder;
   }, [detail?.content, detail?.StoryImage]);
 
+  // 이미지 변경 핸들러 (ImageViewer 컴포넌트에서 사용) - 메모이제이션
+  const handleImageChange = useCallback(
+    (index: number) => {
+      setCurrentImageIndex(index);
+      if (contentOrderedImages && contentOrderedImages[index]) {
+        setSelectedImage(contentOrderedImages[index]);
+      }
+    },
+    [contentOrderedImages]
+  );
+
   // 이미지 네비게이션과 줌/드래그 기능은 ImageViewer 컴포넌트로 이동됨
 
   // Slide 트랜지션은 ImageViewer 컴포넌트에서 더 이상 사용하지 않음
@@ -510,8 +517,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
     });
   }, [detail?.StoryImage]);
 
-  // 메인으로 이동하는 함수 (이전 페이지 상태 유지)
-  const handleGoToMain = () => {
+  // 메인으로 이동하는 함수 (이전 페이지 상태 유지) - 메모이제이션
+  const handleGoToMain = useCallback(() => {
     // 세션 스토리지에서 이전 메인 페이지 URL 확인
     if (typeof window !== "undefined") {
       const previousMainPageUrl = sessionStorage.getItem("previousMainPageUrl");
@@ -536,31 +543,31 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
     // 저장된 URL이 없거나 오류가 발생한 경우 기본 메인으로 이동
     router.push("/");
-  };
+  }, [router]);
 
-  // 사용자 메뉴 관련 핸들러
-  const handleUserNicknameClick = (event: React.MouseEvent<HTMLElement>, nickname: string) => {
+  // 사용자 메뉴 관련 핸들러 (메모이제이션)
+  const handleUserNicknameClick = useCallback((event: React.MouseEvent<HTMLElement>, nickname: string) => {
     event.preventDefault();
     event.stopPropagation();
     setUserMenuAnchorEl(event.currentTarget);
     setSelectedUserNickname(nickname);
-  };
+  }, []);
 
-  const handleUserMenuClose = () => {
+  const handleUserMenuClose = useCallback(() => {
     setUserMenuAnchorEl(null);
     setSelectedUserNickname("");
-  };
+  }, []);
 
-  const handleSendMessageClick = () => {
+  const handleSendMessageClick = useCallback(() => {
     setSendMessageModalOpen(true);
-  };
+  }, []);
 
-  const handleSendMessageModalClose = () => {
+  const handleSendMessageModalClose = useCallback(() => {
     setSendMessageModalOpen(false);
-  };
+  }, []);
 
-  // 스크랩 버튼 클릭 핸들러
-  const handleScrapClick = () => {
+  // 스크랩 버튼 클릭 핸들러 (메모이제이션)
+  const handleScrapClick = useCallback(() => {
     if (!session?.user) {
       showMessage("로그인이 필요합니다.", "warning");
       return;
@@ -573,10 +580,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
     }
 
     scrapMutation.mutate(isScraped ? "remove" : "add");
-  };
+  }, [session?.user, detail?.User?.id, showMessage, scrapMutation, isScraped]);
 
-  // 신고 버튼 클릭 핸들러
-  const handleReportClick = () => {
+  // 신고 버튼 클릭 핸들러 (메모이제이션)
+  const handleReportClick = useCallback(() => {
     if (!session?.user) {
       showMessage("로그인이 필요합니다.", "warning");
       return;
@@ -589,12 +596,12 @@ export default function page({ params }: { params: { id: string; slug: string } 
     }
 
     setReportModalOpen(true);
-  };
+  }, [session?.user, detail?.User?.id, showMessage]);
 
-  // 신고 모달 닫기
-  const handleReportModalClose = () => {
+  // 신고 모달 닫기 (메모이제이션)
+  const handleReportModalClose = useCallback(() => {
     setReportModalOpen(false);
-  };
+  }, []);
 
   // 신고 제출
   const handleReportSubmit = async (reason: string, customReason?: string) => {
@@ -647,12 +654,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
     }
   };
 
-  // ★ 조건부 return은 훅 선언 이후에 배치합니다.
-  if (isLoading) return <Loading />;
-  if (isError) return <ErrorView />;
-
-  // 본문 내용에서 이미지 태그를 카드뷰로 교체하는 함수
-  const renderContentWithImageCards = () => {
+  // 본문 내용에서 이미지 태그를 카드뷰로 교체하는 함수 (메모이제이션 적용)
+  const renderContentWithImageCards = useMemo(() => {
     if (!detail?.content) return null;
 
     let content = detail.content;
@@ -952,9 +955,12 @@ export default function page({ params }: { params: { id: string; slug: string } 
     processImageGroup();
 
     return elements;
-  };
+  }, [detail?.content, detail?.StoryImage, detail?.StoryVideo, theme.palette.mode, theme.palette.text.primary]);
 
-  // 페이지 렌더링
+  // 페이지 렌더링 - 조건부 렌더링을 JSX에서 처리
+  if (isLoading) return <Loading />;
+  if (isError) return <ErrorView />;
+
   return (
     <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 1, overflow: "hidden" }}>
       {openConfirmDialog && (
@@ -1112,7 +1118,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
               }}
             >
-              {renderContentWithImageCards()}
+              {renderContentWithImageCards}
             </Box>
 
             {/* 비디오 파일이 있는 경우에만 별도 섹션으로 표시 */}

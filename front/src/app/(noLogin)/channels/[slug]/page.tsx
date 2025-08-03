@@ -1,6 +1,6 @@
 // 채널 상세 페이지 - 서버 컴포넌트로 SEO 최적화
 import { Metadata } from "next";
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { notFound } from "next/navigation";
 import ChannelDetailPage from "./ChannelsDetailClient";
 import Loading from "@/app/components/common/Loading";
@@ -31,7 +31,7 @@ async function getChannelData(slug: string) {
   }
 }
 
-// 동적 메타데이터 생성
+// 동적 메타데이터 생성 (최적화됨)
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const channelData = await getChannelData(params.slug);
 
@@ -42,34 +42,44 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     };
   }
 
+  // 메타데이터에 필요한 값들을 미리 계산
   const channelName = channelData.channel_name;
   const subscriberCount = channelData.subscriber_count || 0;
   const storyCount = channelData.story_count || 0;
   const creatorName = channelData.creator?.nickname || "알수없음";
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const channelUrl = `${baseUrl}/channels/${params.slug}`;
+  const formattedSubscriberCount = subscriberCount.toLocaleString();
+  const formattedStoryCount = storyCount.toLocaleString();
+
+  // 공통 설명 텍스트
+  const description = `${channelName} 채널입니다. ${creatorName}님이 만든 채널로 구독자 ${formattedSubscriberCount}명, 게시글 ${formattedStoryCount}개가 있습니다. 다양한 주제로 소통해보세요!`;
+  const shortDescription = `${channelName} 채널 - 구독자 ${formattedSubscriberCount}명의 활발한 커뮤니티`;
+  const titleText = `${channelName} - Hobby Channel`;
 
   return {
-    title: `${channelName} - Hobby Channel`,
-    description: `${channelName} 채널입니다. ${creatorName}님이 만든 채널로 구독자 ${subscriberCount.toLocaleString()}명, 게시글 ${storyCount.toLocaleString()}개가 있습니다. 다양한 주제로 소통해보세요!`,
+    title: titleText,
+    description,
     keywords: [channelName, "채널", "커뮤니티", "게시판", "소통", creatorName, "취미", "관심사", params.slug],
     openGraph: {
-      title: `${channelName} - Hobby Channel`,
-      description: `${channelName} 채널 - 구독자 ${subscriberCount.toLocaleString()}명의 활발한 커뮤니티`,
+      title: titleText,
+      description: shortDescription,
       type: "website",
       locale: "ko_KR",
-      url: `${process.env.NEXT_PUBLIC_BASE_URL}/channels/${params.slug}`,
+      url: channelUrl,
       siteName: "Hobby Channel",
     },
     twitter: {
       card: "summary_large_image",
-      title: `${channelName} - Hobby Channel`,
-      description: `${channelName} 채널 - 구독자 ${subscriberCount.toLocaleString()}명의 활발한 커뮤니티`,
+      title: titleText,
+      description: shortDescription,
     },
     robots: {
       index: true,
       follow: true,
     },
     alternates: {
-      canonical: `${process.env.NEXT_PUBLIC_BASE_URL}/channels/${params.slug}`,
+      canonical: channelUrl,
     },
   };
 }
@@ -83,46 +93,53 @@ export default async function ChannelPage({ params }: { params: { slug: string }
     notFound();
   }
 
-  // 구조화된 데이터 생성
+  // 공통 값들 미리 계산
+  const channelName = channelData.channel_name;
+  const creatorName = channelData.creator?.nickname || "알수없음";
+  const subscriberCount = channelData.subscriber_count || 0;
+  const storyCount = channelData.story_count || 0;
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+  const channelUrl = `${baseUrl}/channels/${params.slug}`;
+
+  // 구조화된 데이터 생성 (최적화됨)
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    name: channelData.channel_name,
-    description: `${channelData.channel_name} 채널 - ${channelData.creator?.nickname || "알수없음"}님이 만든 커뮤니티`,
-    url: `${process.env.NEXT_PUBLIC_BASE_URL}/channels/${params.slug}`,
+    name: channelName,
+    description: `${channelName} 채널 - ${creatorName}님이 만든 커뮤니티`,
+    url: channelUrl,
     founder: {
       "@type": "Person",
-      name: channelData.creator?.nickname || "알수없음",
+      name: creatorName,
     },
     memberOf: {
       "@type": "Organization",
       name: "Hobby Channel",
-      url: process.env.NEXT_PUBLIC_BASE_URL,
+      url: baseUrl,
     },
-    aggregateRating:
-      channelData.subscriber_count > 0
-        ? {
-            "@type": "AggregateRating",
-            ratingValue: "4.5",
-            reviewCount: channelData.subscriber_count,
-            bestRating: "5",
-            worstRating: "1",
-          }
-        : undefined,
+    ...(subscriberCount > 0 && {
+      aggregateRating: {
+        "@type": "AggregateRating",
+        ratingValue: "4.5",
+        reviewCount: subscriberCount,
+        bestRating: "5",
+        worstRating: "1",
+      },
+    }),
     interactionStatistic: [
       {
         "@type": "InteractionCounter",
         interactionType: "https://schema.org/SubscribeAction",
-        userInteractionCount: channelData.subscriber_count || 0,
+        userInteractionCount: subscriberCount,
       },
       {
         "@type": "InteractionCounter",
         interactionType: "https://schema.org/WriteAction",
-        userInteractionCount: channelData.story_count || 0,
+        userInteractionCount: storyCount,
       },
     ],
     dateCreated: channelData.created_at,
-    knowsAbout: [channelData.channel_name, "커뮤니티", "소통", "취미"],
+    knowsAbout: [channelName, "커뮤니티", "소통", "취미"],
   };
 
   return (

@@ -1,6 +1,6 @@
 "use client";
 // 채널 테이블 뷰 페이지
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Box,
   Typography,
@@ -252,32 +252,29 @@ const ChannelDetailPage = () => {
     channelId, // 채널 ID 추가
   });
 
-  // MainView 스타일로 데이터 처리
-  const getCurrentData = () => {
+  // MainView 스타일로 데이터 처리 (memoized)
+  const currentData = useMemo(() => {
     if (currentTab === "suggestion") {
       return suggestionData;
     }
     return viewMode === "card" ? cardData : tableData;
-  };
+  }, [currentTab, suggestionData, viewMode, cardData, tableData]);
 
-  const getCurrentError = () => {
+  const currentError = useMemo(() => {
     if (currentTab === "suggestion") {
       return null; // 건의사항은 별도 에러 처리
     }
     return viewMode === "card" ? cardError : tableError;
-  };
+  }, [currentTab, viewMode, cardError, tableError]);
 
-  const getCurrentLoading = () => {
+  const currentLoading = useMemo(() => {
     if (currentTab === "suggestion") {
       return suggestionLoading;
     }
     return viewMode === "card" ? cardLoading : tableLoading;
-  };
+  }, [currentTab, suggestionLoading, viewMode, cardLoading, tableLoading]);
 
-  const currentData = getCurrentData();
-  const currentError = getCurrentError();
-  const currentLoading = getCurrentLoading();
-  const currentTotal = currentData?.total || 0;
+  const currentTotal = useMemo(() => currentData?.total || 0, [currentData?.total]);
 
   // 구독 mutation
   const subscribeMutation = useMutation({
@@ -361,38 +358,41 @@ const ChannelDetailPage = () => {
     }
   }, [currentData, channelSlug, currentPage, currentTab, setChannelPageData]);
 
-  // 탭 변경 핸들러 (MainView 방식 적용)
-  const handleTabChange = (event: React.SyntheticEvent, newValue: string) => {
-    // 선택한 탭 값 업데이트
-    setCurrentTab(newValue);
-    // 페이지 번호 초기화
-    setCurrentPage(1);
+  // 탭 변경 핸들러 (MainView 방식 적용) - memoized
+  const handleTabChange = useCallback(
+    (event: React.SyntheticEvent, newValue: string) => {
+      // 선택한 탭 값 업데이트
+      setCurrentTab(newValue);
+      // 페이지 번호 초기화
+      setCurrentPage(1);
 
-    // URL 쿼리 파라미터 구성
-    const params = new URLSearchParams();
-    params.set("category", newValue);
+      // URL 쿼리 파라미터 구성
+      const params = new URLSearchParams();
+      params.set("category", newValue);
 
-    // 검색 상태가 있으면 URL에 유지
-    if (searchParamsState) {
-      params.set("searchType", searchParamsState.type);
-      params.set("searchQuery", searchParamsState.query);
-    }
+      // 검색 상태가 있으면 URL에 유지
+      if (searchParamsState) {
+        params.set("searchType", searchParamsState.type);
+        params.set("searchQuery", searchParamsState.query);
+      }
 
-    // 추천 랭킹 모드 상태 유지
-    params.set("recommendRanking", recommendRankingMode.toString());
+      // 추천 랭킹 모드 상태 유지
+      params.set("recommendRanking", recommendRankingMode.toString());
 
-    // 현재 뷰 모드 상태 유지
-    params.set("viewMode", viewMode);
+      // 현재 뷰 모드 상태 유지
+      params.set("viewMode", viewMode);
 
-    // 정렬 순서 유지
-    params.set("sortOrder", sortOrder);
+      // 정렬 순서 유지
+      params.set("sortOrder", sortOrder);
 
-    // URL 업데이트
-    router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
-  };
+      // URL 업데이트
+      router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
+    },
+    [channelSlug, searchParamsState, recommendRankingMode, viewMode, sortOrder, router, setCurrentPage]
+  );
 
-  // 구독 토글 핸들러
-  const handleSubscribeToggle = () => {
+  // 구독 토글 핸들러 - memoized
+  const handleSubscribeToggle = useCallback(() => {
     if (!session?.user) {
       showMessage("로그인이 필요합니다.", "warning");
       return;
@@ -403,18 +403,18 @@ const ChannelDetailPage = () => {
     } else {
       subscribeMutation.mutate(channelId);
     }
-  };
+  }, [session?.user, isSubscribed, showMessage, subscribeMutation, channelId]);
 
-  // 구독 취소 확인 핸들러
-  const handleUnsubscribeConfirm = () => {
+  // 구독 취소 확인 핸들러 - memoized
+  const handleUnsubscribeConfirm = useCallback(() => {
     unsubscribeMutation.mutate(channelId);
     setShowUnsubscribeConfirm(false);
-  };
+  }, [unsubscribeMutation, channelId]);
 
-  // 구독 취소 취소 핸들러
-  const handleUnsubscribeCancel = () => {
+  // 구독 취소 취소 핸들러 - memoized
+  const handleUnsubscribeCancel = useCallback(() => {
     setShowUnsubscribeConfirm(false);
-  };
+  }, []);
 
   // 채널 알림 구독 mutation
   const notificationSubscribeMutation = useMutation({
@@ -460,8 +460,8 @@ const ChannelDetailPage = () => {
     },
   });
 
-  // 알림 토글 핸들러
-  const handleNotificationToggle = () => {
+  // 알림 토글 핸들러 - memoized
+  const handleNotificationToggle = useCallback(() => {
     if (!session?.user) {
       showMessage("로그인이 필요합니다.", "warning");
       return;
@@ -482,19 +482,30 @@ const ChannelDetailPage = () => {
     } else {
       notificationSubscribeMutation.mutate();
     }
-  };
+  }, [
+    session?.user,
+    channelData,
+    channelId,
+    isNotificationEnabled,
+    showMessage,
+    notificationUnsubscribeMutation,
+    notificationSubscribeMutation,
+  ]);
 
-  // 게시글 클릭 핸들러
-  const handlePostClick = (postId: number) => {
-    // 현재 채널 페이지 URL을 세션 스토리지에 저장
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("previousMainPageUrl", window.location.href);
-    }
-    router.push(`/channels/${channelSlug}/detail/story/${postId}`);
-  };
+  // 게시글 클릭 핸들러 - memoized
+  const handlePostClick = useCallback(
+    (postId: number) => {
+      // 현재 채널 페이지 URL을 세션 스토리지에 저장
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("previousMainPageUrl", window.location.href);
+      }
+      router.push(`/channels/${channelSlug}/detail/story/${postId}`);
+    },
+    [router, channelSlug]
+  );
 
-  // 글쓰기 핸들러
-  const handleWritePost = () => {
+  // 글쓰기 핸들러 - memoized
+  const handleWritePost = useCallback(() => {
     if (!session?.user) {
       showMessage("로그인이 필요합니다.", "warning");
       return;
@@ -504,35 +515,41 @@ const ChannelDetailPage = () => {
       return;
     }
     router.push(`/write/story?channel=${channelId}`);
-  };
+  }, [session?.user, channelId, showMessage, router]);
 
-  // 페이지네이션 핸들러 (URL 업데이트 포함)
-  const handlePageClick = (selectedItem: { selected: number }) => {
-    const newPage = selectedItem.selected + 1;
-    setCurrentPage(newPage);
+  // 페이지네이션 핸들러 (URL 업데이트 포함) - memoized
+  const handlePageClick = useCallback(
+    (selectedItem: { selected: number }) => {
+      const newPage = selectedItem.selected + 1;
+      setCurrentPage(newPage);
 
-    // 기존 쿼리 파라미터들을 유지하면서 페이지 번호만 업데이트
-    const params = new URLSearchParams(window.location.search);
-    params.set("page", newPage.toString());
+      // 기존 쿼리 파라미터들을 유지하면서 페이지 번호만 업데이트
+      const params = new URLSearchParams(window.location.search);
+      params.set("page", newPage.toString());
 
-    router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
-  };
+      router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
+    },
+    [setCurrentPage, router, channelSlug]
+  );
 
-  // 정렬 변경 핸들러 (URL 업데이트 포함)
-  const handleSortChange = (event: SelectChangeEvent<"recent" | "view" | "recommend">) => {
-    const newSortOrder = event.target.value as "recent" | "view" | "recommend";
-    setSortOrder(newSortOrder);
+  // 정렬 변경 핸들러 (URL 업데이트 포함) - memoized
+  const handleSortChange = useCallback(
+    (event: SelectChangeEvent<"recent" | "view" | "recommend">) => {
+      const newSortOrder = event.target.value as "recent" | "view" | "recommend";
+      setSortOrder(newSortOrder);
 
-    // 현재 URL 쿼리 파라미터 가져오기
-    const params = new URLSearchParams(window.location.search);
-    // sortOrder 파라미터 추가 또는 업데이트
-    params.set("sortOrder", newSortOrder);
-    // URL 업데이트
-    router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
-  };
+      // 현재 URL 쿼리 파라미터 가져오기
+      const params = new URLSearchParams(window.location.search);
+      // sortOrder 파라미터 추가 또는 업데이트
+      params.set("sortOrder", newSortOrder);
+      // URL 업데이트
+      router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
+    },
+    [router, channelSlug]
+  );
 
-  // 추천 랭킹 토글 (URL 업데이트 포함)
-  const toggleRecommendRanking = () => {
+  // 추천 랭킹 토글 (URL 업데이트 포함) - memoized
+  const toggleRecommendRanking = useCallback(() => {
     const newMode = !recommendRankingMode;
     setRecommendRankingMode(newMode);
     setCurrentPage(1);
@@ -551,26 +568,29 @@ const ChannelDetailPage = () => {
     params.set("sortOrder", sortOrder);
 
     router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
-  };
+  }, [recommendRankingMode, currentTab, searchParamsState, viewMode, sortOrder, router, channelSlug, setCurrentPage]);
 
-  // 검색 핸들러 (URL 업데이트 포함)
-  const handleSearch = ({ category, query }: { category: string; query: string }) => {
-    setSearchParamsState({ type: category, query });
-    setCurrentPage(1);
+  // 검색 핸들러 (URL 업데이트 포함) - memoized
+  const handleSearch = useCallback(
+    ({ category, query }: { category: string; query: string }) => {
+      setSearchParamsState({ type: category, query });
+      setCurrentPage(1);
 
-    const params = new URLSearchParams();
-    params.set("category", currentTab);
-    params.set("searchType", category);
-    params.set("searchQuery", query);
-    params.set("recommendRanking", recommendRankingMode.toString());
-    params.set("viewMode", viewMode);
-    params.set("sortOrder", sortOrder);
+      const params = new URLSearchParams();
+      params.set("category", currentTab);
+      params.set("searchType", category);
+      params.set("searchQuery", query);
+      params.set("recommendRanking", recommendRankingMode.toString());
+      params.set("viewMode", viewMode);
+      params.set("sortOrder", sortOrder);
 
-    router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
-  };
+      router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
+    },
+    [currentTab, recommendRankingMode, viewMode, sortOrder, router, channelSlug, setCurrentPage]
+  );
 
-  // 검색 초기화 (URL 업데이트 포함)
-  const handleClearSearch = () => {
+  // 검색 초기화 (URL 업데이트 포함) - memoized
+  const handleClearSearch = useCallback(() => {
     setSearchParamsState(null);
     setCurrentPage(1);
 
@@ -581,28 +601,31 @@ const ChannelDetailPage = () => {
     params.set("sortOrder", sortOrder);
 
     router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
-  };
+  }, [currentTab, recommendRankingMode, viewMode, sortOrder, router, channelSlug, setCurrentPage]);
 
-  // 뷰 모드 변경 핸들러 (URL 업데이트 포함)
-  const handleViewModeChange = (mode: "table" | "card") => {
-    setViewMode(mode);
+  // 뷰 모드 변경 핸들러 (URL 업데이트 포함) - memoized
+  const handleViewModeChange = useCallback(
+    (mode: "table" | "card") => {
+      setViewMode(mode);
 
-    // 기존 URL의 쿼리 파라미터를 유지하고, viewMode 업데이트
-    const params = new URLSearchParams(window.location.search);
-    params.set("viewMode", mode);
+      // 기존 URL의 쿼리 파라미터를 유지하고, viewMode 업데이트
+      const params = new URLSearchParams(window.location.search);
+      params.set("viewMode", mode);
 
-    router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
-  };
+      router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
+    },
+    [router, channelSlug]
+  );
 
-  // 구독자 수 포맷팅
-  const formatSubscriberCount = (count: number) => {
+  // 구독자 수 포맷팅 (memoized)
+  const formatSubscriberCount = useCallback((count: number) => {
     if (count >= 1000000) {
       return `${(count / 1000000).toFixed(1)}M`;
     } else if (count >= 1000) {
       return `${(count / 1000).toFixed(1)}K`;
     }
     return count.toString();
-  };
+  }, []);
 
   // 정렬된 테이블 데이터
   const sortedTableData = useMemo(() => {
@@ -644,24 +667,27 @@ const ChannelDetailPage = () => {
 
   const channelNotices = channelNoticesData?.results || [];
 
-  // 공지사항 관련 헬퍼 함수들
-  const isNewNotice = (createdAt: string) => {
+  // 공지사항 관련 헬퍼 함수들 - memoized
+  const isNewNotice = useCallback((createdAt: string) => {
     const noticeDate = new Date(createdAt);
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
     return noticeDate > threeDaysAgo;
-  };
+  }, []);
 
-  const truncateTitle = (title: string, maxLength: number = 35) => {
+  const truncateTitle = useCallback((title: string, maxLength: number = 35) => {
     return title.length > maxLength ? `${title.substring(0, maxLength)}...` : title;
-  };
+  }, []);
 
-  const handleNoticeClick = (noticeId: number) => {
-    router.push(`/notice/${noticeId}`);
-    setShowNotice(false);
-  };
+  const handleNoticeClick = useCallback(
+    (noticeId: number) => {
+      router.push(`/notice/${noticeId}`);
+      setShowNotice(false);
+    },
+    [router]
+  );
 
-  const handleWriteNotice = () => {
+  const handleWriteNotice = useCallback(() => {
     if (!session?.user) {
       showMessage("로그인이 필요합니다.", "warning");
       return;
@@ -672,17 +698,17 @@ const ChannelDetailPage = () => {
     }
     router.push(`/write/notice?channel=${channelId}`);
     setShowNotice(false);
-  };
+  }, [session?.user, channelId, showMessage, router]);
 
-  // 채팅 토글 핸들러
-  const handleChatToggle = () => {
+  // 채팅 토글 핸들러 - memoized
+  const handleChatToggle = useCallback(() => {
     if (!session?.user) {
       showMessage("로그인이 필요합니다.", "warning");
       return;
     }
 
     setShowChat(!showChat);
-  };
+  }, [session?.user, showMessage, showChat]);
 
   // 로딩 처리
   if (channelLoading) {

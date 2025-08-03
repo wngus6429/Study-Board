@@ -1,7 +1,7 @@
 "use client";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import CommentsView from "./CommentsView";
+import CommentsView from "../comment/CommentsView";
 import Advertisement from "./Advertisement";
 import ChannelTopStories from "./ChannelTopStories";
 import { useComment } from "@/app/store/commentStore";

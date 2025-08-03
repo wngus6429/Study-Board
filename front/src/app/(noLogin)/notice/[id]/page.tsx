@@ -34,7 +34,7 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import UserMenuPopover from "@/app/components/common/UserMenuPopover";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
 import { useRecentViews } from "@/app/store/recentViewsStore";
-import CommentsView from "@/app/components/common/CommentsView";
+import CommentsView from "@/app/components/comment/CommentsView";
 import Link from "next/link";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {

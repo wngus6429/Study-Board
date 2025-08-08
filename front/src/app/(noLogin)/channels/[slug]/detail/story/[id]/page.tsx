@@ -500,6 +500,21 @@ export default function page({ params }: { params: { id: string; slug: string } 
   // Slide 트랜지션은 ImageViewer 컴포넌트에서 더 이상 사용하지 않음
 
   // ★ 모든 훅은 조건부 return 전에 호출되어야 합니다.
+  // 폴라로이드 미리보기용 이미지 소스 (content 순서 우선, 없으면 원본 배열)
+  const polaroidImages = useMemo(() => {
+    if (contentOrderedImages && contentOrderedImages.length > 0) {
+      return contentOrderedImages;
+    }
+    return detail?.StoryImage || [];
+  }, [contentOrderedImages, detail?.StoryImage]);
+
+  // 각 카드에 안정적인 기울기(회전) 값을 부여하기 위한 유틸
+  const getPolaroidRotation = useCallback((id: number | undefined, index: number) => {
+    const seed = (id ?? 0) + index * 13;
+    // -4 ~ +4도 사이의 기울기, 0도는 피해서 1도로 치환
+    const angle = (seed % 9) - 4 || 1;
+    return `${angle}deg`;
+  }, []);
   const memoizedImageCards = useMemo(() => {
     if (!detail || !detail.StoryImage || detail.StoryImage.length === 0) {
       return null;
@@ -1106,6 +1121,92 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 </Typography>
               </Box>
             </Box>
+
+            {/* 폴라로이드 카드 프리뷰 (Masonry-like columns) */}
+            {polaroidImages.length > 0 && (
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    fontWeight: "bold",
+                    mb: 1.5,
+                    color: theme.palette.mode === "dark" ? "#e5e7eb" : "#374151",
+                  }}
+                >
+                  폴라로이드 프리뷰
+                </Typography>
+                <Box
+                  sx={{
+                    columnCount: { xs: 1, sm: 2, md: 3 },
+                    columnGap: { xs: 1.5, sm: 2 },
+                  }}
+                >
+                  {polaroidImages.map((img, idx) => {
+                    const src = `${process.env.NEXT_PUBLIC_BASE_URL}${img.link}`;
+                    const rotation = getPolaroidRotation(img.id, idx);
+                    return (
+                      <Box key={`polaroid-${img.id}-${idx}`} sx={{ breakInside: "avoid", mb: { xs: 1.5, sm: 2 } }}>
+                        <Box
+                          onClick={() => handleImageClick(img, idx)}
+                          sx={{
+                            cursor: "pointer",
+                            bgcolor: "#ffffff",
+                            border: "1px solid",
+                            borderColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                            borderRadius: 1.5,
+                            boxShadow:
+                              theme.palette.mode === "dark"
+                                ? "0 6px 18px rgba(0,0,0,0.5)"
+                                : "0 8px 18px rgba(0,0,0,0.15)",
+                            p: 1,
+                            pt: 1,
+                            pb: 2.5,
+                            transform: `rotate(${rotation})`,
+                            transition: "transform 220ms ease, box-shadow 220ms ease",
+                            "&:hover": {
+                              transform: "translateY(-8px) rotate(0deg) scale(1.02)",
+                              boxShadow:
+                                theme.palette.mode === "dark"
+                                  ? "0 14px 30px rgba(0,0,0,0.65)"
+                                  : "0 16px 30px rgba(0,0,0,0.22)",
+                            },
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={src}
+                            alt={img.image_name || "image"}
+                            loading="lazy"
+                            sx={{
+                              width: "100%",
+                              display: "block",
+                              borderRadius: 1,
+                              boxShadow:
+                                theme.palette.mode === "dark"
+                                  ? "0 1px 6px rgba(0,0,0,0.6)"
+                                  : "0 1px 6px rgba(0,0,0,0.15)",
+                            }}
+                          />
+                          <Typography
+                            variant="caption"
+                            sx={{
+                              display: "block",
+                              textAlign: "center",
+                              mt: 1,
+                              color: theme.palette.mode === "dark" ? "#9CA3AF" : "#6B7280",
+                              fontFamily: '"Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas',
+                              letterSpacing: 0.2,
+                            }}
+                          >
+                            {img.image_name?.replace(/\.[^.]+$/, "") || "이미지"}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
+              </Box>
+            )}
 
             {/* 본문 내용 - 이미지가 중간중간에 카드뷰로 표시됨 */}
             <Box

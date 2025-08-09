@@ -48,28 +48,30 @@ export default function RootLayout({
         <ThemeProvider>
           <RQProvider>
             <AuthSession>
-              {/* <SitePasswordGate> */}
-              <BrowserNotification>
-                <SubscriptionProvider>
-                  {/* 상단 바 */}
-                  <TopBar />
-                  <div className={style.main_container}>
-                    <div className={style.content_wrapper}>
-                      {/* 왼쪽 네비게이션 */}
-                      <NavMenuBar />
-                      {/* 메인 컨텐츠 */}
-                      <div className={style.main_content}>{children}</div>
-                      {/* 오른쪽 영역 */}
-                      <div className={style.right_section}>
-                        <RightView />
+              <SitePasswordGate>
+                <BrowserNotification>
+                  <SubscriptionProvider>
+                    {/* 상단 바 */}
+                    <TopBar />
+                    <div className={style.main_container}>
+                      <div className={style.content_wrapper}>
+                        {/* 왼쪽 네비게이션 */}
+                        <div className={style.nav_section}>
+                          <NavMenuBar />
+                        </div>
+                        {/* 메인 컨텐츠 */}
+                        <div className={style.main_content}>{children}</div>
+                        {/* 오른쪽 영역 */}
+                        <div className={style.right_section}>
+                          <RightView />
+                        </div>
                       </div>
+                      <MessageView />
                     </div>
-                    <MessageView />
-                  </div>
-                  <ScrollUpButton />
-                </SubscriptionProvider>
-              </BrowserNotification>
-              {/* </SitePasswordGate> */}
+                    <ScrollUpButton />
+                  </SubscriptionProvider>
+                </BrowserNotification>
+              </SitePasswordGate>
             </AuthSession>
           </RQProvider>
         </ThemeProvider>

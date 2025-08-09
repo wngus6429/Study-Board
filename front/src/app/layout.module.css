@@ -15,6 +15,11 @@
   padding: 0 20px 0 20px; /* 좌우 패딩 */
 }
 
+/* 왼쪽 네비게이션 래퍼 (반응형 정렬 제어용) */
+.nav_section {
+  grid-column: 1;
+}
+
 /* 메인 컨텐츠 */
 .main_content {
   grid-column: 2;
@@ -49,6 +54,12 @@
   .main_content {
     width: 100%;
     order: 2;
+  }
+
+  /* 태블릿/중간 해상도에서 댓글 아래에 네비게이션 배치 (본문 → 댓글 → 네비) */
+  .nav_section {
+    width: 100%;
+    order: 4;
   }
 
   .right_section {

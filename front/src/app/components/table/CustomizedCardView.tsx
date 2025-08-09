@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import relativeTime from "dayjs/plugin/relativeTime";
 import BlindWrapper from "../BlindWrapper";
+import UserBadge from "@/app/components/common/UserBadge";
 
 dayjs.extend(relativeTime);
 
@@ -253,9 +254,12 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
 
                 {/* 하단: 작성자, 번호 및 등록일 */}
                 <CardContent sx={{ pt: 1, flexGrow: 1 }}>
-                  <Typography variant="body2" sx={authorTextStyles}>
-                    작성자: {row.nickname}
-                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                    <Typography variant="body2" sx={authorTextStyles}>
+                      작성자: {row.nickname}
+                    </Typography>
+                    <UserBadge totals={{ totalPosts: 0, totalComments: 0 }} size="small" inline />
+                  </Box>
                   <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
                     <Typography variant="caption" sx={captionTextStyles}>
                       번호: {row.id}

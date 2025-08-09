@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Box, TextField, Button, Typography, Avatar, useTheme } from "@mui/material";
+import UserBadge from "@/app/components/common/UserBadge";
 import dayjs from "dayjs";
 import BlindWrapper from "../../BlindWrapper";
 import { useAdmin } from "../../../hooks/useAdmin";
@@ -65,15 +66,18 @@ const CommentList = React.memo(
                 src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`}
                 sx={{ width: 32, height: 32, mr: 1 }}
               />
-              <Typography
-                variant="body2"
-                sx={{
-                  fontWeight: "bold",
-                  color: theme.palette.mode === "dark" ? "#a78bfa" : "#4f46e5",
-                }}
-              >
-                {comment.nickname}
-              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    fontWeight: "bold",
+                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#4f46e5",
+                  }}
+                >
+                  {comment.nickname}
+                </Typography>
+                <UserBadge totals={{ totalPosts: 0, totalComments: 0 }} size="small" inline />
+              </Box>
               <Box
                 sx={{
                   ml: "auto",

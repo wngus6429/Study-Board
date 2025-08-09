@@ -56,7 +56,9 @@ export default function RootLayout({
                     <div className={style.main_container}>
                       <div className={style.content_wrapper}>
                         {/* 왼쪽 네비게이션 */}
-                        <NavMenuBar />
+                        <div className={style.nav_section}>
+                          <NavMenuBar />
+                        </div>
                         {/* 메인 컨텐츠 */}
                         <div className={style.main_content}>{children}</div>
                         {/* 오른쪽 영역 */}

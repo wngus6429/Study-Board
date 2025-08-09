@@ -51,14 +51,15 @@ const NavMenuBar: FC = () => {
   // 스타일 객체들을 useMemo로 최적화
   const containerStyles = useMemo(
     () => ({
-      position: "fixed" as const,
-      top: 150,
-      left: 20,
-      display: { xs: "none", sm: "none", md: "none", lg: "flex" },
+      /* 모바일: 숨김, 태블릿/노트북: 블록(정적 위치), 초대형 화면: 고정 사이드 */
+      position: { xs: "static", sm: "static", md: "static", lg: "static", xl: "fixed" } as const,
+      top: { xl: 150 },
+      left: { xl: 20 },
+      display: { xs: "none", sm: "block", md: "block", lg: "block", xl: "flex" },
       flexDirection: "column" as const,
-      width: "230px",
-      maxHeight: "calc(100vh - 120px)",
-      overflow: "auto" as const,
+      width: { xs: "100%", sm: "100%", md: "100%", lg: "100%", xl: "230px" },
+      maxHeight: { xl: "calc(100vh - 120px)" },
+      overflow: { xl: "auto" } as const,
       bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "rgba(255, 255, 255, 0.95)",
       border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid rgba(0, 0, 0, 0.1)",
       borderRadius: "12px",
@@ -66,7 +67,7 @@ const NavMenuBar: FC = () => {
         theme.palette.mode === "dark" ? "0 8px 25px rgba(139, 92, 246, 0.15)" : "0 4px 20px rgba(0, 0, 0, 0.1)",
       p: 2,
       backdropFilter: "blur(10px)",
-      zIndex: 999,
+      zIndex: { xl: 999 },
     }),
     [theme.palette.mode]
   );

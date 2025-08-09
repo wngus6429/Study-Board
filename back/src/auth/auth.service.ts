@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/User.entity';
 import { SignupUserDto } from './dto/signup.user.dto';
 import { IsNull, Repository } from 'typeorm';
+import { Likes } from 'src/entities/Likes.entity';
 import * as bcrypt from 'bcryptjs';
 import { SigninUserDto } from './dto/signin.user.dto';
 import { UserImage } from 'src/entities/UserImage.entity';
@@ -42,6 +43,8 @@ export class AuthService {
     private readonly commentRepository: Repository<Comments>,
     @InjectRepository(Story)
     private readonly storyRepository: Repository<Story>,
+    @InjectRepository(Likes)
+    private readonly likesRepository: Repository<Likes>,
     // private readonly jwtService: JwtService, // JWT 사용 시 주석 해제
   ) {}
 
@@ -399,6 +402,92 @@ export class AuthService {
         updated_at: comment.updated_at,
         storyId: comment.Story?.id, // 댓글이 달린 게시글 ID
       })),
+    };
+  }
+
+  /**
+   * 🏅 사용자 활동 합계 + 레벨 정보 (닉네임 기준)
+   * - 총 글 수, 총 댓글 수, 받은 추천 수(해당 사용자의 글에 달린 like 수) 집계
+   * - 레벨/칭호 계산을 프론트와 동일한 기준으로 제공 (임계값은 프론트와 맞춤)
+   * - 향후 배지 이미지 확장을 위해 badgeKey/badgeImage 필드 포함
+   */
+  async getUserLevelByNickname(username: string): Promise<{
+    user: { nickname: string };
+    totals: {
+      totalPosts: number;
+      totalComments: number;
+      totalReceivedRecommends: number;
+    };
+    level: {
+      level: number;
+      title: string;
+      score: number;
+      nextLevelScore?: number;
+      badgeKey: string;
+      badgeImage?: string;
+    };
+  }> {
+    const user = await this.userRepository.findOne({
+      where: { nickname: username },
+    });
+    if (!user) {
+      throw new ConflictException('사용자를 찾을 수 없습니다.');
+    }
+
+    // 총 글 수
+    const totalPosts = await this.storyRepository.count({
+      where: { User: { id: user.id } },
+    });
+    // 총 댓글 수 (삭제되지 않은 것만 집계)
+    const totalComments = await this.commentRepository.count({
+      where: { User: { id: user.id }, deleted_at: IsNull() },
+    });
+    // 받은 추천 수: 해당 사용자의 글에 대해 vote = 'like'
+    const receivedLikes = await this.likesRepository
+      .createQueryBuilder('likes')
+      .leftJoin('likes.Story', 'story')
+      .leftJoin('story.User', 'author')
+      .where('author.id = :userId', { userId: user.id })
+      .andWhere('likes.vote = :vote', { vote: 'like' })
+      .getCount();
+
+    // 점수 및 레벨 계산 (프론트 level.ts와 동일한 가중치/임계값)
+    const score = totalPosts * 5 + totalComments * 2 + receivedLikes * 1;
+    const levels = [
+      { threshold: 0, title: '새싹', key: 'seed' },
+      { threshold: 20, title: '초심자', key: 'beginner' },
+      { threshold: 60, title: '입문', key: 'novice' },
+      { threshold: 120, title: '견습', key: 'apprentice' },
+      { threshold: 250, title: '숙련', key: 'skilled' },
+      { threshold: 500, title: '고수', key: 'expert' },
+      { threshold: 1000, title: '마스터', key: 'master' },
+    ];
+    let idx = 0;
+    for (let i = levels.length - 1; i >= 0; i -= 1) {
+      if (score >= levels[i].threshold) {
+        idx = i;
+        break;
+      }
+    }
+    const current = levels[idx];
+    const next = levels[idx + 1];
+
+    return {
+      user: { nickname: user.nickname },
+      totals: {
+        totalPosts,
+        totalComments,
+        totalReceivedRecommends: receivedLikes,
+      },
+      level: {
+        level: idx + 1,
+        title: current.title,
+        score,
+        nextLevelScore: next?.threshold,
+        badgeKey: current.key,
+        // 배지 이미지는 향후 CDN 경로 저장 시 채워 넣을 수 있도록 비워둠
+        badgeImage: undefined,
+      },
     };
   }
 

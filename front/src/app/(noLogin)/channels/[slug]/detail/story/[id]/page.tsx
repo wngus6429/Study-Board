@@ -28,6 +28,7 @@ import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import { useComment } from "@/app/store/commentStore";
 import ConfirmDialog from "@/app/components/common/ConfirmDialog";
+import UserBadge from "@/app/components/common/UserBadge";
 import ErrorView from "@/app/components/common/ErrorView";
 import RecommendButtonsWithCount from "@/app/components/RecommendButton";
 import ImageCard from "@/app/components/ImageCard";
@@ -1050,10 +1051,16 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 <Box>
                   <Typography
                     variant="subtitle1"
-                    sx={{ fontWeight: "bold", cursor: "pointer" }}
+                    sx={{ fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", gap: 1 }}
                     onClick={(e) => handleUserNicknameClick(e, detail.User.nickname)}
                   >
                     작성자: {detail.User.nickname}
+                    <UserBadge
+                      nickname={detail.User.nickname}
+                      totals={{ totalPosts: 0, totalComments: 0 }}
+                      size="small"
+                      inline
+                    />
                   </Typography>
                   <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
                     <Button

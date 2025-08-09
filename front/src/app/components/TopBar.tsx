@@ -3,7 +3,17 @@ import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
-import { Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText, useTheme } from "@mui/material";
+import {
+  Avatar,
+  Button,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  useTheme,
+  Box as MuiBox,
+  Typography,
+} from "@mui/material";
 import { useRouter } from "next/navigation";
 import axios from "@/app/api/axios";
 import styles from "./style/TopBar.module.css";
@@ -16,6 +26,8 @@ import usePageStore from "../store/pageStore";
 import NotificationDropdown from "./NotificationDropdown";
 import ChannelNotificationDropdown from "./ChannelNotificationDropdown";
 import DarkModeToggle from "./DarkModeToggle";
+import UserBadge from "@/app/components/common/UserBadge";
+import { useUserActivityTotals } from "@/app/components/api/useUserActivityTotals";
 import MessageIcon from "@mui/icons-material/Message";
 import HistoryIcon from "@mui/icons-material/History";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
@@ -86,6 +98,9 @@ export default function MenuBar() {
     enabled: status === "authenticated",
     staleTime: Infinity,
   });
+
+  // 유저 활동 총합 (닉네임 기준)
+  const { data: activityTotals } = useUserActivityTotals(user?.user?.nickname);
 
   // 프로필 사진 삭제 시 refetch를 트리거하는 이벤트를 전달받을 수 있도록 설정
   useEffect(() => {

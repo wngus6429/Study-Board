@@ -359,6 +359,27 @@ export default function MenuBar() {
             },
           }}
         />
+        {/* 레벨 뱃지를 아바타 오른쪽 하단에 표시 */}
+        {activityTotals && (
+          <Box
+            sx={{
+              position: "absolute",
+              bottom: -2,
+              right: -2,
+              zIndex: 3,
+              background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.9)",
+              borderRadius: "50%",
+              padding: "2px",
+              border:
+                theme.palette.mode === "dark"
+                  ? "1px solid rgba(139, 92, 246, 0.3)"
+                  : "1px solid rgba(218, 165, 32, 0.4)",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            <UserBadge totals={activityTotals} size="small" showText={false} />
+          </Box>
+        )}
       </Box>
       <nav className={styles.nav}>
         {/* 로그인한 사용자에게만 알림 아이콘 표시 */}

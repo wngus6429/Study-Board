@@ -53,7 +53,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             console.log('🍪 쿠키에서 JWT 토큰을 찾을 수 없음');
             return null;
           }
-          console.log('🍪 쿠키에서 JWT 토큰 추출 성공');
+          // console.log('🍪 쿠키에서 JWT 토큰 추출 성공');
           return token;
         },
       ]),

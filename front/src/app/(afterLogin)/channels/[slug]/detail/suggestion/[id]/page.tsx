@@ -43,7 +43,7 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import UserMenuPopover from "@/app/components/common/UserMenuPopover";
-import UserBadge from "@/app/components/common/UserBadge";
+import LevelBadge from "@/app/components/common/LevelBadge";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
 // MODIFIED: SuggestionType 타입 사용 (건의사항 상세 데이터)
 // import { SuggestionType } from "@/app/types/suggestionDetailType";
@@ -787,7 +787,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                         >
                           {detail.User.nickname}
                         </Typography>
-                        <UserBadge totalExperience={detail.User?.experience_points ?? 0} showText={false} />
+                        <LevelBadge level={detail.User?.level} size="small" />
                       </Box>
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mb: 1 }}>

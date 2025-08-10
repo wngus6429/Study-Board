@@ -262,6 +262,8 @@ export class StoryController {
       nickname: User.nickname,
       id: User.id,
       avatar: User.UserImage?.link || null,
+      level: User.level,
+      experience_points: User.experience_points,
     };
 
     return { ...rest, User: writeUserInfo };

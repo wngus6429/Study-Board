@@ -69,7 +69,7 @@ async function bootstrap() {
     credentials: true, // 쿠키 기반 세션 인증 허용
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // 허용할 HTTP 메서드
     allowedHeaders:
-      'Origin, X-Requested-With, Content-Type, Accept, Authorization', // 허용할 헤더
+      'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cache-Control', // 허용할 헤더
   });
 
   // 🍪 쿠키 파서 미들웨어 등록 (세션 관리용)

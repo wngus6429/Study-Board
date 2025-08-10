@@ -48,14 +48,18 @@ function UserProfileEdit() {
 
   // 프로필 정보 불러옴
   const fetchUserDetail = async (userId: string) => {
-    // 기본 프로필(닉/이미지)
-    const [profileRes, profileLevelRes] = await Promise.all([
+    // 기본 프로필(닉/이미지), 닉네임 기반 공개 프로필(레벨/경험치)
+    const nickname = session?.user?.nickname || "";
+    const [profileRes, anotherUserRes] = await Promise.all([
       axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${userId}`, { withCredentials: true }),
-      axiosBase.get(`/api/auth/profile/${encodeURIComponent(session?.user?.nickname || "")}`),
+      axiosBase.get(`/api/auth/profile/${encodeURIComponent(nickname)}`),
     ]);
+    const profile = profileRes.data;
+    const anotherUser = anotherUserRes.data;
     return {
-      ...profileRes.data,
-      experience_points: profileLevelRes.data?.level?.score ?? profileLevelRes.data?.user?.experience_points ?? 0,
+      ...profile,
+      experience_points: anotherUser?.user?.experience_points ?? 0,
+      level: anotherUser?.user?.level ?? 1,
     };
   };
   // 프로필 정보 미리 불러옴
@@ -490,7 +494,12 @@ function UserProfileEdit() {
             </Typography>
             {/* 뱃지/경험치 표시 */}
             <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-              <UserBadge totalExperience={userDetail?.experience_points ?? 0} size="medium" showText />
+              <UserBadge
+                totalExperience={userDetail?.experience_points ?? 0}
+                levelOverride={userDetail?.level}
+                size="medium"
+                showText
+              />
             </Box>
             {/* 프로필 사진과 입력 요소들을 한 줄로 배치 */}
             <Box display="flex" flexDirection="row" alignItems="flex-start" sx={{ gap: 3, mb: 3 }}>

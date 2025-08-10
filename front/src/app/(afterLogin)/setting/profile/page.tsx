@@ -1,6 +1,8 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
 import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress, useTheme } from "@mui/material";
+import UserBadge from "@/app/components/common/UserBadge";
+import axiosBase from "@/app/api/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useSession } from "next-auth/react";
@@ -46,10 +48,15 @@ function UserProfileEdit() {
 
   // 프로필 정보 불러옴
   const fetchUserDetail = async (userId: string) => {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${userId}`, {
-      withCredentials: true,
-    });
-    return response.data;
+    // 기본 프로필(닉/이미지)
+    const [profileRes, profileLevelRes] = await Promise.all([
+      axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${userId}`, { withCredentials: true }),
+      axiosBase.get(`/api/auth/profile/${encodeURIComponent(session?.user?.nickname || "")}`),
+    ]);
+    return {
+      ...profileRes.data,
+      experience_points: profileLevelRes.data?.level?.score ?? profileLevelRes.data?.user?.experience_points ?? 0,
+    };
   };
   // 프로필 정보 미리 불러옴
   if (status === "authenticated" && session?.user?.id) {
@@ -477,10 +484,14 @@ function UserProfileEdit() {
             <Typography
               variant="h6"
               gutterBottom
-              sx={{ fontWeight: "bold", mb: 2, color: "primary.main", textAlign: "center" }}
+              sx={{ fontWeight: "bold", mb: 1.5, color: "primary.main", textAlign: "center" }}
             >
               프로필 수정
             </Typography>
+            {/* 뱃지/경험치 표시 */}
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+              <UserBadge totalExperience={userDetail?.experience_points ?? 0} size="medium" showText />
+            </Box>
             {/* 프로필 사진과 입력 요소들을 한 줄로 배치 */}
             <Box display="flex" flexDirection="row" alignItems="flex-start" sx={{ gap: 3, mb: 3 }}>
               <Box

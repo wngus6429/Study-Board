@@ -271,6 +271,10 @@ export class CommentService {
           nickname: isDeleted ? null : comment.User?.nickname || null, // 댓글 작성자 닉네임
           userId: isDeleted ? null : comment.User?.id, // 댓글 작성자 ID
           link: isDeleted ? null : comment.User?.UserImage?.link || null, // 댓글 작성자 이미지 링크
+          level: isDeleted ? null : comment.User?.level || null, // 댓글 작성자 레벨
+          experience_points: isDeleted
+            ? null
+            : comment.User?.experience_points || null, // 댓글 작성자 경험치
           parentNickname: comment.parent
             ? comment.parent.User?.nickname || null // 부모 댓글 작성자 닉네임
             : null,

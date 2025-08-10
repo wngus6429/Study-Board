@@ -13,6 +13,8 @@ export interface Comment {
   updated_at: string;
   link: string; // 프로필 이미지 링크
   isDeleted?: boolean; // 삭제된 댓글 여부 (닉네임/콘텐츠 숨김 처리용)
+  level?: number | null; // 댓글 작성자 레벨
+  experience_points?: number | null; // 댓글 작성자 경험치
 }
 
 // 페이지네이션 응답 인터페이스

@@ -198,7 +198,11 @@ export default function UserProfileDetail() {
                 </Typography>
                 <Box display="flex" flexDirection="column" alignItems="center" sx={{ gap: 2 }}>
                   <Avatar
-                    src={`${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.user.image?.link}`}
+                    src={
+                      userDetail?.user?.image?.link
+                        ? `${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.user.image.link}`
+                        : "/assets/noprofileImage.png"
+                    }
                     sx={{
                       width: 120,
                       height: 120,
@@ -209,10 +213,10 @@ export default function UserProfileDetail() {
                   />
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <Typography variant="h6" sx={{ fontWeight: "bold", textAlign: "center" }}>
-                      {userDetail.user.nickname}
+                      {userDetail?.user?.nickname}
                     </Typography>
                     <UserBadge
-                      totalExperience={userDetail.user?.experience_points ?? 0}
+                      totalExperience={userDetail?.user?.experience_points ?? 0}
                       size="medium"
                       showText={false}
                     />

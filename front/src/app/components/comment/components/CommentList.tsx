@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import { Box, TextField, Button, Typography, Avatar, useTheme } from "@mui/material";
-import UserBadge from "@/app/components/common/UserBadge";
+import LevelBadge from "@/app/components/common/LevelBadge";
 import dayjs from "dayjs";
 import BlindWrapper from "../../BlindWrapper";
 import { useAdmin } from "../../../hooks/useAdmin";
@@ -78,8 +78,8 @@ const CommentList = React.memo(
                     >
                       {comment.nickname}
                     </Typography>
-                    {/* 텍스트 없이 작은 배지 아이콘만 */}
-                    <UserBadge totalExperience={0} size="small" showText={false} />
+                    {/* 레벨 뱃지 표시 */}
+                    <LevelBadge level={comment.level} size="small" />
                   </Box>
                 </>
               ) : (

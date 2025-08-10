@@ -2,6 +2,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { TextField, Button, Avatar, Typography, Box, Container, CircularProgress, useTheme } from "@mui/material";
 import UserBadge from "@/app/components/common/UserBadge";
+import UserLevelProgress from "@/app/components/common/UserLevelProgress";
 import axiosBase from "@/app/api/axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
@@ -500,6 +501,10 @@ function UserProfileEdit() {
                 size="medium"
                 showText
               />
+            </Box>
+            {/* 경험치 진행도 바 */}
+            <Box sx={{ mb: 3, px: 2 }}>
+              <UserLevelProgress totalExperience={userDetail?.experience_points ?? 0} />
             </Box>
             {/* 프로필 사진과 입력 요소들을 한 줄로 배치 */}
             <Box display="flex" flexDirection="row" alignItems="flex-start" sx={{ gap: 3, mb: 3 }}>

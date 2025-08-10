@@ -17,8 +17,7 @@ export const LEVELS: LevelDefinition[] = [
   { level: 2, minExp: 100 }, // 1 -> 2에 100 필요
   { level: 3, minExp: 300 },
   { level: 4, minExp: 600 },
-  { level: 5, minExp: 1000 },
-  { level: 6, minExp: 1500 },
+  { level: 5, minExp: 1000 }, // 최대 레벨 5
 ];
 
 export function getLevelByExperience(exp: number): number {

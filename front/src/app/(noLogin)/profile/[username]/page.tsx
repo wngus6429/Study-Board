@@ -12,6 +12,7 @@ import CustomizedUserCommentsTables from "@/app/components/table/CustomizedUserC
 import ProfilePagination from "@/app/components/common/ProfilePagination";
 import { Avatar, Box, Typography, CircularProgress, useTheme } from "@mui/material";
 import UserBadge from "@/app/components/common/UserBadge";
+import UserBadge from "@/app/components/common/UserBadge";
 
 interface ApiStoryResponse {
   StoryResults: any[];
@@ -209,14 +210,7 @@ export default function UserProfileDetail() {
                     <Typography variant="h6" sx={{ fontWeight: "bold", textAlign: "center" }}>
                       {userDetail.user.nickname}
                     </Typography>
-                    <UserBadge
-                      nickname={userDetail.user.nickname}
-                      totals={{
-                        totalPosts: (UserStory?.StoryTotal as number) || 0,
-                        totalComments: (UserComments?.CommentsTotal as number) || 0,
-                      }}
-                      size="medium"
-                    />
+                    <UserBadge totalExperience={userDetail.user?.experience_points ?? 0} size="medium" showText />
                   </Box>
                 </Box>
               </Box>

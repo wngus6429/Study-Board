@@ -389,6 +389,8 @@ export class AuthService {
       user: {
         nickname: user.nickname,
         image: user.UserImage,
+        level: user.level,
+        experience_points: user.experience_points,
       },
       posts: posts.map((post) => ({
         id: post.id,

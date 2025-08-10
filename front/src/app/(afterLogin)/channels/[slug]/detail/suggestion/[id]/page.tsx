@@ -43,6 +43,7 @@ import ZoomOutIcon from "@mui/icons-material/ZoomOut";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import UserMenuPopover from "@/app/components/common/UserMenuPopover";
+import UserBadge from "@/app/components/common/UserBadge";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
 // MODIFIED: SuggestionType 타입 사용 (건의사항 상세 데이터)
 // import { SuggestionType } from "@/app/types/suggestionDetailType";
@@ -774,17 +775,20 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   <Box>
                     <Box display="flex" alignItems="center" gap={1} mb={1}>
                       <PersonIcon sx={{ color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed" }} />
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                          color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
-                        }}
-                        onClick={(e) => handleUserNicknameClick(e, detail.User.nickname)}
-                      >
-                        {detail.User.nickname}
-                      </Typography>
+                      <Box display="flex" alignItems="center" gap={1}>
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                            color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+                          }}
+                          onClick={(e) => handleUserNicknameClick(e, detail.User.nickname)}
+                        >
+                          {detail.User.nickname}
+                        </Typography>
+                        <UserBadge totalExperience={detail.User?.experience_points ?? 0} showText={false} />
+                      </Box>
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mb: 1 }}>
                       건의사항 작성자

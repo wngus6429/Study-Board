@@ -62,22 +62,32 @@ const CommentList = React.memo(
                 mb: 1,
               }}
             >
-              <Avatar
-                src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`}
-                sx={{ width: 32, height: 32, mr: 1 }}
-              />
-              <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontWeight: "bold",
-                    color: theme.palette.mode === "dark" ? "#a78bfa" : "#4f46e5",
-                  }}
-                >
-                  {comment.nickname}
-                </Typography>
-                <UserBadge totals={{ totalPosts: 0, totalComments: 0 }} size="small" inline />
-              </Box>
+              {comment.nickname ? (
+                <>
+                  <Avatar
+                    src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`}
+                    sx={{ width: 32, height: 32, mr: 1 }}
+                  />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        fontWeight: "bold",
+                        color: theme.palette.mode === "dark" ? "#a78bfa" : "#4f46e5",
+                      }}
+                    >
+                      {comment.nickname}
+                    </Typography>
+                    {/* 텍스트 없이 작은 배지 아이콘만 */}
+                    <UserBadge totalExperience={0} size="small" showText={false} />
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Avatar sx={{ width: 32, height: 32, mr: 1 }} />
+                </>
+              )}
+
               <Box
                 sx={{
                   ml: "auto",

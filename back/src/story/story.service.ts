@@ -23,6 +23,7 @@ import { CreateReportDto } from './dto/create-report.dto';
 import { ReviewReportDto } from './dto/review-report.dto';
 import { ChannelNotificationService } from '../channel-notification/channel-notification.service';
 import { NotificationService } from '../notification/notification.service';
+import { EXPERIENCE_RULES, getLevelByExperience } from '../constants/level';
 
 /**
  * Story 서비스
@@ -917,6 +918,22 @@ export class StoryService {
 
     const savedStory = await this.storyRepository.save(story);
 
+    // 경험치: 글 작성 시 +writePost, 레벨 재계산
+    try {
+      const author = await this.userRepository.findOne({
+        where: { id: userData.id },
+      });
+      if (author) {
+        const nextExp =
+          (author.experience_points ?? 0) + EXPERIENCE_RULES.writePost;
+        author.experience_points = nextExp;
+        author.level = getLevelByExperience(nextExp);
+        await this.userRepository.save(author);
+      }
+    } catch (e) {
+      console.error('경험치 업데이트 실패(글 작성):', e);
+    }
+
     // 채널의 스토리 카운트 증가
     if (channel) {
       await this.channelsRepository.increment(
@@ -1477,6 +1494,10 @@ export class StoryService {
         // 게시글이 없으면 404 예외를 던집니다.
         throw new NotFoundException('해당 게시글을 찾을 수 없습니다.');
       }
+      const storyWithAuthor = await storyRepo.findOne({
+        where: { id: storyId },
+        relations: ['User'],
+      });
 
       // 2) 기존 투표 조회: userId, storyId 조합으로 Likes 레코드 검색
       const existingVote = await likeRepo.findOne({
@@ -1564,6 +1585,26 @@ export class StoryService {
             await rankingRepo.remove(rankingEntry);
           }
         }
+      }
+
+      // 게시글 작성자 경험치 업데이트: 좋아요/싫어요 변화량 그대로 적용
+      try {
+        if (storyWithAuthor?.User?.id && likeCountAdjustment !== 0) {
+          const authorRepo = manager.getRepository(User);
+          const author = await authorRepo.findOne({
+            where: { id: storyWithAuthor.User.id },
+          });
+          if (author) {
+            const nextExp =
+              (author.experience_points ?? 0) +
+              likeCountAdjustment * EXPERIENCE_RULES.likeOnMyPost;
+            author.experience_points = nextExp;
+            author.level = getLevelByExperience(nextExp);
+            await authorRepo.save(author);
+          }
+        }
+      } catch (e) {
+        console.error('경험치 업데이트 실패(추천 변경):', e);
       }
 
       // 최종 수행된 action과 vote 유형을 반환합니다.

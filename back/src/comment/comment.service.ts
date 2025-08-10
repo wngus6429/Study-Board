@@ -10,6 +10,7 @@ import { Comments } from 'src/entities/Comments.entity';
 import { Story } from 'src/entities/Story.entity';
 import { User } from 'src/entities/User.entity';
 import { Notification } from 'src/entities/Notification.entity';
+import { EXPERIENCE_RULES, getLevelByExperience } from '../constants/level';
 
 @Injectable()
 export class CommentService {
@@ -82,6 +83,21 @@ export class CommentService {
         'comment_count',
         1,
       );
+
+      // 경험치: 댓글 작성자에게 +writeComment, 레벨 재계산
+      try {
+        const authorRepo = manager.getRepository(User);
+        const author = await authorRepo.findOne({ where: { id: authorId } });
+        if (author) {
+          const nextExp =
+            (author.experience_points ?? 0) + EXPERIENCE_RULES.writeComment;
+          author.experience_points = nextExp;
+          author.level = getLevelByExperience(nextExp);
+          await authorRepo.save(author);
+        }
+      } catch (e) {
+        console.error('경험치 업데이트 실패(댓글 작성):', e);
+      }
 
       // 알림 생성 - 직접 생성
       if (parentComment) {

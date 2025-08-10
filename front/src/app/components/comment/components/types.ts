@@ -12,6 +12,7 @@ export interface Comment {
   depth?: number;
   updated_at: string;
   link: string; // 프로필 이미지 링크
+  isDeleted?: boolean; // 삭제된 댓글 여부 (닉네임/콘텐츠 숨김 처리용)
 }
 
 // 페이지네이션 응답 인터페이스

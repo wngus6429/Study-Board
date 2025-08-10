@@ -1,58 +1,44 @@
-export interface UserActivityTotals {
-  totalPosts: number;
-  totalComments: number;
-  totalReceivedRecommends?: number; // 확장용 (백엔드 제공 시 연동)
-}
+import { LEVELS } from "@/app/const/LEVEL";
 
-export interface UserLevelInfo {
+export type UserLevelInfo = {
   level: number;
-  title: string;
-  score: number;
-  nextLevelScore?: number;
-  color: string; // MUI color or hex
-  gradient?: string; // css linear-gradient for fancy badge
-}
+  currentExp: number; // 현재 누적 경험치
+  currentLevelMinExp: number;
+  nextLevelMinExp: number | null; // 최고 레벨이면 null
+  progressPercent: number; // 0~100
+  badgeName: string;
+  badgeColor: string;
+};
 
-/**
- * 사용자 활동 점수 계산
- * 기본 가중치: 글 5점, 댓글 2점, 받은 추천 1점(옵션)
- */
-export function calculateActivityScore(totals: UserActivityTotals): number {
-  const postsScore = (totals.totalPosts || 0) * 5;
-  const commentsScore = (totals.totalComments || 0) * 2;
-  const recommendsScore = (totals.totalReceivedRecommends || 0) * 1;
-  return postsScore + commentsScore + recommendsScore;
-}
-
-// 레벨 테이블 (임계값: 누적 점수)
-const LEVELS: Array<{ threshold: number; title: string; color: string; gradient?: string }> = [
-  { threshold: 0, title: "새싹", color: "default" },
-  { threshold: 20, title: "초심자", color: "#60a5fa" }, // blue-400
-  { threshold: 60, title: "입문", color: "#34d399" }, // emerald-400
-  { threshold: 120, title: "견습", color: "#a78bfa" }, // violet-400
-  { threshold: 250, title: "숙련", color: "#fbbf24" }, // amber-400
-  { threshold: 500, title: "고수", color: "#f59e0b", gradient: "linear-gradient(135deg,#f59e0b,#ef4444)" },
-  { threshold: 1000, title: "마스터", color: "#eab308", gradient: "linear-gradient(135deg,#eab308,#db2777)" },
-];
-
-export function calculateUserLevel(totals: UserActivityTotals): UserLevelInfo {
-  const score = calculateActivityScore(totals);
-  // 가장 높은 임계값부터 찾기
-  let selectedIndex = 0;
-  for (let i = LEVELS.length - 1; i >= 0; i -= 1) {
-    if (score >= LEVELS[i].threshold) {
-      selectedIndex = i;
-      break;
-    }
+export function getLevelInfoByExp(totalExperience: number): UserLevelInfo {
+  // 현재 레벨 찾기: minExp 기준으로 가장 큰 레벨
+  let current = LEVELS[0];
+  for (const lv of LEVELS) {
+    if (totalExperience >= lv.minExp) current = lv;
   }
-  const current = LEVELS[selectedIndex];
-  const next = LEVELS[selectedIndex + 1];
+
+  const currentIndex = LEVELS.findIndex((l) => l.level === current.level);
+  const next = LEVELS[currentIndex + 1] ?? null;
+
+  const currentLevelMinExp = current.minExp;
+  const nextLevelMinExp = next?.minExp ?? null;
+
+  let progressPercent = 100;
+  if (nextLevelMinExp != null) {
+    const range = Math.max(1, nextLevelMinExp - currentLevelMinExp);
+    progressPercent = Math.min(100, Math.max(0, ((totalExperience - currentLevelMinExp) / range) * 100));
+  }
+
   return {
-    level: selectedIndex + 1,
-    title: current.title,
-    score,
-    nextLevelScore: next ? next.threshold : undefined,
-    color: current.color,
-    gradient: current.gradient,
+    level: current.level,
+    currentExp: totalExperience,
+    currentLevelMinExp,
+    nextLevelMinExp,
+    progressPercent,
+    badgeName: current.badgeName,
+    badgeColor: current.badgeColor,
+    // 아래 필드는 UserBadge에서만 접근 (as any)하여 이미지 렌더링에 사용
+    // 타입 확장을 피해 최소 주석으로만 표기
+    ...(current as any),
   };
 }

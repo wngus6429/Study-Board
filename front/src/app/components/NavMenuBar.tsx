@@ -1,5 +1,5 @@
 "use client";
-import { FC, useEffect, useMemo, useCallback } from "react";
+import { FC, useEffect, useMemo, useCallback, memo } from "react";
 import Link from "next/link";
 import {
   Box,
@@ -27,18 +27,16 @@ const NavMenuBar: FC = () => {
   const { data: session } = useSession();
 
   // 현재 경로에서 채널 슬러그와 상세페이지 여부 확인 - useMemo로 최적화
-  const isChannelDetailPage = useMemo(() => {
-    return pathname?.includes("/channels/") && pathname?.includes("/detail/");
-  }, [pathname]);
-
-  const currentUrlChannelSlug = useMemo(() => {
-    return pathname?.match(/\/channels\/([^\/]+)/)?.[1];
+  const pathInfo = useMemo(() => {
+    const isChannelDetailPage = pathname?.includes("/channels/") && pathname?.includes("/detail/");
+    const currentUrlChannelSlug = pathname?.match(/\/channels\/([^\/]+)/)?.[1];
+    return { isChannelDetailPage, currentUrlChannelSlug };
   }, [pathname]);
 
   // 현재 보고 있는 채널의 스토리 목록 표시 여부 결정 - useMemo로 최적화
   const shouldShowStories = useMemo(() => {
-    return isChannelDetailPage && currentChannelSlug === currentUrlChannelSlug && stories.length > 0;
-  }, [isChannelDetailPage, currentChannelSlug, currentUrlChannelSlug, stories.length]);
+    return pathInfo.isChannelDetailPage && currentChannelSlug === pathInfo.currentUrlChannelSlug && stories.length > 0;
+  }, [pathInfo.isChannelDetailPage, currentChannelSlug, pathInfo.currentUrlChannelSlug, stories.length]);
 
   // useCallback으로 이벤트 핸들러 최적화
   const handleStoryClick = useCallback(
@@ -269,4 +267,4 @@ const NavMenuBar: FC = () => {
   );
 };
 
-export default NavMenuBar;
+export default memo(NavMenuBar);

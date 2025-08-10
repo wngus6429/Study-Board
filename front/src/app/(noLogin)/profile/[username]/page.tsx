@@ -39,8 +39,10 @@ export default function UserProfileDetail() {
 
   // 프로필 정보 불러옴
   const fetchUserDetail = async (username: string) => {
-    const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/profile/${username}`);
-    return response.data;
+    const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/profile/${username}`, {
+      headers: { "Cache-Control": "no-cache" },
+    });
+    return response.data; // user.level, user.experience_points 포함됨
   };
 
   useEffect(() => {

@@ -2,7 +2,7 @@
 import React from "react";
 import { Box, Typography } from "@mui/material";
 import { getLevelInfoByExp } from "@/app/utils/level";
-import { EXPERIENCE_RULES } from "@/app/const/LEVEL";
+import { EXPERIENCE_RULES, LEVELS } from "@/app/const/LEVEL";
 
 type Totals = {
   totalPosts?: number;
@@ -44,7 +44,32 @@ export default function UserBadge({
       dislikes * EXPERIENCE_RULES.dislikeOnMyPost;
   }
 
-  const info = getLevelInfoByExp(computedExp);
+  // 기본: 경험치로 계산된 정보
+  let info = getLevelInfoByExp(computedExp);
+
+  // levelOverride가 있으면 뱃지/이름/색상을 강제 지정 (이미지 포함)
+  if (levelOverride != null) {
+    const overrideDef = LEVELS.find((l) => l.level === levelOverride) ?? LEVELS[0];
+    const currentLevelMinExp = overrideDef.minExp;
+    const nextDef = LEVELS[LEVELS.findIndex((l) => l.level === overrideDef.level) + 1] ?? null;
+    const nextLevelMinExp = nextDef?.minExp ?? null;
+    let progressPercent = 100;
+    if (nextLevelMinExp != null) {
+      const range = Math.max(1, nextLevelMinExp - currentLevelMinExp);
+      progressPercent = Math.min(100, Math.max(0, ((computedExp - currentLevelMinExp) / range) * 100));
+    }
+    info = {
+      level: overrideDef.level,
+      currentExp: computedExp,
+      currentLevelMinExp,
+      nextLevelMinExp,
+      progressPercent,
+      badgeName: overrideDef.badgeName,
+      badgeColor: overrideDef.badgeColor,
+      ...(overrideDef as any),
+    };
+  }
+
   const label = badgeNameOverride ?? `${levelOverride ?? info.level}레벨 · ${info.badgeName}`;
 
   const badgeImgSrc = (info as any).badgeImage || undefined;

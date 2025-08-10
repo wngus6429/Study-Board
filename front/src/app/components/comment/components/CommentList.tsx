@@ -235,14 +235,13 @@ const CommentList = React.memo(
                     )}
                   </>
                 )}
-                {/* 삭제 버튼 - 본인 댓글이거나 관리자 권한이 있을 때 표시 */}
-                {(comment.userId === sessionUserId ||
-                  admin.hasAdminPermission({ channelId, creatorId: channelCreatorId })) && (
+                {/* 삭제 버튼 - 본인 댓글이거나 총관리자일 때만 표시 */}
+                {(comment.userId === sessionUserId || admin.isSuperAdmin) && (
                   <Button
                     size="small"
                     onClick={() => {
-                      // 관리자 권한이 있으면 관리자 삭제, 아니면 일반 삭제
-                      if (admin.hasAdminPermission({ channelId, creatorId: channelCreatorId })) {
+                      // 총관리자면 관리자 삭제, 아니면 일반 삭제
+                      if (admin.isSuperAdmin) {
                         handleAdminDeleteComment(comment.id, comment.content);
                       } else {
                         handleDeleteClick(comment.id);
@@ -262,7 +261,7 @@ const CommentList = React.memo(
                     }}
                     disabled={admin.isLoading}
                   >
-                    {admin.hasAdminPermission({ channelId, creatorId: channelCreatorId }) ? "관리자 삭제" : "삭제"}
+                    {admin.isSuperAdmin ? "관리자 삭제" : "삭제"}
                   </Button>
                 )}
               </Box>

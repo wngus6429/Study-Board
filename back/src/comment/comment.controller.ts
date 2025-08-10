@@ -62,8 +62,9 @@ export class CommentController {
   async deleteComment(
     @Param('id', ParseIntPipe) commentId: number,
     @Body() commentData: { storyId: string },
+    @GetUser() user: User,
   ): Promise<void> {
-    return this.commentsService.deleteComment(commentId, commentData);
+    return this.commentsService.deleteComment(commentId, commentData, user);
   }
   //!ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 프로필 페이지용 댓글 삭제

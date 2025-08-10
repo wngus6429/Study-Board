@@ -140,6 +140,7 @@ export class CommentService {
   async deleteComment(
     commentId: number,
     commentData: { storyId: string },
+    user: User,
   ): Promise<void> {
     await this.dataSource.transaction(async (manager) => {
       const commentRepository = manager.getRepository(Comments);
@@ -148,9 +149,20 @@ export class CommentService {
       // 댓글 확인
       const comment = await commentRepository.findOne({
         where: { id: commentId },
+        relations: ['User'],
       });
       if (!comment) {
         throw new NotFoundException('삭제할 댓글을 찾을 수 없습니다.');
+      }
+
+      // 권한 체크: 본인 댓글이거나 총관리자만 삭제 가능
+      if (!user) {
+        throw new ForbiddenException('댓글 삭제 권한이 없습니다.');
+      }
+      const isOwner = comment.User?.id === user.id;
+      const isSuperAdmin = user.is_super_admin === true;
+      if (!isOwner && !isSuperAdmin) {
+        throw new ForbiddenException('댓글 삭제 권한이 없습니다.');
       }
 
       // 글 확인

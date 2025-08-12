@@ -159,19 +159,19 @@ export class AuthController {
     // Access Token을 HttpOnly 쿠키에 저장 (XSS 공격 방지)
     res.cookie('access_token', accessToken, {
       httpOnly: true, // JavaScript로 접근 불가
-      secure: false, // HTTP 환경에서도 쿠키 전송 허용
-      sameSite: 'lax', // SameSite 정책 완화
-      // secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송
-      // sameSite: 'strict', // CSRF 공격 방지
+      // secure: false, // HTTP 환경에서도 쿠키 전송 허용
+      // sameSite: 'lax', // SameSite 정책 완화
+      secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송
+      sameSite: 'strict', // CSRF 공격 방지
     });
 
     // Refresh Token을 HttpOnly 쿠키에 저장
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      // secure: process.env.NODE_ENV === 'production',
-      // sameSite: 'strict',
+      // secure: false,
+      // sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7일 (밀리초)
     });
 
@@ -230,19 +230,19 @@ export class AuthController {
     // Access Token 쿠키 삭제
     res.clearCookie('access_token', {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      // secure: process.env.NODE_ENV === 'production',
-      // sameSite: 'strict',
+      // secure: false,
+      // sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
     });
 
     // Refresh Token 쿠키 삭제
     res.clearCookie('refresh_token', {
       httpOnly: true,
-      secure: false,
-      sameSite: 'lax',
-      // secure: process.env.NODE_ENV === 'production',
-      // sameSite: 'strict',
+      // secure: false,
+      // sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
     });
 
     res.sendStatus(200);
@@ -587,19 +587,19 @@ export class AuthController {
       // 새로운 액세스 토큰을 쿠키에 설정
       res.cookie('access_token', accessToken, {
         httpOnly: true, // JavaScript에서 접근 불가
-        secure: false,
-        sameSite: 'lax',
-        // secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송
-        // sameSite: 'strict', // CSRF 방지
+        // secure: false,
+        // sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송
+        sameSite: 'strict', // CSRF 방지
       });
 
       // 새로운 리프레시 토큰을 쿠키에 설정 (7일 유효)
       res.cookie('refresh_token', newRefreshToken, {
         httpOnly: true,
-        secure: false,
-        sameSite: 'lax',
-        // secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송
-        // sameSite: 'strict', // CSRF 방지
+        // secure: false,
+        // sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송
+        sameSite: 'strict', // CSRF 방지
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
       });
 

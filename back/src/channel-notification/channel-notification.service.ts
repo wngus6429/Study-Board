@@ -7,7 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ChannelNotificationSubscription } from '../entities/ChannelNotificationSubscription.entity';
-import { User } from '../entities/User.entity';
+import { User } from '../entities/aUser.entity';
 import { Channels } from '../entities/Channels.entity';
 
 @Injectable()

@@ -9,8 +9,8 @@ import {
 } from 'typeorm';
 import { Story } from './Story.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from './User.entity';
-import { Notification } from './Notification.entity'; 
+import { User } from './aUser.entity';
+import { Notification } from './Notification.entity';
 
 @Entity()
 export class Comments {
@@ -71,6 +71,6 @@ export class Comments {
   })
   User: User;
 
-  @OneToMany(() => Notification, (notification) => notification.recipient)  // ← 추가
-  Notifications: Notification[];  // ← 추가
+  @OneToMany(() => Notification, (notification) => notification.recipient) // ← 추가
+  Notifications: Notification[]; // ← 추가
 }

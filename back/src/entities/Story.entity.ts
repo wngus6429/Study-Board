@@ -17,7 +17,7 @@ import { ApiProperty } from '@nestjs/swagger';
 // Comments 엔티티: 게시글에 달린 댓글 정보를 담는 엔티티
 import { Comments } from './Comments.entity';
 // User 엔티티: 게시글 작성자 정보를 담는 엔티티
-import { User } from './User.entity';
+import { User } from './aUser.entity';
 // Likes 엔티티: 게시글에 달린 추천(또는 비추천) 정보를 담는 엔티티
 import { Likes } from './Likes.entity';
 // Channels 엔티티: 채널 정보를 담는 엔티티

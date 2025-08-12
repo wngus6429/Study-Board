@@ -8,7 +8,7 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { UpdateStoryDto } from './dto/update-story.dto';
-import { User } from 'src/entities/User.entity';
+import { User } from 'src/entities/aUser.entity';
 
 /**
  * Story SQL 서비스 - 순수 SQL 버전

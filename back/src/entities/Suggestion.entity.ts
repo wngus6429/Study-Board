@@ -7,7 +7,7 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './User.entity';
+import { User } from './aUser.entity';
 import { SuggestionImage } from './SuggestionImage.entity';
 import { Channels } from './Channels.entity';
 

@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   Unique,
 } from 'typeorm';
-import { User } from './User.entity';
+import { User } from './aUser.entity';
 import { Channels } from './Channels.entity';
 
 @Entity()

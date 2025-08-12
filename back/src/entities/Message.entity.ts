@@ -6,7 +6,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { User } from './aUser.entity';
+import { User } from './User.entity';
 
 @Entity()
 export class Message {

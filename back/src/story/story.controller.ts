@@ -21,7 +21,7 @@ import { ReviewReportDto } from './dto/review-report.dto';
 import { StoryService } from './story.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { User } from 'src/entities/aUser.entity';
+import { User } from 'src/entities/User.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Story } from 'src/entities/Story.entity';
 import { Report, ReportStatus } from 'src/entities/Report.entity';

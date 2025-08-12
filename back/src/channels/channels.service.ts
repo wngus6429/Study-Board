@@ -4,7 +4,7 @@ import { Repository } from 'typeorm';
 import { Channels } from '../entities/Channels.entity';
 import { ChannelImage } from '../entities/ChannelImage.entity';
 import { Subscription } from '../entities/Subscription.entity';
-import { User } from '../entities/aUser.entity';
+import { User } from '../entities/User.entity';
 
 @Injectable()
 export class ChannelsService {

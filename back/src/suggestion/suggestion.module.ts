@@ -7,7 +7,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { Today } from 'src/common/helper/today';
-import { User } from 'src/entities/aUser.entity';
+import { User } from 'src/entities/User.entity';
 import { Suggestion } from 'src/entities/Suggestion.entity';
 import { SuggestionImage } from 'src/entities/SuggestionImage.entity';
 

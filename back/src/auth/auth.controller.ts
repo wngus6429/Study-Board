@@ -43,7 +43,7 @@ import { SigninUserDto } from './dto/signin.user.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { User } from 'src/entities/aUser.entity';
+import { User } from 'src/entities/User.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { Story } from 'src/entities/Story.entity';

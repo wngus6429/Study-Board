@@ -11,7 +11,7 @@ import {
 } from 'typeorm';
 import { Story } from './Story.entity';
 import { Subscription } from './Subscription.entity';
-import { User } from './aUser.entity';
+import { User } from './User.entity';
 import { ChannelImage } from './ChannelImage.entity';
 import { ChannelNotificationSubscription } from './ChannelNotificationSubscription.entity';
 import { ChannelChatMessage } from './ChannelChatMessage.entity';

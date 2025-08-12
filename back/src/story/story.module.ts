@@ -11,7 +11,7 @@ import { StoryImage } from 'src/entities/StoryImage.entity';
 import { StoryVideo } from 'src/entities/StoryVideo.entity';
 import { Today } from 'src/common/helper/today';
 import { UserImage } from 'src/entities/UserImage.entity';
-import { User } from 'src/entities/aUser.entity';
+import { User } from 'src/entities/User.entity';
 import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';

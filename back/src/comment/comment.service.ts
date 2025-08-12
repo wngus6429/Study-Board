@@ -8,7 +8,7 @@ import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, In } from 'typeorm';
 import { Comments } from 'src/entities/Comments.entity';
 import { Story } from 'src/entities/Story.entity';
-import { User } from 'src/entities/aUser.entity';
+import { User } from 'src/entities/User.entity';
 import { Notification } from 'src/entities/Notification.entity';
 import { EXPERIENCE_RULES, getLevelByExperience } from '../constants/level';
 

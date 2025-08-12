@@ -19,7 +19,7 @@ import {
 import { SuggestionService } from './suggestion.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
-import { User } from 'src/entities/aUser.entity';
+import { User } from 'src/entities/User.entity';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Suggestion } from 'src/entities/Suggestion.entity';
 

@@ -9,7 +9,7 @@ import {
 } from 'typeorm';
 import { Story } from './Story.entity';
 import { ApiProperty } from '@nestjs/swagger';
-import { User } from './aUser.entity';
+import { User } from './User.entity';
 import { Notification } from './Notification.entity';
 
 @Entity()

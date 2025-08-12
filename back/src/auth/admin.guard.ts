@@ -9,7 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../entities/aUser.entity';
+import { User } from '../entities/User.entity';
 
 export enum AdminLevel {
   SUPER_ADMIN = 'super_admin',

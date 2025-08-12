@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Comments } from 'src/entities/Comments.entity';
 import { Story } from 'src/entities/Story.entity';
-import { User } from 'src/entities/aUser.entity';
+import { User } from 'src/entities/User.entity';
 import { Notification } from 'src/entities/Notification.entity';
 import { PassportModule } from '@nestjs/passport';
 import { CommentController } from './comment.controller';

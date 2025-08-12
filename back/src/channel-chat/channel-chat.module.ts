@@ -5,7 +5,7 @@ import { ChannelChatController } from './channel-chat.controller';
 import { ChannelChatGateway } from './channel-chat.gateway';
 import { ChannelChatMessage } from '../entities/ChannelChatMessage.entity';
 import { Channels } from '../entities/Channels.entity';
-import { User } from '../entities/aUser.entity';
+import { User } from '../entities/User.entity';
 import { AuthModule } from 'src/auth/auth.module';
 
 @Module({

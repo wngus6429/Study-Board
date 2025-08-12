@@ -8,7 +8,7 @@ import {
   Index,
 } from 'typeorm';
 import { Channels } from './Channels.entity';
-import { User } from './aUser.entity';
+import { User } from './User.entity';
 
 @Entity()
 @Index(['channel', 'created_at']) // 채널별 최신 메시지 조회 최적화

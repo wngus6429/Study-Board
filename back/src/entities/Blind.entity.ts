@@ -9,7 +9,7 @@ import {
   UpdateDateColumn,
   Unique,
 } from 'typeorm';
-import { User } from './aUser.entity';
+import { User } from './User.entity';
 
 @Entity()
 @Unique(['userId', 'targetUserId'])

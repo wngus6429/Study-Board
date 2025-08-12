@@ -21,7 +21,7 @@ import {
   ChannelAdminRequired,
 } from '../common/decorators/admin.decorator';
 import { GetUser } from '../common/decorators/get-user.decorator';
-import { User } from '../entities/aUser.entity';
+import { User } from '../entities/User.entity';
 
 @Controller('api/story')
 export class CommentController {

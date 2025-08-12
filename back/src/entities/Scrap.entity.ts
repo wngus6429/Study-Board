@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   JoinColumn,
 } from 'typeorm';
-import { User } from './aUser.entity';
+import { User } from './User.entity';
 import { Story } from './Story.entity';
 
 @Entity()

@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Blind } from '../entities/Blind.entity';
-import { User } from '../entities/aUser.entity';
+import { User } from '../entities/User.entity';
 import { CreateBlindDto } from './dto/create-blind.dto';
 
 @Injectable()

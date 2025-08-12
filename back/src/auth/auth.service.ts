@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 // import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { User } from '../entities/aUser.entity';
+import { User } from '../entities/User.entity';
 import { SignupUserDto } from './dto/signup.user.dto';
 import { IsNull, Repository } from 'typeorm';
 import { Likes } from 'src/entities/Likes.entity';

@@ -8,7 +8,7 @@ import { ChannelsService } from './channels.service';
 import { Channels } from '../entities/Channels.entity';
 import { ChannelImage } from '../entities/ChannelImage.entity';
 import { Subscription } from '../entities/Subscription.entity';
-import { User } from '../entities/aUser.entity';
+import { User } from '../entities/User.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { Today } from 'src/common/helper/today';
 

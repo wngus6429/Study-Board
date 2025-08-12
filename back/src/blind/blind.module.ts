@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { BlindController } from './blind.controller';
 import { BlindService } from './blind.service';
 import { Blind } from '../entities/Blind.entity';
-import { User } from '../entities/aUser.entity';
+import { User } from '../entities/User.entity';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({

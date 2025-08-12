@@ -7,7 +7,7 @@ import {
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { ILike, In, LessThan, Repository, DataSource } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
-import { User } from 'src/entities/aUser.entity';
+import { User } from 'src/entities/User.entity';
 import { Story } from 'src/entities/Story.entity';
 import { StoryImage } from 'src/entities/StoryImage.entity';
 import { StoryVideo } from 'src/entities/StoryVideo.entity';

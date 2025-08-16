@@ -40,6 +40,11 @@ import { AuthService } from './auth.service';
 import { SignupUserDto } from './dto/signup.user.dto';
 import { Response, Request } from 'express'; // Express Response 객체를 import
 import { SigninUserDto } from './dto/signin.user.dto';
+import {
+  ForgotPasswordDto,
+  ForgotPasswordResponseDto,
+  ResetPasswordDto,
+} from './dto/forgot-password.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { GetUser } from 'src/common/decorators/get-user.decorator';
@@ -710,6 +715,64 @@ export class AuthController {
       limit,
       username,
     );
+  }
+
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  /**
+   * 🔑 비밀번호 찾기 (이메일 확인)
+   *
+   * 사용자가 비밀번호를 잊었을 때 이메일로 계정 존재 여부를 확인하는 엔드포인트입니다.
+   * 개인 프로젝트용 간단한 방식입니다.
+   *
+   * @param forgotPasswordDto - 비밀번호 찾기 요청 데이터 (이메일)
+   * @returns 이메일 확인 결과
+   *
+   * @example
+   * POST /api/auth/forgot-password
+   * Body: { "user_email": "user@example.com" }
+   *
+   * @response
+   * {
+   *   "message": "이메일을 확인했습니다. 새로운 비밀번호를 설정해주세요.",
+   *   "success": true,
+   *   "emailExists": true
+   * }
+   */
+  @Post('/forgot-password')
+  async forgotPassword(
+    @Body(ValidationPipe) forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<ForgotPasswordResponseDto> {
+    console.log('🔑 이메일 확인 요청:', forgotPasswordDto.user_email);
+    return await this.authUserService.forgotPassword(forgotPasswordDto);
+  }
+
+  /**
+   * 🔄 비밀번호 재설정
+   *
+   * 이메일 확인 후 새로운 비밀번호로 변경하는 엔드포인트입니다.
+   *
+   * @param resetPasswordDto - 비밀번호 재설정 요청 데이터
+   * @returns 비밀번호 재설정 결과
+   *
+   * @example
+   * POST /api/auth/reset-password
+   * Body: {
+   *   "user_email": "user@example.com",
+   *   "new_password": "newPassword123!"
+   * }
+   *
+   * @response
+   * {
+   *   "message": "비밀번호가 성공적으로 변경되었습니다.",
+   *   "success": true
+   * }
+   */
+  @Post('reset-password')
+  async resetPassword(
+    @Body(ValidationPipe) resetPasswordDto: ResetPasswordDto,
+  ): Promise<ForgotPasswordResponseDto> {
+    console.log('🔄 비밀번호 재설정 요청:', resetPasswordDto.user_email);
+    return await this.authUserService.resetPassword(resetPasswordDto);
   }
 }
 

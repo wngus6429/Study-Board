@@ -249,7 +249,30 @@ export default function page({ params }: { params: { id: string; slug: string } 
   };
 
   const handleGoToMain = () => {
-    router.push("/");
+    // 세션 스토리지에서 이전 메인 페이지 URL 확인
+    if (typeof window !== "undefined") {
+      const previousMainPageUrl = sessionStorage.getItem("previousMainPageUrl");
+
+      if (previousMainPageUrl) {
+        // 저장된 URL에서 현재 도메인 부분을 제거하고 경로만 추출
+        try {
+          const url = new URL(previousMainPageUrl);
+          const pathWithQuery = url.pathname + url.search;
+
+          // 세션 스토리지에서 URL 제거 (한 번 사용 후 삭제)
+          sessionStorage.removeItem("previousMainPageUrl");
+
+          // 이전 페이지로 이동
+          router.push(pathWithQuery);
+          return;
+        } catch (error) {
+          console.error("Invalid URL in session storage:", error);
+        }
+      }
+    }
+
+    // 저장된 URL이 없거나 오류가 발생한 경우 해당 채널 페이지로 이동
+    router.push(`/channels/${params.slug}`);
   };
 
   // MODIFIED: 건의사항 이미지 처리 (SuggestionImage 배열 사용)

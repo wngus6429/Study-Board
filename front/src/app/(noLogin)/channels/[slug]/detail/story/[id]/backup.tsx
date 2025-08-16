@@ -501,8 +501,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
       }
     }
 
-    // 저장된 URL이 없거나 오류가 발생한 경우 기본 메인으로 이동
-    router.push("/");
+    // 저장된 URL이 없거나 오류가 발생한 경우 해당 채널 페이지로 이동
+    router.push(`/channels/${params.slug}`);
   };
 
   // 사용자 메뉴 관련 핸들러

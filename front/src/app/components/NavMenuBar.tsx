@@ -41,6 +41,10 @@ const NavMenuBar: FC = () => {
   // useCallback으로 이벤트 핸들러 최적화
   const handleStoryClick = useCallback(
     (storyId: number) => {
+      // 현재 페이지 URL을 세션 스토리지에 저장 (메인으로 버튼 기능을 위해)
+      if (typeof window !== "undefined") {
+        sessionStorage.setItem("previousMainPageUrl", window.location.href);
+      }
       router.push(`/channels/${currentChannelSlug}/detail/story/${storyId}`);
     },
     [router, currentChannelSlug]

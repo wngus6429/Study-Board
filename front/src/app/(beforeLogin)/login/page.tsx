@@ -5,12 +5,14 @@ import { Button, TextField, Typography, Box, Container, Alert, useTheme } from "
 import axios from "axios";
 import { signIn, useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
+import ForgotPasswordModal from "@/app/components/ForgotPasswordModal";
 
 // 로그인 화면
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const router = useRouter();
   const { showMessage, hideMessage } = useMessage((state) => state);
   const { data: session, update, status } = useSession();
@@ -206,9 +208,32 @@ const LoginPage = () => {
             >
               로그인
             </Button>
+
+            {/* 비밀번호 찾기 버튼 */}
+            <Box sx={{ textAlign: "center", mt: 2 }}>
+              <Button
+                variant="text"
+                onClick={() => setForgotPasswordOpen(true)}
+                sx={{
+                  color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
+                  fontSize: "0.9rem",
+                  textDecoration: "underline",
+                  "&:hover": {
+                    backgroundColor: "transparent",
+                    textDecoration: "underline",
+                    color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 1)" : "#1565c0",
+                  },
+                }}
+              >
+                비밀번호를 잊으셨나요?
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Box>
+
+      {/* 비밀번호 찾기 모달 */}
+      <ForgotPasswordModal open={forgotPasswordOpen} onClose={() => setForgotPasswordOpen(false)} />
     </Container>
   );
 };

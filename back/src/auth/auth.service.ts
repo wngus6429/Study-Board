@@ -11,6 +11,11 @@ import { IsNull, Repository } from 'typeorm';
 import { Likes } from 'src/entities/Likes.entity';
 import * as bcrypt from 'bcryptjs';
 import { SigninUserDto } from './dto/signin.user.dto';
+import {
+  ForgotPasswordDto,
+  ForgotPasswordResponseDto,
+  ResetPasswordDto,
+} from './dto/forgot-password.dto';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { Comments } from 'src/entities/Comments.entity';
 import { Story } from 'src/entities/Story.entity';
@@ -45,6 +50,7 @@ export class AuthService {
     private readonly storyRepository: Repository<Story>,
     @InjectRepository(Likes)
     private readonly likesRepository: Repository<Likes>,
+
     // private readonly jwtService: JwtService, // JWT 사용 시 주석 해제
   ) {}
 
@@ -789,5 +795,97 @@ export class AuthService {
     }));
 
     return { CommentsResults, CommentsTotal };
+  }
+
+  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
+  /**
+   * 🔑 비밀번호 찾기 (이메일 확인)
+   *
+   * 사용자가 비밀번호를 잊었을 때 이메일로 계정 존재 여부를 확인합니다.
+   * 개인 프로젝트용 간단한 방식입니다.
+   *
+   * @param forgotPasswordDto - 비밀번호 찾기 요청 데이터
+   * @returns 이메일 확인 결과
+   */
+  async forgotPassword(
+    forgotPasswordDto: ForgotPasswordDto,
+  ): Promise<ForgotPasswordResponseDto> {
+    const { user_email } = forgotPasswordDto;
+
+    try {
+      // 🔍 이메일로 사용자 조회
+      const user = await this.userRepository.findOne({
+        where: { user_email, deleted_at: IsNull() },
+      });
+
+      if (user) {
+        return {
+          message: '이메일을 확인했습니다. 새로운 비밀번호를 설정해주세요.',
+          success: true,
+          emailExists: true,
+        };
+      } else {
+        return {
+          message: '등록되지 않은 이메일입니다.',
+          success: false,
+          emailExists: false,
+        };
+      }
+    } catch (error) {
+      console.error('이메일 확인 중 오류:', error);
+      return {
+        message: '처리 중 오류가 발생했습니다.',
+        success: false,
+      };
+    }
+  }
+
+  /**
+   * 🔄 비밀번호 재설정
+   *
+   * 이메일 확인 후 새로운 비밀번호로 변경합니다.
+   *
+   * @param resetPasswordDto - 비밀번호 재설정 데이터
+   * @returns 비밀번호 재설정 결과
+   */
+  async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+  ): Promise<ForgotPasswordResponseDto> {
+    const { user_email, new_password } = resetPasswordDto;
+
+    try {
+      // 🔍 이메일로 사용자 조회
+      const user = await this.userRepository.findOne({
+        where: { user_email, deleted_at: IsNull() },
+      });
+
+      if (!user) {
+        return {
+          message: '등록되지 않은 이메일입니다.',
+          success: false,
+        };
+      }
+
+      // 🔒 새 비밀번호 해시화
+      const hashedPassword = await bcrypt.hash(new_password, 10);
+
+      // 💾 비밀번호 업데이트
+      await this.userRepository.update(user.id, {
+        password: hashedPassword,
+      });
+
+      console.log(`비밀번호 재설정 완료 - 사용자: ${user.nickname}`);
+
+      return {
+        message: '비밀번호가 성공적으로 변경되었습니다.',
+        success: true,
+      };
+    } catch (error) {
+      console.error('비밀번호 재설정 중 오류:', error);
+      return {
+        message: '비밀번호 변경 중 오류가 발생했습니다.',
+        success: false,
+      };
+    }
   }
 }

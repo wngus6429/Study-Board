@@ -24,13 +24,6 @@ export const useCommentNavigation = ({
         behavior: "smooth",
         block: "center",
       });
-      // 댓글 하이라이트 효과
-      element.style.backgroundColor = "#fff3cd";
-      element.style.border = "2px solid #ffc107";
-      setTimeout(() => {
-        element.style.backgroundColor = "";
-        element.style.border = "";
-      }, 3000);
     }
   }, []);
 

@@ -193,8 +193,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
         block: "center",
       });
       // 댓글 하이라이트 효과
-      element.style.backgroundColor = "#fff3cd";
-      element.style.border = "2px solid #ffc107";
+      element.style.border = "4px solid #ffc107";
       setTimeout(() => {
         element.style.backgroundColor = "";
         element.style.border = "";

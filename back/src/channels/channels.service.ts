@@ -228,10 +228,18 @@ export class ChannelsService {
       );
     }
 
-    // 채널 소유자만 이미지 업로드 가능
-    if (channel.creator.id !== userId) {
+    // 채널 이미지 업로드 권한: 총관리자 또는 채널 생성자
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
       throw new NotFoundException(
-        '채널 이미지를 업로드할 권한이 없습니다. 채널 생성자만 가능합니다.',
+        `ID ${userId}에 해당하는 사용자를 찾을 수 없습니다.`,
+      );
+    }
+    const isSuperAdmin = user.is_super_admin === true;
+    const isChannelCreator = channel.creator.id === userId;
+    if (!isSuperAdmin && !isChannelCreator) {
+      throw new NotFoundException(
+        '채널 이미지를 업로드할 권한이 없습니다. 총관리자 또는 채널 생성자만 가능합니다.',
       );
     }
 
@@ -279,10 +287,18 @@ export class ChannelsService {
       );
     }
 
-    // 채널 소유자만 이미지 삭제 가능
-    if (channel.creator.id !== userId) {
+    // 채널 이미지 삭제 권한: 총관리자 또는 채널 생성자
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
       throw new NotFoundException(
-        '채널 이미지를 삭제할 권한이 없습니다. 채널 생성자만 가능합니다.',
+        `ID ${userId}에 해당하는 사용자를 찾을 수 없습니다.`,
+      );
+    }
+    const isSuperAdmin = user.is_super_admin === true;
+    const isChannelCreator = channel.creator.id === userId;
+    if (!isSuperAdmin && !isChannelCreator) {
+      throw new NotFoundException(
+        '채널 이미지를 삭제할 권한이 없습니다. 총관리자 또는 채널 생성자만 가능합니다.',
       );
     }
 
@@ -320,56 +336,7 @@ export class ChannelsService {
     );
   }
 
-  //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
-  // 채널 삭제 (총관리자 또는 채널 생성자만 가능)
-  async deleteChannel(channelId: number, userId: string): Promise<void> {
-    console.log('채널 삭제 요청:', { channelId, userId });
-
-    // 채널 존재 확인 및 생성자 정보 조회
-    const channel = await this.channelsRepository.findOne({
-      where: { id: channelId },
-      relations: ['creator'],
-    });
-
-    if (!channel) {
-      throw new NotFoundException(
-        `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
-      );
-    }
-
-    // 사용자 정보 조회 (총관리자 권한 확인용)
-    const user = await this.userRepository.findOne({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new NotFoundException(
-        `ID ${userId}에 해당하는 사용자를 찾을 수 없습니다.`,
-      );
-    }
-
-    // 권한 확인: 총관리자이거나 채널 생성자인 경우만 삭제 가능
-    const isSuperAdmin = user.is_super_admin === true;
-    const isChannelCreator = channel.creator.id === userId;
-
-    if (!isSuperAdmin && !isChannelCreator) {
-      throw new NotFoundException(
-        '채널을 삭제할 권한이 없습니다. 총관리자 또는 채널 생성자만 삭제할 수 있습니다.',
-      );
-    }
-
-    // 관련된 구독 정보 먼저 삭제
-    await this.subscriptionRepository.delete({ Channel: { id: channelId } });
-
-    // 채널 삭제
-    await this.channelsRepository.remove(channel);
-
-    console.log('채널 삭제 완료:', {
-      channelId,
-      channelName: channel.channel_name,
-      deletedBy: isSuperAdmin ? '총관리자' : '채널 생성자',
-    });
-  }
+  // 채널 삭제 기능은 비활성화되었습니다.
 
   // 채널 숨김 처리 (is_hidden = true)
   async hideChannel(channelId: number, userId: string): Promise<void> {
@@ -399,7 +366,7 @@ export class ChannelsService {
     await this.channelsRepository.save(channel);
   }
 
-  // 채널 표시 처리 (is_hidden = false, 총관리자만 가능)
+  // 채널 표시 처리 (is_hidden = false, 총관리자 또는 채널 생성자 가능)
   async showChannel(channelId: number, userId: string): Promise<void> {
     const channel = await this.channelsRepository.findOne({
       where: { id: channelId },
@@ -417,9 +384,10 @@ export class ChannelsService {
       );
     }
     const isSuperAdmin = user.is_super_admin === true;
-    if (!isSuperAdmin) {
+    const isChannelCreator = channel.creator.id === userId;
+    if (!isSuperAdmin && !isChannelCreator) {
       throw new NotFoundException(
-        '채널을 표시할 권한이 없습니다. 총관리자만 표시할 수 있습니다.',
+        '채널을 표시할 권한이 없습니다. 총관리자 또는 채널 생성자만 표시할 수 있습니다.',
       );
     }
     channel.is_hidden = false;

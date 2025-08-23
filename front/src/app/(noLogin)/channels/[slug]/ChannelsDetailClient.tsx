@@ -18,6 +18,7 @@ import {
 import { People as PeopleIcon, Person as PersonIcon } from "@mui/icons-material";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import usePageStore from "@/app/store/pageStore";
@@ -494,14 +495,35 @@ const ChannelDetailPage = () => {
 
   // 게시글 클릭 핸들러 - memoized
   const handlePostClick = useCallback(
-    (postId: number) => {
+    async (postId: number) => {
       // 현재 채널 페이지 URL을 세션 스토리지에 저장
       if (typeof window !== "undefined") {
         sessionStorage.setItem("previousMainPageUrl", window.location.href);
       }
-      router.push(`/channels/${channelSlug}/detail/story/${postId}`);
+      const href = `/channels/${channelSlug}/detail/story/${postId}`;
+      // 라우트 파일/번들 프리페치
+      try {
+        // router.prefetch: 페이지 “코드/리소스”를 미리 로드
+        router.prefetch(href);
+      } catch {}
+      // 상세 데이터 프리페치(React Query 캐시 채우기)
+      // queryClient.prefetchQuery: 페이지 “데이터”를 미리 로드
+      try {
+        await queryClient.prefetchQuery({
+          queryKey: ["story", "detail", String(postId)],
+          queryFn: async () => {
+            const res = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/detail/${postId}`);
+            return res.data;
+          },
+          staleTime: 1000 * 60 * 4,
+        });
+        console.log(`✅ 게시글 ${postId} 프리패치 성공`);
+      } catch (error) {
+        console.warn(`⚠️ 게시글 ${postId} 프리패치 실패:`, error);
+      }
+      router.push(href);
     },
-    [router, channelSlug]
+    [router, channelSlug, queryClient]
   );
 
   // 글쓰기 핸들러 - memoized

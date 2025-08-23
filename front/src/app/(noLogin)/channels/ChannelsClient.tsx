@@ -83,7 +83,11 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
     queryKey: ["channels"],
     queryFn: getChannels,
     initialData: initialChannels,
-    staleTime: 1000 * 60 * 5, // 5분간 캐시 유지
+    // 30분 캐싱
+    staleTime: 1000 * 60 * 30,
+    refetchOnMount: false,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: false,
     retry: 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -186,6 +190,8 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
       showMessage(errorMessage, "error");
     },
   });
+
+  // 채널 삭제 기능 제거됨
 
   // 에러 처리
   useEffect(() => {
@@ -304,8 +310,9 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
 
   // 기존 채널 이미지 수정 다이얼로그 열기
   const handleEditChannelImage = (channel: Channel) => {
-    if (channel.creator.id !== session?.user?.id) {
-      showMessage("채널 생성자만 이미지를 수정할 수 있습니다.", "warning");
+    const isChannelCreator = session?.user?.id === channel.creator.id;
+    if (!isSuperAdmin && !isChannelCreator) {
+      showMessage("채널 이미지를 수정할 권한이 없습니다. 총관리자 또는 채널 생성자만 가능합니다.", "warning");
       return;
     }
     setEditChannelId(channel.id);
@@ -393,17 +400,24 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
 
   // 채널 표시 핸들러
   const handleShowChannel = (channel: Channel) => {
-    // 권한 확인: 총관리자만 표시 가능
-    if (!isSuperAdmin) {
-      showMessage("채널을 표시할 권한이 없습니다. 총관리자만 표시할 수 있습니다.", "warning");
+    // 권한 확인: 총관리자 또는 채널 생성자 가능
+    const isChannelCreator = session?.user?.id === channel.creator.id;
+    if (!isSuperAdmin && !isChannelCreator) {
+      showMessage("채널을 표시할 권한이 없습니다. 총관리자 또는 채널 생성자만 가능합니다.", "warning");
       return;
     }
 
     // 확인 다이얼로그 표시
-    if (window.confirm(`정말로 "${channel.channel_name}" 채널을 표시하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.`)) {
+    if (
+      window.confirm(
+        `정말로 "${channel.channel_name}" 채널을 표시하시겠습니까?\n\n숨김 해제 후 목록에 다시 노출됩니다.`
+      )
+    ) {
       showChannelMutation.mutate(channel.id);
     }
   };
+
+  // 채널 삭제 기능 제거됨
 
   if (isLoading && !initialChannels.length) {
     return <Loading />;
@@ -597,8 +611,8 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
                   )}
                 </CardMedia>
 
-                {/* 편집 버튼 (채널 생성자만 보임) */}
-                {session?.user?.id === channel.creator.id && (
+                {/* 편집 버튼 (총관리자 또는 채널 생성자 보임) */}
+                {(isSuperAdmin || session?.user?.id === channel.creator.id) && (
                   <Box
                     sx={{
                       position: "absolute",
@@ -617,8 +631,8 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
                   </Box>
                 )}
 
-                {/* 삭제 버튼 (총관리자 또는 채널 생성자만 보임) */}
-                {(isSuperAdmin || session?.user?.id === channel.creator.id) && (
+                {/* 숨김 버튼 (총관리자 또는 채널 생성자만 보임) */}
+                {(isSuperAdmin || session?.user?.id === channel.creator.id) && !channel.is_hidden && (
                   <Box
                     sx={{
                       position: "absolute",
@@ -629,7 +643,7 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
                     }}
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <Tooltip title="채널 삭제">
+                    <Tooltip title="채널 숨김">
                       <IconButton
                         size="small"
                         onClick={() => handleHideChannel(channel)}
@@ -651,13 +665,13 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
                   </Box>
                 )}
 
-                {/* 표시 버튼 (총관리자만 보임) */}
-                {isSuperAdmin && (
+                {/* 표시 버튼 (총관리자 또는 채널 생성자 보임) */}
+                {(isSuperAdmin || session?.user?.id === channel.creator.id) && channel.is_hidden && (
                   <Box
                     sx={{
                       position: "absolute",
                       top: 8,
-                      right: 8,
+                      right: 56,
                       background: "rgba(6, 182, 212, 0.9)",
                       borderRadius: "50%",
                     }}
@@ -797,31 +811,35 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
                     </Typography>
                   </Box>
 
-                  {/* 숨김 처리 버튼 (총관리자 또는 채널 생성자만 보임) */}
+                  {/* 숨김 버튼 그룹 (총관리자 또는 채널 생성자만 보임) */}
                   {(isSuperAdmin || session?.user?.id === channel.creator.id) && (
-                    <Tooltip title="채널 숨김">
-                      <IconButton
-                        size="small"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleHideChannel(channel);
-                        }}
-                        sx={{
-                          color: theme.palette.mode === "dark" ? "#ef4444" : "#dc2626",
-                          "&:hover": {
-                            background:
-                              theme.palette.mode === "dark" ? "rgba(239, 68, 68, 0.1)" : "rgba(220, 38, 38, 0.1)",
-                          },
-                        }}
-                        disabled={hideChannelMutation.isPending}
-                      >
-                        {hideChannelMutation.isPending ? (
-                          <CircularProgress size={16} />
-                        ) : (
-                          <VisibilityOffIcon fontSize="small" />
-                        )}
-                      </IconButton>
-                    </Tooltip>
+                    <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      {!channel.is_hidden && (
+                        <Tooltip title="채널 숨김">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleHideChannel(channel);
+                            }}
+                            sx={{
+                              color: theme.palette.mode === "dark" ? "#ef4444" : "#dc2626",
+                              "&:hover": {
+                                background:
+                                  theme.palette.mode === "dark" ? "rgba(239, 68, 68, 0.1)" : "rgba(220, 38, 38, 0.1)",
+                              },
+                            }}
+                            disabled={hideChannelMutation.isPending}
+                          >
+                            {hideChannelMutation.isPending ? (
+                              <CircularProgress size={16} />
+                            ) : (
+                              <VisibilityOffIcon fontSize="small" />
+                            )}
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </Box>
                   )}
                 </Box>
               </CardContent>

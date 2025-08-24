@@ -806,7 +806,7 @@ export const sendRealtimeMessage = async (channelId: string, message: string, us
 
 이 룰에 대한 문의사항이나 개선 제안이 있으시면 개발팀에 문의해 주세요.
 
-**마지막 업데이트**: 2024년 12월  
+**마지막 업데이트**: 2025년 8월 24일  
 **버전**: 2.1.0  
 **프로젝트 규모**: 3-4년차 시니어급 (일본 기업 기준)
 

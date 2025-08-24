@@ -2,7 +2,7 @@
 
 ## 📋 개요
 
-Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들을 서버 컴포넌트와 클라이언트 컴포넌트로 구분하여 정리합니다.
+Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들을 서버 컴포넌트와 클라이언트 컴포넌트로 구분하여 정리합니다. 현재 프로젝트는 채널 중심의 커뮤니티 플랫폼으로, 실시간 채팅, 알림 시스템, 고급 이미지 뷰어 등 다양한 기능을 포함하고 있습니다.
 
 ---
 
@@ -159,7 +159,6 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | `components/common/RightView.tsx`          | **우측 뷰** - 우측 사이드바 컨텐츠                     |
 | `components/common/ChannelTopStories.tsx`  | **채널 인기 게시글** - 채널별 인기 게시글 표시         |
 | `components/common/Advertisement.tsx`      | **광고 컴포넌트** - 광고 표시 영역                     |
-| `components/common/CommentsView.tsx`       | **댓글 뷰** - 댓글 목록 및 작성 폼                     |
 | `components/common/ConfirmDialog.tsx`      | **확인 다이얼로그** - 확인/취소 다이얼로그             |
 | `components/common/ConfirmModal.tsx`       | **확인 모달** - 모달 형태 확인 창                      |
 | `components/common/CustomSelect.tsx`       | **커스텀 셀렉트** - 커스텀 드롭다운 선택 컴포넌트      |
@@ -171,6 +170,9 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 | `components/common/MessageView.tsx`        | **메시지 뷰** - 개인 메시지 표시                       |
 | `components/common/ReportModal.tsx`        | **신고 모달** - 게시글/댓글 신고 모달                  |
 | `components/common/ChannelNoticeModal.tsx` | **채널 공지 모달** - 채널 공지사항 모달                |
+| `components/common/LevelBadge.tsx`         | **레벨 뱃지** - 사용자 레벨 표시 뱃지                  |
+| `components/common/UserBadge.tsx`          | **사용자 뱃지** - 사용자 정보 뱃지                     |
+| `components/common/UserLevelProgress.tsx`  | **사용자 레벨 진행도** - 레벨 진행 상황 표시           |
 
 #### 🏗️ 다이얼로그 컴포넌트
 
@@ -181,9 +183,21 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 #### 💬 채팅 및 메시지
 
-| 파일 경로                         | 역할                                  |
-| --------------------------------- | ------------------------------------- |
-| `components/chat/ChannelChat.tsx` | **채널 채팅** - 실시간 채널 채팅 기능 |
+| 파일 경로                         | 역할                                                 |
+| --------------------------------- | ---------------------------------------------------- |
+| `components/chat/ChannelChat.tsx` | **채널 채팅** - Socket.IO 기반 실시간 채널 채팅 기능 |
+
+#### 💬 댓글 시스템 컴포넌트
+
+| 파일 경로                                               | 역할                                                 |
+| ------------------------------------------------------- | ---------------------------------------------------- |
+| `components/comment/CommentsView.tsx`                   | **댓글 뷰** - 댓글 목록 및 작성 폼 메인 컨테이너     |
+| `components/comment/components/CommentForm.tsx`         | **댓글 폼** - 댓글 작성 및 수정 폼                   |
+| `components/comment/components/CommentList.tsx`         | **댓글 목록** - 댓글 목록 표시 및 관리 (313줄)       |
+| `components/comment/components/CommentPagination.tsx`   | **댓글 페이지네이션** - 댓글 페이지 이동 컨트롤      |
+| `components/comment/components/types.ts`                | **댓글 타입 정의** - 댓글 관련 TypeScript 타입       |
+| `components/comment/components/useCommentHandlers.ts`   | **댓글 핸들러 훅** - 댓글 CRUD 로직                  |
+| `components/comment/components/useCommentNavigation.ts` | **댓글 네비게이션 훅** - 댓글 페이지 네비게이션 로직 |
 
 #### 💾 백업 컴포넌트
 
@@ -194,13 +208,13 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 ### 🎯 채널 상세 페이지 - 분리된 컴포넌트들
 
-> **2024년 12월 업데이트**: 채널 상세 페이지 (ChannelsDetailClient.tsx)를 4개의 독립적인 컴포넌트로 분리하여 **코드 가독성 52.6% 향상** (2074줄 → 995줄)
+> **2024년 12월 업데이트**: 채널 상세 페이지 (ChannelsDetailClient.tsx)를 4개의 독립적인 컴포넌트로 분리하여 **코드 가독성 52.6% 향상** (2074줄 → 1043줄)
 
 #### 📂 `(noLogin)/channels/[slug]/components/`
 
 | 파일 경로                                                       | 역할                                                              | 줄 수 |
 | --------------------------------------------------------------- | ----------------------------------------------------------------- | ----- |
-| `(noLogin)/channels/[slug]/components/ChannelHeader.tsx`        | **채널 헤더** - 채널 정보, 아바타, 생성자 정보 표시               | 226   |
+| `(noLogin)/channels/[slug]/components/ChannelHeader.tsx`        | **채널 헤더** - 채널 정보, 메탈릭 아바타, 생성자 정보 표시        | 226   |
 | `(noLogin)/channels/[slug]/components/ChannelActionButtons.tsx` | **채널 액션 버튼** - 실시간 채팅, 공지사항, 구독, 알림 토글 버튼  | 339   |
 | `(noLogin)/channels/[slug]/components/ChannelTabNavigation.tsx` | **채널 탭 네비게이션** - 탭 전환, 뷰 모드 토글, 글쓰기 버튼       | 351   |
 | `(noLogin)/channels/[slug]/components/ChannelControlPanel.tsx`  | **채널 컨트롤 패널** - 정렬 옵션, 추천 랭킹, 페이지네이션, 검색바 | 327   |
@@ -252,18 +266,18 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 ---
 
-## 🔄 최신 업데이트 (2025년 7월)
+## 🔄 최신 업데이트 (2025년 1월)
 
 ### 🎯 주요 개선 사항
 
 #### 1. 채널 상세 페이지 컴포넌트 분리 (2024년 12월)
 
 - **목적**: 가독성 향상 및 유지보수성 개선
-- **성과**: 2074줄 → 995줄 (52.6% 감소)
+- **성과**: 2074줄 → 1043줄 (49.7% 감소)
 - **분리 컴포넌트**: 4개의 독립적인 컴포넌트로 분리
 - **효과**: 초보자도 이해하기 쉬운 구조로 개선
 
-#### 2. 게시글 상세 페이지 컴포넌트 분리 (2025년 7월)
+#### 2. 게시글 상세 페이지 컴포넌트 분리 (2024년 12월)
 
 - **목적**: 복잡한 기능의 모듈화 및 재사용성 향상
 - **분리된 컴포넌트**:
@@ -271,17 +285,35 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
   - `StoryActions.tsx` (363줄): 스크랩, 신고, 수정, 삭제, 관리자 기능
 - **효과**: 기능별 분리로 유지보수성 향상, 코드 재사용성 증대
 
-#### 3. 다크 테마 UI 개선 (2024년 12월)
+#### 3. 댓글 시스템 모듈화 (2024년 12월)
+
+- **목적**: 댓글 기능의 체계적 관리 및 성능 최적화
+- **분리된 컴포넌트**: 7개의 전문화된 모듈로 분리
+- **효과**: 댓글 CRUD 로직 분리, 커스텀 훅으로 상태 관리 최적화
+
+#### 4. 페이지 전환 최적화 (2025년 1월)
+
+- **목적**: 목록→상세 페이지 전환 시 깜빡임 제거
+- **구현**: React Query prefetch와 라우트 프리페치 조합
+- **효과**: 매끄러운 페이지 전환, 사용자 경험 개선
+
+#### 5. 다크 테마 UI 개선 (2024년 12월)
 
 - **대상**: `CustomizedCardView.tsx` 컴포넌트
 - **개선점**: 다크 모드에서 보라색 그라데이션 적용
 - **효과**: 일관된 다크 테마 경험 제공
 
-#### 4. 채널 알림 시스템 개선 (2024년 12월)
+#### 6. 채널 알림 시스템 개선 (2024년 12월)
 
 - **문제**: 프론트엔드와 백엔드 알림 상태 비동기화
 - **해결**: 실시간 상태 동기화 및 에러 처리 개선
 - **효과**: 사용자 친화적인 알림 관리 시스템 구축
+
+#### 7. 메탈릭 UI 테마 적용 (2025년 1월)
+
+- **대상**: 채널 헤더 아이콘 및 주요 UI 요소
+- **개선점**: 글로우 효과, 회전 링, 그라데이션 적용
+- **효과**: 프리미엄 느낌의 시각적 경험 제공
 
 ### 새로 추가된 기능
 
@@ -301,11 +333,15 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 ### 개선된 기능
 
 - 🔧 **상태 관리 확장**: 12개의 전문화된 Zustand 스토어
+  - `blindStore`, `channelNotificationStore`, `channelPageStore`, `commentStore`
+  - `messageStore`, `pageStore`, `recentViewsStore`, `scrapStore`
+  - `subscriptionStore`, `themeStore`, `userImageStore`, `userInfoStore`
 - 🔧 **API 모듈화**: 기능별 API 모듈 분리 및 관리자 API 추가
 - 🔧 **컴포넌트 세분화**: 재사용 가능한 공통 컴포넌트 확장
 - 🔧 **타입 안전성**: TypeScript 타입 정의 강화
-- 🔧 **UI/UX 개선**: 다크모드, 반응형 디자인 지원
+- 🔧 **UI/UX 개선**: 다크모드, 메탈릭 테마, 반응형 디자인 지원
 - 🔧 **채널 시스템**: 채널 중심의 아키텍처로 개선
+- 🔧 **성능 최적화**: React Query prefetch, 컴포넌트 분리로 성능 향상
 
 ### 아키텍처 개선사항
 
@@ -322,23 +358,30 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 | 파일명                       | 줄 수   | 상태          | 비고                                     |
 | ---------------------------- | ------- | ------------- | ---------------------------------------- |
-| `detail/story/[id]/page.tsx` | 1,269줄 | **분리 진행** | 게시글 상세 페이지 (2개 컴포넌트 분리됨) |
-| `ChannelsDetailClient.tsx`   | 995줄   | **개선됨**    | 52.6% 감소 (2074→995)                    |
+| `detail/story/[id]/page.tsx` | 1,374줄 | **분리 완료** | 게시글 상세 페이지 (2개 컴포넌트 분리됨) |
+| `ChannelsDetailClient.tsx`   | 1,043줄 | **개선됨**    | 49.7% 감소 (2074→1043)                   |
 | `MainView.tsx`               | 789줄   | **주석 처리** | 대부분 주석 처리됨                       |
 | `ImageViewer.tsx`            | 357줄   | **분리됨**    | 게시글 상세에서 분리된 이미지 뷰어       |
 | `StoryActions.tsx`           | 363줄   | **분리됨**    | 게시글 상세에서 분리된 액션 버튼         |
+| `CommentList.tsx`            | 313줄   | **분리됨**    | 댓글 시스템에서 분리된 목록 컴포넌트     |
 | `CustomizedTables.tsx`       | 257줄   | **적정**      | 기본 테이블 컴포넌트                     |
 
 ### 📈 컴포넌트 분리 성과
 
-- **채널 상세 페이지**: 2074줄 → 995줄 (52.6% 감소)
-- **게시글 상세 페이지**: 1269줄 + 분리된 컴포넌트 2개 (720줄)
+- **채널 상세 페이지**: 2074줄 → 1043줄 (49.7% 감소)
+- **게시글 상세 페이지**: 1374줄 + 분리된 컴포넌트 2개 (720줄)
   - ImageViewer.tsx: 357줄 (이미지 뷰어 기능)
   - StoryActions.tsx: 363줄 (액션 버튼 기능)
-- **분리된 컴포넌트**: 총 6개의 독립적인 컴포넌트 (226~363줄)
+- **댓글 시스템**: 313줄 + 분리된 컴포넌트 7개
+  - CommentsView.tsx: 메인 컨테이너
+  - CommentForm.tsx, CommentList.tsx, CommentPagination.tsx: UI 컴포넌트
+  - useCommentHandlers.ts, useCommentNavigation.ts: 커스텀 훅
+  - types.ts: 타입 정의
+- **분리된 컴포넌트**: 총 13개의 독립적인 컴포넌트 (226~363줄)
 - **유지보수성**: 기능별 분리로 수정 용이성 증대
 - **가독성**: 초보자도 이해하기 쉬운 구조
 - **재사용성**: 독립적인 컴포넌트로 다른 페이지에서도 활용 가능
+- **성능 최적화**: prefetch 기능으로 페이지 전환 깜빡임 제거
 
 ---
 
@@ -348,8 +391,8 @@ Study-Board 프로젝트의 Next.js App Router 기반 프론트엔드 파일들�
 
 **개발팀**: StudyBoard Team  
 **프로젝트**: Study Board Frontend Components  
-**버전**: 2.3.0  
-**마지막 업데이트**: 2025년 7월 6일
+**버전**: 2.4.0  
+**마지막 업데이트**: 2025년 1월 21일
 
 ---
 

@@ -283,22 +283,27 @@ back/
 **경로**: `/src/channels/`
 **주요 기능**:
 
-- 채널 생성 및 관리
-- 채널 구독/구독취소
-- 채널별 게시글 통계
-- 슬러그 기반 URL 라우팅
-- 채널 이미지 업로드
+- 사용자 채널 생성 및 관리 (슬러그 기반 URL)
+- 채널 구독/구독취소 시스템
+- 채널별 게시글 통계 자동 계산
+- 슬러그 기반 URL 라우팅 및 중복 검사
+- 채널 이미지 업로드/수정/삭제
 - 채널 검색 및 카테고리 필터링
-- HOT 채널 표시
+- 채널 숨김/표시 권한 관리 (생성자 및 관리자)
+- 채널 생성자 정보 관리
 
 **주요 API**:
 
-- `GET /api/channels` - 채널 목록
-- `POST /api/channels` - 채널 생성
+- `GET /api/channels` - 채널 목록 조회
+- `POST /api/channels/create` - 새 채널 생성 (슬러그 기반)
 - `GET /api/channels/slug/:slug` - 슬러그로 채널 조회
 - `GET /api/channels/:id` - 채널 상세 정보
 - `POST /api/channels/:id/subscribe` - 채널 구독
 - `DELETE /api/channels/:id/subscribe` - 구독 취소
+- `POST /api/channels/:id/upload-image` - 채널 이미지 업로드
+- `DELETE /api/channels/:id/image` - 채널 이미지 삭제
+- `PATCH /api/channels/:id/hide` - 채널 숨김 처리
+- `PATCH /api/channels/:id/show` - 채널 표시 처리
 
 ---
 
@@ -754,9 +759,12 @@ nest g gateway feature-name
 
 #### 채널
 
-- `GET /api/channels` - 채널 목록
+- `GET /api/channels` - 채널 목록 조회
+- `POST /api/channels/create` - 새 채널 생성
 - `GET /api/channels/slug/:slug` - 슬러그로 채널 조회
 - `POST /api/channels/:id/subscribe` - 채널 구독
+- `POST /api/channels/:id/upload-image` - 채널 이미지 업로드
+- `PATCH /api/channels/:id/hide` - 채널 숨김/표시 처리
 
 #### 건의사항
 
@@ -837,7 +845,7 @@ nest g gateway feature-name
 
 ---
 
-## 🔄 최신 업데이트 (2024년 12월)
+## 🔄 최신 업데이트 (2025년 1월)
 
 ### 📊 현재 시스템 규모
 
@@ -846,9 +854,15 @@ nest g gateway feature-name
 - **2,190줄 스토리 서비스**: 대규모 게시글 처리 로직
 - **716줄 인증 컨트롤러**: 세밀한 사용자 관리 시스템
 - **5개 업로드 디렉토리**: 다양한 미디어 파일 지원
+- **396줄 채널 서비스**: 완전한 채널 생성/관리 시스템
+- **260줄 채널 컨트롤러**: 채널 CRUD 및 이미지 관리
 
 ### 새로 추가된 기능
 
+- ✅ **사용자 채널 생성**: 로그인 사용자가 직접 채널 생성 가능 (슬러그 기반)
+- ✅ **채널 이미지 관리**: 채널 이미지 업로드/수정/삭제 완전 구현
+- ✅ **채널 구독 시스템**: DB 연동 채널 구독/구독취소 완전 구현
+- ✅ **채널 숨김/표시**: 관리자 또는 생성자 권한으로 채널 숨김 처리
 - ✅ **건의사항 채널별 필터링**: 각 채널별로 독립적인 건의사항 관리
 - ✅ **실시간 채널 채팅**: Socket.IO 4.8.1 기반 채널 내 실시간 커뮤니케이션
 - ✅ **채널 알림 시스템**: 채널별 새 게시글 알림 구독/해제
@@ -856,7 +870,6 @@ nest g gateway feature-name
 - ✅ **스크랩 기능**: 게시글 북마크 및 관리
 - ✅ **동영상 업로드**: 게시글에 동영상 첨부 지원 (videoUpload 폴더)
 - ✅ **프로필 이미지**: 사용자 프로필 이미지 업로드
-- ✅ **채널 이미지**: 채널 대표 이미지 설정
 - ✅ **신고 시스템**: Report 엔티티 기반 콘텐츠 신고
 - ✅ **블라인드 처리**: Blind 엔티티 기반 콘텐츠 숨김
 - ✅ **추천 랭킹**: RecommendRanking 엔티티 기반 인기 콘텐츠 관리
@@ -877,6 +890,9 @@ nest g gateway feature-name
 - 🏗️ **트랜잭션 처리**: storyTransaction.ts를 통한 복잡한 트랜잭션 관리
 - 🏗️ **SQL 쿼리 최적화**: storysql.ts의 1055줄 최적화된 쿼리
 - 🏗️ **실시간 통신**: 커스텀 Socket.IO 어댑터와 CORS 설정
+- 🏗️ **채널 시스템 완성**: 사용자 채널 생성부터 관리까지 완전 구현
+- 🏗️ **권한 기반 관리**: 채널 생성자 및 관리자 권한 체계 구축
+- 🏗️ **슬러그 기반 라우팅**: SEO 친화적 URL 구조 적용
 
 ---
 
@@ -886,8 +902,8 @@ nest g gateway feature-name
 
 **개발팀**: StudyBoard Team  
 **프로젝트**: Study Board Backend API  
-**버전**: 2.1.0  
-**마지막 업데이트**: 2024년 12월  
+**버전**: 2.2.0  
+**마지막 업데이트**: 2025년 1월 21일  
 **NestJS 버전**: 10.0.0  
 **데이터베이스**: MySQL 8.0+ (board-study)
 

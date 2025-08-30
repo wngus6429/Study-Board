@@ -28,6 +28,7 @@ import Link from "next/link";
 import ImageCard from "@/app/components/ImageCard";
 import { SuggestionImageType } from "@/app/types/imageTypes";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import { sanitizeRichText } from "@/app/utils/sanitizer";
 import FeedbackIcon from "@mui/icons-material/Feedback";
 import PersonIcon from "@mui/icons-material/Person";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
@@ -616,7 +617,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 padding: "12px 16px",
               },
             }}
-            dangerouslySetInnerHTML={{ __html: part }}
+            dangerouslySetInnerHTML={{ __html: sanitizeRichText(part) }}
           />
         );
       }

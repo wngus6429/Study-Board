@@ -18,6 +18,40 @@ const nextConfig = {
       },
     ];
   },
+  // 보안 헤더 설정
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: [
+          {
+            key: "X-Frame-Options",
+            value: "DENY", // iframe 삽입 차단
+          },
+          {
+            key: "X-Content-Type-Options",
+            value: "nosniff", // MIME 타입 스니핑 방지
+          },
+          {
+            key: "Referrer-Policy",
+            value: "origin-when-cross-origin", // 참조자 정책
+          },
+          {
+            key: "Permissions-Policy",
+            value: "camera=(), microphone=(), geolocation=()", // 권한 정책
+          },
+          {
+            key: "X-XSS-Protection",
+            value: "1; mode=block", // XSS 필터링 활성화
+          },
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=31536000; includeSubDomains", // HTTPS 강제
+          },
+        ],
+      },
+    ];
+  },
   // 컴파일시 console.log 제거, error는 냅둠
   compiler: {
     removeConsole:

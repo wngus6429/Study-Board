@@ -19,6 +19,7 @@ import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import React, { ReactNode, useEffect, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import { sanitizeRichText } from "@/app/utils/sanitizer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import { useComment } from "@/app/store/commentStore";
@@ -373,7 +374,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                     },
                   },
                 }}
-                dangerouslySetInnerHTML={{ __html: part }}
+                dangerouslySetInnerHTML={{ __html: sanitizeRichText(part) }}
               />
             );
           }

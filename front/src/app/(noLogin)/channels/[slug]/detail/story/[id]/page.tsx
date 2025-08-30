@@ -23,6 +23,7 @@ import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import React, { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
+import { sanitizeRichText } from "@/app/utils/sanitizer";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -485,15 +486,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
   }, [detail?.content, detail?.StoryImage]);
 
   // 이미지 변경 핸들러 (ImageViewer 컴포넌트에서 사용) - 메모이제이션
-  const handleImageChange = useCallback(
-    (index: number) => {
-      setCurrentImageIndex(index);
-      if (contentOrderedImages && contentOrderedImages[index]) {
-        setSelectedImage(contentOrderedImages[index]);
-      }
-    },
-    [contentOrderedImages]
-  );
+  // 폴라로이드 배열 선언 이후에 정의해야 하므로 아래에서 재정의됨
+  let handleImageChange = useCallback((index: number) => {
+    setCurrentImageIndex(index);
+  }, []);
 
   // 이미지 네비게이션과 줌/드래그 기능은 ImageViewer 컴포넌트로 이동됨
 
@@ -507,6 +503,17 @@ export default function page({ params }: { params: { id: string; slug: string } 
     }
     return detail?.StoryImage || [];
   }, [contentOrderedImages, detail?.StoryImage]);
+
+  // polaroidImages가 정해진 뒤에 selectedImage를 맞춰주는 변경 핸들러 정의
+  handleImageChange = useCallback(
+    (index: number) => {
+      setCurrentImageIndex(index);
+      if (polaroidImages && polaroidImages[index]) {
+        setSelectedImage(polaroidImages[index]);
+      }
+    },
+    [polaroidImages]
+  );
 
   // 각 카드에 안정적인 기울기(회전) 값을 부여하기 위한 유틸
   const getPolaroidRotation = useCallback((id: number | undefined, index: number) => {
@@ -526,11 +533,14 @@ export default function page({ params }: { params: { id: string; slug: string } 
           key={`${img.id}-${index}`}
           img={img}
           isLastOddImage={isLastOddImage}
-          onClick={(img) => handleImageClick(img, index)}
+          onClick={(img) => {
+            const idxInPolaroid = polaroidImages.findIndex((p) => p.id === img.id);
+            handleImageClick(img, idxInPolaroid >= 0 ? idxInPolaroid : 0);
+          }}
         />
       );
     });
-  }, [detail?.StoryImage]);
+  }, [detail?.StoryImage, polaroidImages]);
 
   // 메인으로 이동하는 함수 (이전 페이지 상태 유지) - 메모이제이션
   const handleGoToMain = useCallback(() => {
@@ -960,7 +970,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 paddingLeft: "4px",
               },
             }}
-            dangerouslySetInnerHTML={{ __html: part }}
+            dangerouslySetInnerHTML={{ __html: sanitizeRichText(part) }}
           />
         );
       }
@@ -1291,7 +1301,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
         open={openImageViewer}
         selectedImage={selectedImage}
         currentImageIndex={currentImageIndex}
-        images={contentOrderedImages || []}
+        images={polaroidImages}
         onClose={handleCloseImageViewer}
         onImageChange={handleImageChange}
       />

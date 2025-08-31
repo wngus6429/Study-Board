@@ -30,10 +30,6 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Hobby Channel",
   description: "Hobby Channel 게시판",
-  icons: {
-    icon: "/assets/logo.png",
-    apple: "/assets/logo.png",
-  },
 };
 
 export default function RootLayout({

@@ -679,308 +679,178 @@ export default function page({ params }: { params: { id: string; slug: string } 
     }
   };
 
-  // 본문 내용에서 이미지 태그를 카드뷰로 교체하는 함수 (메모이제이션 적용)
+  // 본문 내용에서 이미지 태그를 카드뷰로 교체하는 함수 (간결화)
   const renderContentWithImageCards = useMemo(() => {
     if (!detail?.content) return null;
 
+    // 1) blob 이미지 src를 서버 URL로 교체
     let content = detail.content;
-
-    // Object URL을 서버 이미지 URL로 교체 (기존 로직)
-    if (detail.StoryImage && detail.StoryImage.length > 0) {
+    if (detail.StoryImage?.length) {
       content = content.replace(/<img[^>]*src="blob:[^"]*"[^>]*>/g, (imgTag) => {
-        const altMatch = imgTag.match(/alt="([^"]*)"/);
-        const titleMatch = imgTag.match(/title="([^"]*)"/);
-        const fileName = altMatch?.[1] || titleMatch?.[1];
-
-        if (fileName) {
-          const baseFileName = fileName.replace(/\.[^.]+$/, "");
-          const matchingImage = detail.StoryImage.find((img) => {
-            const imgBaseName = img.image_name.replace(/\.[^.]+$/, "");
-            return imgBaseName.includes(baseFileName) || baseFileName.includes(imgBaseName);
-          });
-
-          if (matchingImage) {
-            return imgTag.replace(/src="blob:[^"]*"/, `src="${process.env.NEXT_PUBLIC_BASE_URL}${matchingImage.link}"`);
-          }
-        }
-        return "";
+        const fileName = imgTag.match(/alt="([^"]*)"/)?.[1] || imgTag.match(/title="([^"]*)"/)?.[1];
+        if (!fileName) return "";
+        const base = fileName.replace(/\.[^.]+$/, "");
+        const matched = detail.StoryImage.find(
+          (img) =>
+            img.image_name.replace(/\.[^.]+$/, "").includes(base) ||
+            base.includes(img.image_name.replace(/\.[^.]+$/, ""))
+        );
+        return matched
+          ? imgTag.replace(/src="blob:[^"]*"/, `src="${process.env.NEXT_PUBLIC_BASE_URL}${matched.link}"`)
+          : "";
       });
     }
 
-    // 동영상 URL도 처리 - 상대 경로를 절대 경로로 변환
-    if (detail.StoryVideo && detail.StoryVideo.length > 0) {
-      // <source> 태그 내의 상대 경로를 절대 경로로 변환
-      content = content.replace(
-        /<source([^>]*)src="\/videoUpload\/([^"]+)"([^>]*)>/g,
-        `<source$1src="${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/$2"$3>`
-      );
-
-      // <video> 태그 내의 상대 경로를 절대 경로로 변환
-      content = content.replace(
-        /src="\/videoUpload\/([^"]+)"/g,
-        `src="${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/$1"`
-      );
+    // 2) 동영상 상대 경로 절대화
+    if (detail.StoryVideo?.length) {
+      content = content
+        .replace(
+          /<source([^>]*)src="\/videoUpload\/([^"]+)"([^>]*)>/g,
+          `<source$1src="${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/$2"$3>`
+        )
+        .replace(/src="\/videoUpload\/([^"]+)"/g, `src="${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/$1"`);
     }
 
-    // content에 나타나는 순서대로 이미지 배열 재구성
-    const contentImageOrder: StoryImageType[] = [];
-    const imageMatches = content.match(/<img[^>]*>/g);
+    // 3) 매칭 및 속성 파싱 유틸
+    const orderedImages = contentOrderedImages.length > 0 ? contentOrderedImages : detail.StoryImage || [];
 
-    if (imageMatches) {
-      imageMatches.forEach((imgTag) => {
-        const srcMatch = imgTag.match(/src="([^"]*)"/);
-        if (srcMatch && srcMatch[1]) {
-          const imageSrc = srcMatch[1];
-          const matchingImage = detail.StoryImage?.find((img) => {
-            // 정확한 링크 매칭
-            if (imageSrc.includes(img.link)) return true;
-
-            // 파일명 기반 매칭
-            const srcFileName = imageSrc.split("/").pop();
-            const imgFileName = img.link.split("/").pop();
-            if (srcFileName && imgFileName && srcFileName === imgFileName) return true;
-
-            // 이미지 이름 기반 매칭 (확장자 제거)
-            const srcBaseName = srcFileName?.replace(/\.[^.]+$/, "");
-            const imgBaseName = img.image_name?.replace(/\.[^.]+$/, "");
-            if (srcBaseName && imgBaseName && imgBaseName.includes(srcBaseName)) return true;
-
-            return false;
-          });
-
-          if (matchingImage && !contentImageOrder.find((img) => img.id === matchingImage.id)) {
-            contentImageOrder.push(matchingImage);
-          }
-        }
+    const parseImgAttrs = (imgTag: string) => {
+      const src = imgTag.match(/src="([^"]*)"/)?.[1];
+      const style = imgTag.match(/style="([^"]*)"/)?.[1] || "";
+      let customWidth: string | undefined;
+      let customMargin: string | undefined;
+      style.split(";").forEach((prop) => {
+        const p = prop.trim();
+        if (!p) return;
+        if (p.startsWith("width:") && !p.startsWith("max-width:")) customWidth = p.split(":")[1]?.trim();
+        if (p.startsWith("margin:")) customMargin = p.split(":")[1]?.trim();
       });
-    }
+      return { src, customWidth, customMargin };
+    };
 
-    console.log(
-      "📸 Content 순서대로 재구성된 이미지 배열:",
-      contentImageOrder.map((img) => img.image_name)
-    );
+    const findMatchingImage = (imageSrc: string): StoryImageType | undefined => {
+      if (!detail.StoryImage?.length) return undefined;
+      const srcFileName = imageSrc.split("/").pop();
+      const srcBase = srcFileName?.replace(/\.[^.]+$/, "");
+      return (
+        detail.StoryImage.find((img) => imageSrc.includes(img.link)) ||
+        detail.StoryImage.find((img) => srcFileName && img.link.split("/").pop() === srcFileName) ||
+        detail.StoryImage.find((img) => srcBase && img.image_name.replace(/\.[^.]+$/, "").includes(srcBase))
+      );
+    };
 
-    // HTML을 파싱하여 이미지 태그를 카드뷰로 교체
+    // 4) 토큰화 후 이미지 그룹 렌더링
     const parts = content.split(/(<img[^>]*>)/);
     const elements: React.ReactNode[] = [];
-
-    // 연속된 이미지들을 그룹화하기 위한 변수
-    let currentImageGroup: Array<{
+    let group: Array<{
       img: StoryImageType;
       index: number;
-      originalIndex: number;
+      keyIdx: number;
       customWidth?: string;
       customMargin?: string;
     }> = [];
 
-    const processImageGroup = () => {
-      if (currentImageGroup.length === 0) return;
-
-      // 이미지 그룹을 카드뷰로 렌더링 (원래 카드뷰 로직 적용)
+    const flush = () => {
+      if (group.length === 0) return;
       elements.push(
         <Box key={`image-group-${elements.length}`} sx={{ my: 3 }}>
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: 2,
-              justifyContent: "center",
-            }}
-          >
-            {currentImageGroup.map((item, idx) => {
-              const isLastOddImage = idx === currentImageGroup.length - 1 && currentImageGroup.length % 2 !== 0;
-              return (
-                <ImageCard
-                  key={`image-${item.img.id}-${item.originalIndex}`}
-                  img={item.img}
-                  isLastOddImage={isLastOddImage}
-                  onClick={(img) => handleImageClick(img, item.index)}
-                  customWidth={item.customWidth} // 추출된 width 정보 전달
-                  customMargin={item.customMargin} // 추출된 margin 정보 전달
-                />
-              );
-            })}
+          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, justifyContent: "center" }}>
+            {group.map((g, i) => (
+              <ImageCard
+                key={`image-${g.img.id}-${g.keyIdx}`}
+                img={g.img}
+                isLastOddImage={i === group.length - 1 && group.length % 2 !== 0}
+                onClick={(img) => handleImageClick(img, g.index)}
+                customWidth={g.customWidth}
+                customMargin={g.customMargin}
+              />
+            ))}
           </Box>
         </Box>
       );
-
-      // 그룹 초기화
-      currentImageGroup = [];
+      group = [];
     };
 
-    parts.forEach((part, index) => {
-      if (part.match(/^<img[^>]*>$/)) {
-        // 이미지 태그인 경우
-        const srcMatch = part.match(/src="([^"]*)"/);
-
-        if (srcMatch && srcMatch[1]) {
-          const imageSrc = srcMatch[1];
-          console.log(
-            `📋 사용 가능한 StoryImage:`,
-            detail.StoryImage?.map((img) => img.link)
+    parts.forEach((part, idx) => {
+      const isImg = /^<img[^>]*>$/.test(part);
+      if (!isImg) {
+        if (part.trim()) {
+          flush();
+          elements.push(
+            <Box
+              key={`text-${idx}`}
+              sx={{
+                lineHeight: 1.7,
+                color: theme.palette.text.primary,
+                "& img": { maxWidth: "100%", height: "auto", borderRadius: "8px", margin: "8px 0" },
+                "& video": { maxWidth: "100%", height: "auto", borderRadius: "8px", margin: "8px 0" },
+                "& ol, & ul": { paddingLeft: "24px", margin: "12px 0", listStylePosition: "outside" },
+                "& ol": { listStyleType: "decimal" },
+                "& ul": { listStyleType: "disc" },
+                "& li": { margin: "6px 0", paddingLeft: "4px" },
+              }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(part) }}
+            />
           );
-
-          // 서버 이미지 URL에서 실제 StoryImage 찾기
-          let matchingImage = detail.StoryImage?.find((img) => {
-            // 1. 정확한 링크 매칭
-            if (imageSrc.includes(img.link)) return true;
-
-            // 2. 파일명 기반 매칭
-            const srcFileName = imageSrc.split("/").pop();
-            const imgFileName = img.link.split("/").pop();
-            if (srcFileName && imgFileName && srcFileName === imgFileName) return true;
-
-            // 3. 이미지 이름 기반 매칭 (확장자 제거)
-            const srcBaseName = srcFileName?.replace(/\.[^.]+$/, "");
-            const imgBaseName = img.image_name?.replace(/\.[^.]+$/, "");
-            if (srcBaseName && imgBaseName && imgBaseName.includes(srcBaseName)) return true;
-
-            return false;
-          });
-
-          // 매칭되는 이미지를 찾지 못한 경우, 첫 번째 이미지를 기본값으로 사용
-          if (!matchingImage && detail.StoryImage && detail.StoryImage.length > 0) {
-            console.warn(`이미지 매칭 실패, 기본 이미지 사용: ${imageSrc}`);
-            matchingImage = detail.StoryImage[currentImageGroup.length % detail.StoryImage.length];
-          }
-
-          if (matchingImage) {
-            // content 순서 기준으로 인덱스 찾기
-            const imageIndex = contentImageOrder.findIndex((img) => img.id === matchingImage.id);
-
-            // 이미지 태그에서 width와 margin 정보 추출
-            const styleMatch = part.match(/style="([^"]*)"/);
-            let customWidth = undefined;
-            let customMargin = undefined;
-            if (styleMatch && styleMatch[1]) {
-              const styleText = styleMatch[1];
-              // CSS 속성들을 세미콜론으로 분리
-              const styleProperties = styleText.split(";");
-
-              // width 속성만 찾기 (max-width 제외)
-              const widthProperty = styleProperties.find((prop) => {
-                const trimmed = prop.trim();
-                return trimmed.startsWith("width:") && !trimmed.startsWith("max-width:");
-              });
-
-              if (widthProperty) {
-                const widthValue = widthProperty.split(":")[1]?.trim();
-                if (widthValue) {
-                  customWidth = widthValue;
-                }
-              }
-
-              // margin 속성 찾기
-              const marginProperty = styleProperties.find((prop) => {
-                const trimmed = prop.trim();
-                return trimmed.startsWith("margin:");
-              });
-
-              if (marginProperty) {
-                const marginValue = marginProperty.split(":")[1]?.trim();
-                if (marginValue) {
-                  customMargin = marginValue;
-                }
-              }
-            }
-
-            // 현재 이미지 그룹에 추가
-            currentImageGroup.push({
-              img: matchingImage,
-              index: imageIndex >= 0 ? imageIndex : 0,
-              originalIndex: index,
-              customWidth: customWidth, // width 정보 추가
-              customMargin: customMargin, // margin 정보 추가
-            });
-          } else {
-            // 정말로 매칭되는 이미지가 없는 경우, 클릭 가능한 이미지로 렌더링
-            processImageGroup();
-            elements.push(
-              <Box key={`img-fallback-${index}`} sx={{ my: 2, textAlign: "center" }}>
-                <Box
-                  component="img"
-                  src={imageSrc}
-                  alt="이미지"
-                  sx={{
-                    maxWidth: "100%",
-                    height: "auto",
-                    borderRadius: "8px",
-                    cursor: "pointer",
-                    "&:hover": {
-                      opacity: 0.8,
-                      transform: "scale(1.02)",
-                    },
-                    transition: "all 0.2s ease",
-                  }}
-                  onClick={() => {
-                    // 폴백 이미지에 대한 임시 객체 생성
-                    const tempImage: StoryImageType = {
-                      id: Date.now(), // 임시 ID
-                      image_name: imageSrc.split("/").pop() || "unknown",
-                      link: imageSrc.startsWith("http")
-                        ? imageSrc.replace(process.env.NEXT_PUBLIC_BASE_URL || "", "")
-                        : imageSrc,
-                      file_size: 0,
-                      mime_type: "image/jpeg",
-                      upload_order: 0,
-                      created_at: new Date().toISOString(),
-                    };
-                    handleImageClick(tempImage, 0);
-                  }}
-                />
-              </Box>
-            );
-          }
         }
-      } else if (part.trim()) {
-        // 텍스트 내용인 경우, 현재 이미지 그룹을 먼저 처리
-        processImageGroup();
-
-        elements.push(
-          <Box
-            key={`text-${index}`}
-            sx={{
-              lineHeight: 1.7,
-              color: theme.palette.text.primary,
-              "& img": {
-                maxWidth: "100%",
-                height: "auto",
-                borderRadius: "8px",
-                margin: "8px 0",
-              },
-              "& video": {
-                maxWidth: "100%",
-                height: "auto",
-                borderRadius: "8px",
-                margin: "8px 0",
-              },
-              "& ol, & ul": {
-                paddingLeft: "24px",
-                margin: "12px 0",
-                listStylePosition: "outside",
-              },
-              "& ol": {
-                listStyleType: "decimal",
-              },
-              "& ul": {
-                listStyleType: "disc",
-              },
-              "& li": {
-                margin: "6px 0",
-                paddingLeft: "4px",
-              },
-            }}
-            dangerouslySetInnerHTML={{ __html: sanitizeRichText(part) }}
-          />
-        );
+        return;
       }
+
+      const { src, customWidth, customMargin } = parseImgAttrs(part);
+      if (!src) return;
+      const matched = findMatchingImage(src);
+      if (matched) {
+        const indexInOrder = Math.max(
+          0,
+          orderedImages.findIndex((im) => im.id === matched.id)
+        );
+        group.push({ img: matched, index: indexInOrder, keyIdx: idx, customWidth, customMargin });
+        return;
+      }
+
+      // 매칭 실패 시 즉시 단일 이미지로 렌더링
+      flush();
+      elements.push(
+        <Box key={`img-fallback-${idx}`} sx={{ my: 2, textAlign: "center" }}>
+          <Box
+            component="img"
+            src={src}
+            alt="이미지"
+            sx={{
+              maxWidth: "100%",
+              height: "auto",
+              borderRadius: "8px",
+              cursor: "pointer",
+              "&:hover": { opacity: 0.8, transform: "scale(1.02)" },
+              transition: "all 0.2s ease",
+            }}
+            onClick={() => {
+              const tempImage: StoryImageType = {
+                id: Date.now(),
+                image_name: src.split("/").pop() || "unknown",
+                link: src.startsWith("http") ? src.replace(process.env.NEXT_PUBLIC_BASE_URL || "", "") : src,
+                file_size: 0,
+                mime_type: "image/jpeg",
+                upload_order: 0,
+                created_at: new Date().toISOString(),
+              };
+              handleImageClick(tempImage, 0);
+            }}
+          />
+        </Box>
+      );
     });
 
-    // 마지막에 남은 이미지 그룹 처리
-    processImageGroup();
-
+    flush();
     return elements;
-  }, [detail?.content, detail?.StoryImage, detail?.StoryVideo, theme.palette.mode, theme.palette.text.primary]);
+  }, [
+    detail?.content,
+    detail?.StoryImage,
+    detail?.StoryVideo,
+    theme.palette.text.primary,
+    contentOrderedImages,
+    handleImageClick,
+  ]);
 
   // 페이지 렌더링 - 조건부 렌더링을 JSX에서 처리
   if (isLoading) return <Loading />;

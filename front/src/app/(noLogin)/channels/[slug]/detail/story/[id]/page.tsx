@@ -1068,19 +1068,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
                                   : "0 1px 6px rgba(0,0,0,0.15)",
                             }}
                           />
-                          <Typography
-                            variant="caption"
-                            sx={{
-                              display: "block",
-                              textAlign: "center",
-                              mt: 1,
-                              color: theme.palette.mode === "dark" ? "#9CA3AF" : "#6B7280",
-                              fontFamily: '"Courier New", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas',
-                              letterSpacing: 0.2,
-                            }}
-                          >
-                            {img.image_name?.replace(/\.[^.]+$/, "") || "이미지"}
-                          </Typography>
                         </Box>
                       </Box>
                     );

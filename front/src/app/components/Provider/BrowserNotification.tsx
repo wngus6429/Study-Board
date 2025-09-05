@@ -8,6 +8,19 @@ interface BrowserNotificationProps {
   children?: React.ReactNode;
 }
 
+//! - 역할: 브라우저의 Notification API를 사용해 클라이언트 측 푸시 알림을 보여주고,
+//   알림 권한 요청 UI 및 간단한 테스트 알림을 제공합니다.
+// - 동작 요약:
+//   1) 브라우저가 Notification API를 지원하는지 확인합니다.
+//   2) 사용자가 로그인되어 있고 권한이 아직 "default"면 화면 상단의 권한 요청 바를 표시합니다.
+//   3) 사용자가 허용하면 (permission === 'granted') 알림을 생성하고 테스트 알림을 보냅니다.
+// - 전역 함수: 파일은 전역(window) 객체에 showCommentNotification, showChannelPostNotification,
+//   showBrowserNotification 를 등록해 다른 스크립트/컴포넌트에서 호출할 수 있게 합니다.
+// - 주의사항 및 개선 제안:
+//   · Notification API는 사용자의 브라우저 환경에 따라 동작이 다릅니다. 모바일/사파리 호환성 확인 필요.
+//   · 푸시 알림(백그라운드/서버 푸시)이 필요하면 Service Worker + Push API 기반 구현으로 전환하세요.
+//   · 알림 데이터나 링크는 안전하게 처리하고, 민감 정보를 노출하지 마세요.
+
 const BrowserNotification: React.FC<BrowserNotificationProps> = ({ children }) => {
   const { data: session } = useSession();
   const [permission, setPermission] = useState<NotificationPermission>("default");
@@ -115,10 +128,10 @@ const BrowserNotification: React.FC<BrowserNotificationProps> = ({ children }) =
       },
       onClick: () => {
         // 해당 게시글로 이동
-        const url = commentData.channelSlug
-          ? `/channels/${commentData.channelSlug}/detail/story/${commentData.storyId}#comment-${commentData.commentId}`
-          : `/detail/story/${commentData.storyId}#comment-${commentData.commentId}`;
-        window.location.href = url;
+        const url =
+          commentData.channelSlug &&
+          `/channels/${commentData.channelSlug}/detail/story/${commentData.storyId}#comment-${commentData.commentId}`;
+        window.location.href = url as string;
       },
     });
   };

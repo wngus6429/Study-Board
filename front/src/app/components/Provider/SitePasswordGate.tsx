@@ -19,6 +19,18 @@ interface SitePasswordGateProps {
   children: React.ReactNode;
 }
 
+//! - 역할: 전체 사이트(또는 라우트)에 간단한 접근 코드를 걸어 비공개로 유지할 때 사용하는
+//*   클라이언트 사이드 게이트 컴포넌트입니다. 인증되면 하위 children을 렌더링합니다.
+// - 동작: 환경변수(NEXT_PUBLIC_SITE_PASSWORD)와 입력값을 클라이언트에서 비교하고,
+//   성공 시 로컬스토리지(`siteAccess`, `siteAccessTime`)에 인증 정보를 저장해 재접근을 허용합니다.
+//* - TTL: 현재 코드는 인증 후 3일(변수명은 sevenDays지만 값은 3일) 동안 유효하도록 처리합니다.
+// - 보안 주의: 클라이언트에 노출되는 환경변수(NEXT_PUBLIC_*)로 비밀번호를 넣으면 누구나
+//   빌드 산출물에서 확인 가능하므로 민감한 비밀번호는 서버에서 검증하거나 세션/쿠키 기반으로 처리하세요.
+// - 개선 제안:
+//   · 서버 사이드 라우트에서 검증 후 세션을 발급
+//   · 서버에서 해시 비교 및 요청률 제한 적용
+//   · 민감값은 NEXT_PUBLIC_ 접두어 없이 서버 환경변수로 관리
+
 const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ children }) => {
   const theme = useTheme();
   const [password, setPassword] = useState("");

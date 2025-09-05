@@ -149,9 +149,10 @@ const NotificationDropdown = () => {
     }
   };
 
-  // 알림 페이지로 이동
+  // 알림 페이지로 이동, 드롭다운 닫기
   const handleMoveToNotificationPage = () => {
     router.push("/notifications");
+    handleClose();
   };
 
   return (

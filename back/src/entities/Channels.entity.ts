@@ -13,7 +13,6 @@ import { Story } from './Story.entity';
 import { Subscription } from './Subscription.entity';
 import { User } from './User.entity';
 import { ChannelImage } from './ChannelImage.entity';
-import { ChannelNotificationSubscription } from './ChannelNotificationSubscription.entity';
 import { ChannelChatMessage } from './ChannelChatMessage.entity';
 import { Suggestion } from './Suggestion.entity';
 
@@ -56,12 +55,7 @@ export class Channels {
   @OneToMany(() => Suggestion, (suggestion) => suggestion.Channel)
   Suggestion: Suggestion[];
 
-  // 채널 알림 구독 관계
-  @OneToMany(
-    () => ChannelNotificationSubscription,
-    (notificationSubscription) => notificationSubscription.Channel,
-  )
-  NotificationSubscriptions: ChannelNotificationSubscription[];
+  // 채널 알림 구독 관계 (제거됨)
 
   // 채널 채팅 메시지 관계
   @OneToMany(() => ChannelChatMessage, (chatMessage) => chatMessage.channel)

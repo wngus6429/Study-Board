@@ -14,7 +14,6 @@ import { ChannelsModule } from './channels/channels.module';
 import { MessagesModule } from './messages/messages.module';
 import { UsersModule } from './users/users.module';
 import { ScrapModule } from './scrap/scrap.module';
-import { ChannelNotificationModule } from './channel-notification/channel-notification.module';
 import { BlindModule } from './blind/blind.module';
 import { ChannelChatModule } from './channel-chat/channel-chat.module';
 
@@ -117,7 +116,6 @@ import { ChannelChatModule } from './channel-chat/channel-chat.module';
      * 🏢 채널 및 커뮤니티 모듈
      */
     ChannelsModule, // 채널 생성, 관리, 구독
-    ChannelNotificationModule, // 채널 알림 구독 관리
     ChannelChatModule, // 실시간 채널 채팅 (WebSocket)
 
     /**

@@ -3,17 +3,7 @@ import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
-import {
-  Avatar,
-  Button,
-  Menu,
-  MenuItem,
-  ListItemIcon,
-  ListItemText,
-  useTheme,
-  Box as MuiBox,
-  Typography,
-} from "@mui/material";
+import { Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText, useTheme, Box as MuiBox } from "@mui/material";
 import { useRouter } from "next/navigation";
 import axios from "@/app/api/axios";
 import styles from "./style/TopBar.module.css";
@@ -386,7 +376,6 @@ export default function MenuBar() {
         {user?.user && (
           <>
             <NotificationDropdown />
-            <ChannelNotificationDropdown />
           </>
         )}
 

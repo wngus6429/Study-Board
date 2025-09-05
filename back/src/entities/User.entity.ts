@@ -48,7 +48,6 @@ import { Subscription } from './Subscription.entity';
 import { Channels } from './Channels.entity';
 import { Message } from './Message.entity';
 import { Scrap } from './Scrap.entity';
-import { ChannelNotificationSubscription } from './ChannelNotificationSubscription.entity';
 import { Blind } from './Blind.entity';
 import { ChannelChatMessage } from './ChannelChatMessage.entity';
 
@@ -270,21 +269,7 @@ export class User extends BaseEntity {
   @OneToMany(() => Channels, (channel) => channel.creator)
   createdChannels: Channels[];
 
-  /**
-   * 채널 알림 구독 목록
-   *
-   * @description
-   * - 1:N 관계 (한 사용자가 여러 채널 알림 구독 가능)
-   * - 채널별 알림 설정 관리
-   * - 실시간 알림 발송 기준
-   *
-   * @relationship OneToMany with ChannelNotificationSubscription
-   */
-  @OneToMany(
-    () => ChannelNotificationSubscription,
-    (subscription) => subscription.User,
-  )
-  ChannelNotificationSubscriptions: ChannelNotificationSubscription[];
+  // 채널 알림 구독 목록 (기능 제거됨)
 
   // ═══════════════════════════════════════════════════════════════════════════════════════
   // 💬 메시징 시스템

@@ -17,7 +17,6 @@ import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
 import { Channels } from 'src/entities/Channels.entity';
 import { Report } from 'src/entities/Report.entity';
-import { ChannelNotificationModule } from '../channel-notification/channel-notification.module';
 import { NotificationModule } from '../notification/notification.module';
 import { AdminGuard } from '../auth/admin.guard';
 
@@ -123,7 +122,6 @@ import { AdminGuard } from '../auth/admin.guard';
       Report,
     ]),
     AuthModule, // 인증/인가 모듈
-    ChannelNotificationModule, // 채널 알림 모듈
     NotificationModule, // 일반 알림 모듈
   ],
   controllers: [StoryController], // 게시글 관련 API 컨트롤러

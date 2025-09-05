@@ -15,7 +15,6 @@ import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
 import { RecommendRanking } from 'src/entities/RecommendRanking.entity';
 import { Channels } from 'src/entities/Channels.entity';
-import { ChannelNotificationService } from '../channel-notification/channel-notification.service';
 import { NotificationService } from '../notification/notification.service';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -52,7 +51,6 @@ export class StoryTransactionService {
     private recommendRankingRepository: Repository<RecommendRanking>,
     @InjectRepository(Channels)
     private channelsRepository: Repository<Channels>,
-    private channelNotificationService: ChannelNotificationService,
     private notificationService: NotificationService,
   ) {}
 
@@ -366,10 +364,7 @@ export class StoryTransactionService {
       await queryRunner.commitTransaction();
       console.log('📝 [createStoryOptimized] 트랜잭션 커밋 완료');
 
-      // 🚀 트랜잭션 성공 후 알림 처리 (비동기로 메인 로직에 영향 없도록)
-      if (channel) {
-        this.sendChannelNotificationsAsync(channel, savedStory, userData);
-      }
+      // 채널 알림 기능 제거됨
 
       return savedStory;
     } catch (error) {
@@ -581,35 +576,7 @@ export class StoryTransactionService {
     });
   }
 
-  /**
-   * 🚀 채널 알림 비동기 발송 (메인 로직에 영향 없도록)
-   */
-  private async sendChannelNotificationsAsync(
-    channel: Channels,
-    story: Story,
-    userData: User,
-  ): Promise<void> {
-    try {
-      const subscribers =
-        await this.channelNotificationService.getChannelSubscribers(channel.id);
-
-      const notificationPromises = subscribers
-        .filter((subscriber) => subscriber.id !== userData.id)
-        .map((subscriber) =>
-          this.notificationService.createForChannelPost(
-            subscriber,
-            story,
-            channel,
-            userData,
-          ),
-        );
-
-      await Promise.allSettled(notificationPromises);
-      console.log(`📢 채널 알림 발송 완료: ${subscribers.length}명`);
-    } catch (error) {
-      console.error('채널 알림 발송 실패:', error);
-    }
-  }
+  // 채널 알림 비동기 발송 기능 제거됨
 
   /**
    * 🚀 배치 처리를 활용한 대량 데이터 마이그레이션

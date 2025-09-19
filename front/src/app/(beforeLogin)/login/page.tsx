@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, TextField, Typography, Box, Container, Alert, useTheme } from "@mui/material";
+import { Button, TextField, Typography, Box, Container, Alert, useTheme, Stack, Divider } from "@mui/material";
 import axios from "axios";
 import { signIn, useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -59,6 +59,15 @@ const LoginPage = () => {
       } else {
         setError("로그인 중 오류가 발생했습니다.");
       }
+    }
+  };
+
+  const handleGoogleLogin = async (): Promise<void> => {
+    try {
+      // NextAuth 구글 로그인 시작 (리다이렉트)
+      await signIn("google", { callbackUrl: "/channels" });
+    } catch (err) {
+      setError("Google 로그인 중 오류가 발생했습니다.");
     }
   };
 
@@ -207,6 +216,25 @@ const LoginPage = () => {
               }}
             >
               로그인
+            </Button>
+
+            {/* 소셜 로그인 구분선 */}
+            <Stack direction="row" alignItems="center" spacing={2} sx={{ my: 2 }}>
+              <Divider sx={{ flex: 1 }} />
+              <Typography variant="body2" color="text.secondary">
+                또는
+              </Typography>
+              <Divider sx={{ flex: 1 }} />
+            </Stack>
+
+            {/* Google 로그인 버튼 */}
+            <Button
+              fullWidth
+              variant="outlined"
+              onClick={handleGoogleLogin}
+              sx={{ py: 1.2, fontWeight: 600 }}
+            >
+              Google로 계속하기
             </Button>
 
             {/* 비밀번호 찾기 버튼 */}

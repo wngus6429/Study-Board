@@ -1,6 +1,7 @@
 // Next-Auth 설정
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 import type { NextAuthOptions } from "next-auth";
 
 export const authOptions: NextAuthOptions = {
@@ -42,15 +43,38 @@ export const authOptions: NextAuthOptions = {
         }
       },
     }),
+    // Google OAuth 로그인
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      // Google에서 내려주는 프로필을 우리 서비스 세션 스키마에 맞게 정규화
+      // 참고: https://next-auth.js.org/providers/google
+      profile(profile) {
+        return {
+          // NextAuth 기본 필드
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture,
+          // 우리 서비스에서 사용하는 커스텀 필드
+          user_email: profile.email,
+          nickname: profile.name || profile.email?.split("@")[0] || "GoogleUser",
+          is_super_admin: false,
+        } as any;
+      },
+    }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger, session: newSession }) {
+    async jwt({ token, user, account, trigger, session: newSession }) {
+      // 최초 로그인(또는 계정 연결) 시 user 객체가 존재
       if (user) {
-        token.id = user.id;
-        token.user_email = user.user_email;
-        token.nickname = user.nickname;
-        token.image = user.image as string;
-        token.is_super_admin = user.is_super_admin;
+        // Credentials 또는 OAuth 모두 동일 포맷으로 토큰 저장
+        // (OAuth의 경우 위 profile()에서 커스텀 필드를 만들어둠)
+        token.id = (user as any).id;
+        token.user_email = (user as any).user_email ?? (user as any).email;
+        token.nickname = (user as any).nickname ?? (user as any).name;
+        token.image = (user as any).image as string;
+        token.is_super_admin = (user as any).is_super_admin ?? false;
       }
 
       // 2) update() 호출 시 trigger==="update", newSession에 인자로 넘긴 객체가 들어옴

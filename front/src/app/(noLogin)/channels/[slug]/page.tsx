@@ -85,6 +85,8 @@ export async function generateMetadata({ params }: { params: { slug: string } })
 }
 
 export default async function ChannelPage({ params }: { params: { slug: string } }) {
+  // 검색엔진(크롤러)에 페이지 정보를 더 잘 전달하기 위한 SEO용 구조화 데이터와 로딩 처리 코드입니다.
+  // 없애도 UI 영향 없음: 일반 사용자 인터페이스(ChannelsClient가 렌더링하는 리스트/상세)는 정상 동작합니다.
   // 서버에서 채널 데이터 가져오기
   const channelData = await getChannelData(params.slug);
 

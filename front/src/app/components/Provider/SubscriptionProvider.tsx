@@ -44,7 +44,7 @@ export default function SubscriptionProvider({ children }: { children: React.Rea
       hasLoadedRef.current = false;
       clearSubscriptions();
     }
-  }, [status, session?.user, loading, subscribedChannels.length]);
+  }, [session?.user, subscribedChannels.length]);
 
   return <>{children}</>;
 }

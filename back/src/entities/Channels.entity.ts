@@ -17,6 +17,9 @@ import { ChannelChatMessage } from './ChannelChatMessage.entity';
 import { Suggestion } from './Suggestion.entity';
 
 @Entity() // 이 클래스가 데이터베이스의 엔티티임을 선언합니다.
+@Index(['slug']) // slug 조회 최적화 (이미 unique지만 명시적 인덱스)
+@Index(['creator', 'created_at']) // 생성자별 채널 조회 최적화
+@Index(['is_hidden', 'created_at']) // 공개 채널 목록 조회 최적화
 export class Channels {
   @PrimaryGeneratedColumn() // 자동 증가하는 기본 키 컬럼
   id: number;

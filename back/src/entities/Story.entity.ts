@@ -25,6 +25,10 @@ import { Channels } from './Channels.entity';
 import { Scrap } from './Scrap.entity';
 
 @Entity() // 이 클래스가 데이터베이스의 엔티티임을 선언합니다.
+@Index(['category', 'isNotice', 'created_at']) // 카테고리별 목록 조회 최적화
+@Index(['Channel', 'isNotice', 'created_at']) // 채널별 목록 조회 최적화
+@Index(['User', 'created_at']) // 사용자별 게시글 조회 최적화
+@Index(['isNotice', 'created_at']) // 공지사항 분리 조회 최적화
 export class Story {
   @ApiProperty({
     description: '게시글 ID',
@@ -35,6 +39,7 @@ export class Story {
   @ApiProperty({
     description: '카테고리명',
   })
+  @Index() // 카테고리 필터링 최적화
   @Column({ nullable: false }) // 반드시 값이 있어야 하는 필드
   category: string;
 
@@ -110,6 +115,7 @@ export class Story {
   @ApiProperty({
     description: '공지사항 여부',
   })
+  @Index() // 공지사항 필터링 최적화 (WHERE isNotice = false 자주 사용)
   @Column({ default: false })
   isNotice: boolean; // 공지사항 여부 플래그
 
@@ -117,6 +123,7 @@ export class Story {
   @ApiProperty({
     description: '작성일',
   })
+  @Index() // ORDER BY created_at 최적화
   @CreateDateColumn() // 엔티티 생성 시 자동으로 날짜가 입력됩니다.
   created_at: Date;
 

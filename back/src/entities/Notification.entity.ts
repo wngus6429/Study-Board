@@ -5,12 +5,15 @@ import {
   ManyToOne,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { User } from './User.entity';
 import { Comments } from './Comments.entity';
 import { Story } from './Story.entity';
 
 @Entity()
+@Index(['recipient', 'isRead', 'createdAt']) // 사용자별 미읽은 알림 조회 최적화
+@Index(['recipient', 'createdAt']) // 사용자별 알림 목록 조회 최적화
 export class Notification {
   @PrimaryGeneratedColumn()
   id: number;

@@ -6,6 +6,7 @@ import {
   OneToMany,
   CreateDateColumn,
   UpdateDateColumn,
+  Index,
 } from 'typeorm';
 import { Story } from './Story.entity';
 import { ApiProperty } from '@nestjs/swagger';
@@ -13,6 +14,9 @@ import { User } from './User.entity';
 import { Notification } from './Notification.entity';
 
 @Entity()
+@Index(['Story', 'created_at']) // 게시글별 댓글 조회 최적화
+@Index(['User', 'created_at']) // 사용자별 댓글 조회 최적화
+@Index(['Story', 'parent']) // 대댓글 조회 최적화
 export class Comments {
   @ApiProperty({
     description: '댓글 ID',

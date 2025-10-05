@@ -5,11 +5,14 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   JoinColumn,
+  Index,
 } from 'typeorm';
 import { User } from './User.entity';
 import { Story } from './Story.entity';
 
 @Entity()
+@Index(['User', 'created_at']) // 사용자별 스크랩 목록 조회 최적화
+@Index(['User', 'Story'], { unique: true }) // 중복 스크랩 방지 및 조회 최적화
 export class Scrap {
   @PrimaryGeneratedColumn()
   id: number;

@@ -5,12 +5,15 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   Unique,
+  Index,
 } from 'typeorm';
 import { User } from './User.entity';
 import { Channels } from './Channels.entity';
 
 @Entity()
 @Unique(['User', 'Channel']) // 한 유저가 같은 채널을 중복 구독하지 않도록
+@Index(['User', 'created_at']) // 사용자별 구독 채널 목록 조회 최적화
+@Index(['Channel', 'created_at']) // 채널별 구독자 목록 조회 최적화
 export class Subscription {
   @PrimaryGeneratedColumn()
   id: number;

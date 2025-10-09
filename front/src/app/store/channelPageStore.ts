@@ -5,6 +5,7 @@ import { persist } from "zustand/middleware";
 export interface ChannelPageStory {
   id: number;
   title: string;
+  userId?: string; // 블라인드 판별용 사용자 ID
   nickname: string;
   category: string;
   created_at: string;

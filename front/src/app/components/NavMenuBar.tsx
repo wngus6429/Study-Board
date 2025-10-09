@@ -17,6 +17,7 @@ import { useSubscriptionStore } from "../store/subscriptionStore";
 import { useChannelPageStore } from "../store/channelPageStore";
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
+import { useBlindStore } from "../store/blindStore";
 
 const NavMenuBar: FC = () => {
   const theme = useTheme();
@@ -25,6 +26,7 @@ const NavMenuBar: FC = () => {
   const { subscribedChannels, loading, error, loadSubscriptions, clearSubscriptions } = useSubscriptionStore();
   const { currentChannelSlug, currentPage, currentCategory, stories } = useChannelPageStore();
   const { data: session } = useSession();
+  const { isUserBlinded } = useBlindStore();
 
   // 현재 경로에서 채널 슬러그와 상세페이지 여부 확인 - useMemo로 최적화
   const pathInfo = useMemo(() => {
@@ -233,7 +235,7 @@ const NavMenuBar: FC = () => {
                         lineHeight: 1.2,
                       }}
                     >
-                      {story.title}
+                      {story.userId && isUserBlinded(story.userId) ? "블라인드 글" : story.title}
                     </Typography>
                     <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mt: 0.25 }}>
                       <Chip label={story.category === "all" ? "전체" : story.category} size="small" sx={chipStyles} />

@@ -1,6 +1,7 @@
 import React from "react";
 import { Popover, List, ListItem, ListItemIcon, ListItemText, Divider, Typography, Box } from "@mui/material";
 import { Person as PersonIcon, Mail as MailIcon } from "@mui/icons-material";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useRouter } from "next/navigation";
 
 interface UserMenuPopoverProps {
@@ -9,9 +10,17 @@ interface UserMenuPopoverProps {
   onClose: () => void;
   nickname: string;
   onSendMessage: () => void;
+  onBlindUser?: () => void; // 선택: 블라인드 액션
 }
 
-const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ open, anchorEl, onClose, nickname, onSendMessage }) => {
+const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({
+  open,
+  anchorEl,
+  onClose,
+  nickname,
+  onSendMessage,
+  onBlindUser,
+}) => {
   const router = useRouter();
 
   const handleProfileClick = () => {
@@ -21,6 +30,13 @@ const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ open, anchorEl, onClo
 
   const handleSendMessageClick = () => {
     onSendMessage();
+    onClose();
+  };
+
+  const handleBlindClick = () => {
+    if (onBlindUser) {
+      onBlindUser();
+    }
     onClose();
   };
 
@@ -76,6 +92,32 @@ const UserMenuPopover: React.FC<UserMenuPopoverProps> = ({ open, anchorEl, onClo
             }}
           />
         </ListItem>
+        {/* 블라인드 하기 */}
+        {onBlindUser && (
+          <ListItem
+            onClick={handleBlindClick}
+            sx={{
+              "&:hover": {
+                backgroundColor: "action.hover",
+              },
+              cursor: "pointer",
+              py: 0.5,
+              px: 1,
+              minHeight: 32,
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 28 }}>
+              <VisibilityOffIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText
+              primary="블라인드 하기"
+              primaryTypographyProps={{
+                variant: "body2",
+                fontSize: "0.8rem",
+              }}
+            />
+          </ListItem>
+        )}
         <ListItem
           onClick={handleSendMessageClick}
           sx={{

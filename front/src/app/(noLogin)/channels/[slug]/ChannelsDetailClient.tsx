@@ -346,6 +346,7 @@ const ChannelDetailPage = () => {
       const storyData = currentData.results.map((story) => ({
         id: story.id,
         title: story.title,
+        userId: story.userId, // 블라인드 판별용 사용자 ID 저장
         nickname: story.nickname,
         category: story.category,
         created_at: story.created_at,

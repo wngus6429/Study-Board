@@ -44,6 +44,7 @@ import FlagIcon from "@mui/icons-material/Flag";
 import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
 import { useAdmin } from "@/app/hooks/useAdmin";
 import { getChannelBySlug } from "@/app/api/channelsApi";
+import { addBlindUser } from "@/app/api/blind";
 
 export default function page({ params }: { params: { id: string; slug: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -70,6 +71,9 @@ export default function page({ params }: { params: { id: string; slug: string } 
   const [userMenuAnchorEl, setUserMenuAnchorEl] = useState<HTMLElement | null>(null);
   const [selectedUserNickname, setSelectedUserNickname] = useState<string>("");
   const [sendMessageModalOpen, setSendMessageModalOpen] = useState<boolean>(false);
+  // 블라인드 다이얼로그
+  const [blindDialogOpen, setBlindDialogOpen] = useState(false);
+  const [blindTargetNickname, setBlindTargetNickname] = useState<string>("");
 
   // 최근 본 게시물 관리
   const { addRecentView } = useRecentViews();
@@ -590,6 +594,46 @@ export default function page({ params }: { params: { id: string; slug: string } 
   const handleSendMessageModalClose = useCallback(() => {
     setSendMessageModalOpen(false);
   }, []);
+
+  // 블라인드: 팝오버 항목 클릭 시 다이얼로그 오픈
+  const handleOpenBlindDialog = useCallback(() => {
+    if (!session?.user) {
+      showMessage("로그인이 필요합니다.", "warning");
+      return;
+    }
+    // 자기 자신 블라인드 방지
+    if (detail?.User?.id && detail?.User?.id === session?.user?.id) {
+      showMessage("자기 자신은 블라인드할 수 없습니다.", "warning");
+      return;
+    }
+    setBlindTargetNickname(detail?.User?.nickname || selectedUserNickname);
+    setBlindDialogOpen(true);
+  }, [session?.user, detail?.User?.id, detail?.User?.nickname, selectedUserNickname, showMessage]);
+
+  const handleCloseBlindDialog = useCallback(() => {
+    setBlindDialogOpen(false);
+  }, []);
+
+  const blindMutation = useMutation({
+    mutationFn: addBlindUser,
+    onSuccess: () => {
+      showMessage("블라인드에 추가했습니다.", "success");
+      queryClient.invalidateQueries({ queryKey: ["blindUsers"] });
+      setBlindDialogOpen(false);
+    },
+    onError: (error: any) => {
+      showMessage(error.response?.data?.message || "블라인드 추가 실패", "error");
+    },
+  });
+
+  const handleConfirmBlind = useCallback(() => {
+    const nickname = blindTargetNickname?.trim();
+    if (!nickname) {
+      showMessage("닉네임을 확인해주세요.", "warning");
+      return;
+    }
+    blindMutation.mutate({ targetUserNickname: nickname });
+  }, [blindTargetNickname, blindMutation, showMessage]);
 
   // 스크랩 버튼 클릭 핸들러 (메모이제이션)
   const handleScrapClick = useCallback(() => {
@@ -1183,6 +1227,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
         onClose={handleUserMenuClose}
         nickname={selectedUserNickname}
         onSendMessage={handleSendMessageClick}
+        onBlindUser={handleOpenBlindDialog}
       />
 
       {/* 쪽지 보내기 모달 */}
@@ -1199,6 +1244,25 @@ export default function page({ params }: { params: { id: string; slug: string } 
         onSubmit={handleReportSubmit}
         loading={reportLoading}
       />
+
+      {/* 블라인드 확인 다이얼로그 */}
+      <Dialog open={blindDialogOpen} onClose={handleCloseBlindDialog} maxWidth="xs" fullWidth>
+        <DialogTitle>사용자 블라인드</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            아래 사용자를 블라인드 목록에 추가하시겠습니까?
+          </Typography>
+          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+            {blindTargetNickname}
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseBlindDialog}>취소</Button>
+          <Button onClick={handleConfirmBlind} variant="contained" disabled={blindMutation.isPending}>
+            {blindMutation.isPending ? "처리 중..." : "블라인드"}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* 관리자 삭제 확인 다이얼로그 */}
       <Dialog open={openAdminDeleteDialog} onClose={cancelAdminDelete} aria-labelledby="admin-delete-dialog-title">

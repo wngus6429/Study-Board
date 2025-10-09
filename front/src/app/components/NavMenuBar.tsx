@@ -51,7 +51,7 @@ const NavMenuBar: FC = () => {
     queryKey: ["nav", "channel", pathInfo.currentUrlChannelSlug],
     queryFn: () => getChannelBySlug(pathInfo.currentUrlChannelSlug || ""),
     enabled: !!pathInfo.currentUrlChannelSlug && !!shouldShowStories,
-    staleTime: 5 * 60 * 1000,
+    // staleTime: 5 * 60 * 1000,
   });
 
   // Nav 전용 스토리 목록 페치 (메인과 독립)
@@ -70,7 +70,7 @@ const NavMenuBar: FC = () => {
       return response.data;
     },
     enabled: !!channelData?.id && !!shouldShowStories,
-    staleTime: 30 * 1000,
+    // staleTime: 30 * 1000,
     refetchOnWindowFocus: false,
   });
 

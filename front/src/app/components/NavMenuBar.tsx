@@ -1,5 +1,5 @@
 "use client";
-import { FC, useEffect, useMemo, useCallback, memo } from "react";
+import { FC, useEffect, useMemo, useCallback, memo, useState } from "react";
 import Link from "next/link";
 import {
   Box,
@@ -11,6 +11,7 @@ import {
   Chip,
   Avatar,
   CircularProgress,
+  Button,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { useSubscriptionStore } from "../store/subscriptionStore";
@@ -18,6 +19,9 @@ import { useChannelPageStore } from "../store/channelPageStore";
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useBlindStore } from "../store/blindStore";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { getChannelBySlug } from "@/app/api/channelsApi";
 
 const NavMenuBar: FC = () => {
   const theme = useTheme();
@@ -27,6 +31,8 @@ const NavMenuBar: FC = () => {
   const { currentChannelSlug, currentPage, currentCategory, stories } = useChannelPageStore();
   const { data: session } = useSession();
   const { isUserBlinded } = useBlindStore();
+  // Nav 전용 페이지 상태 (메인과 분리)
+  const [navPage, setNavPage] = useState<number>(currentPage || 1);
 
   // 현재 경로에서 채널 슬러그와 상세페이지 여부 확인 - useMemo로 최적화
   const pathInfo = useMemo(() => {
@@ -40,16 +46,64 @@ const NavMenuBar: FC = () => {
     return pathInfo.isChannelDetailPage && currentChannelSlug === pathInfo.currentUrlChannelSlug && stories.length > 0;
   }, [pathInfo.isChannelDetailPage, currentChannelSlug, pathInfo.currentUrlChannelSlug, stories.length]);
 
+  // 채널 ID 조회 (slug 기준) - Nav 전용 페치
+  const { data: channelData } = useQuery({
+    queryKey: ["nav", "channel", pathInfo.currentUrlChannelSlug],
+    queryFn: () => getChannelBySlug(pathInfo.currentUrlChannelSlug || ""),
+    enabled: !!pathInfo.currentUrlChannelSlug && !!shouldShowStories,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Nav 전용 스토리 목록 페치 (메인과 독립)
+  const navLimit = useMemo(() => (stories?.length && stories.length > 0 ? stories.length : 20), [stories?.length]);
+  const { data: navStoriesData, isLoading: navLoading } = useQuery<{ results: any[]; total: number }>({
+    queryKey: ["nav", "stories", pathInfo.currentUrlChannelSlug, channelData?.id, currentCategory, navPage, navLimit],
+    queryFn: async () => {
+      const offset = (navPage - 1) * navLimit;
+      const params: any = {
+        offset,
+        limit: navLimit,
+      };
+      if (currentCategory && currentCategory !== "all") params.category = currentCategory;
+      if (channelData?.id) params.channelId = channelData.id;
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/pageTableData`, { params });
+      return response.data;
+    },
+    enabled: !!channelData?.id && !!shouldShowStories,
+    staleTime: 30 * 1000,
+    refetchOnWindowFocus: false,
+  });
+
+  // 총 페이지 수 계산 (total과 navLimit 기반)
+  const totalPages = useMemo(() => {
+    if (typeof navStoriesData?.total === "number") {
+      return Math.max(1, Math.ceil(navStoriesData.total / navLimit));
+    }
+    return null; // total 정보가 없을 때는 null 유지
+  }, [navStoriesData?.total, navLimit]);
+
+  // 현재 페이지가 총 페이지를 넘어가지 않도록 보정
+  useEffect(() => {
+    if (totalPages && navPage > totalPages) {
+      setNavPage(totalPages);
+    }
+  }, [totalPages]);
+
   // useCallback으로 이벤트 핸들러 최적화
   const handleStoryClick = useCallback(
     (storyId: number) => {
-      // 현재 페이지 URL을 세션 스토리지에 저장 (메인으로 버튼 기능을 위해)
+      // 상세 진입 전, 이전 메인(채널 테이블) URL을 세션 스토리지에 저장
       if (typeof window !== "undefined") {
-        sessionStorage.setItem("previousMainPageUrl", window.location.href);
+        const slug = currentChannelSlug || pathInfo.currentUrlChannelSlug || "";
+        const params = new URLSearchParams();
+        if (currentCategory) params.set("category", currentCategory);
+        if (navPage) params.set("page", String(navPage));
+        const backUrl = `/channels/${slug}${params.toString() ? `?${params.toString()}` : ""}`;
+        sessionStorage.setItem("previousMainPageUrl", backUrl);
       }
       router.push(`/channels/${currentChannelSlug}/detail/story/${storyId}`);
     },
-    [router, currentChannelSlug]
+    [router, currentChannelSlug, pathInfo.currentUrlChannelSlug, currentCategory, navPage]
   );
 
   // 스타일 객체들을 useMemo로 최적화
@@ -80,7 +134,7 @@ const NavMenuBar: FC = () => {
     () => ({
       color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
       fontWeight: 600,
-      mb: 1,
+      // mb: 1,
       px: 1,
     }),
     [theme.palette.mode]
@@ -215,11 +269,11 @@ const NavMenuBar: FC = () => {
       {shouldShowStories && (
         <>
           <Typography variant="subtitle2" sx={titleStyles}>
-            현재 페이지 ({currentPage}페이지)
+            {totalPages ? `현재 페이지 (${navPage} / ${totalPages})` : `현재 페이지 (${navPage}페이지)`}
           </Typography>
 
           <List dense>
-            {stories.map((story) => (
+            {(navStoriesData?.results || stories).map((story: any) => (
               <ListItem key={story.id} disablePadding>
                 <ListItemButton onClick={() => handleStoryClick(story.id)} sx={storyListItemButtonStyles}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
@@ -255,6 +309,26 @@ const NavMenuBar: FC = () => {
             ))}
           </List>
 
+          {/* 페이지 내비게이션 버튼 */}
+          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1, mt: 1, px: 1 }}>
+            <Button
+              variant="outlined"
+              size="small"
+              disabled={navPage <= 1 || navLoading}
+              onClick={() => setNavPage((p) => Math.max(1, p - 1))}
+            >
+              이전 페이지
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              disabled={navLoading || (totalPages !== null && navPage >= totalPages)}
+              onClick={() => setNavPage((p) => (totalPages ? Math.min(totalPages, p + 1) : p + 1))}
+            >
+              다음 페이지
+            </Button>
+          </Box>
+
           <Typography
             variant="caption"
             sx={{
@@ -265,7 +339,7 @@ const NavMenuBar: FC = () => {
               mt: 1,
             }}
           >
-            총 {stories.length}개 게시글
+            총 {navStoriesData?.total ?? navStoriesData?.results?.length ?? stories.length}개 게시글
           </Typography>
         </>
       )}

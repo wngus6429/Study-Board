@@ -39,7 +39,6 @@ import UserMenuPopover from "@/app/components/common/UserMenuPopover";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
 import ReportModal from "@/app/components/common/ReportModal";
 import { useRecentViews } from "@/app/store/recentViewsStore";
-import { useChannelPageStore } from "@/app/store/channelPageStore";
 import FlagIcon from "@mui/icons-material/Flag";
 import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
 import { useAdmin } from "@/app/hooks/useAdmin";
@@ -77,9 +76,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
   // 최근 본 게시물 관리
   const { addRecentView } = useRecentViews();
-
-  // 채널 페이지 스토어 (localStorage로 자동 저장/복원)
-  const { currentChannelSlug, currentPage, stories } = useChannelPageStore();
 
   // 스크랩 관련 상태
   const [isScraped, setIsScraped] = useState<boolean>(false);

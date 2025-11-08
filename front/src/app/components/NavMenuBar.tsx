@@ -12,8 +12,11 @@ import {
   Avatar,
   CircularProgress,
   Button,
+  Drawer,
+  IconButton,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { useSubscriptionStore } from "../store/subscriptionStore";
 import { useChannelPageStore } from "../store/channelPageStore";
 import { useSession } from "next-auth/react";
@@ -22,6 +25,8 @@ import { useBlindStore } from "../store/blindStore";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { getChannelBySlug } from "@/app/api/channelsApi";
+import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
+import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
 
 const NavMenuBar: FC = () => {
   const theme = useTheme();
@@ -33,6 +38,13 @@ const NavMenuBar: FC = () => {
   const { isUserBlinded } = useBlindStore();
   // Nav 전용 페이지 상태 (메인과 분리)
   const [navPage, setNavPage] = useState<number>(currentPage || 1);
+  const isCompactLayout = useMediaQuery(theme.breakpoints.down("md"));
+  const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const closeDrawerIfNeeded = useCallback(() => {
+    if (isCompactLayout) {
+      setMobileDrawerOpen(false);
+    }
+  }, [isCompactLayout]);
 
   // 현재 경로에서 채널 슬러그와 상세페이지 여부 확인 - useMemo로 최적화
   const pathInfo = useMemo(() => {
@@ -104,6 +116,13 @@ const NavMenuBar: FC = () => {
       router.push(`/channels/${currentChannelSlug}/detail/story/${storyId}`);
     },
     [router, currentChannelSlug, pathInfo.currentUrlChannelSlug, currentCategory, navPage]
+  );
+  const handleStorySelect = useCallback(
+    (storyId: number) => {
+      handleStoryClick(storyId);
+      closeDrawerIfNeeded();
+    },
+    [handleStoryClick, closeDrawerIfNeeded]
   );
 
   // 스타일 객체들을 useMemo로 최적화
@@ -206,68 +225,72 @@ const NavMenuBar: FC = () => {
     }
   }, [session?.user, loadSubscriptions, clearSubscriptions]);
 
-  return (
-    <Box sx={containerStyles}>
-      {/* 구독한 채널 섹션 */}
-      <Typography variant="subtitle2" sx={titleStyles}>
-        구독한 채널
-      </Typography>
-
-      {loading ? (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-          <CircularProgress size={20} />
-        </Box>
-      ) : subscribedChannels.length > 0 ? (
-        <List dense>
-          {subscribedChannels.map((channel) => (
-            <ListItem key={channel.id} disablePadding>
-              <ListItemButton component={Link} href={`/channels/${channel.slug}`} sx={listItemButtonStyles}>
-                <Avatar sx={avatarStyles}>{channel.channel_name.charAt(0)}</Avatar>
-                <Box sx={{ flex: 1, minWidth: 0 }}>
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
-                      fontWeight: 500,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {channel.channel_name}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)",
-                    }}
-                  >
-                    {channel.story_count}개 글
-                  </Typography>
-                </Box>
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
-      ) : (
-        <Typography
-          variant="caption"
-          sx={{
-            color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
-            px: 1,
-            display: "block",
-          }}
-        >
-          구독한 채널이 없습니다
+  const navContent = (
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <Box>
+        <Typography variant="subtitle2" sx={titleStyles}>
+          구독한 채널
         </Typography>
-      )}
 
-      {/* 구분선 */}
+        {loading ? (
+          <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
+            <CircularProgress size={20} />
+          </Box>
+        ) : subscribedChannels.length > 0 ? (
+          <List dense>
+            {subscribedChannels.map((channel) => (
+              <ListItem key={channel.id} disablePadding>
+                <ListItemButton
+                  component={Link}
+                  href={`/channels/${channel.slug}`}
+                  sx={listItemButtonStyles}
+                  onClick={closeDrawerIfNeeded}
+                >
+                  <Avatar sx={avatarStyles}>{channel.channel_name.charAt(0)}</Avatar>
+                  <Box sx={{ flex: 1, minWidth: 0 }}>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
+                        fontWeight: 500,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {channel.channel_name}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)",
+                      }}
+                    >
+                      {channel.story_count}개 글
+                    </Typography>
+                  </Box>
+                </ListItemButton>
+              </ListItem>
+            ))}
+          </List>
+        ) : (
+          <Typography
+            variant="caption"
+            sx={{
+              color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
+              px: 1,
+              display: "block",
+            }}
+          >
+            구독한 채널이 없습니다
+          </Typography>
+        )}
+      </Box>
+
       {shouldShowStories && <Divider sx={dividerStyles} />}
 
-      {/* 현재 페이지 게시글 목록 섹션 */}
       {shouldShowStories && (
-        <>
+        <Box>
           <Typography variant="subtitle2" sx={titleStyles}>
             {totalPages ? `현재 페이지 (${navPage} / ${totalPages})` : `현재 페이지 (${navPage}페이지)`}
           </Typography>
@@ -275,7 +298,7 @@ const NavMenuBar: FC = () => {
           <List dense>
             {(navStoriesData?.results || stories).map((story: any) => (
               <ListItem key={story.id} disablePadding>
-                <ListItemButton onClick={() => handleStoryClick(story.id)} sx={storyListItemButtonStyles}>
+                <ListItemButton onClick={() => handleStorySelect(story.id)} sx={storyListItemButtonStyles}>
                   <Box sx={{ flex: 1, minWidth: 0 }}>
                     <Typography
                       variant="body2"
@@ -309,11 +332,20 @@ const NavMenuBar: FC = () => {
             ))}
           </List>
 
-          {/* 페이지 내비게이션 버튼 */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", gap: 1, mt: 1, px: 1 }}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 1,
+              mt: 1,
+              px: 1,
+              flexDirection: isCompactLayout ? "column" : "row",
+            }}
+          >
             <Button
               variant="outlined"
               size="small"
+              fullWidth={isCompactLayout}
               disabled={navPage <= 1 || navLoading}
               onClick={() => setNavPage((p) => Math.max(1, p - 1))}
             >
@@ -322,6 +354,7 @@ const NavMenuBar: FC = () => {
             <Button
               variant="outlined"
               size="small"
+              fullWidth={isCompactLayout}
               disabled={navLoading || (totalPages !== null && navPage >= totalPages)}
               onClick={() => setNavPage((p) => (totalPages ? Math.min(totalPages, p + 1) : p + 1))}
             >
@@ -341,10 +374,64 @@ const NavMenuBar: FC = () => {
           >
             총 {navStoriesData?.total ?? navStoriesData?.results?.length ?? stories.length}개 게시글
           </Typography>
-        </>
+        </Box>
       )}
     </Box>
   );
+
+  if (isCompactLayout) {
+    return (
+      <>
+        <Button
+          variant="outlined"
+          fullWidth
+          startIcon={<MenuBookRoundedIcon />}
+          onClick={() => setMobileDrawerOpen(true)}
+          sx={{
+            borderRadius: 2,
+            justifyContent: "flex-start",
+            color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
+            borderColor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.3)" : "rgba(0, 0, 0, 0.15)",
+          }}
+        >
+          채널 · 게시글 탐색
+        </Button>
+
+        <Drawer
+          anchor="left"
+          open={mobileDrawerOpen}
+          onClose={() => setMobileDrawerOpen(false)}
+          ModalProps={{ keepMounted: true }}
+          PaperProps={{
+            sx: {
+              width: "min(90vw, 360px)",
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(135deg, rgba(15,15,35,0.98), rgba(30,30,50,0.95))"
+                  : "linear-gradient(135deg, rgba(255,255,255,0.98), rgba(248,250,252,0.95))",
+              borderRight:
+                theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid rgba(0, 0, 0, 0.05)",
+            },
+          }}
+        >
+          <Box sx={{ display: "flex", flexDirection: "column", height: "100%", p: 2 }}>
+            <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                채널 · 게시글 탐색
+              </Typography>
+              <IconButton onClick={() => setMobileDrawerOpen(false)} aria-label="채널 탐색 닫기">
+                <CloseRoundedIcon />
+              </IconButton>
+            </Box>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ flex: 1, overflowY: "auto", pr: 1 }}>{navContent}</Box>
+          </Box>
+        </Drawer>
+      </>
+    );
+  }
+
+  return <Box sx={containerStyles}>{navContent}</Box>;
 };
 
 export default memo(NavMenuBar);

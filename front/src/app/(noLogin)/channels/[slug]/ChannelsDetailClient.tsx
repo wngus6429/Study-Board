@@ -910,17 +910,31 @@ const ChannelDetailPage = () => {
                   : "1px solid rgba(139, 92, 246, 0.15)",
             }}
           >
-            <Typography
-              variant="body1"
+            <Box
               sx={{
                 color: theme.palette.mode === "dark" ? "#e2e8f0" : "#374151",
-                textAlign: "center",
                 lineHeight: 1.6,
                 fontSize: "1rem",
                 fontWeight: 500,
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                alignItems: { xs: "flex-start", sm: "center" },
+                justifyContent: { xs: "flex-start", sm: "center" },
+                textAlign: { xs: "left", sm: "center" },
+                gap: { xs: 1.5, sm: 3 },
+              }}
+          >
+            <Typography
+              variant="body1"
+              component="div"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                whiteSpace: "nowrap",
               }}
             >
-              📅 생성일:{" "}
+              📅 생성일:
               <Box
                 component="span"
                 sx={{
@@ -934,7 +948,19 @@ const ChannelDetailPage = () => {
                   day: "numeric",
                 })}
               </Box>
-              &nbsp;&nbsp;&nbsp;&nbsp; 👤 생성자:{" "}
+            </Typography>
+
+            <Typography
+              variant="body1"
+              component="div"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              👤 생성자:
               <Box
                 component="span"
                 sx={{
@@ -944,7 +970,19 @@ const ChannelDetailPage = () => {
               >
                 {channelData.creator?.nickname || "알수없음"}
               </Box>
-              &nbsp;&nbsp;&nbsp;&nbsp; 📊 통계:{" "}
+            </Typography>
+
+            <Typography
+              variant="body1"
+              component="div"
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                whiteSpace: "nowrap",
+              }}
+            >
+              📊 통계:
               <Box
                 component="span"
                 sx={{
@@ -956,6 +994,7 @@ const ChannelDetailPage = () => {
                 {channelData.story_count.toLocaleString()}개
               </Box>
             </Typography>
+          </Box>
           </Box>
         </Card>
       )}

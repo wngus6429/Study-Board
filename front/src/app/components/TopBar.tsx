@@ -663,11 +663,82 @@ export default function MenuBar() {
                   handleSettingsMenuClose();
                   router.push("/signup");
                 }}
+                sx={{
+                  mt: 0.5,
+                  borderRadius: "14px",
+                  background:
+                    theme.palette.mode === "dark"
+                      ? "linear-gradient(135deg, rgba(236, 72, 153, 0.25), rgba(139, 92, 246, 0.35))"
+                      : "linear-gradient(135deg, rgba(249, 168, 212, 0.4), rgba(129, 140, 248, 0.35))",
+                  border:
+                    theme.palette.mode === "dark"
+                      ? "1px solid rgba(236, 72, 153, 0.45)"
+                      : "1px solid rgba(99, 102, 241, 0.35)",
+                  boxShadow:
+                    theme.palette.mode === "dark"
+                      ? "0 10px 25px rgba(15, 23, 42, 0.55)"
+                      : "0 10px 25px rgba(148, 163, 184, 0.45)",
+                  color: theme.palette.mode === "dark" ? "#FDF4FF" : "#1F2937",
+                  position: "relative",
+                  overflow: "hidden",
+                  "&::after": {
+                    content: '\"\"',
+                    position: "absolute",
+                    inset: 0,
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "radial-gradient(circle at top right, rgba(255,255,255,0.25), transparent 45%)"
+                        : "radial-gradient(circle at top right, rgba(255,255,255,0.55), transparent 45%)",
+                    opacity: 0.8,
+                    pointerEvents: "none",
+                  },
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0 16px 35px rgba(15, 23, 42, 0.7)"
+                        : "0 16px 35px rgba(148, 163, 184, 0.55)",
+                  },
+                }}
               >
                 <ListItemIcon>
-                  <PersonAddIcon fontSize="small" />
+                  <PersonAddIcon
+                    fontSize="small"
+                    sx={{
+                      color: theme.palette.mode === "dark" ? "#FEE2E2" : "#7C3AED",
+                    }}
+                  />
                 </ListItemIcon>
-                <ListItemText>회원가입</ListItemText>
+                <ListItemText
+                  primary="회원가입"
+                  secondary="30초 만에 취향 커뮤니티 합류"
+                  primaryTypographyProps={{
+                    fontWeight: 800,
+                    fontSize: "0.95rem",
+                    color: "inherit",
+                  }}
+                  secondaryTypographyProps={{
+                    fontSize: "0.75rem",
+                    fontWeight: 500,
+                    color: theme.palette.mode === "dark" ? "rgba(248, 250, 252, 0.85)" : "rgba(15, 23, 42, 0.7)",
+                  }}
+                />
+                <Box
+                  component="span"
+                  sx={{
+                    ml: 1,
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: "999px",
+                    fontSize: "0.7rem",
+                    fontWeight: 700,
+                    background: theme.palette.mode === "dark" ? "rgba(15, 23, 42, 0.45)" : "rgba(255, 255, 255, 0.7)",
+                    color: theme.palette.mode === "dark" ? "#FDE68A" : "#7C3AED",
+                    border: theme.palette.mode === "dark" ? "1px solid rgba(253, 230, 138, 0.5)" : "1px solid rgba(124, 58, 237, 0.3)",
+                  }}
+                >
+                  무료
+                </Box>
               </MenuItem>
             </>
           )}

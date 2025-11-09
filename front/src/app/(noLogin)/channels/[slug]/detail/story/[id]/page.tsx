@@ -897,13 +897,13 @@ export default function page({ params }: { params: { id: string; slug: string } 
   if (isError) return <ErrorView />;
 
   return (
-    <Box 
-      display="flex" 
-      justifyContent="center" 
-      alignItems="center" 
-      sx={{ 
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      sx={{
         padding: { xs: 0, sm: 1 }, // 모바일에서는 padding 제거
-        overflow: "hidden" 
+        overflow: "hidden",
       }}
     >
       {openConfirmDialog && (
@@ -918,13 +918,15 @@ export default function page({ params }: { params: { id: string; slug: string } 
         />
       )}
       {detail && (
-        <Card sx={{ 
-          width: "100%", 
-          boxShadow: { xs: 0, sm: 4 }, // 모바일에서 그림자 제거
-          padding: { xs: 0.5, sm: 3 }, // 모바일에서 padding 최소화
-          borderRadius: { xs: 0, sm: 2 }, // 모바일에서 borderRadius 제거
-          bgcolor: "background.paper" 
-        }}>
+        <Card
+          sx={{
+            width: "100%",
+            boxShadow: { xs: 0, sm: 4 }, // 모바일에서 그림자 제거
+            padding: { xs: 0.5, sm: 3 }, // 모바일에서 padding 최소화
+            borderRadius: { xs: 0, sm: 2 }, // 모바일에서 borderRadius 제거
+            bgcolor: "background.paper",
+          }}
+        >
           <CardContent>
             {/* 제목 */}
             <Box mb={{ xs: 2, sm: 3 }}>
@@ -934,12 +936,12 @@ export default function page({ params }: { params: { id: string; slug: string } 
             </Box>
 
             {/* 버튼 영역 - 모바일에서는 제목 바로 아래, PC/태블릿에서는 오른쪽 */}
-            <Box 
-              sx={{ 
+            <Box
+              sx={{
                 display: { xs: "block", sm: "flex" },
                 justifyContent: { sm: "flex-end" },
                 mb: 3,
-                mt: { xs: 0, sm: -11 } // PC/태블릿에서 제목 옆으로 위치
+                mt: { xs: 0, sm: -11 }, // PC/태블릿에서 제목 옆으로 위치
               }}
             >
               <StoryActions
@@ -1071,10 +1073,12 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
             {/* 폴라로이드 카드 프리뷰 (Masonry-like columns) */}
             {polaroidImages.length > 0 && (
-              <Box sx={{ 
-                mb: { xs: 2, sm: 3 }, 
-                mx: { xs: -0.5, sm: 0 } // 모바일에서 좌우 여백 제거
-              }}>
+              <Box
+                sx={{
+                  mb: { xs: 2, sm: 3 },
+                  mx: { xs: -0.5, sm: 0 }, // 모바일에서 좌우 여백 제거
+                }}
+              >
                 <Typography
                   variant="h6"
                   sx={{
@@ -1150,21 +1154,21 @@ export default function page({ params }: { params: { id: string; slug: string } 
             {/* 본문 내용 - 이미지가 중간중간에 카드뷰로 표시됨 */}
             <Box
               sx={{
-                bgcolor: { 
+                bgcolor: {
                   xs: "transparent", // 모바일에서 배경색 제거
-                  sm: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50" 
+                  sm: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
                 },
                 p: { xs: 0, sm: 2 }, // 모바일에서 padding 제거
                 mx: { xs: -0.5, sm: 0 }, // 모바일에서 좌우로 확장
                 borderRadius: { xs: 0, sm: 1 }, // 모바일에서 borderRadius 제거
-                boxShadow: { 
+                boxShadow: {
                   xs: "none", // 모바일에서 그림자 제거
-                  sm: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1 
+                  sm: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
                 },
                 mb: { xs: 2, sm: 3 },
-                border: { 
+                border: {
                   xs: "none", // 모바일에서 테두리 제거
-                  sm: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none" 
+                  sm: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
                 },
               }}
             >

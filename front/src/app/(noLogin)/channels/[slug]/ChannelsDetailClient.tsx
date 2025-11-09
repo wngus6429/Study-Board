@@ -52,6 +52,15 @@ import ChannelActionButtons from "./components/ChannelActionButtons";
 import ChannelTabNavigation from "./components/ChannelTabNavigation";
 import ChannelControlPanel from "./components/ChannelControlPanel";
 
+type NavigatorWithUAData = Navigator & {
+  userAgentData?: {
+    mobile?: boolean;
+  };
+};
+
+const MOBILE_VIEW_BREAKPOINT = 768;
+const MOBILE_UA_REGEX = /iphone|ipod|android.*mobile|windows phone|blackberry|iemobile|opera mini/i;
+
 const ChannelDetailPage = () => {
   const theme = useTheme(); // 테마 상태 가져오기
   const router = useRouter(); // 라우터 인스턴스 가져오기
@@ -74,6 +83,7 @@ const ChannelDetailPage = () => {
   // 상태 관리
   const [currentTab, setCurrentTab] = useState("all");
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
+  const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [sortOrder, setSortOrder] = useState<"recent" | "view" | "recommend">("recent");
   const [recommendRankingMode, setRecommendRankingMode] = useState(false);
   const [searchParamsState, setSearchParamsState] = useState<{ type: string; query: string } | null>(null);
@@ -83,6 +93,7 @@ const ChannelDetailPage = () => {
   const [showChat, setShowChat] = useState(false);
 
   const viewCount = TABLE_VIEW_COUNT;
+  const activeViewMode = isMobileDevice ? "card" : viewMode;
 
   // 채널 정보 조회 (먼저 slug로 채널 정보 가져오기)
   const {
@@ -182,6 +193,36 @@ const ChannelDetailPage = () => {
   }, [channelSlug, setCurrentPage]); // channelSlug 의존성 추가
 
   // 건의사항 데이터 조회 (별도 관리)
+  useEffect(() => {
+    if (typeof window === "undefined" || typeof navigator === "undefined") return;
+
+    const detectMobileDevice = () => {
+      const nav = navigator as NavigatorWithUAData;
+      const userAgent = (nav.userAgent || "").toLowerCase();
+      const isAgentMobile = Boolean(nav.userAgentData?.mobile) || MOBILE_UA_REGEX.test(userAgent);
+      const hasTouchSupport =
+        typeof nav.maxTouchPoints === "number" ? nav.maxTouchPoints > 1 : "ontouchstart" in window;
+      const isSmallViewport = window.innerWidth < MOBILE_VIEW_BREAKPOINT;
+      setIsMobileDevice(isAgentMobile || (isSmallViewport && hasTouchSupport));
+    };
+
+    detectMobileDevice();
+    window.addEventListener("resize", detectMobileDevice);
+    return () => window.removeEventListener("resize", detectMobileDevice);
+  }, []);
+
+  useEffect(() => {
+    if (!channelSlug || typeof window === "undefined") return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("viewMode") === activeViewMode) {
+      return;
+    }
+
+    params.set("viewMode", activeViewMode);
+    router.replace(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
+  }, [activeViewMode, channelSlug, router]);
+
   const [suggestionData, setSuggestionData] = useState<{ results: any[]; total: number } | null>(null);
   const [suggestionLoading, setSuggestionLoading] = useState(false);
 
@@ -234,7 +275,7 @@ const ChannelDetailPage = () => {
     searchParamsState,
     recommendRankingMode,
     viewCount,
-    viewMode,
+    viewMode: activeViewMode,
     channelId, // 채널 ID 추가
   });
 
@@ -249,7 +290,7 @@ const ChannelDetailPage = () => {
     searchParamsState,
     recommendRankingMode,
     viewCount,
-    viewMode,
+    viewMode: activeViewMode,
     channelId, // 채널 ID 추가
   });
 
@@ -258,22 +299,22 @@ const ChannelDetailPage = () => {
     if (currentTab === "suggestion") {
       return suggestionData;
     }
-    return viewMode === "card" ? cardData : tableData;
-  }, [currentTab, suggestionData, viewMode, cardData, tableData]);
+    return activeViewMode === "card" ? cardData : tableData;
+  }, [currentTab, suggestionData, activeViewMode, cardData, tableData]);
 
   const currentError = useMemo(() => {
     if (currentTab === "suggestion") {
       return null; // 건의사항은 별도 에러 처리
     }
-    return viewMode === "card" ? cardError : tableError;
-  }, [currentTab, viewMode, cardError, tableError]);
+    return activeViewMode === "card" ? cardError : tableError;
+  }, [currentTab, activeViewMode, cardError, tableError]);
 
   const currentLoading = useMemo(() => {
     if (currentTab === "suggestion") {
       return suggestionLoading;
     }
-    return viewMode === "card" ? cardLoading : tableLoading;
-  }, [currentTab, suggestionLoading, viewMode, cardLoading, tableLoading]);
+    return activeViewMode === "card" ? cardLoading : tableLoading;
+  }, [currentTab, suggestionLoading, activeViewMode, cardLoading, tableLoading]);
 
   const currentTotal = useMemo(() => currentData?.total || 0, [currentData?.total]);
 
@@ -382,7 +423,7 @@ const ChannelDetailPage = () => {
       params.set("recommendRanking", recommendRankingMode.toString());
 
       // 현재 뷰 모드 상태 유지
-      params.set("viewMode", viewMode);
+      params.set("viewMode", activeViewMode);
 
       // 정렬 순서 유지
       params.set("sortOrder", sortOrder);
@@ -390,7 +431,7 @@ const ChannelDetailPage = () => {
       // URL 업데이트
       router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
     },
-    [channelSlug, searchParamsState, recommendRankingMode, viewMode, sortOrder, router, setCurrentPage]
+    [channelSlug, searchParamsState, recommendRankingMode, activeViewMode, sortOrder, router, setCurrentPage]
   );
 
   // 구독 토글 핸들러 - memoized
@@ -587,11 +628,20 @@ const ChannelDetailPage = () => {
     }
 
     params.set("recommendRanking", newMode.toString());
-    params.set("viewMode", viewMode);
+    params.set("viewMode", activeViewMode);
     params.set("sortOrder", sortOrder);
 
     router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
-  }, [recommendRankingMode, currentTab, searchParamsState, viewMode, sortOrder, router, channelSlug, setCurrentPage]);
+  }, [
+    recommendRankingMode,
+    currentTab,
+    searchParamsState,
+    activeViewMode,
+    sortOrder,
+    router,
+    channelSlug,
+    setCurrentPage,
+  ]);
 
   // 검색 핸들러 (URL 업데이트 포함) - memoized
   const handleSearch = useCallback(
@@ -604,12 +654,12 @@ const ChannelDetailPage = () => {
       params.set("searchType", category);
       params.set("searchQuery", query);
       params.set("recommendRanking", recommendRankingMode.toString());
-      params.set("viewMode", viewMode);
+      params.set("viewMode", activeViewMode);
       params.set("sortOrder", sortOrder);
 
       router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
     },
-    [currentTab, recommendRankingMode, viewMode, sortOrder, router, channelSlug, setCurrentPage]
+    [currentTab, recommendRankingMode, activeViewMode, sortOrder, router, channelSlug, setCurrentPage]
   );
 
   // 검색 초기화 (URL 업데이트 포함) - memoized
@@ -620,16 +670,25 @@ const ChannelDetailPage = () => {
     const params = new URLSearchParams();
     params.set("category", currentTab);
     params.set("recommendRanking", recommendRankingMode.toString());
-    params.set("viewMode", viewMode);
+    params.set("viewMode", activeViewMode);
     params.set("sortOrder", sortOrder);
 
     router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
-  }, [currentTab, recommendRankingMode, viewMode, sortOrder, router, channelSlug, setCurrentPage]);
+  }, [currentTab, recommendRankingMode, activeViewMode, sortOrder, router, channelSlug, setCurrentPage]);
 
   // 뷰 모드 변경 핸들러 (URL 업데이트 포함) - memoized
   const handleViewModeChange = useCallback(
     (mode: "table" | "card") => {
+      if (isMobileDevice && mode === "table") {
+        showMessage("모바일에서는 카드형 보기만 지원합니다.", "info");
+        return;
+      }
+
       setViewMode(mode);
+
+      if (typeof window === "undefined") {
+        return;
+      }
 
       // 기존 URL의 쿼리 파라미터를 유지하고, viewMode 업데이트
       const params = new URLSearchParams(window.location.search);
@@ -637,7 +696,7 @@ const ChannelDetailPage = () => {
 
       router.push(`/channels/${channelSlug}?${params.toString()}`, { scroll: false });
     },
-    [router, channelSlug]
+    [router, channelSlug, isMobileDevice, showMessage]
   );
 
   // 구독자 수 포맷팅 (memoized)
@@ -757,9 +816,22 @@ const ChannelDetailPage = () => {
       {/* 채널 정보 헤더 (MainView 스타일) */}
       <ChannelInfoCard>
         <CardContent sx={{ p: 3 }}>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: isMobileDevice ? "stretch" : "center",
+              justifyContent: isMobileDevice ? "flex-start" : "space-between",
+              flexDirection: isMobileDevice ? "column" : "row",
+              gap: isMobileDevice ? 2 : 0,
+            }}
+          >
             {/* 왼쪽: 채널 정보 */}
-            <ChannelHeader channelData={channelData} session={session} formatSubscriberCount={formatSubscriberCount} />
+            <ChannelHeader
+              channelData={channelData}
+              session={session}
+              formatSubscriberCount={formatSubscriberCount}
+              isMobileViewOnly={isMobileDevice}
+            />
 
             {/* 오른쪽: 버튼 그리드 */}
             <ChannelActionButtons
@@ -768,6 +840,7 @@ const ChannelDetailPage = () => {
               onShowNotice={() => setShowNotice(!showNotice)}
               onShowChannelInfo={() => setShowChannelInfo(!showChannelInfo)}
               hasSession={!!session?.user}
+              isMobileViewOnly={isMobileDevice}
               isSubscribed={isSubscribed}
               onSubscribeToggle={handleSubscribeToggle}
               subscribeMutationPending={subscribeMutation.isPending}
@@ -978,10 +1051,11 @@ const ChannelDetailPage = () => {
           currentTab={currentTab}
           onTabChange={handleTabChange}
           hasSession={!!session?.user}
-          viewMode={viewMode}
+          viewMode={activeViewMode}
           onViewModeChange={handleViewModeChange}
           onWritePost={handleWritePost}
           showChat={showChat}
+          isMobileViewOnly={isMobileDevice}
         />
       )}
 
@@ -1002,7 +1076,7 @@ const ChannelDetailPage = () => {
             <Loading />
           ) : currentTab === "suggestion" ? (
             <CustomizedSuggestionTable tableData={sortedTableData} channelSlug={channelSlug} />
-          ) : viewMode === "card" ? (
+          ) : activeViewMode === "card" ? (
             <CustomizedCardView tableData={sortedTableData} onRowClick={handlePostClick} />
           ) : (
             <CustomizedTables tableData={sortedTableData} onRowClick={handlePostClick} />

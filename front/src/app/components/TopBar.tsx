@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
-import { Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText, useTheme, Box as MuiBox } from "@mui/material";
+import { Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText, useTheme, useMediaQuery, Box as MuiBox } from "@mui/material";
 import { useRouter } from "next/navigation";
 import axios from "@/app/api/axios";
 import styles from "./style/TopBar.module.css";
@@ -23,10 +23,14 @@ import HistoryIcon from "@mui/icons-material/History";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import ReportIcon from "@mui/icons-material/Report";
+import LoginIcon from "@mui/icons-material/Login";
+import LogoutIcon from "@mui/icons-material/Logout";
+import PersonAddIcon from "@mui/icons-material/PersonAdd";
 
 export default function MenuBar() {
   const router = useRouter();
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { data: user, status } = useSession();
   const { showMessage } = useMessage((state) => state);
   const { setUserImageUrl, TopBarImageDelete } = useUserImage();
@@ -65,6 +69,29 @@ export default function MenuBar() {
     "&:active": {
       transform: "translateY(0px)",
     },
+  };
+
+  const brandLinkStyles = {
+    fontSize: isMobile ? "1.5rem" : "2rem",
+    lineHeight: isMobile ? 1.05 : 1.2,
+    fontWeight: "bold",
+    color: theme.palette.mode === "dark" ? "#A78BFA" : "#7C3AED",
+    padding: isMobile ? "0.15rem 0.4rem" : "0.5rem 1rem",
+    borderRadius: "12px",
+    textDecoration: "none",
+    transition: "all 0.4s ease",
+    display: "inline-flex",
+    flexDirection: "column" as const,
+    letterSpacing: isMobile ? "0.5px" : "1px",
+    cursor: "pointer",
+    marginTop: isMobile ? "-2px" : 0,
+    marginBottom: isMobile ? "-2px" : 0,
+    textShadow:
+      theme.palette.mode === "dark"
+        ? "0 0 20px rgba(167, 139, 250, 0.4), 0 2px 4px rgba(0,0,0,0.3)"
+        : "0 0 15px rgba(124, 58, 237, 0.3), 0 2px 4px rgba(0,0,0,0.1)",
+    filter: theme.palette.mode === "dark" ? "brightness(1.1)" : "brightness(1)",
+    whiteSpace: isMobile ? "normal" : "nowrap",
   };
 
   const {
@@ -175,7 +202,8 @@ export default function MenuBar() {
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "12px",
+          gap: isMobile ? "10px" : "12px",
+          flex: isMobile ? 1 : "unset",
         }}
       >
         <Link
@@ -183,32 +211,27 @@ export default function MenuBar() {
           aria-label="Home"
           className={styles.title}
           onClick={() => setCurrentPage(1)}
-          style={{
-            fontSize: "2rem",
-            fontWeight: "bold",
-            color: theme.palette.mode === "dark" ? "#A78BFA" : "#7C3AED",
-            padding: "0.5rem 1rem",
-            borderRadius: "12px",
-            textDecoration: "none",
-            transition: "all 0.4s ease",
-            display: "inline-block",
-            letterSpacing: "1px",
-            cursor: "pointer",
-            textShadow:
-              theme.palette.mode === "dark"
-                ? "0 0 20px rgba(167, 139, 250, 0.4), 0 2px 4px rgba(0,0,0,0.3)"
-                : "0 0 15px rgba(124, 58, 237, 0.3), 0 2px 4px rgba(0,0,0,0.1)",
-            filter: theme.palette.mode === "dark" ? "brightness(1.1)" : "brightness(1)",
-          }}
+          style={brandLinkStyles}
         >
           Hobby Channel
         </Link>
 
         {/* 다크모드 토글 버튼 - 채널 이름 바로 오른쪽에 위치 */}
-        <DarkModeToggle />
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            transform: isMobile ? "scale(0.85)" : "none",
+            transformOrigin: "center",
+            marginTop: isMobile ? "-2px" : 0,
+          }}
+        >
+          <DarkModeToggle />
+        </div>
       </div>
 
-      <Box
+      {!isMobile && (
+        <Box
         sx={{
           width: 64,
           height: 64,
@@ -371,7 +394,13 @@ export default function MenuBar() {
           </Box>
         )}
       </Box>
-      <nav className={styles.nav}>
+      )}
+      <nav
+        className={styles.nav}
+        style={{
+          gap: isMobile ? "8px" : undefined,
+        }}
+      >
         {/* 로그인한 사용자에게만 알림 아이콘 표시 */}
         {user?.user && (
           <>
@@ -379,7 +408,7 @@ export default function MenuBar() {
           </>
         )}
 
-        {!user?.user && (
+        {!isMobile && !user?.user && (
           <Button
             size="medium"
             variant="contained"
@@ -404,7 +433,7 @@ export default function MenuBar() {
           </Button>
         )}
 
-        {user?.user && (
+        {!isMobile && user?.user && (
           <Button
             size="medium"
             variant="contained"
@@ -429,7 +458,7 @@ export default function MenuBar() {
           </Button>
         )}
 
-        {!user?.user && (
+        {!isMobile && !user?.user && (
           <Button
             size="medium"
             variant="contained"
@@ -455,7 +484,7 @@ export default function MenuBar() {
           </Button>
         )}
 
-        {user?.user && (
+        {!isMobile && user?.user && (
           <Button
             size="medium"
             variant="contained"
@@ -481,7 +510,7 @@ export default function MenuBar() {
         )}
 
         {/* 설정 메뉴 - 로그인한 사용자에게만 표시 */}
-        {user?.user && (
+        {(isMobile || user?.user) && (
           <IconButton
             size="large"
             edge="end"
@@ -499,6 +528,7 @@ export default function MenuBar() {
               backdropFilter: "blur(10px)",
               border: "1px solid rgba(255, 255, 255, 0.1)",
               transition: "all 0.3s ease",
+              marginRight: isMobile ? "12px" : 0,
               "&:hover": {
                 backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(25, 118, 210, 0.2)",
                 transform: "rotate(90deg) scale(1.1)",
@@ -556,6 +586,23 @@ export default function MenuBar() {
             },
           }}
         >
+          {user?.user && (
+            <MenuItem
+              onClick={() => {
+                handleSettingsMenuClose();
+                router.push("/setting/profile");
+              }}
+              sx={{ gap: 1 }}
+            >
+              <ListItemIcon>
+                <Avatar
+                  src={userImage ? `${process.env.NEXT_PUBLIC_BASE_URL}${userImage}` : "/assets/noprofileImage.png"}
+                  sx={{ width: 36, height: 36 }}
+                />
+              </ListItemIcon>
+              <ListItemText primary={user.user.nickname} secondary="프로필 보기" />
+            </MenuItem>
+          )}
           <MenuItem onClick={handleMessages}>
             <ListItemIcon>
               <MessageIcon fontSize="small" />
@@ -586,6 +633,44 @@ export default function MenuBar() {
             </ListItemIcon>
             <ListItemText>신고 목록</ListItemText>
           </MenuItem>
+          {user?.user ? (
+            <MenuItem
+              onClick={() => {
+                handleSettingsMenuClose();
+                logout();
+              }}
+            >
+              <ListItemIcon>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>로그아웃</ListItemText>
+            </MenuItem>
+          ) : (
+            <>
+              <MenuItem
+                onClick={() => {
+                  handleSettingsMenuClose();
+                  router.push("/login");
+                }}
+              >
+                <ListItemIcon>
+                  <LoginIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>로그인</ListItemText>
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleSettingsMenuClose();
+                  router.push("/signup");
+                }}
+              >
+                <ListItemIcon>
+                  <PersonAddIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>회원가입</ListItemText>
+              </MenuItem>
+            </>
+          )}
         </Menu>
       </nav>
     </div>

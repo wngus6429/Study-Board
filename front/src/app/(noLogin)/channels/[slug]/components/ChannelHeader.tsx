@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Box, Button, Chip, useTheme } from "@mui/material";
+import { Box, Button, Chip, Typography, useTheme } from "@mui/material";
 import {
   TrendingUp as TrendingUpIcon,
   People as PeopleIcon,
@@ -11,6 +11,7 @@ import {
   AutoAwesome as AutoAwesomeIcon,
   Diamond as DiamondIcon,
   Bolt as BoltIcon,
+  Article as ArticleIcon,
 } from "@mui/icons-material";
 import { useRouter } from "next/navigation";
 import { MetallicAvatar, MetallicTitle, MetallicSubtitle } from "../components";
@@ -31,11 +32,156 @@ interface ChannelHeaderProps {
     };
   } | null;
   formatSubscriberCount: (count: number) => string;
+  isMobileViewOnly?: boolean;
 }
 
-const ChannelHeader: React.FC<ChannelHeaderProps> = ({ channelData, session, formatSubscriberCount }) => {
+const ChannelHeader: React.FC<ChannelHeaderProps> = ({
+  channelData,
+  session,
+  formatSubscriberCount,
+  isMobileViewOnly,
+}) => {
   const theme = useTheme();
   const router = useRouter();
+  const descriptionText = `${channelData.creator?.nickname || "알수없음"}님이 만든 채널입니다. 다양한 주제로 소통해보세요! ✨`;
+
+  if (isMobileViewOnly) {
+    const mobileStats = [
+      {
+        label: "구독자",
+        value: `${formatSubscriberCount(channelData.subscriber_count)}명`,
+        icon: (
+          <PeopleIcon
+            sx={{
+              fontSize: 18,
+              color: theme.palette.mode === "dark" ? "#a5b4fc" : "#6366f1",
+            }}
+          />
+        ),
+      },
+      {
+        label: "게시글",
+        value: `${channelData.story_count.toLocaleString()}개`,
+        icon: (
+          <ArticleIcon
+            sx={{
+              fontSize: 18,
+              color: theme.palette.mode === "dark" ? "#fbcfe8" : "#ec4899",
+            }}
+          />
+        ),
+      },
+      // {
+      //   label: "방장",
+      //   value: channelData.creator?.nickname || "알수없음",
+      //   icon: (
+      //     <PersonIcon
+      //       sx={{
+      //         fontSize: 18,
+      //         color: theme.palette.mode === "dark" ? "#fcd34d" : "#f59e0b",
+      //       }}
+      //     />
+      //   ),
+      // },
+    ];
+
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          borderRadius: "20px",
+          p: 2,
+          display: "flex",
+          flexDirection: "column",
+          gap: 1.5,
+          background:
+            theme.palette.mode === "dark"
+              ? "linear-gradient(135deg, rgba(26, 26, 46, 0.9), rgba(45, 48, 71, 0.95))"
+              : "linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.98))",
+          border:
+            theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid rgba(99, 102, 241, 0.25)",
+          boxShadow:
+            theme.palette.mode === "dark" ? "0 12px 30px rgba(0, 0, 0, 0.45)" : "0 12px 30px rgba(15, 23, 42, 0.15)",
+        }}
+      >
+        <Box sx={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 1.5 }}>
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <MetallicTitle
+              variant="h6"
+              sx={{
+                fontSize: "1.35rem",
+                lineHeight: 1.2,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              {channelData.channel_name}
+            </MetallicTitle>
+            <Typography
+              variant="body2"
+              sx={{
+                mt: 0.5,
+                color: theme.palette.mode === "dark" ? "#cbd5f5" : "#4b5563",
+                lineHeight: 1.4,
+              }}
+            >
+              {descriptionText}
+            </Typography>
+          </Box>
+          <VerifiedIcon
+            sx={{
+              color: theme.palette.mode === "dark" ? "#22d3ee" : "#06b6d4",
+              fontSize: 24,
+            }}
+          />
+        </Box>
+
+        <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1, justifyContent: "space-between" }}>
+          {mobileStats.map((stat) => (
+            <Box
+              key={stat.label}
+              sx={{
+                flex: "1 1 30%",
+                minWidth: "120px",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                p: 1,
+                borderRadius: "14px",
+                backgroundColor: theme.palette.mode === "dark" ? "rgba(15, 23, 42, 0.7)" : "rgba(99, 102, 241, 0.08)",
+                border:
+                  theme.palette.mode === "dark"
+                    ? "1px solid rgba(148, 163, 184, 0.2)"
+                    : "1px solid rgba(99, 102, 241, 0.2)",
+              }}
+            >
+              {stat.icon}
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: theme.palette.mode === "dark" ? "#94a3b8" : "#6b7280",
+                    fontWeight: 600,
+                  }}
+                >
+                  {stat.label}
+                </Typography>
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    fontWeight: 700,
+                    color: theme.palette.mode === "dark" ? "#e2e8f0" : "#1f2937",
+                  }}
+                >
+                  {stat.value}
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
@@ -159,7 +305,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({ channelData, session, for
             lineHeight: 1.5,
           }}
         >
-          {`${channelData.creator?.nickname || "알수없음"}님이 만든 채널입니다. 다양한 주제로 소통해보세요! ✨`}
+          {descriptionText}
         </MetallicSubtitle>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>

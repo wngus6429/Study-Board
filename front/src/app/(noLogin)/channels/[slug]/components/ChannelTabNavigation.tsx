@@ -13,6 +13,7 @@ interface ChannelTabNavigationProps {
 
   // 세션 정보
   hasSession: boolean;
+  isMobileViewOnly?: boolean;
 
   // 핸들러들
   onTabChange: (event: React.SyntheticEvent, newValue: string) => void;
@@ -25,6 +26,7 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
   viewMode,
   showChat,
   hasSession,
+  isMobileViewOnly,
   onTabChange,
   onViewModeChange,
   onWritePost,
@@ -217,7 +219,7 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
       </Tabs>
 
       {/* 뷰 모드 토글 버튼 - 건의사항 탭이 아닐 때만 표시 */}
-      {currentTab !== "suggestion" && (
+      {currentTab !== "suggestion" && !isMobileViewOnly && (
         <Box
           sx={{
             display: "flex",

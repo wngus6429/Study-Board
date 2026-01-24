@@ -3,13 +3,23 @@
   display: flex;
   justify-content: space-evenly;
   align-items: center;
-  background-color: #070e36;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* 하단부 그림자 효과 */
+  background: rgba(7, 14, 54, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   position: sticky;
   top: 0;
   z-index: 1100;
-  height: 70px; /* TopBar 높이 명시적으로 설정 - 프로필 사진 액자 효과를 위해 증가 */
-  padding: 8px 0; /* 상하 패딩 추가 */
+  height: 70px; /* TopBar 높이 명시적으로 설정 */
+  padding: 8px 0; /* 상하 패딩 */
+  transition: all 0.3s ease;
+}
+
+.container:hover {
+  background: rgba(7, 14, 54, 0.8);
+  box-shadow: 0 4px 40px rgba(139, 92, 246, 0.15);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.3);
 }
 
 .title {

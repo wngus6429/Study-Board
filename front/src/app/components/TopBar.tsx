@@ -74,8 +74,13 @@ export default function MenuBar() {
   const brandLinkStyles = {
     fontSize: isMobile ? "1.5rem" : "2rem",
     lineHeight: isMobile ? 1.05 : 1.2,
-    fontWeight: "bold",
-    color: theme.palette.mode === "dark" ? "#A78BFA" : "#7C3AED",
+    fontWeight: "800",
+    // Gradient Text Effect
+    background: theme.palette.mode === "dark" 
+      ? "linear-gradient(to right, #c084fc, #6366f1, #3b82f6)" 
+      : "linear-gradient(to right, #7e22ce, #4338ca, #1d4ed8)",
+    WebkitBackgroundClip: "text",
+    WebkitTextFillColor: "transparent",
     padding: isMobile ? "0.15rem 0.4rem" : "0.5rem 1rem",
     borderRadius: "12px",
     textDecoration: "none",
@@ -86,11 +91,10 @@ export default function MenuBar() {
     cursor: "pointer",
     marginTop: isMobile ? "-2px" : 0,
     marginBottom: isMobile ? "-2px" : 0,
-    textShadow:
-      theme.palette.mode === "dark"
-        ? "0 0 20px rgba(167, 139, 250, 0.4), 0 2px 4px rgba(0,0,0,0.3)"
-        : "0 0 15px rgba(124, 58, 237, 0.3), 0 2px 4px rgba(0,0,0,0.1)",
-    filter: theme.palette.mode === "dark" ? "brightness(1.1)" : "brightness(1)",
+    // Using filter for glow with gradient text
+    filter: theme.palette.mode === "dark" 
+      ? "drop-shadow(0 0 8px rgba(139, 92, 246, 0.5))" 
+      : "drop-shadow(0 0 5px rgba(79, 70, 229, 0.3))",
     whiteSpace: isMobile ? "normal" : "nowrap",
   };
 

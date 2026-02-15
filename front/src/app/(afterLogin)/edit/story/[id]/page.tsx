@@ -1,4 +1,7 @@
 "use client";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { storySchema, StorySchema } from "@/schemas/story";
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -19,12 +22,24 @@ export default function EditPage({ params }: { params: { id: string } }) {
 
   // zustand 메시지
   const { showMessage } = useMessage((state) => state);
-  // 제목 변수
-  const [title, setTitle] = useState<string>("");
-  // 내용 변수
-  const [content, setContent] = useState<string>("");
-  // 카테고리 변수
-  const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
+
+  // React Hook Form
+  const {
+    register,
+    handleSubmit,
+    control,
+    reset,
+    setValue,
+    formState: { errors, isValid },
+  } = useForm<StorySchema>({
+    resolver: zodResolver(storySchema),
+    mode: "onChange",
+    defaultValues: {
+      title: "",
+      content: "",
+      category: DEFAULT_SELECT_OPTION,
+    },
+  });
 
   // RichTextEditor에서 관리하는 파일들
   const [editorFiles, setEditorFiles] = useState<File[]>([]);
@@ -66,8 +81,6 @@ export default function EditPage({ params }: { params: { id: string } }) {
   // 글 데이터를 제목, 내용, 카테고리, 이미지/동영상 데이터로 초기화
   useEffect(() => {
     if (storyDetail) {
-      setTitle(storyDetail.title || "");
-
       // blob URL을 실제 서버 파일 경로로 변환하여 에디터에 표시
       let processedContent = storyDetail.content || "";
       const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
@@ -166,11 +179,17 @@ export default function EditPage({ params }: { params: { id: string } }) {
       }
 
       console.log("4. 최종 처리된 컨텐츠:", processedContent);
-      setContent(processedContent);
-      setSelectedCategory(storyDetail.category || DEFAULT_SELECT_OPTION);
+
+      // 폼 데이터 초기화
+      reset({
+        title: storyDetail.title || "",
+        content: processedContent,
+        category: storyDetail.category || DEFAULT_SELECT_OPTION,
+      });
+
       console.log("수정 페이지용 데이터", storyDetail);
     }
-  }, [storyDetail]);
+  }, [storyDetail, reset]);
 
   // 수정 요청
   const updateStory = useMutation<void, Error, FormData>({
@@ -208,52 +227,37 @@ export default function EditPage({ params }: { params: { id: string } }) {
     setEditorFiles(files);
   };
 
-  const handleUpdate = (e: FormEvent) => {
-    if (title.length < 3 || content.length < 3) {
-      showMessage("제목과 내용을 3글자 이상 입력해주세요", "error");
-      return;
-    }
-
+  const onSubmit = (data: StorySchema) => {
     setLoading(true);
-    e.preventDefault();
+
     const formData = new FormData();
-    formData.append("title", title);
+    formData.append("title", data.title);
 
     // 에디터의 컨텐츠에서 절대 URL을 다시 상대 URL로 변경하여 저장
-    let contentToSave = content;
+    let contentToSave = data.content;
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
     console.log("=== 저장 전 컨텐츠 변환 시작 ===");
-    console.log("원본 content:", content);
+    console.log("원본 content:", data.content);
     console.log("baseUrl:", baseUrl);
 
     if (baseUrl) {
       // 이미지 절대 경로를 상대 경로로 변환
       const escapedBaseUrl = baseUrl.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
       const imageRegex = new RegExp(`src="${escapedBaseUrl}/upload/([^"]+)"`, "g");
-      const imageMatches = content.match(imageRegex);
-      console.log("이미지 매치 결과:", imageMatches);
 
       contentToSave = contentToSave.replace(imageRegex, 'src="/upload/$1"');
 
       // 동영상 절대 경로를 상대 경로로 변환 (video 태그)
       const videoRegex = new RegExp(`src="${escapedBaseUrl}/videoUpload/([^"]+)"`, "g");
-      const videoMatches = content.match(videoRegex);
-      console.log("video 태그 매치 결과:", videoMatches);
-
       contentToSave = contentToSave.replace(videoRegex, 'src="/videoUpload/$1"');
 
       // 동영상 절대 경로를 상대 경로로 변환 (source 태그)
       const sourceRegex = new RegExp(`<source([^>]*)src="${escapedBaseUrl}/videoUpload/([^"]+)"([^>]*)>`, "g");
-      const sourceMatches = content.match(sourceRegex);
-      console.log("source 태그 매치 결과:", sourceMatches);
-
       contentToSave = contentToSave.replace(sourceRegex, '<source$1src="/videoUpload/$2"$3>');
 
       // blob URL도 제거 (새로 추가된 파일들은 서버에서 처리됨)
       const blobRegex = /src="blob:[^"]*"/g;
-      const blobMatches = content.match(blobRegex);
-      console.log("blob URL 매치 결과:", blobMatches);
 
       contentToSave = contentToSave.replace(blobRegex, 'src=""');
 
@@ -262,18 +266,11 @@ export default function EditPage({ params }: { params: { id: string } }) {
     }
 
     formData.append("content", contentToSave);
-    formData.append("category", selectedCategory);
+    formData.append("category", data.category || DEFAULT_SELECT_OPTION);
 
     // RichTextEditor에서 관리하는 파일들을 FormData에 추가
     editorFiles.forEach((file) => {
       formData.append("files", file);
-    });
-
-    // FormData 내용 확인 (디버깅용)
-    console.log("FormData 내용:");
-    const entries = Array.from(formData.entries());
-    entries.forEach(([key, value]) => {
-      console.log(`${key}:`, value);
     });
 
     updateStory.mutate(formData);
@@ -308,13 +305,13 @@ export default function EditPage({ params }: { params: { id: string } }) {
       </Typography>
 
       <TextField
-        name="title"
         label="제목 (필수)"
         variant="outlined"
         fullWidth
         margin="normal"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
+        {...register("title")}
+        error={!!errors.title}
+        helperText={errors.title?.message}
         sx={{
           bgcolor: "background.default",
           borderRadius: 2,
@@ -322,23 +319,42 @@ export default function EditPage({ params }: { params: { id: string } }) {
         }}
       />
 
-      <CustomSelect
-        selectArray={WRITE_SELECT_OPTIONS}
-        defaultValue={DEFAULT_SELECT_OPTION}
-        setSelectedCategory={setSelectedCategory}
-        value={selectedCategory}
+      <Controller
+        name="category"
+        control={control}
+        render={({ field }) => (
+          <CustomSelect
+            selectArray={WRITE_SELECT_OPTIONS}
+            defaultValue={DEFAULT_SELECT_OPTION}
+            setSelectedCategory={(value) => field.onChange(value)}
+          // value={field.value} // If CustomSelect supports value
+          />
+        )}
       />
 
       <Box sx={{ mb: 2 }}>
         <Typography variant="body1" sx={{ mb: 1, fontWeight: 500, mt: -1 }}>
           내용 (필수)
         </Typography>
-        <RichTextEditor
-          value={content}
-          onChange={setContent}
-          placeholder="글 내용을 입력해주세요"
-          height="400px"
-          onFilesChange={handleEditorFilesChange}
+        <Controller
+          name="content"
+          control={control}
+          render={({ field }) => (
+            <>
+              <RichTextEditor
+                value={field.value}
+                onChange={field.onChange}
+                placeholder="글 내용을 입력해주세요"
+                height="400px"
+                onFilesChange={handleEditorFilesChange}
+              />
+              {errors.content && (
+                <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                  {errors.content.message}
+                </Typography>
+              )}
+            </>
+          )}
         />
       </Box>
 
@@ -365,10 +381,11 @@ export default function EditPage({ params }: { params: { id: string } }) {
           취소
         </Button>
         <Button
+          type="submit"
           variant="contained"
           color="success"
-          onClick={handleUpdate}
-          disabled={loading || title.length < 3 || content.length < 3}
+          onClick={handleSubmit(onSubmit)}
+          disabled={loading || !isValid}
           sx={{
             flex: 1,
             marginLeft: 1,

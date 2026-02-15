@@ -400,7 +400,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
     console.log(
       "📸 Content 순서대로 재구성된 이미지 배열:",
-      contentImageOrder.map((img: any) => img.image_name)
+      contentImageOrder.map((img: any) => img.image_name),
     );
 
     // HTML을 파싱하여 이미지 태그를 카드뷰로 교체
@@ -443,7 +443,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
               );
             })}
           </Box>
-        </Box>
+        </Box>,
       );
 
       currentImageGroup = [];
@@ -458,7 +458,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
           const imageSrc = srcMatch[1];
           console.log(
             `📋 사용 가능한 SuggestionImage:`,
-            detail.SuggestionImage?.map((img: any) => img.link)
+            detail.SuggestionImage?.map((img: any) => img.link),
           );
 
           // 서버 이미지 URL에서 실제 SuggestionImage 찾기
@@ -568,7 +568,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                     handleImageClick(tempImage, 0);
                   }}
                 />
-              </Box>
+              </Box>,
             );
           }
         }
@@ -618,7 +618,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
               },
             }}
             dangerouslySetInnerHTML={{ __html: sanitizeRichText(part) }}
-          />
+          />,
         );
       }
     });
@@ -694,12 +694,19 @@ export default function page({ params }: { params: { id: string; slug: string } 
               </Box>
 
               {/* 제목과 액션 버튼 */}
-              <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
-                <Box flex={1} mr={3}>
+              <Box
+                display="flex"
+                flexDirection={{ xs: "column", sm: "row" }}
+                justifyContent="space-between"
+                alignItems="flex-start"
+                mb={3}
+                gap={2}
+              >
+                <Box flex={1}>
                   <Box display="flex" alignItems="center" gap={2} mb={2}>
                     <FeedbackIcon
                       sx={{
-                        fontSize: 32,
+                        fontSize: { xs: 24, sm: 32 },
                         color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
                       }}
                     />
@@ -708,6 +715,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                       component="h1"
                       sx={{
                         fontWeight: "bold",
+                        fontSize: { xs: "1.75rem", sm: "3rem" },
                         background:
                           theme.palette.mode === "dark"
                             ? "linear-gradient(135deg, #8b5cf6, #06b6d4)"
@@ -720,7 +728,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
                       {detail.title}
                     </Typography>
                   </Box>
-
                   {/* 카테고리 칩 */}
                   <Chip
                     icon={<LocalOfferIcon />}
@@ -742,7 +749,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
                 {/* 수정/삭제 버튼 */}
                 {detail?.User?.id === session?.user?.id && (
-                  <Box display="flex" gap={1.5}>
+                  <Box display="flex" gap={1.5} flexWrap="wrap">
                     <Button
                       variant="outlined"
                       color="warning"
@@ -782,13 +789,22 @@ export default function page({ params }: { params: { id: string; slug: string } 
               </Box>
 
               {/* 작성자 정보와 날짜 */}
-              <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                <Box display="flex" alignItems="center" gap={3}>
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: 1,
+                  mb: 3,
+                }}
+              >
+                <Box display="flex" alignItems="center" gap={{ xs: 1.5, sm: 3 }}>
                   <Avatar
                     src={`${process.env.NEXT_PUBLIC_BASE_URL}${detail.User.userImage}`}
                     sx={{
-                      width: 70,
-                      height: 70,
+                      width: { xs: 50, sm: 70 },
+                      height: { xs: 50, sm: 70 },
                       boxShadow:
                         theme.palette.mode === "dark"
                           ? "0 0 20px rgba(139, 92, 246, 0.3)"
@@ -797,15 +813,21 @@ export default function page({ params }: { params: { id: string; slug: string } 
                     }}
                   />
                   <Box>
-                    <Box display="flex" alignItems="center" gap={1} mb={1}>
-                      <PersonIcon sx={{ color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed" }} />
-                      <Box display="flex" alignItems="center" gap={1}>
+                    <Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
+                      <PersonIcon
+                        sx={{
+                          color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+                          fontSize: { xs: 18, sm: 24 },
+                        }}
+                      />
+                      <Box display="flex" alignItems="center" gap={0.5} sx={{ flexWrap: "wrap" }}>
                         <Typography
                           variant="h6"
                           sx={{
                             fontWeight: "bold",
                             cursor: "pointer",
                             color: theme.palette.mode === "dark" ? "#8b5cf6" : "#7c3aed",
+                            fontSize: { xs: "0.9rem", sm: "1.25rem" },
                           }}
                           onClick={(e) => handleUserNicknameClick(e, detail.User.nickname)}
                         >
@@ -814,7 +836,11 @@ export default function page({ params }: { params: { id: string; slug: string } 
                         <LevelBadge level={detail.User?.level} size="small" />
                       </Box>
                     </Box>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500, mb: 1 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      sx={{ fontWeight: 500, fontSize: { xs: "0.65rem", sm: "0.875rem" } }}
+                    >
                       건의사항 작성자
                     </Typography>
                   </Box>
@@ -822,16 +848,24 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
                 {/* 날짜 정보 */}
                 <Box textAlign="right">
-                  <Box display="flex" alignItems="center" gap={1} mb={1}>
-                    <AccessTimeIcon fontSize="small" sx={{ color: "text.secondary" }} />
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                      등록일: {dayjs(detail.created_at).format("YYYY년 MM월 DD일 HH:mm")}
+                  <Box display="flex" alignItems="center" justifyContent="flex-end" gap={0.5} mb={0.5}>
+                    <AccessTimeIcon sx={{ color: "text.secondary", fontSize: { xs: 14, sm: 16 } }} />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontWeight: 500, fontSize: { xs: "0.65rem", sm: "0.75rem" } }}
+                    >
+                      {dayjs(detail.created_at).format("YYYY/MM/DD")}
                     </Typography>
                   </Box>
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <UpdateIcon fontSize="small" sx={{ color: "text.secondary" }} />
-                    <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 500 }}>
-                      수정일: {dayjs(detail.updated_at).format("YYYY년 MM월 DD일 HH:mm")}
+                  <Box display="flex" alignItems="center" justifyContent="flex-end" gap={0.5}>
+                    <UpdateIcon sx={{ color: "text.secondary", fontSize: { xs: 14, sm: 16 } }} />
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ fontWeight: 500, fontSize: { xs: "0.65rem", sm: "0.75rem" } }}
+                    >
+                      {dayjs(detail.updated_at).format("YYYY/MM/DD")}
                     </Typography>
                   </Box>
                 </Box>

@@ -1,11 +1,13 @@
 "use client";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { storySchema, StorySchema } from "@/schemas/story";
 import { TextField, Box, Typography, Paper, Button, CircularProgress, Divider, useTheme } from "@mui/material";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { FormEvent, useState, useEffect } from "react";
 import CustomSelect from "@/app/components/common/CustomSelect";
-// import InputFileUpload from "@/app/components/common/InputFileUpload"; // 주석처리 - RichTextEditor로 통합
 import RichTextEditor from "@/app/components/common/RichTextEditor";
 import { useMessage } from "@/app/store/messageStore";
 import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_CONST";
@@ -45,14 +47,21 @@ export default function StoryWrite() {
   // 채널 ID 가져오기
   const channelId = searchParams?.get("channel");
 
-  // 제목 변수
-  const [title, setTitle] = useState<string>("");
-  // 내용 변수
-  const [content, setContent] = useState<string>("");
-  // 카테고리 변수
-  const [selectedCategory, setSelectedCategory] = useState<string>(DEFAULT_SELECT_OPTION);
-  // 이미지 변수 (InputFileUpload 방식 - 주석처리)
-  // const [preview, setPreview] = useState<Array<{ dataUrl: string; file: File; type: "image" | "video" } | null>>([]);
+  // React Hook Form 설정
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isValid },
+  } = useForm<StorySchema>({
+    resolver: zodResolver(storySchema),
+    mode: "onChange",
+    defaultValues: {
+      title: "",
+      content: "",
+      category: DEFAULT_SELECT_OPTION,
+    },
+  });
 
   // RichTextEditor에서 관리할 파일들
   const [editorFiles, setEditorFiles] = useState<File[]>([]);
@@ -69,59 +78,14 @@ export default function StoryWrite() {
 
   // useMutation 훅 사용
   const mutation = useMutation({
-    mutationFn: async (e: FormEvent) => {
-      if (title.length > 2 && content.length > 2) {
-        setLoading(true);
-        e.preventDefault();
-
-        // FormData 객체 생성
-        const formData = new FormData();
-        formData.append("category", selectedCategory);
-        formData.append("title", title);
-        formData.append("content", content);
-
-        // 채널 ID가 있으면 추가
-        if (channelId) {
-          formData.append("channelId", channelId);
-        }
-
-        // preview의 각 파일을 'images' 키로 추가 (InputFileUpload 방식 - 주석처리)
-        // preview.forEach((item) => {
-        //   if (item?.file) {
-        //     formData.append("images", item.file); // 'images'는 서버의 FilesInterceptor와 일치해야 합니다.
-        //   }
-        // });
-
-        // RichTextEditor에서 관리하는 파일들을 'images' 키로 추가
-        console.log("🔍 [API 전송 전] editorFiles:", editorFiles);
-        console.log("🔍 [API 전송 전] editorFiles.length:", editorFiles.length);
-
-        editorFiles.forEach((file, index) => {
-          console.log(`🔍 [API 전송 전] 파일 ${index + 1}:`, {
-            name: file.name,
-            size: file.size,
-            type: file.type,
-            lastModified: file.lastModified,
-          });
-          formData.append("images", file);
-        });
-
-        // FormData 내용 확인
-        console.log("🔍 [API 전송 전] FormData 내용:");
-        const formDataEntries = Array.from(formData.entries());
-        formDataEntries.forEach(([key, value]) => {
-          console.log(`  ${key}:`, value);
-        });
-
-        return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`, formData, {
-          withCredentials: true,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-      } else {
-        showMessage("제목과 내용을 3글자 이상 입력해주세요", "error");
-      }
+    mutationFn: async (formData: FormData) => {
+      setLoading(true);
+      return await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/story/create`, formData, {
+        withCredentials: true,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
     },
     retry: 1, // 1회 재시도
     retryDelay: () => 2000, // 매 재시도마다 2초(2000ms) 지연
@@ -137,11 +101,32 @@ export default function StoryWrite() {
       }
     },
     onError: (error) => {
+      setLoading(false);
       showMessage("글쓰기 실패, 이전 화면으로 이동합니다", "error");
       console.error(error);
-      router.back();
+      // router.back(); // 에러 발생 시 뒤로가기보다는 머무르는 것이 나을 수 있음
     },
   });
+
+  const onSubmit = (data: StorySchema) => {
+    // FormData 객체 생성
+    const formData = new FormData();
+    formData.append("category", data.category || DEFAULT_SELECT_OPTION);
+    formData.append("title", data.title);
+    formData.append("content", data.content);
+
+    // 채널 ID가 있으면 추가
+    if (channelId) {
+      formData.append("channelId", channelId);
+    }
+
+    // RichTextEditor에서 관리하는 파일들을 'images' 키로 추가
+    editorFiles.forEach((file) => {
+      formData.append("images", file);
+    });
+
+    mutation.mutate(formData);
+  };
 
   // InputFileUpload 관련 핸들러 (주석처리)
   // const handlePreviewUpdate = (
@@ -217,10 +202,17 @@ export default function StoryWrite() {
       )}
 
       <Box>
-        <CustomSelect
-          selectArray={WRITE_SELECT_OPTIONS}
-          defaultValue={DEFAULT_SELECT_OPTION}
-          setSelectedCategory={setSelectedCategory}
+        <Controller
+          name="category"
+          control={control}
+          render={({ field }) => (
+            <CustomSelect
+              selectArray={WRITE_SELECT_OPTIONS}
+              defaultValue={DEFAULT_SELECT_OPTION}
+              setSelectedCategory={(value) => field.onChange(value)}
+            // CustomSelect가 value prop을 지원한다면 추가: value={field.value}
+            />
+          )}
         />
       </Box>
 
@@ -235,14 +227,18 @@ export default function StoryWrite() {
         }}
         noValidate
         autoComplete="off"
+        onSubmit={handleSubmit(onSubmit)}
       >
         <TextField
           required
-          id="filled-required"
+          id="title"
           label="제목"
           placeholder="스토리의 제목을 입력해주세요 (3글자 이상)"
           variant="outlined"
           fullWidth
+          {...register("title")}
+          error={!!errors.title}
+          helperText={errors.title?.message}
           sx={{
             "& .MuiOutlinedInput-root": {
               borderRadius: "12px",
@@ -277,7 +273,6 @@ export default function StoryWrite() {
               opacity: 1,
             },
           }}
-          onChange={(e) => setTitle(e.target.value)}
         />
 
         <Box>
@@ -292,12 +287,25 @@ export default function StoryWrite() {
           >
             내용
           </Typography>
-          <RichTextEditor
-            value={content}
-            onChange={setContent}
-            placeholder="스토리 내용을 자유롭게 작성해주세요 (3글자 이상)"
-            height="400px"
-            onFilesChange={setEditorFiles}
+          <Controller
+            name="content"
+            control={control}
+            render={({ field }) => (
+              <>
+                <RichTextEditor
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="스토리 내용을 자유롭게 작성해주세요 (3글자 이상)"
+                  height="400px"
+                  onFilesChange={setEditorFiles}
+                />
+                {errors.content && (
+                  <Typography variant="caption" color="error" sx={{ mt: 1 }}>
+                    {errors.content.message}
+                  </Typography>
+                )}
+              </>
+            )}
           />
         </Box>
 
@@ -348,9 +356,9 @@ export default function StoryWrite() {
           </Button>
 
           <Button
+            type="submit"
             variant="contained"
-            onClick={mutation.mutate}
-            disabled={loading || title.length < 3 || content.length < 3}
+            disabled={loading || !isValid}
             sx={{
               fontSize: { xs: "0.95rem", sm: "1rem" },
               textTransform: "none",

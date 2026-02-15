@@ -1,5 +1,8 @@
 "use client";
 import React, { ReactNode, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { signupSchema, SignupSchema } from "@/schemas/auth";
 import {
   Avatar,
   Button,
@@ -16,7 +19,6 @@ import {
   CircularProgress,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
@@ -27,20 +29,43 @@ const SignupPage = (): ReactNode => {
   const router = useRouter();
   const theme = useTheme();
   const { update } = useSession();
-  const [checked, setChecked] = useState(false);
-
   const { showMessage } = useMessage((state) => state);
-  // 동의 체크
-  const handleAgree = (e: any): void => {
-    setChecked(!checked);
-  };
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    getValues,
+    trigger,
+    watch,
+  } = useForm<SignupSchema>({
+    resolver: zodResolver(signupSchema),
+    mode: "onChange",
+    defaultValues: {
+      email: "",
+      nickname: "",
+      password: "",
+      rePassword: "",
+      terms: false,
+    },
+  });
+
+  const termsChecked = watch("terms");
+
+  // 닉네임 중복 확인 관련 상태
+  const [nicknameChecked, setNicknameChecked] = useState<boolean>(false);
+  const [nicknameAvailable, setNicknameAvailable] = useState<boolean>(false);
+  const [nicknameCheckLoading, setNicknameCheckLoading] = useState<boolean>(false);
+  const [nicknameCheckMessage, setNicknameCheckMessage] = useState<string>("");
+  const [apiError, setApiError] = useState<string>("");
 
   // 닉네임 중복 확인
   const handleNicknameCheck = async (): Promise<void> => {
-    if (!nickname.trim()) {
-      showMessage("닉네임을 입력해주세요.", "warning");
-      return;
-    }
+    const nickname = getValues("nickname");
+
+    // Zod 유효성 검사 먼저 실행
+    const isFormatValid = await trigger("nickname");
+    if (!isFormatValid) return;
 
     setNicknameCheckLoading(true);
     try {
@@ -54,7 +79,9 @@ const SignupPage = (): ReactNode => {
       setNicknameCheckMessage(message);
 
       showMessage(message, isAvailable ? "success" : "error");
-    } catch (error: any) {
+    } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const error = err as any;
       console.error("닉네임 중복 확인 실패:", error);
       setNicknameAvailable(false);
       setNicknameChecked(false);
@@ -65,50 +92,20 @@ const SignupPage = (): ReactNode => {
     }
   };
 
-  // 닉네임 변경 시 중복 확인 상태 초기화
-  const handleNicknameChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
-    setNickname(e.target.value);
-    setNicknameChecked(false);
-    setNicknameAvailable(false);
-    setNicknameCheckMessage("");
-  };
-
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-  const [rePassword, setRePassword] = useState<string>("");
-  const [nickname, setNickname] = useState<string>("");
-  const [error, setError] = useState<string>("");
-
-  // 닉네임 중복 확인 관련
-  const [nicknameChecked, setNicknameChecked] = useState<boolean>(false);
-  const [nicknameAvailable, setNicknameAvailable] = useState<boolean>(false);
-  const [nicknameCheckLoading, setNicknameCheckLoading] = useState<boolean>(false);
-  const [nicknameCheckMessage, setNicknameCheckMessage] = useState<string>("");
-
-  // 비밀번호 일치 여부 확인
-  const isPasswordMismatch = password !== "" && rePassword !== "" && password !== rePassword;
+  const nicknameRegister = register("nickname");
 
   // form 전송
-  const handleSubmit = async (e: any): Promise<void> => {
-    e.preventDefault();
-    if (password !== rePassword) {
-      showMessage("비밀번호가 일치하지 않습니다.", "error");
-      return;
-    }
-    if (!checked) {
-      showMessage("약관에 동의해주세요.", "info");
-      return;
-    }
+  const onSubmit = async (data: SignupSchema): Promise<void> => {
     if (!nicknameChecked || !nicknameAvailable) {
       showMessage("닉네임 중복 확인을 해주세요.", "warning");
       return;
     }
-    const data = { user_email: email, password, nickname };
-    console.log("data:", data);
-    //! fetch에서는 credentials: 'include'로 쿠키를 전달할 수 있음
-    //! axios에서는 withCredentials: true로 쿠키를 전달할 수 있음
+
+    const { email, password, nickname } = data;
+    const requestData = { user_email: email, password, nickname };
+
     await axios
-      .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signup`, data, { withCredentials: true })
+      .post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signup`, requestData, { withCredentials: true })
       .then(async (res: { status: number }) => {
         if (res.status === 201) {
           try {
@@ -136,13 +133,15 @@ const SignupPage = (): ReactNode => {
             }
           } catch (error) {
             console.log("error", error);
-            setError("유효하지 않은 요청입니다.");
+            setApiError("유효하지 않은 요청입니다.");
           }
         }
       })
-      .catch((err: any) => {
-        console.log("어라", err.response.data.data);
-        setError(err.response.data.data);
+      .catch((err: unknown) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const error = err as any;
+        console.log("어라", error.response?.data?.data);
+        setApiError(error.response?.data?.data || "회원가입 중 오류가 발생했습니다.");
       });
   };
 
@@ -189,9 +188,9 @@ const SignupPage = (): ReactNode => {
           >
             회원가입
           </Typography>
-          <Box component="form" noValidate sx={{ mt: 1 }}>
-            <FormControl component="fieldset" variant="standard">
-              <Grid container spacing={1}>
+          <Box component="form" noValidate sx={{ mt: 1 }} onSubmit={handleSubmit(onSubmit)}>
+            <FormControl component="fieldset" variant="standard" fullWidth>
+              <Grid container spacing={2}>
                 <Grid size={12}>
                   <TextField
                     required
@@ -199,10 +198,10 @@ const SignupPage = (): ReactNode => {
                     fullWidth
                     type="email"
                     id="email"
-                    name="email"
                     label="이메일 주소"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    {...register("email")}
+                    error={!!errors.email}
+                    helperText={errors.email?.message}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
@@ -232,16 +231,19 @@ const SignupPage = (): ReactNode => {
                   <Box sx={{ display: "flex", gap: 1, alignItems: "flex-start" }}>
                     <TextField
                       required
-                      autoFocus
                       fullWidth
                       type="text"
                       id="nickname"
-                      name="nickname"
                       label="닉네임"
-                      value={nickname}
-                      onChange={handleNicknameChange}
-                      error={nicknameChecked && !nicknameAvailable}
-                      helperText={nicknameCheckMessage}
+                      {...nicknameRegister}
+                      onChange={(e) => {
+                        nicknameRegister.onChange(e);
+                        setNicknameChecked(false);
+                        setNicknameAvailable(false);
+                        setNicknameCheckMessage("");
+                      }}
+                      error={!!errors.nickname || (nicknameChecked && !nicknameAvailable)}
+                      helperText={errors.nickname?.message || nicknameCheckMessage}
                       sx={{
                         "& .MuiOutlinedInput-root": {
                           backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
@@ -311,7 +313,7 @@ const SignupPage = (): ReactNode => {
                     <Button
                       variant="outlined"
                       onClick={handleNicknameCheck}
-                      disabled={!nickname.trim() || nicknameCheckLoading}
+                      disabled={nicknameCheckLoading}
                       sx={{
                         minWidth: "100px",
                         height: "56px",
@@ -339,55 +341,47 @@ const SignupPage = (): ReactNode => {
                     fullWidth
                     type="password"
                     id="password"
-                    name="password"
                     label="비밀번호 (숫자+영문자+특수문자 8자리 이상)"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    error={isPasswordMismatch}
-                    // helperText={isPasswordMismatch ? "비밀번호가 일치하지 않습니다" : ""}
+                    {...register("password")}
+                    error={!!errors.password}
+                    helperText={errors.password?.message}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                         "& fieldset": {
-                          borderColor: isPasswordMismatch
+                          borderColor: !!errors.password
                             ? "#f44336"
                             : theme.palette.mode === "dark"
                               ? "rgba(139, 92, 246, 0.5)"
                               : "rgba(0, 0, 0, 0.2)",
                         },
                         "&:hover fieldset": {
-                          borderColor: isPasswordMismatch
+                          borderColor: !!errors.password
                             ? "#f44336"
                             : theme.palette.mode === "dark"
                               ? "rgba(139, 92, 246, 0.8)"
                               : "#1976d2",
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: isPasswordMismatch
+                          borderColor: !!errors.password
                             ? "#f44336"
                             : theme.palette.mode === "dark"
                               ? "rgba(139, 92, 246, 1)"
                               : "#1976d2",
                         },
-                        "&.Mui-error fieldset": {
-                          borderColor: "#f44336",
-                        },
                       },
                       "& .MuiInputLabel-root": {
-                        color: isPasswordMismatch
+                        color: !!errors.password
                           ? "#f44336"
                           : theme.palette.mode === "dark"
                             ? "rgba(255, 255, 255, 0.7)"
                             : "rgba(0, 0, 0, 0.6)",
                         "&.Mui-focused": {
-                          color: isPasswordMismatch
+                          color: !!errors.password
                             ? "#f44336"
                             : theme.palette.mode === "dark"
                               ? "rgba(139, 92, 246, 1)"
                               : "#1976d2",
-                        },
-                        "&.Mui-error": {
-                          color: "#f44336",
                         },
                       },
                       "& .MuiOutlinedInput-input": {
@@ -406,55 +400,47 @@ const SignupPage = (): ReactNode => {
                     fullWidth
                     type="password"
                     id="rePassword"
-                    name="rePassword"
                     label="비밀번호 재입력"
-                    value={rePassword}
-                    onChange={(e) => setRePassword(e.target.value)}
-                    error={isPasswordMismatch}
-                    // helperText={isPasswordMismatch ? "비밀번호가 일치하지 않습니다" : ""}
+                    {...register("rePassword")}
+                    error={!!errors.rePassword}
+                    helperText={errors.rePassword?.message}
                     sx={{
                       "& .MuiOutlinedInput-root": {
                         backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
                         "& fieldset": {
-                          borderColor: isPasswordMismatch
+                          borderColor: !!errors.rePassword
                             ? "#f44336"
                             : theme.palette.mode === "dark"
                               ? "rgba(139, 92, 246, 0.5)"
                               : "rgba(0, 0, 0, 0.2)",
                         },
                         "&:hover fieldset": {
-                          borderColor: isPasswordMismatch
+                          borderColor: !!errors.rePassword
                             ? "#f44336"
                             : theme.palette.mode === "dark"
                               ? "rgba(139, 92, 246, 0.8)"
                               : "#1976d2",
                         },
                         "&.Mui-focused fieldset": {
-                          borderColor: isPasswordMismatch
+                          borderColor: !!errors.rePassword
                             ? "#f44336"
                             : theme.palette.mode === "dark"
                               ? "rgba(139, 92, 246, 1)"
                               : "#1976d2",
                         },
-                        "&.Mui-error fieldset": {
-                          borderColor: "#f44336",
-                        },
                       },
                       "& .MuiInputLabel-root": {
-                        color: isPasswordMismatch
+                        color: !!errors.rePassword
                           ? "#f44336"
                           : theme.palette.mode === "dark"
                             ? "rgba(255, 255, 255, 0.7)"
                             : "rgba(0, 0, 0, 0.6)",
                         "&.Mui-focused": {
-                          color: isPasswordMismatch
+                          color: !!errors.rePassword
                             ? "#f44336"
                             : theme.palette.mode === "dark"
                               ? "rgba(139, 92, 246, 1)"
                               : "#1976d2",
-                        },
-                        "&.Mui-error": {
-                          color: "#f44336",
                         },
                       },
                       "& .MuiOutlinedInput-input": {
@@ -471,7 +457,7 @@ const SignupPage = (): ReactNode => {
                   <FormControlLabel
                     control={
                       <Checkbox
-                        onChange={handleAgree}
+                        {...register("terms")}
                         sx={{
                           color: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.7)" : "#1976d2",
                           "&.Mui-checked": {
@@ -483,16 +469,26 @@ const SignupPage = (): ReactNode => {
                     label="회원가입 약관에 동의합니다."
                     sx={{
                       "& .MuiFormControlLabel-label": {
-                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.8)" : "rgba(0, 0, 0, 0.8)",
+                        color:
+                          !!errors.terms
+                            ? "#f44336"
+                            : theme.palette.mode === "dark"
+                              ? "rgba(255, 255, 255, 0.8)"
+                              : "rgba(0, 0, 0, 0.8)",
                         fontWeight: "500",
                       },
                     }}
                   />
+                  {errors.terms && (
+                    <Typography variant="caption" color="error" sx={{ ml: 2, display: "block" }}>
+                      {errors.terms.message}
+                    </Typography>
+                  )}
                 </Grid>
               </Grid>
-              {error && (
+              {apiError && (
                 <Alert severity="error" sx={{ mt: 2 }}>
-                  {error}
+                  {apiError}
                 </Alert>
               )}
               <Button
@@ -526,9 +522,8 @@ const SignupPage = (): ReactNode => {
                       : "0 4px 12px rgba(25, 118, 210, 0.3)",
                   transition: "all 0.2s ease-in-out",
                 }}
-                disabled={!checked}
+                disabled={!termsChecked}
                 size="large"
-                onClick={handleSubmit}
               >
                 회원가입
               </Button>

@@ -215,6 +215,8 @@ export class AuthController {
    * @returns 사용자 정보
    */
   @Post('signinSession')
+  @ApiOperation({ summary: '세션 기반 로그인 (테스트용)' })
+  @ApiResponse({ status: 200, description: '로그인 성공, 사용자 정보 반환' })
   async signinSession(
     @Body(ValidationPipe) userData: SigninUserDto,
     @Res() res: Response,
@@ -325,6 +327,8 @@ export class AuthController {
    */
   @Post('/userStoryTableData')
   @UseGuards(AuthGuard())
+  @ApiOperation({ summary: '사용자가 작성한 게시글 목록 조회 (페이지네이션)' })
+  @ApiResponse({ status: 200, description: '게시글 목록 및 총 개수 반환' })
   async getUserPageStory(
     @Body('offset') offset = 0,
     @Body('limit') limit = 10,
@@ -354,6 +358,8 @@ export class AuthController {
    */
   @Post('/userCommentsTableData')
   @UseGuards(AuthGuard())
+  @ApiOperation({ summary: '사용자가 작성한 댓글 목록 조회 (페이지네이션)' })
+  @ApiResponse({ status: 200, description: '댓글 목록 및 총 개수 반환' })
   async getUserPageComments(
     @Body('offset') offset = 0,
     @Body('limit') limit = 10,
@@ -383,6 +389,9 @@ export class AuthController {
    * GET /api/auth/profile/사용자닉네임
    */
   @Get('/profile/:username')
+  @ApiOperation({ summary: '다른 사용자 공개 프로필 조회' })
+  @ApiParam({ name: 'username', description: '조회할 사용자의 닉네임' })
+  @ApiResponse({ status: 200, description: '사용자 공개 프로필 정보 반환' })
   async anotherUserGet(@Param('username') username: string): Promise<any> {
     console.log('👥 다른 사용자 프로필 조회 - 닉네임:', username);
     return await this.authUserService.anotherUserGet(username);
@@ -397,6 +406,9 @@ export class AuthController {
    * - 뱃지 이미지 확장을 위해 badgeKey, badgeImage(옵션) 포함
    */
   @Get('/profile/:username/level')
+  @ApiOperation({ summary: '사용자 활동 합계 및 레벨 정보 조회' })
+  @ApiParam({ name: 'username', description: '조회할 사용자의 닉네임' })
+  @ApiResponse({ status: 200, description: '레벨, 자정 정보 반환' })
   async getUserLevel(@Param('username') username: string): Promise<any> {
     return await this.authUserService.getUserLevelByNickname(username);
   }
@@ -428,7 +440,9 @@ export class AuthController {
    */
   @Post('update')
   @UseGuards(AuthGuard())
-  @UseInterceptors(FileInterceptor('profileImage')) // 'profileImage'는 프론트엔드의 FormData 필드명
+  @UseInterceptors(FileInterceptor('profileImage'))
+  @ApiOperation({ summary: '프로필 정보 수정 (이미지 업로드 포함)' })
+  @ApiResponse({ status: 200, description: '수정된 프로필 정보 반환' })
   async userUpdate(
     @Body() userData: any,
     @UploadedFile() profileImage: Express.Multer.File,
@@ -474,6 +488,11 @@ export class AuthController {
    */
   @Delete('delete')
   @UseGuards(AuthGuard())
+  @ApiOperation({ summary: '프로필 이미지 삭제' })
+  @ApiResponse({
+    status: 200,
+    description: '이미지 삭제 성공, 기본 이미지로 변경',
+  })
   async deleteProfilePicture(@Body() userData: any): Promise<void> {
     console.log('🗑️ 프로필 이미지 삭제 요청 - 사용자 ID:', userData.id);
     // 테스트용 에러 발생 코드 (주석 처리됨)
@@ -507,6 +526,9 @@ export class AuthController {
    */
   @Post('password')
   @UseGuards(AuthGuard())
+  @ApiOperation({ summary: '비밀번호 변경' })
+  @ApiResponse({ status: 200, description: '비밀번호 변경 성공' })
+  @ApiResponse({ status: 401, description: '현재 비밀번호 불일치' })
   async changePassword(@Body() userData: any): Promise<void> {
     console.log('🔒 비밀번호 변경 요청 - 사용자 ID:', userData.id);
     await this.authUserService.changePassword(userData);
@@ -537,6 +559,11 @@ export class AuthController {
    */
   @Post('verifyPassword')
   @UseGuards(AuthGuard())
+  @ApiOperation({ summary: '현재 비밀번호 검증 (비밀번호 변경 전 확인용)' })
+  @ApiResponse({
+    status: 200,
+    description: '비밀번호 일치 여부 (true/false) 반환',
+  })
   async verifyUser(
     @Body(ValidationPipe) userData: { id: string; currentPassword: string },
   ): Promise<boolean> {
@@ -566,6 +593,14 @@ export class AuthController {
    * Cookie: refresh_token=<REFRESH_TOKEN>
    */
   @Post('refresh')
+  @ApiOperation({
+    summary: 'Refresh Token을 사용하여 새로운 Access Token 발급',
+  })
+  @ApiResponse({ status: 200, description: '토큰 갱신 성공' })
+  @ApiResponse({
+    status: 401,
+    description: 'Refresh Token 없거나 유효하지 않음',
+  })
   async refreshToken(@Req() req: Request, @Res() res: Response) {
     console.log('🔄 토큰 갱신 요청 시작');
 
@@ -656,6 +691,8 @@ export class AuthController {
    * }
    */
   @Post('/userProfileStoryTableData')
+  @ApiOperation({ summary: '사용자 프로필 - 작성 게시글 목록 조회' })
+  @ApiResponse({ status: 200, description: '게시글 목록 및 총 개수 반환' })
   async getUserProfileStory(
     @Body('offset') offset = 0,
     @Body('limit') limit = 10,
@@ -700,6 +737,8 @@ export class AuthController {
    * }
    */
   @Post('/userProfileCommentsTableData')
+  @ApiOperation({ summary: '사용자 프로필 - 작성 댓글 목록 조회' })
+  @ApiResponse({ status: 200, description: '댓글 목록 및 총 개수 반환' })
   async getUserProfileComments(
     @Body('offset') offset = 0,
     @Body('limit') limit = 10,
@@ -739,6 +778,9 @@ export class AuthController {
    * }
    */
   @Post('/forgot-password')
+  @ApiOperation({ summary: '비밀번호 찾기 - 이메일 확인' })
+  @ApiResponse({ status: 200, description: '이메일 확인 성공' })
+  @ApiResponse({ status: 404, description: '등록된 이메일이 없음' })
   async forgotPassword(
     @Body(ValidationPipe) forgotPasswordDto: ForgotPasswordDto,
   ): Promise<ForgotPasswordResponseDto> {
@@ -768,6 +810,9 @@ export class AuthController {
    * }
    */
   @Post('reset-password')
+  @ApiOperation({ summary: '비밀번호 재설정' })
+  @ApiResponse({ status: 200, description: '비밀번호 재설정 성공' })
+  @ApiResponse({ status: 404, description: '등록된 이메일이 없음' })
   async resetPassword(
     @Body(ValidationPipe) resetPasswordDto: ResetPasswordDto,
   ): Promise<ForgotPasswordResponseDto> {

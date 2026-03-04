@@ -23,6 +23,7 @@
 
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 import { Entity } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 
 // 로그인 데이터 유효성 검증 클래스
 @Entity()
@@ -48,6 +49,10 @@ export class SigninUserDto {
    * @example "user@example.com", "test@gmail.com"
    * @error "올바른 이메일 형식이 아닙니다."
    */
+  @ApiProperty({
+    example: 'user@example.com',
+    description: '사용자 이메일 (로그인 ID)',
+  })
   @IsNotEmpty({ message: '이메일을 입력해주세요.' })
   @MinLength(4, { message: '이메일은 최소 4자 이상 입력해야 합니다.' })
   @MaxLength(30, { message: '이메일은 최대 30자까지 입력 가능합니다.' })
@@ -82,6 +87,10 @@ export class SigninUserDto {
    * @example "password123", "myPass!@#", "secure456"
    * @error "비밀번호는 영어 대/소문자, 숫자, 특수문자(!@#$%^&*)만 사용할 수 있습니다."
    */
+  @ApiProperty({
+    example: 'password123',
+    description: '비밀번호 (영문 대/소문자, 숫자, 특수문자 허용)',
+  })
   @IsNotEmpty({ message: '비밀번호를 입력해주세요.' })
   @MinLength(4, { message: '비밀번호는 최소 4자 이상 입력해야 합니다.' })
   @MaxLength(20, { message: '비밀번호는 최대 20자까지 입력 가능합니다.' })

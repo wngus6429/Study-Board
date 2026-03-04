@@ -12,6 +12,7 @@ import {
   MaxLength,
   IsNumberString,
 } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateStoryDto {
   /**
@@ -19,6 +20,11 @@ export class CreateStoryDto {
    * @description 게시글의 제목 (필수 입력, 최대 1000자)
    * @example "안녕하세요! 첫 번째 게시글입니다."
    */
+  @ApiProperty({
+    example: '첫 번째 게시글입니다.',
+    description: '게시글 제목',
+    maxLength: 1000,
+  })
   @IsNotEmpty()
   @MaxLength(1000)
   title: string;
@@ -28,6 +34,11 @@ export class CreateStoryDto {
    * @description 게시글의 본문 내용 (필수 입력, 최대 1000자)
    * @example "이것은 게시글의 내용입니다. 여러분의 의견을 들려주세요!"
    */
+  @ApiProperty({
+    example: '게시글 내용입니다.',
+    description: '게시글 본문 내용',
+    maxLength: 50000,
+  })
   @IsNotEmpty()
   @MaxLength(50000)
   content: string;
@@ -37,6 +48,7 @@ export class CreateStoryDto {
    * @description 게시글이 속할 카테고리 (필수 선택)
    * @example "질문", "정보", "자유게시판" 등
    */
+  @ApiProperty({ example: '질문', description: '게시글 카테고리' })
   @IsNotEmpty()
   category: string;
 
@@ -45,6 +57,10 @@ export class CreateStoryDto {
    * @description 게시글이 속할 채널의 고유 번호 (선택사항, 문자열 형태의 숫자)
    * @example "123"
    */
+  @ApiPropertyOptional({
+    example: '123',
+    description: '게시글이 속할 채널 ID (선택사항)',
+  })
   @IsOptional()
   @IsNumberString()
   channelId?: string;
@@ -54,6 +70,9 @@ export class CreateStoryDto {
    * @description 게시글에 첨부할 이미지의 미리보기 정보 (선택사항)
    * @example [{ dataUrl: "data:image/png;base64,iVBOR...", fileName: "image1.png" }]
    */
+  @ApiPropertyOptional({
+    description: '게시글에 첨부한 이미지 미리보기 정보 목록 (선택사항)',
+  })
   @IsOptional()
   preview: { dataUrl: string; fileName: string }[];
 }

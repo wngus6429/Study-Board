@@ -20,6 +20,7 @@
 
 import { IsNotEmpty, Matches, MaxLength, MinLength } from 'class-validator';
 import { Column, Entity, PrimaryColumn, PrimaryGeneratedColumn } from 'typeorm';
+import { ApiProperty } from '@nestjs/swagger';
 
 @Entity()
 export class SignupUserDto {
@@ -62,6 +63,12 @@ export class SignupUserDto {
    * @example "user@example.com"
    * @error "이메일 형식이 아님, Email Address Damn ass"
    */
+  @ApiProperty({
+    example: 'user@example.com',
+    description: '사용자 이메일 주소 (로그인 ID)',
+    minLength: 4,
+    maxLength: 30,
+  })
   @IsNotEmpty()
   @MinLength(4)
   @MaxLength(30)
@@ -90,6 +97,12 @@ export class SignupUserDto {
    *
    * @example "홍길동", "User123", "개발자"
    */
+  @ApiProperty({
+    example: '홍길동',
+    description: '사용자 닉네임 (게시글/댓글에 표시)',
+    minLength: 2,
+    maxLength: 20,
+  })
   @IsNotEmpty()
   @MinLength(2)
   @MaxLength(20)
@@ -121,6 +134,12 @@ export class SignupUserDto {
    * @example "password123", "myPass456"
    * @error "영숫자, Password can only contain letters and numbers"
    */
+  @ApiProperty({
+    example: 'password123',
+    description: '비밀번호 (영숫자만 허용)',
+    minLength: 4,
+    maxLength: 20,
+  })
   @IsNotEmpty()
   @MinLength(4)
   @MaxLength(20)

@@ -124,6 +124,13 @@ export class StoryController {
    * @returns 게시글 목록과 총 개수
    */
   @Get('/cardPageTableData')
+  @ApiOperation({ summary: '카드 형태의 게시글 목록 조회' })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'category', required: false, type: String })
+  @ApiQuery({ name: 'channelId', required: false, type: Number })
+  @ApiQuery({ name: 'minRecommend', required: false, type: Number })
+  @ApiResponse({ status: 200, description: '게시글 목록 및 총 개수 반환' })
   async getCardPageStory(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
@@ -174,6 +181,19 @@ export class StoryController {
    * @returns 검색된 게시글 목록과 총 개수
    */
   @Get('/search')
+  @ApiOperation({ summary: '게시글 검색 (테이블 형태)' })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    type: String,
+    description: 'title | content | author | comment',
+  })
+  @ApiQuery({ name: 'query', required: true, type: String })
+  @ApiQuery({ name: 'category', required: false, type: String })
+  @ApiQuery({ name: 'channelId', required: false, type: Number })
+  @ApiResponse({ status: 200, description: '검색된 게시글 목록과 총 개수' })
   async searchStories(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
@@ -214,6 +234,19 @@ export class StoryController {
    * @returns 검색된 게시글 목록과 총 개수
    */
   @Get('/cardSearch')
+  @ApiOperation({ summary: '게시글 검색 (카드 형태)' })
+  @ApiQuery({ name: 'offset', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({
+    name: 'type',
+    required: false,
+    type: String,
+    description: 'title | content | author | comment',
+  })
+  @ApiQuery({ name: 'query', required: true, type: String })
+  @ApiQuery({ name: 'category', required: false, type: String })
+  @ApiQuery({ name: 'channelId', required: false, type: Number })
+  @ApiResponse({ status: 200, description: '검색된 게시글 목록과 총 개수' })
   async cardSearchStories(
     @Query('offset') offset = 0,
     @Query('limit') limit = 10,
@@ -278,6 +311,9 @@ export class StoryController {
    * @returns 공지사항 상세 정보 (작성자 정보 포함)
    */
   @Get('/notice/:id')
+  @ApiOperation({ summary: '공지사항 상세 조회' })
+  @ApiParam({ name: 'id', description: '공지사항 ID' })
+  @ApiResponse({ status: 200, description: '공지사항 상세 정보 반환' })
   async getNoticeDetail(
     @Param('id', ParseIntPipe) id: number,
     @Body() userData?: any,
@@ -308,6 +344,10 @@ export class StoryController {
   @Get('/detail/edit/:id')
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
+  @ApiOperation({ summary: '게시글 수정용 데이터 조회' })
+  @ApiParam({ name: 'id', description: '게시글 ID' })
+  @ApiQuery({ name: 'userId', required: true, type: String })
+  @ApiResponse({ status: 200, description: '수정할 게시글 데이터 반환' })
   async getStoryEditStory(
     @Param('id', ParseIntPipe) id: number,
     @Query('userId') userId: string,
@@ -362,6 +402,8 @@ export class StoryController {
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   @UseInterceptors(FilesInterceptor('images'))
+  @ApiOperation({ summary: '공지사항 작성' })
+  @ApiResponse({ status: 201, description: '공지사항 작성 성공' })
   async createNotice(
     @Body() createStoryDto: CreateStoryDto,
     @GetUser() userData: User,
@@ -386,6 +428,9 @@ export class StoryController {
   @UseGuards(AuthGuard())
   @UsePipes(ValidationPipe)
   @UseInterceptors(FilesInterceptor('files'))
+  @ApiOperation({ summary: '게시글 수정 (파일 변경 포함)' })
+  @ApiParam({ name: 'id', description: '수정할 게시글 ID' })
+  @ApiResponse({ status: 200, description: '수정된 게시글 정보 반환' })
   async updateStory(
     @Param('id') storyId: number,
     @Body() updateStoryDto: any,
@@ -407,6 +452,10 @@ export class StoryController {
    */
   @Delete('/:id')
   @UseGuards(AuthGuard())
+  @ApiOperation({ summary: '게시글 삭제 (작성자만 가능)' })
+  @ApiParam({ name: 'id', description: '삭제할 게시글 ID' })
+  @ApiResponse({ status: 200, description: '게시글 삭제 성공' })
+  @ApiResponse({ status: 403, description: '삭제 권한 없음' })
   async deleteStory(
     @Param('id') storyId: number,
     @GetUser() userData: User,
@@ -426,6 +475,22 @@ export class StoryController {
    */
   @Put('/likeOrUnlike/:id')
   @UseGuards(AuthGuard())
+  @ApiOperation({ summary: '게시글 추찬/비추찬' })
+  @ApiParam({ name: 'id', description: '게시글 ID' })
+  @ApiBody({
+    description: '추찬 정보',
+    schema: {
+      properties: {
+        userId: { type: 'string' },
+        vote: { type: 'string', enum: ['like', 'dislike'] },
+        minRecommend: { type: 'number' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: '수행된 작업 정보 (add/remove/change)',
+  })
   async storyLikeOrNot(
     @Param('id') storyId: number,
     @Body()
@@ -454,6 +519,9 @@ export class StoryController {
    */
   @Post('/migrateToRecommendRanking')
   @UseGuards(AuthGuard())
+  @ApiOperation({ summary: '추찬 랜킹 테이블 마이그레이션 (관리자 전용)' })
+  @ApiResponse({ status: 200, description: '마이그레이션 결과' })
+  @ApiResponse({ status: 401, description: '관리자 권한 없음' })
   async migrateToRecommendRanking(
     @GetUser() user: User,
     @Body() body: { minRecommend: number },
@@ -480,6 +548,10 @@ export class StoryController {
    * @returns 공지사항 목록과 총 개수
    */
   @Get('/notices')
+  @ApiOperation({ summary: '공지사항 목록 조회' })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiQuery({ name: 'channel', required: false, type: Number })
+  @ApiResponse({ status: 200, description: '공지사항 목록 및 총 개수 반환' })
   async getNotices(
     @Query('limit') limit = 10,
     @Query('channel') channel?: number,

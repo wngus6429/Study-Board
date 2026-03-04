@@ -102,9 +102,15 @@ async function bootstrap() {
     .addCookieAuth('connect.sid') // 세션 쿠키 인증 방식 문서화
     .addTag('Auth', '사용자 인증 관련 API') // API 그룹 태그
     .addTag('Story', '게시글 관련 API')
-    .addTag('Channel', '채널 관련 API')
     .addTag('Comment', '댓글 관련 API')
-    .addTag('Notification', '알림 관련 API')
+    .addTag('channels', '채널 관련 API')
+    .addTag('channel-chat', '채널 채팅 관련 API')
+    .addTag('Suggestion', '건의사항 관련 API')
+    .addTag('스크랩', '스크랩 관련 API')
+    .addTag('notifications', '알림 관련 API')
+    .addTag('messages', '쪽지 관련 API')
+    .addTag('블라인드', '블라인드 관련 API')
+    .addTag('users', '사용자 검색 관련 API')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

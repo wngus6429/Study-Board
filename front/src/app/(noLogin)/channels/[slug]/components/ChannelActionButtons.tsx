@@ -33,6 +33,7 @@ interface ChannelActionButtonsProps {
 
   // 유저 세션
   hasSession: boolean;
+  isMobileViewOnly?: boolean;
 }
 
 const ChannelActionButtons: React.FC<ChannelActionButtonsProps> = ({
@@ -49,82 +50,112 @@ const ChannelActionButtons: React.FC<ChannelActionButtonsProps> = ({
   onShowNotice,
   onShowChannelInfo,
   hasSession,
+  isMobileViewOnly = false,
 }) => {
   const theme = useTheme();
 
+  const mobileSecondaryButtonHeight = isMobileViewOnly ? 42 : undefined;
+
   return (
-    <Box sx={{ display: "flex", gap: 1.5 }}>
+    <Box
+      sx={{
+        display: "flex",
+        gap: isMobileViewOnly ? 0.75 : 1.5,
+        flexDirection: isMobileViewOnly ? "column" : "row",
+        width: isMobileViewOnly ? "100%" : "auto",
+      }}
+    >
       {/* 왼쪽 열: 실시간 채팅 버튼 */}
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
-        {/* 실시간 채팅 버튼 */}
-        <Button
-          variant="contained"
-          startIcon={<ChatIcon sx={{ fontSize: 22 }} />}
-          onClick={onChatToggle}
+      {!isMobileViewOnly && (
+        <Box
           sx={{
-            minWidth: "130px",
-            height: "95px",
-            fontSize: "0.95rem",
-            fontWeight: 700,
-            borderRadius: "16px",
-            textTransform: "none",
-            transition: "all 0.3s ease",
-            background: showChat
-              ? "linear-gradient(135deg, #ef4444, #dc2626)"
-              : "linear-gradient(135deg, #22c55e, #16a34a)",
-            color: "white",
-            border: showChat
-              ? theme.palette.mode === "dark"
-                ? "2px solid rgba(239, 68, 68, 0.6)"
-                : "2px solid rgba(239, 68, 68, 0.4)"
-              : theme.palette.mode === "dark"
-                ? "2px solid rgba(34, 197, 94, 0.6)"
-                : "2px solid rgba(34, 197, 94, 0.4)",
-            boxShadow: showChat
-              ? theme.palette.mode === "dark"
-                ? "0 8px 32px rgba(239, 68, 68, 0.4)"
-                : "0 8px 28px rgba(239, 68, 68, 0.3)"
-              : theme.palette.mode === "dark"
-                ? "0 8px 32px rgba(34, 197, 94, 0.4)"
-                : "0 8px 28px rgba(34, 197, 94, 0.3)",
-            "&:hover": {
-              transform: "translateY(-3px) scale(1.02)",
-              background: showChat
-                ? "linear-gradient(135deg, #dc2626, #b91c1c)"
-                : "linear-gradient(135deg, #16a34a, #15803d)",
-              boxShadow: showChat
-                ? theme.palette.mode === "dark"
-                  ? "0 12px 40px rgba(239, 68, 68, 0.5)"
-                  : "0 12px 35px rgba(239, 68, 68, 0.4)"
-                : theme.palette.mode === "dark"
-                  ? "0 12px 40px rgba(34, 197, 94, 0.5)"
-                  : "0 12px 35px rgba(34, 197, 94, 0.4)",
-            },
-            "&:active": {
-              transform: "translateY(-1px) scale(0.98)",
-            },
+            display: "flex",
+            flexDirection: "column",
+            gap: isMobileViewOnly ? 0.75 : 1,
           }}
         >
-          <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.3 }}>
-            <Box sx={{ fontSize: "1rem", fontWeight: 800 }}>{showChat ? "채팅 종료" : "실시간채팅"}</Box>
-            <Box sx={{ fontSize: "0.7rem", opacity: 0.9, fontWeight: 600 }}>
-              {showChat ? "클릭하여 나가기" : "참여하기"}
+          {/* 실시간 채팅 버튼 */}
+          <Button
+            variant="contained"
+            startIcon={<ChatIcon sx={{ fontSize: 22 }} />}
+            onClick={onChatToggle}
+            sx={{
+              minWidth: "130px",
+              height: "95px",
+              fontSize: "0.95rem",
+              fontWeight: 700,
+              borderRadius: "16px",
+              textTransform: "none",
+              transition: "all 0.3s ease",
+              background: showChat
+                ? "linear-gradient(135deg, #ef4444, #dc2626)"
+                : "linear-gradient(135deg, #22c55e, #16a34a)",
+              color: "white",
+              border: showChat
+                ? theme.palette.mode === "dark"
+                  ? "2px solid rgba(239, 68, 68, 0.6)"
+                  : "2px solid rgba(239, 68, 68, 0.4)"
+                : theme.palette.mode === "dark"
+                  ? "2px solid rgba(34, 197, 94, 0.6)"
+                  : "2px solid rgba(34, 197, 94, 0.4)",
+              boxShadow: showChat
+                ? theme.palette.mode === "dark"
+                  ? "0 8px 32px rgba(239, 68, 68, 0.4)"
+                  : "0 8px 28px rgba(239, 68, 68, 0.3)"
+                : theme.palette.mode === "dark"
+                  ? "0 8px 32px rgba(34, 197, 94, 0.4)"
+                  : "0 8px 28px rgba(34, 197, 94, 0.3)",
+              "&:hover": {
+                transform: "translateY(-3px) scale(1.02)",
+                background: showChat
+                  ? "linear-gradient(135deg, #dc2626, #b91c1c)"
+                  : "linear-gradient(135deg, #16a34a, #15803d)",
+                boxShadow: showChat
+                  ? theme.palette.mode === "dark"
+                    ? "0 12px 40px rgba(239, 68, 68, 0.5)"
+                    : "0 12px 35px rgba(239, 68, 68, 0.4)"
+                  : theme.palette.mode === "dark"
+                    ? "0 12px 40px rgba(34, 197, 94, 0.5)"
+                    : "0 12px 35px rgba(34, 197, 94, 0.4)",
+              },
+              "&:active": {
+                transform: "translateY(-1px) scale(0.98)",
+              },
+            }}
+          >
+            <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.3 }}>
+              <Box sx={{ fontSize: "1rem", fontWeight: 800 }}>{showChat ? "채팅 종료" : "실시간채팅"}</Box>
+              <Box sx={{ fontSize: "0.7rem", opacity: 0.9, fontWeight: 600 }}>
+                {showChat ? "클릭하여 나가기" : "참여하기"}
+              </Box>
             </Box>
-          </Box>
-        </Button>
-      </Box>
+          </Button>
+        </Box>
+      )}
 
       {/* 가운데 열: 공지사항, 채널정보 - 항상 표시 */}
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: isMobileViewOnly ? "row" : "column",
+          flexWrap: isMobileViewOnly ? "wrap" : "nowrap",
+          gap: 1,
+          width: isMobileViewOnly ? "100%" : "auto",
+          justifyContent: isMobileViewOnly ? "center" : "flex-start",
+          alignItems: isMobileViewOnly ? "center" : "stretch",
+          marginTop: isMobileViewOnly ? "4px" : 0,
+        }}
+      >
         {/* 공지사항 버튼 */}
         <Button
           variant="contained"
           startIcon={<AnnouncementIcon sx={{ fontSize: 20 }} />}
           onClick={onShowNotice}
           sx={{
-            minWidth: "110px",
-            height: "60px",
-            fontSize: "0.9rem",
+            minWidth: "120px",
+            height: isMobileViewOnly ? mobileSecondaryButtonHeight : "42px",
+            flex: isMobileViewOnly ? "1 1 calc(50% - 8px)" : "none",
+            fontSize: "0.85rem",
             fontWeight: 700,
             borderRadius: "14px",
             textTransform: "none",
@@ -159,8 +190,9 @@ const ChannelActionButtons: React.FC<ChannelActionButtonsProps> = ({
           startIcon={<PeopleIcon sx={{ fontSize: 18 }} />}
           onClick={onShowChannelInfo}
           sx={{
-            minWidth: "110px",
-            height: "35px",
+            minWidth: "120px",
+            height: isMobileViewOnly ? mobileSecondaryButtonHeight : "42px",
+            flex: isMobileViewOnly ? "1 1 calc(50% - 8px)" : "none",
             fontSize: "0.85rem",
             fontWeight: 700,
             borderRadius: "12px",
@@ -193,7 +225,17 @@ const ChannelActionButtons: React.FC<ChannelActionButtonsProps> = ({
 
       {/* 오른쪽 열: 구독하기, 알림받기 - 로그인시에만 표시 */}
       {hasSession && (
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: isMobileViewOnly ? "row" : "column",
+            flexWrap: isMobileViewOnly ? "wrap" : "nowrap",
+            gap: isMobileViewOnly ? 1 : 1,
+            width: isMobileViewOnly ? "100%" : "auto",
+            justifyContent: isMobileViewOnly ? "center" : "flex-start",
+            marginTop: isMobileViewOnly ? 0.5 : 0,
+          }}
+        >
           {/* 구독하기 버튼 */}
           <Button
             variant="contained"
@@ -203,13 +245,14 @@ const ChannelActionButtons: React.FC<ChannelActionButtonsProps> = ({
             sx={{
               borderRadius: "16px",
               fontWeight: 700,
-              px: 3,
-              py: 1.5,
-              minWidth: 150,
-              height: "60px",
-              fontSize: "1rem",
+              px: 2.5,
+              py: isMobileViewOnly ? 0 : 1.2,
+              minWidth: isMobileViewOnly ? 120 : 120,
+              height: isMobileViewOnly ? mobileSecondaryButtonHeight : "42px",
+              fontSize: "0.9rem",
               textTransform: "none",
               transition: "all 0.3s ease",
+              flex: isMobileViewOnly ? "1 1 calc(50% - 8px)" : "none",
               background: isSubscribed
                 ? "linear-gradient(135deg, #ef4444, #dc2626)"
                 : "linear-gradient(135deg, #8b5cf6, #7c3aed)",
@@ -277,13 +320,14 @@ const ChannelActionButtons: React.FC<ChannelActionButtonsProps> = ({
             onClick={onNotificationToggle}
             disabled={notificationSubscribeMutationPending || notificationUnsubscribeMutationPending}
             sx={{
-              minWidth: 150,
-              height: "35px",
+              minWidth: isMobileViewOnly ? 120 : 120,
+              height: isMobileViewOnly ? mobileSecondaryButtonHeight : "42px",
               fontSize: "0.85rem",
               fontWeight: 700,
               borderRadius: "12px",
               textTransform: "none",
               transition: "all 0.3s ease",
+              flex: isMobileViewOnly ? "1 1 calc(50% - 8px)" : "none",
               background: isNotificationEnabled
                 ? "linear-gradient(135deg, #f59e0b, #f97316)"
                 : "linear-gradient(135deg, #6b7280, #4b5563)",

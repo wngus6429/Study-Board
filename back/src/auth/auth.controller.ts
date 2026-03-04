@@ -53,7 +53,15 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { Story } from 'src/entities/Story.entity';
 import { TOKEN_EXPIRATION_TIME } from '../constants/tokenTime';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 
+@ApiTags('Auth')
 @Controller('api/auth')
 export class AuthController {
   constructor(
@@ -81,6 +89,9 @@ export class AuthController {
    * Response: { "isAvailable": true, "message": "사용 가능한 닉네임입니다." }
    */
   @Get('check-nickname/:nickname')
+  @ApiOperation({ summary: '닉네임 중복 확인' })
+  @ApiParam({ name: 'nickname', description: '중복 확인할 닉네임' })
+  @ApiResponse({ status: 200, description: '사용 가능 여부 반환' })
   async checkNickname(
     @Param('nickname') nickname: string,
   ): Promise<{ isAvailable: boolean; message: string }> {
@@ -109,6 +120,10 @@ export class AuthController {
    * }
    */
   @Post('signup')
+  @ApiOperation({ summary: '회원가입' })
+  @ApiBody({ type: SignupUserDto })
+  @ApiResponse({ status: 201, description: '회원가입 성공' })
+  @ApiResponse({ status: 400, description: '잘못된 요청' })
   async signup(
     @Body(ValidationPipe) userData: SignupUserDto,
     @Res() res: Response,
@@ -142,6 +157,10 @@ export class AuthController {
    * }
    */
   @Post('signin')
+  @ApiOperation({ summary: '로그인' })
+  @ApiBody({ type: SigninUserDto })
+  @ApiResponse({ status: 201, description: '로그인 성공' })
+  @ApiResponse({ status: 401, description: '인증 실패' })
   async signin(
     @Body(ValidationPipe) userData: SigninUserDto,
     @Res() res: Response,
@@ -229,6 +248,8 @@ export class AuthController {
    * @returns 200 상태코드 (성공)
    */
   @Post('logout')
+  @ApiOperation({ summary: '로그아웃' })
+  @ApiResponse({ status: 200, description: '로그아웃 성공' })
   async logout(@Req() req: Request, @Res() res: Response) {
     console.log('🚪 로그아웃 요청');
 
@@ -274,6 +295,9 @@ export class AuthController {
    */
   @Get('/:id')
   @UseGuards(AuthGuard())
+  @ApiOperation({ summary: '프로필 조회' })
+  @ApiParam({ name: 'id', description: '사용자 ID' })
+  @ApiResponse({ status: 200, description: '프로필 정보 반환' })
   async userGet(
     @Param('id') id: string,
   ): Promise<{ image: UserImage; nickname: string }> {

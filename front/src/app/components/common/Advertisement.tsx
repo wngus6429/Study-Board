@@ -5,7 +5,7 @@ export default function Advertisement() {
   return (
     <div style={{ width: "100%" }}>
       {/* <Image
-        src="/assets/화면.png"
+        src="/assets/right3.png"
         alt="Right Icon"
         width={0}
         height={0}

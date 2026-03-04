@@ -427,20 +427,38 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
               <LocalOfferIcon fontSize="small" />
               종류: 공지사항
             </Typography>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Box display="flex" alignItems="center" gap={2}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 1,
+                mb: 3,
+              }}
+            >
+              <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 2 }}>
                 <Avatar
                   src={`${process.env.NEXT_PUBLIC_BASE_URL}${notice.User.avatar}`}
-                  sx={{ width: 50, height: 50, boxShadow: 2 }}
+                  sx={{ width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 }, boxShadow: 2 }}
                 />
                 <Box>
-                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", cursor: "pointer" }}>
-                    <Link href={`/profile/${encodeURIComponent(notice.User.nickname)}`} passHref>
-                      작성자: {notice.User.nickname}
-                    </Link>
-                  </Typography>
-                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
-                    <Button onClick={() => router.back()} size="small" variant="contained" color="primary">
+                  <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                      }}
+                    >
+                      <Link href={`/profile/${encodeURIComponent(notice.User.nickname)}`} passHref>
+                        {notice.User.nickname}
+                      </Link>
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: "flex", gap: 1, mt: 0.5 }}>
+                    <Button onClick={() => router.back()} size="small" variant="contained" color="primary" sx={{ fontSize: { xs: "0.7rem", sm: "0.8125rem" }, minWidth: "auto", px: 1, py: 0.25 }}>
                       뒤로가기
                     </Button>
                     <Button
@@ -450,6 +468,10 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                       sx={{
                         backgroundColor: "#ff9800",
                         "&:hover": { backgroundColor: "#f57c00" },
+                        fontSize: { xs: "0.7rem", sm: "0.8125rem" },
+                        minWidth: "auto",
+                        px: 1,
+                        py: 0.25,
                       }}
                     >
                       메인으로
@@ -458,10 +480,10 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
                 </Box>
               </Box>
               <Box textAlign="right">
-                <Typography variant="subtitle2" color="text.secondary">
-                  작성일: {dayjs(notice.created_at).format("YYYY/MM/DD HH:mm:ss")}
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", fontSize: { xs: "0.65rem", sm: "0.75rem" } }}>
+                  {dayjs(notice.created_at).format("YYYY/MM/DD")}
                 </Typography>
-                <Typography variant="subtitle2" color="text.secondary">
+                <Typography variant="caption" color="text.secondary" sx={{ display: "block", fontSize: { xs: "0.65rem", sm: "0.75rem" } }}>
                   조회수: {notice.read_count}
                 </Typography>
               </Box>

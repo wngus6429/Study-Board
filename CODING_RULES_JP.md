@@ -1,41 +1,41 @@
-# 📋 Study Board 코딩 룰 가이드 (최신화)
+# 📋 Study Board コーディングルール ガイド（最新）
 
-## 🎯 개요
+## 🎯 概要
 
-이 문서는 Study Board 프로젝트에서 일관된 코드 품질과 스타일을 유지하기 위한 **코딩 스타일 가이드**와 **프로젝트 구조 규칙**을 정의합니다.
+本ドキュメントは、Study Board プロジェクトにおいて一貫したコード品質とスタイルを維持するための「コーディングスタイルガイド」と「プロジェクト構造ルール」を定義します。
 
-**프로젝트 규모**: 3-4년차 시니어급 프로젝트  
-**기술 스택**: Next.js 14 + NestJS 10.0.0 + TypeScript 5.1.3  
-**데이터베이스**: MySQL (20개 엔티티)  
-**실시간 통신**: Socket.IO 4.8.1  
-**상태 관리**: Zustand + TanStack React Query  
-**인증**: NextAuth.js (JWT + Session)
+**プロジェクト規模**: 経験 3〜4 年相当のシニア級プロジェクト  
+**技術スタック**: Next.js 14 + NestJS 10.0.0 + TypeScript 5.1.3  
+**データベース**: MySQL（20 エンティティ）  
+**リアルタイム通信**: Socket.IO 4.8.1  
+**状態管理**: Zustand + TanStack React Query  
+**認証**: NextAuth.js（JWT + Session）
 
 ---
 
-## 🏗️ 프로젝트 구조 규칙
+## 🏗️ プロジェクト構造ルール
 
-### 📁 실제 디렉토리 구조
+### 📁 実ディレクトリ構成
 
 ```
 Study-Board/
-├── front/                          # 프론트엔드 (Next.js 14)
+├── front/                          # フロントエンド（Next.js 14）
 │   ├── src/
 │   │   ├── app/
-│   │   │   ├── (beforeLogin)/       # 로그인 전 페이지
+│   │   │   ├── (beforeLogin)/       # ログイン前ページ
 │   │   │   │   ├── login/
 │   │   │   │   └── signup/
-│   │   │   ├── (afterLogin)/        # 로그인 후 페이지
-│   │   │   │   ├── blinds/          # 블라인드 관리
-│   │   │   │   ├── messages/        # 메시지 관리
-│   │   │   │   ├── notifications/   # 알림 관리
-│   │   │   │   ├── reports/         # 관리자 리포트
-│   │   │   │   ├── scraps/          # 스크랩 관리
-│   │   │   │   ├── setting/         # 설정 페이지
-│   │   │   │   └── write/           # 글쓰기 페이지
-│   │   │   ├── (noLogin)/           # 로그인 상관없는 페이지
-│   │   │   │   ├── channels/        # 채널 페이지
-│   │   │   │   │   ├── [slug]/      # 동적 채널
+│   │   │   ├── (afterLogin)/        # ログイン後ページ
+│   │   │   │   ├── blinds/          # ブラインド管理
+│   │   │   │   ├── messages/        # メッセージ管理
+│   │   │   │   ├── notifications/   # 通知管理
+│   │   │   │   ├── reports/         # 管理者レポート
+│   │   │   │   ├── scraps/          # スクラップ管理
+│   │   │   │   ├── setting/         # 設定ページ
+│   │   │   │   └── write/           # 投稿ページ
+│   │   │   ├── (noLogin)/           # ログイン不要ページ
+│   │   │   │   ├── channels/        # チャンネルページ
+│   │   │   │   │   ├── [slug]/      # 動的チャンネル
 │   │   │   │   │   │   ├── ChannelsDetailClient.tsx
 │   │   │   │   │   │   └── detail/
 │   │   │   │   │   ├── ChannelsClient.tsx
@@ -43,15 +43,15 @@ Study-Board/
 │   │   │   │   ├── channel-notifications/
 │   │   │   │   ├── notice/
 │   │   │   │   └── profile/
-│   │   │   ├── components/          # 공통 컴포넌트
-│   │   │   │   ├── Provider/        # 프로바이더 컴포넌트
+│   │   │   ├── components/          # 共通コンポーネント
+│   │   │   │   ├── Provider/        # プロバイダーコンポーネント
 │   │   │   │   │   ├── AuthSessionCom.tsx
 │   │   │   │   │   ├── BrowserNotification.tsx
 │   │   │   │   │   ├── RQProvider.tsx
 │   │   │   │   │   ├── SitePasswordGate.tsx
 │   │   │   │   │   ├── SubscriptionProvider.tsx
 │   │   │   │   │   └── ThemeProvider.tsx
-│   │   │   │   ├── common/          # 범용 컴포넌트
+│   │   │   │   ├── common/          # 汎用コンポーネント
 │   │   │   │   │   ├── ChannelDialog/
 │   │   │   │   │   │   ├── CreateChannelDialog.tsx
 │   │   │   │   │   │   └── EditChannelImageDialog.tsx
@@ -64,15 +64,15 @@ Study-Board/
 │   │   │   │   │   ├── RichTextEditor.tsx
 │   │   │   │   │   ├── SearchBar.tsx
 │   │   │   │   │   └── SendMessageModal.tsx
-│   │   │   │   ├── table/           # 테이블 컴포넌트
+│   │   │   │   ├── table/           # テーブルコンポーネント
 │   │   │   │   │   ├── CustomizedCardView.tsx
 │   │   │   │   │   ├── CustomizedSuggestionTable.tsx
 │   │   │   │   │   ├── CustomizedTables.tsx
 │   │   │   │   │   ├── CustomizedUserCommentsTables.tsx
 │   │   │   │   │   └── CustomizedUserStoryTables.tsx
-│   │   │   │   ├── chat/            # 채팅 컴포넌트
+│   │   │   │   ├── chat/            # チャットコンポーネント
 │   │   │   │   │   └── ChannelChat.tsx
-│   │   │   │   ├── api/             # API 관련 훅
+│   │   │   │   ├── api/             # API 関連フック
 │   │   │   │   │   ├── useCardStories.ts
 │   │   │   │   │   └── useStories.ts
 │   │   │   │   ├── BlindedContent.tsx
@@ -85,7 +85,7 @@ Study-Board/
 │   │   │   │   ├── NotificationDropdown.tsx
 │   │   │   │   ├── TopBar.tsx
 │   │   │   │   └── VideoCard.tsx
-│   │   │   ├── store/               # Zustand 스토어
+│   │   │   ├── store/               # Zustand ストア
 │   │   │   │   ├── blindStore.ts
 │   │   │   │   ├── channelNotificationStore.ts
 │   │   │   │   ├── channelPageStore.ts
@@ -98,7 +98,7 @@ Study-Board/
 │   │   │   │   ├── themeStore.ts
 │   │   │   │   ├── userImageStore.ts
 │   │   │   │   └── userInfoStore.ts
-│   │   │   ├── api/                 # API 함수
+│   │   │   ├── api/                 # API 関数
 │   │   │   │   ├── adminApi.ts
 │   │   │   │   ├── axios.ts
 │   │   │   │   ├── blind.ts
@@ -107,7 +107,7 @@ Study-Board/
 │   │   │   │   ├── channelsApi.ts
 │   │   │   │   ├── messagesApi.ts
 │   │   │   │   └── notification.ts
-│   │   │   ├── types/               # TypeScript 타입
+│   │   │   ├── types/               # TypeScript 型
 │   │   │   │   ├── blind.ts
 │   │   │   │   ├── imageTypes.ts
 │   │   │   │   ├── message.ts
@@ -116,43 +116,43 @@ Study-Board/
 │   │   │   │   ├── storyDetailType.ts
 │   │   │   │   ├── tableType.ts
 │   │   │   │   └── userType.ts
-│   │   │   ├── utils/               # 유틸리티 함수
+│   │   │   ├── utils/               # ユーティリティ関数
 │   │   │   │   └── websocket.ts
-│   │   │   ├── const/               # 상수 정의
+│   │   │   ├── const/               # 定数定義
 │   │   │   │   ├── VIEW_COUNT.ts
 │   │   │   │   └── WRITE_CONST.tsx
-│   │   │   ├── hooks/               # 커스텀 훅
+│   │   │   ├── hooks/               # カスタムフック
 │   │   │   │   ├── useAdmin.ts
 │   │   │   │   └── useBlind.ts
-│   │   │   └── theme/               # 테마 설정
+│   │   │   └── theme/               # テーマ設定
 │   │   │       └── theme.ts
-│   │   └── pages/                   # NextAuth 페이지
+│   │   └── pages/                   # NextAuth ページ
 │   │       └── api/auth/
 │   │           └── [...nextauth].ts
-└── back/                           # 백엔드 (NestJS 10.0.0)
+└── back/                           # バックエンド（NestJS 10.0.0）
     ├── src/
-    │   ├── auth/                   # 인증 모듈
-    │   │   ├── auth.controller.ts  # 716줄
+    │   ├── auth/                   # 認証モジュール
+    │   │   ├── auth.controller.ts  # 716行
     │   │   ├── auth.service.ts
     │   │   ├── admin.guard.ts
     │   │   ├── jwt.strategy.ts
     │   │   ├── logged-in-guard.ts
     │   │   └── dto/
-    │   ├── users/                  # 사용자 모듈
-    │   ├── story/                  # 게시글 모듈 (2190줄)
-    │   ├── blind/                  # 블라인드 모듈
-    │   ├── channel-chat/           # 채널 채팅 모듈
+    │   ├── users/                  # ユーザーモジュール
+    │   ├── story/                  # 投稿モジュール（2190行）
+    │   ├── blind/                  # ブラインドモジュール
+    │   ├── channel-chat/           # チャンネルチャットモジュール
     │   │   ├── channel-chat.controller.ts
     │   │   ├── channel-chat.gateway.ts
     │   │   └── channel-chat.service.ts
-    │   ├── channel-notification/   # 채널 알림 모듈
-    │   ├── channels/               # 채널 모듈
-    │   ├── comment/                # 댓글 모듈
-    │   ├── messages/               # 메시지 모듈
-    │   ├── notification/           # 알림 모듈
-    │   ├── scrap/                  # 스크랩 모듈
-    │   ├── suggestion/             # 건의 모듈
-    │   ├── entities/               # 데이터베이스 엔티티 (20개)
+    │   ├── channel-notification/   # チャンネル通知モジュール
+    │   ├── channels/               # チャンネルモジュール
+    │   ├── comment/                # コメントモジュール
+    │   ├── messages/               # メッセージモジュール
+    │   ├── notification/           # 通知モジュール
+    │   ├── scrap/                  # スクラップモジュール
+    │   ├── suggestion/             # 提案モジュール
+    │   ├── entities/               # データベースエンティティ（20個）
     │   │   ├── Blind.entity.ts
     │   │   ├── ChannelChatMessage.entity.ts
     │   │   ├── ChannelImage.entity.ts
@@ -173,7 +173,7 @@ Study-Board/
     │   │   ├── SuggestionImage.entity.ts
     │   │   ├── user.entity.ts
     │   │   └── UserImage.entity.ts
-    │   ├── common/                 # 공통 유틸리티
+    │   ├── common/                 # 共通ユーティリティ
     │   │   ├── decorators/
     │   │   │   ├── admin.decorator.ts
     │   │   │   ├── get-user.decorator.ts
@@ -186,7 +186,7 @@ Study-Board/
     │   │   └── tokenTime.ts
     │   ├── httpException.FIlter.ts
     │   └── main.ts
-    └── upload/                     # 5개 업로드 디렉토리
+    └── upload/                     # 5つのアップロードディレクトリ
         ├── imageUpload/
         ├── userUpload/
         ├── channelUpload/
@@ -194,56 +194,56 @@ Study-Board/
         └── videoUpload/
 ```
 
-### 🏷️ 파일 명명 규칙
+### 🏷️ ファイル命名規則
 
-#### 📄 프론트엔드 파일명
+#### 📄 フロントエンドのファイル名
 
-| 파일 타입             | 명명 규칙                   | 실제 예시                                        |
-| --------------------- | --------------------------- | ------------------------------------------------ |
-| **React 컴포넌트**    | PascalCase + `.tsx`         | `ChannelChat.tsx`, `BlindWrapper.tsx`            |
-| **Client 컴포넌트**   | PascalCase + `Client.tsx`   | `ChannelsClient.tsx`, `ChannelsDetailClient.tsx` |
-| **페이지 컴포넌트**   | `page.tsx` (Next.js 규칙)   | `page.tsx`, `layout.tsx`                         |
-| **Zustand 스토어**    | camelCase + `Store.ts`      | `blindStore.ts`, `channelNotificationStore.ts`   |
-| **API 함수**          | camelCase + `Api.ts`        | `channelChatApi.ts`, `adminApi.ts`               |
-| **커스텀 훅**         | camelCase + `use` 접두사    | `useAdmin.ts`, `useBlind.ts`                     |
-| **유틸리티 함수**     | camelCase + `Utils.ts`      | `websocket.ts`, `dateUtils.ts`                   |
-| **타입 정의**         | camelCase + `Type.ts`       | `storyDetailType.ts`, `imageTypes.ts`            |
-| **상수 파일**         | UPPER_SNAKE_CASE            | `VIEW_COUNT.ts`, `WRITE_CONST.tsx`               |
-| **Provider 컴포넌트** | PascalCase + `Provider.tsx` | `ThemeProvider.tsx`, `SubscriptionProvider.tsx`  |
-| **Dialog 컴포넌트**   | PascalCase + `Dialog.tsx`   | `CreateChannelDialog.tsx`, `ConfirmDialog.tsx`   |
-| **CSS 모듈**          | kebab-case + `.module.css`  | `Pagination.module.css`, `TopBar.module.css`     |
+| ファイルタイプ              | 命名規則                    | 実例                                             |
+| --------------------------- | --------------------------- | ------------------------------------------------ |
+| **React コンポーネント**    | PascalCase + `.tsx`         | `ChannelChat.tsx`, `BlindWrapper.tsx`            |
+| **Client コンポーネント**   | PascalCase + `Client.tsx`   | `ChannelsClient.tsx`, `ChannelsDetailClient.tsx` |
+| **ページコンポーネント**    | `page.tsx`（Next.js 規則）  | `page.tsx`, `layout.tsx`                         |
+| **Zustand ストア**          | camelCase + `Store.ts`      | `blindStore.ts`, `channelNotificationStore.ts`   |
+| **API 関数**                | camelCase + `Api.ts`        | `channelChatApi.ts`, `adminApi.ts`               |
+| **カスタムフック**          | camelCase + `use` 接頭辞    | `useAdmin.ts`, `useBlind.ts`                     |
+| **ユーティリティ関数**      | camelCase + `Utils.ts`      | `websocket.ts`, `dateUtils.ts`                   |
+| **型定義**                  | camelCase + `Type.ts`       | `storyDetailType.ts`, `imageTypes.ts`            |
+| **定数ファイル**            | UPPER_SNAKE_CASE            | `VIEW_COUNT.ts`, `WRITE_CONST.tsx`               |
+| **Provider コンポーネント** | PascalCase + `Provider.tsx` | `ThemeProvider.tsx`, `SubscriptionProvider.tsx`  |
+| **Dialog コンポーネント**   | PascalCase + `Dialog.tsx`   | `CreateChannelDialog.tsx`, `ConfirmDialog.tsx`   |
+| **CSS モジュール**          | kebab-case + `.module.css`  | `Pagination.module.css`, `TopBar.module.css`     |
 
-#### 📄 백엔드 파일명
+#### 📄 バックエンドのファイル名
 
-| 파일 타입      | 명명 규칙                     | 실제 예시                                          |
-| -------------- | ----------------------------- | -------------------------------------------------- |
-| **컨트롤러**   | kebab-case + `.controller.ts` | `channel-chat.controller.ts`, `auth.controller.ts` |
-| **서비스**     | kebab-case + `.service.ts`    | `channel-chat.service.ts`, `auth.service.ts`       |
-| **게이트웨이** | kebab-case + `.gateway.ts`    | `channel-chat.gateway.ts`                          |
-| **엔티티**     | PascalCase + `.entity.ts`     | `ChannelChatMessage.entity.ts`, `Blind.entity.ts`  |
-| **DTO**        | kebab-case + `.dto.ts`        | `create-blind.dto.ts`, `signin.user.dto.ts`        |
-| **모듈**       | kebab-case + `.module.ts`     | `channel-chat.module.ts`, `auth.module.ts`         |
-| **가드**       | kebab-case + `.guard.ts`      | `admin.guard.ts`, `logged-in-guard.ts`             |
-| **데코레이터** | kebab-case + `.decorator.ts`  | `admin.decorator.ts`, `get-user.decorator.ts`      |
-| **인터셉터**   | camelCase + `.interceptor.ts` | `undefinedToNull.interceptor.ts`                   |
+| ファイルタイプ     | 命名規則                      | 実例                                               |
+| ------------------ | ----------------------------- | -------------------------------------------------- |
+| **コントローラ**   | kebab-case + `.controller.ts` | `channel-chat.controller.ts`, `auth.controller.ts` |
+| **サービス**       | kebab-case + `.service.ts`    | `channel-chat.service.ts`, `auth.service.ts`       |
+| **ゲートウェイ**   | kebab-case + `.gateway.ts`    | `channel-chat.gateway.ts`                          |
+| **エンティティ**   | PascalCase + `.entity.ts`     | `ChannelChatMessage.entity.ts`, `Blind.entity.ts`  |
+| **DTO**            | kebab-case + `.dto.ts`        | `create-blind.dto.ts`, `signin.user.dto.ts`        |
+| **モジュール**     | kebab-case + `.module.ts`     | `channel-chat.module.ts`, `auth.module.ts`         |
+| **ガード**         | kebab-case + `.guard.ts`      | `admin.guard.ts`, `logged-in-guard.ts`             |
+| **デコレータ**     | kebab-case + `.decorator.ts`  | `admin.decorator.ts`, `get-user.decorator.ts`      |
+| **インターセプタ** | camelCase + `.interceptor.ts` | `undefinedToNull.interceptor.ts`                   |
 
-### 📂 디렉토리 명명 규칙
+### 📂 ディレクトリ命名規則
 
-- **하이픈 케이스**: kebab-case 사용 (예: `channel-chat/`, `channel-notification/`)
-- **Next.js 라우트**: 소문자 + 하이픈 (예: `(beforeLogin)/`, `(afterLogin)/`, `[slug]/`)
-- **NestJS 모듈**: 소문자 + 하이픈 (예: `channel-chat/`, `channel-notification/`)
-- **Provider 그룹**: 대문자 시작 (예: `Provider/`, `BackUp/`)
+- **ハイフンケース**: kebab-case を使用（例: `channel-chat/`, `channel-notification/`）
+- **Next.js ルート**: 小文字 + ハイフン（例: `(beforeLogin)/`, `(afterLogin)/`, `[slug]/`）
+- **NestJS モジュール**: 小文字 + ハイフン（例: `channel-chat/`, `channel-notification/`）
+- **Provider グループ**: 先頭は大文字（例: `Provider/`, `BackUp/`）
 
 ---
 
-## 🎨 코딩 스타일 가이드
+## 🎨 コーディングスタイルガイド
 
-### 🏷️ 명명 규칙 (Naming Conventions)
+### 🏷️ 命名規則（Naming Conventions）
 
-#### 🔧 변수 및 함수
+#### 🔧 変数・関数
 
 ```typescript
-// ✅ 올바른 예시
+// ✅ 正しい例
 const channelId = "channel_123";
 const isBlinded = true;
 const isAdminUser = false;
@@ -254,16 +254,16 @@ function handleBlindUser() {}
 function createChannelChat() {}
 function sendNotification() {}
 
-// ❌ 잘못된 예시
-const channel_id = "channel_123"; // snake_case 사용 금지
-const IsBlinded = true; // PascalCase 사용 금지
-const maxUploadSize = 5 * 1024 * 1024; // 상수는 UPPER_SNAKE_CASE
+// ❌ 悪い例
+const channel_id = "channel_123"; // snake_case は使用しない
+const IsBlinded = true; // PascalCase は使用しない
+const maxUploadSize = 5 * 1024 * 1024; // 定数は UPPER_SNAKE_CASE
 ```
 
-#### ⚛️ React 컴포넌트
+#### ⚛️ React コンポーネント
 
 ```typescript
-// ✅ 올바른 예시
+// ✅ 正しい例
 interface ChannelChatProps {
   channelId: string;
   userId: string;
@@ -283,33 +283,33 @@ export default function ChannelChat({ channelId, userId, onMessageSend, isBlinde
   return <div>{/* JSX */}</div>;
 }
 
-// ❌ 잘못된 예시
-function channelChat() {} // camelCase 사용 금지
-function Channel_Chat() {} // snake_case 사용 금지
+// ❌ 悪い例
+function channelChat() {} // camelCase を使用しない
+function Channel_Chat() {} // snake_case を使用しない
 ```
 
-#### 🎯 Boolean 변수 명명
+#### 🎯 Boolean 変数命名
 
 ```typescript
-// ✅ 올바른 예시
+// ✅ 正しい例
 const isBlinded = true;
 const hasAdminPermission = false;
 const canEditChannel = true;
 const shouldSendNotification = false;
 const isRealtimeConnected = true;
 
-// ❌ 잘못된 예시
-const blinded = true; // 의미 불분명
-const adminPermission = false; // Boolean 타입 불분명
-const realtimeConnected = true; // Boolean 타입 불분명
+// ❌ 悪い例
+const blinded = true; // 意味が不明瞭
+const adminPermission = false; // Boolean か不明瞭
+const realtimeConnected = true; // Boolean か不明瞭
 ```
 
-### 📦 Import/Export 규칙
+### 📦 Import/Export ルール
 
-#### 📥 Import 순서
+#### 📥 Import 順序
 
 ```typescript
-// ✅ 올바른 예시
+// ✅ 正しい例
 import React from "react";
 import { useState, useEffect } from "react";
 import { Button, TextField, Dialog } from "@mui/material";
@@ -328,70 +328,70 @@ import type { ApiResponse } from "@/types/apiType";
 import styles from "./ChannelDetail.module.css";
 ```
 
-#### 📤 Export 규칙
+#### 📤 Export ルール
 
 ```typescript
-// ✅ 올바른 예시 - Named Export 우선
+// ✅ 正しい例 - Named Export を優先
 export const formatChannelName = (name: string) => { };
 export const validateChannelAccess = (userId: string) => { };
 export const sendChannelNotification = (channelId: string) => { };
 
-// ✅ Default Export는 컴포넌트에만 사용
+// ✅ Default Export はコンポーネントにのみ使用
 export default function ChannelDetail() { }
 
-// ❌ 잘못된 예시
-export default const formatChannelName = (name: string) => { }; // 함수는 named export
+// ❌ 悪い例
+export default const formatChannelName = (name: string) => { }; // 関数は named export
 ```
 
-### 🎨 코드 포맷팅 규칙
+### 🎨 コードフォーマット規則
 
-#### 🔤 문자열 리터럴
+#### 🔤 文字列リテラル
 
 ```typescript
-// ✅ 올바른 예시 - 더블 쿼트 사용
-const message = "채널에 새로운 메시지가 있습니다";
+// ✅ 正しい例 - ダブルクォートを使用
+const message = "チャンネルに新しいメッセージがあります";
 const apiUrl = "/api/channels";
 const socketEvent = "channel:message";
 import styles from "./ChannelChat.module.css";
 
-// ❌ 잘못된 예시
-const message = "채널에 새로운 메시지가 있습니다"; // 싱글 쿼트 사용 금지
+// ❌ 悪い例
+const message = "チャンネルに新しいメッセージがあります"; // シングルクォートは使用しない
 ```
 
-#### 🔧 함수 선언
+#### 🔧 関数宣言
 
 ```typescript
-// ✅ 올바른 예시 - 화살표 함수 우선
+// ✅ 正しい例 - アロー関数を優先
 const getChannelMessages = async (channelId: string): Promise<ChatMessage[]> => {
-  // 로직
+  // ロジック
 };
 
 const handleBlindUser = (userId: string) => {
-  // 로직
+  // ロジック
 };
 
 const sendRealtimeMessage = (channelId: string, message: string) => {
-  // 로직
+  // ロジック
 };
 
-// ✅ 컴포넌트는 function 선언 사용
+// ✅ コンポーネントは function 宣言を使用
 export default function ChannelChat() {
-  return <div>채널 채팅</div>;
+  return <div>チャンネルチャット</div>;
 }
 ```
 
-### 🧩 컴포넌트 작성 규칙
+## 🧩 コンポーネント作成ルール
 
-#### 📋 Client 컴포넌트 구조
+### 📋 Client コンポーネント構成
 
 ```typescript
-"use client"; // 클라이언트 컴포넌트 명시
+"use client"; // クライアントコンポーネントの明示
 
 import React from "react";
 import { useState, useEffect } from "react";
 import { useChannelStore } from "@/store/channelStore";
 import { useBlindStore } from "@/store/blindStore";
-// ... 기타 imports
+// ... その他 imports
 
 interface ChannelsClientProps {
   initialChannels: ChannelType[];
@@ -400,21 +400,21 @@ interface ChannelsClientProps {
 }
 
 export default function ChannelsClient({ initialChannels, userId, isAdmin = false }: ChannelsClientProps) {
-  // 1. 상태 관리
+  // 1. 状態管理
   const [loading, setLoading] = useState(false);
   const [channels, setChannels] = useState(initialChannels);
 
-  // 2. 스토어 사용
+  // 2. ストア利用
   const { blindedUsers } = useBlindStore();
   const { setCurrentChannel } = useChannelStore();
 
-  // 3. 커스텀 훅
+  // 3. カスタムフック
   const { data: channelData, refetch } = useQuery({
     queryKey: ["channels", userId],
     queryFn: () => getChannelList(userId),
   });
 
-  // 4. 실시간 연결 (WebSocket)
+  // 4. リアルタイム接続（WebSocket）
   useEffect(() => {
     if (userId) {
       const socket = io("/channels");
@@ -430,27 +430,27 @@ export default function ChannelsClient({ initialChannels, userId, isAdmin = fals
     }
   }, [userId]);
 
-  // 5. 이벤트 핸들러
+  // 5. イベントハンドラ
   const handleChannelSelect = (channelId: string) => {
     setCurrentChannel(channelId);
-    // 블라인드 사용자 체크
+    // ブラインドユーザーのチェック
     if (blindedUsers.includes(channelId)) {
       return;
     }
-    // 채널 이동 로직
+    // チャンネル遷移ロジック
   };
 
-  // 6. 관리자 권한 체크
+  // 6. 管理者権限チェック
   const canManageChannel = isAdmin || userId === channel.ownerId;
 
-  // 7. 조건부 렌더링
-  if (loading) return <div>채널 로딩 중...</div>;
+  // 7. 条件付きレンダリング
+  if (loading) return <div>チャンネル読み込み中...</div>;
 
-  // 8. 메인 렌더링
+  // 8. メインレンダリング
   return (
     <div className={styles.channelsContainer}>
       {channels.map((channel) => (
-        <BlindWrapper key={channel.id} targetUserId={channel.ownerId} fallback={<div>블라인드된 채널</div>}>
+        <BlindWrapper key={channel.id} targetUserId={channel.ownerId} fallback={<div>ブラインドされたチャンネル</div>}>
           <ChannelCard channel={channel} onSelect={handleChannelSelect} canManage={canManageChannel} />
         </BlindWrapper>
       ))}
@@ -459,23 +459,23 @@ export default function ChannelsClient({ initialChannels, userId, isAdmin = fals
 }
 ```
 
-### 🚫 블라인드 시스템 코딩 패턴
+### 🚫 ブラインドシステム コーディングパターン
 
-#### 📋 블라인드 래퍼 컴포넌트
+#### 📋 ブラインド ラッパーコンポーネント
 
 ```typescript
-// ✅ 블라인드 래퍼 사용 패턴
+// ✅ ブラインドラッパーの使用パターン
 import { BlindWrapper } from "@/components/BlindWrapper";
 
-<BlindWrapper targetUserId={story.userId} fallback={<div>블라인드된 게시글입니다</div>}>
+<BlindWrapper targetUserId={story.userId} fallback={<div>ブラインドされた投稿です</div>}>
   <StoryCard story={story} />
 </BlindWrapper>;
 ```
 
-#### 📋 블라인드 상태 관리
+#### 📋 ブラインド状態管理
 
 ```typescript
-// ✅ 블라인드 스토어 사용 패턴
+// ✅ ブラインドストアの使用パターン
 import { useBlindStore } from "@/store/blindStore";
 
 const { blindedUsers, addBlindUser, removeBlindUser } = useBlindStore();
@@ -489,12 +489,12 @@ const handleUnblindUser = (userId: string) => {
 };
 ```
 
-### 🔐 관리자 권한 체크 패턴
+### 🔐 管理者権限チェックパターン
 
-#### 📋 관리자 권한 확인
+#### 📋 管理者権限の確認
 
 ```typescript
-// ✅ 관리자 권한 체크 패턴
+// ✅ 管理者権限チェックパターン
 import { useAdmin } from "@/hooks/useAdmin";
 
 const { isAdmin, hasPermission } = useAdmin();
@@ -502,16 +502,16 @@ const { isAdmin, hasPermission } = useAdmin();
 const canDeletePost = isAdmin || hasPermission("DELETE_POST");
 const canManageUsers = isAdmin || hasPermission("MANAGE_USERS");
 
-// 조건부 렌더링
+// 条件付きレンダリング
 {
-  canDeletePost && <Button onClick={handleDeletePost}>게시글 삭제</Button>;
+  canDeletePost && <Button onClick={handleDeletePost}>投稿を削除</Button>;
 }
 ```
 
-#### 📋 관리자 전용 컴포넌트
+#### 📋 管理者専用コンポーネント
 
 ```typescript
-// ✅ 관리자 전용 컴포넌트 패턴
+// ✅ 管理者専用コンポーネントパターン
 import { AdminOnly } from "@/components/AdminOnly";
 
 <AdminOnly>
@@ -521,12 +521,12 @@ import { AdminOnly } from "@/components/AdminOnly";
 </AdminOnly>;
 ```
 
-### 🌐 실시간 채팅 코딩 패턴
+### 🌐 リアルタイムチャット コーディングパターン
 
-#### 📋 Socket.IO 연결 관리
+#### 📋 Socket.IO 接続管理
 
 ```typescript
-// ✅ Socket.IO 연결 패턴
+// ✅ Socket.IO 接続パターン
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
@@ -560,36 +560,36 @@ const useChannelSocket = (channelId: string, userId?: string) => {
 };
 ```
 
-#### 📋 실시간 메시지 처리
+#### 📋 リアルタイムメッセージ処理
 
 ```typescript
-// ✅ 실시간 메시지 처리 패턴
+// ✅ リアルタイムメッセージ処理パターン
 const handleRealtimeMessage = (message: ChatMessage) => {
-  // 블라인드 사용자 체크
+  // ブラインドユーザーのチェック
   if (blindedUsers.includes(message.userId)) {
     return;
   }
 
-  // 메시지 상태 업데이트
+  // メッセージ状態更新
   setMessages((prev) => [...prev, message]);
 
-  // 알림 전송
+  // 通知送信
   if (message.userId !== currentUserId) {
     sendNotification({
       type: "CHANNEL_MESSAGE",
       channelId: message.channelId,
-      message: `${message.username}님이 메시지를 보냈습니다`,
+      message: `${message.username}さんがメッセージを送信しました`,
     });
   }
 };
 ```
 
-### 🔄 상태 관리 규칙
+### 🔄 状態管理ルール
 
-#### 🏪 Zustand 스토어 (실제 구조)
+#### 🏪 Zustand ストア（実構成）
 
 ```typescript
-// ✅ 올바른 예시 - channelNotificationStore.ts
+// ✅ 正しい例 - channelNotificationStore.ts
 import { create } from "zustand";
 import type { ChannelNotification } from "@/types/notification";
 
@@ -642,16 +642,16 @@ export const useChannelNotificationStore = create<ChannelNotificationState>((set
 }));
 ```
 
-### 📊 API 함수 규칙
+### 📊 API 関数ルール
 
-#### 🌐 API 함수 명명 및 구조 (실제 구조)
+#### 🌐 API 関数の命名と構成（実構成）
 
 ```typescript
-// ✅ 올바른 예시 - channelChatApi.ts
+// ✅ 正しい例 - channelChatApi.ts
 import { apiClient } from "./axios";
 import type { ChatMessage, CreateMessageDto } from "@/types/message";
 
-// 채널 채팅 메시지 조회
+// チャンネルチャットのメッセージ取得
 export const getChannelMessages = async (
   channelId: string,
   page: number = 1,
@@ -661,28 +661,28 @@ export const getChannelMessages = async (
   return response.data.data;
 };
 
-// 채널 채팅 메시지 전송
+// チャンネルチャットのメッセージ送信
 export const sendChannelMessage = async (channelId: string, messageData: CreateMessageDto): Promise<ChatMessage> => {
   const response = await apiClient.post(`/channel-chat/${channelId}/messages`, messageData);
   return response.data.data;
 };
 
-// 채널 채팅 메시지 삭제 (관리자 전용)
+// チャンネルチャットのメッセージ削除（管理者専用）
 export const deleteChannelMessage = async (messageId: string): Promise<void> => {
   await apiClient.delete(`/channel-chat/messages/${messageId}`);
 };
 
-// 채널 채팅 사용자 목록 조회
+// チャンネルチャットのユーザー一覧取得
 export const getChannelUsers = async (channelId: string): Promise<ChannelUser[]> => {
   const response = await apiClient.get(`/channel-chat/${channelId}/users`);
   return response.data.data;
 };
 ```
 
-### 🚨 에러 처리 규칙
+### 🚨 エラーハンドリング規則
 
 ```typescript
-// ✅ 올바른 예시 - 고급 에러 처리
+// ✅ 正しい例 - 高度なエラーハンドリング
 const handleChannelAction = async (action: string, channelId: string) => {
   try {
     setLoading(true);
@@ -690,31 +690,31 @@ const handleChannelAction = async (action: string, channelId: string) => {
     switch (action) {
       case "JOIN":
         await joinChannel(channelId);
-        showSuccess("채널에 참가했습니다");
+        showSuccess("チャンネルに参加しました");
         break;
       case "LEAVE":
         await leaveChannel(channelId);
-        showSuccess("채널에서 나갔습니다");
+        showSuccess("チャンネルから退出しました");
         break;
       case "DELETE":
         if (!isAdmin) {
-          throw new Error("관리자 권한이 필요합니다");
+          throw new Error("管理者権限が必要です");
         }
         await deleteChannel(channelId);
-        showSuccess("채널이 삭제되었습니다");
+        showSuccess("チャンネルを削除しました");
         break;
       default:
-        throw new Error("알 수 없는 액션입니다");
+        throw new Error("不明なアクションです");
     }
   } catch (error) {
     console.error(`Channel ${action} failed:`, error);
 
     if (error.response?.status === 403) {
-      showError("권한이 없습니다");
+      showError("権限がありません");
     } else if (error.response?.status === 404) {
-      showError("채널을 찾을 수 없습니다");
+      showError("チャンネルが見つかりません");
     } else {
-      showError(`채널 ${action} 중 오류가 발생했습니다`);
+      showError(`チャンネル ${action} 中にエラーが発生しました`);
     }
   } finally {
     setLoading(false);
@@ -724,25 +724,25 @@ const handleChannelAction = async (action: string, channelId: string) => {
 
 ---
 
-## 📚 문서화 규칙
+## 📚 ドキュメント化ルール
 
-### 📝 주석 작성
+### 📝 コメント記述
 
 ```typescript
 /**
- * 채널 채팅 메시지를 실시간으로 전송하는 함수
- * @param channelId - 채널 ID
- * @param message - 전송할 메시지
- * @param userId - 사용자 ID
- * @returns Promise<ChatMessage> - 전송된 메시지 객체
+ * チャンネルチャットのメッセージをリアルタイム送信する関数
+ * @param channelId - チャンネル ID
+ * @param message - 送信するメッセージ
+ * @param userId - ユーザー ID
+ * @returns Promise<ChatMessage> - 送信されたメッセージオブジェクト
  */
 export const sendRealtimeMessage = async (channelId: string, message: string, userId: string): Promise<ChatMessage> => {
-  // 블라인드 사용자 체크
+  // ブラインドユーザーのチェック
   if (blindedUsers.includes(userId)) {
-    throw new Error("블라인드된 사용자는 메시지를 전송할 수 없습니다");
+    throw new Error("ブラインドされたユーザーはメッセージを送信できません");
   }
 
-  // TODO: 메시지 필터링 기능 추가 예정
+  // TODO: メッセージフィルタリング機能を今後追加予定
   const messageData = {
     channelId,
     content: message,
@@ -757,59 +757,59 @@ export const sendRealtimeMessage = async (channelId: string, message: string, us
 
 ---
 
-## 🔍 코드 리뷰 체크리스트
+## 🔍 コードレビュー チェックリスト
 
-### ✅ 필수 확인 사항
+### ✅ 必須確認事項
 
-- [ ] 파일명이 명명 규칙을 따르는가?
-- [ ] 변수/함수명이 camelCase를 사용하는가?
-- [ ] 컴포넌트명이 PascalCase를 사용하는가?
-- [ ] Client 컴포넌트에 "use client" 지시어가 있는가?
-- [ ] Import 순서가 올바른가?
-- [ ] 더블 쿼트를 사용하는가?
-- [ ] 타입 정의가 명확한가?
-- [ ] 에러 처리가 구현되어 있는가?
-- [ ] 블라인드 시스템이 적용되어 있는가?
-- [ ] 관리자 권한 체크가 구현되어 있는가?
+- [ ] ファイル名は命名規則に従っているか？
+- [ ] 変数/関数名は camelCase を使用しているか？
+- [ ] コンポーネント名は PascalCase を使用しているか？
+- [ ] Client コンポーネントに "use client" ディレクティブがあるか？
+- [ ] Import の順序は正しいか？
+- [ ] ダブルクォートを使用しているか？
+- [ ] 型定義は明確か？
+- [ ] エラーハンドリングが実装されているか？
+- [ ] ブラインドシステムが適用されているか？
+- [ ] 管理者権限チェックが実装されているか？
 
-### 🎯 권장 사항
+### 🎯 推奨事項
 
-- [ ] 컴포넌트 구조가 일관적인가?
-- [ ] Props 타입이 명확히 정의되어 있는가?
-- [ ] 실시간 기능이 적절히 구현되어 있는가?
-- [ ] 상태 관리가 효율적인가?
-- [ ] 주석이 적절히 작성되어 있는가?
-- [ ] 코드 재사용성을 고려했는가?
-- [ ] 성능 최적화가 적용되어 있는가?
+- [ ] コンポーネント構成は一貫しているか？
+- [ ] Props の型は明確に定義されているか？
+- [ ] リアルタイム機能は適切に実装されているか？
+- [ ] 状態管理は効率的か？
+- [ ] コメントは適切に記述されているか？
+- [ ] コードの再利用性を考慮しているか？
+- [ ] パフォーマンス最適化が適用されているか？
 
-### 🚫 블라인드 시스템 체크리스트
+### 🚫 ブラインドシステム チェックリスト
 
-- [ ] 사용자 생성 컨텐츠에 BlindWrapper가 적용되어 있는가?
-- [ ] 블라인드 상태가 실시간으로 반영되는가?
-- [ ] 블라인드 해제 기능이 구현되어 있는가?
+- [ ] ユーザー生成コンテンツに BlindWrapper が適用されているか？
+- [ ] ブラインド状態がリアルタイムに反映されるか？
+- [ ] ブラインド解除機能が実装されているか？
 
-### 🔐 관리자 기능 체크리스트
+### 🔐 管理者機能 チェックリスト
 
-- [ ] 관리자 권한 체크가 서버와 클라이언트 모두에서 이루어지는가?
-- [ ] 관리자 전용 기능이 적절히 보호되어 있는가?
-- [ ] 관리자 액션에 대한 로깅이 구현되어 있는가?
+- [ ] 管理者権限チェックがサーバーとクライアント双方で行われているか？
+- [ ] 管理者専用機能は適切に保護されているか？
+- [ ] 管理者アクションのロギングが実装されているか？
 
-### 🌐 실시간 기능 체크리스트
+### 🌐 リアルタイム機能 チェックリスト
 
-- [ ] Socket.IO 연결 해제가 적절히 구현되어 있는가?
-- [ ] 실시간 이벤트 처리가 효율적인가?
-- [ ] 네트워크 재연결 로직이 구현되어 있는가?
-
----
-
-## 📞 문의 및 개선
-
-이 룰에 대한 문의사항이나 개선 제안이 있으시면 개발팀에 문의해 주세요.
-
-**마지막 업데이트**: 2025년 8월 24일  
-**버전**: 2.1.0  
-**프로젝트 규모**: 3-4년차 시니어급 (일본 기업 기준)
+- [ ] Socket.IO の切断処理が適切に実装されているか？
+- [ ] リアルタイムイベント処理は効率的か？
+- [ ] ネットワーク再接続ロジックが実装されているか？
 
 ---
 
-_이 문서는 프로젝트의 발전에 따라 지속적으로 업데이트됩니다._
+## 📞 お問い合わせ・改善
+
+本ルールに関する質問や改善提案がありましたら、開発チームまでご連絡ください。
+
+**最終更新**: 2025 年 8 月 24 日  
+**バージョン**: 2.1.0  
+**プロジェクト規模**: 経験 3〜4 年相当（日本企業基準）
+
+---
+
+_本ドキュメントはプロジェクトの進化に合わせて継続的に更新されます。_

@@ -82,7 +82,7 @@ const StoryActions: React.FC<StoryActionsProps> = ({
   const canInteract = currentUserId && !isOwnStory;
 
   return (
-    <Box display="flex" gap={1.5}>
+    <Box display="flex" gap={1.5} flexWrap="wrap">
       {/* 신고 버튼 - 로그인한 사용자이고 자신의 글이 아닐 때만 표시 */}
       {canInteract && (
         <Tooltip title="신고하기">

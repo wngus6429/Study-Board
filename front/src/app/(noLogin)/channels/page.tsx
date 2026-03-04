@@ -34,11 +34,11 @@ async function getInitialChannels() {
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels`, {
       // 채널 목록은 자주 변경되지 않으므로 긴 캐시 시간 설정
       next: {
-        revalidate: 3600, // 1시간(3600초)마다 재검증
+        revalidate: 1800, // 30분(1800초)마다 재검증
         // 또는 revalidate: false로 설정하여 빌드 시에만 생성하고
         // 채널 생성/수정/삭제 시에만 on-demand revalidation 사용 가능
         // 장점: 서버 리소스 절약, 빠른 응답속도
-        // 단점: 새 채널이 바로 반영되지 않음 (최대 1시간 지연)
+        // 단점: 새 채널이 바로 반영되지 않음 (최대 30분 지연)
       },
       headers: {
         "Content-Type": "application/json",
@@ -90,10 +90,33 @@ export default async function ChannelsPage() {
           }),
         }}
       />
-
+      {/*
+        SEO용 JSON-LD 구조화 데이터 설명
+        - numberOfItems: 서버에서 가져온 초기 채널 수(initialChannels.length)
+        - itemListElement: 상위 5개 채널만 노출해 문서 크기 최소화(slice(0, 5)) ㅡ 크롤링용, 유저는 다 보임
+        - 각 item: Organization(채널)로 name/description/url 제공
+        - url: `NEXT_PUBLIC_BASE_URL` + 채널 slug로 절대경로 구성
+        - JSON은 문자열로 주입해야 하므로 JSON.stringify + dangerouslySetInnerHTML 사용
+        주의/확장
+        - description이 없을 수 있어 기본값("채널 설명")을 사용
+        - slug나 BASE_URL 누락 시 잘못된 URL이 생성될 수 있으니 환경변수 확인
+        - 노출 개수 조정은 slice 범위 변경으로 가능, 리치결과 테스트로 검증 권장
+        
+        효과/이점(무엇이 좋아지나)
+        - 검색엔진 이해도 향상: 이 페이지가 "채널 목록"임을 명확히 전달해 색인 정확도/안정성 개선
+        - 발견성 향상: 각 채널 상세 URL을 구조화 데이터로 노출하여 크롤링 경로 보조 및 새로운 채널 발견성 증대
+        - SERP 품질 개선: 목록/아이템 메타 정보(position, name, description)가 제공되어 더 정확한 요약/타이틀 선택에 도움
+        - JS 의존도 감소: 서버에서 렌더된 JSON-LD라 JS 실행이 제한된 크롤러도 의미를 해석 가능
+      */}
       <Suspense fallback={<Loading />}>
         <ChannelsClient initialChannels={initialChannels} />
       </Suspense>
     </>
   );
 }
+
+// Suspense: 클라이언트 컴포넌트 또는 비동기 자식이 준비될 때까지 // 대체 UI를 보여주기 위해 사용합니다. // -
+// `fallback`으로 지정한 `<Loading />
+// `은 ChannelsClient가 // 렌더링/하이드레이트되는 동안 사용자에게 표시됩니다. // - 이 페이지는 서버 컴포넌트지만
+// ChannelsClient는 클라이언트 // 컴포넌트일 수 있으므로 Suspense로 로딩 상태를 관리합니다. // - SEO 측면: 서버에서
+// 렌더된 정적 콘텐츠(JSON-LD, head 등)는 // 이미 제공되므로 Suspense의 fallback은 크롤러에 영향을 적게 줍니다.

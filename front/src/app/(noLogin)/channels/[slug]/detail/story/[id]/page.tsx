@@ -39,7 +39,6 @@ import UserMenuPopover from "@/app/components/common/UserMenuPopover";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
 import ReportModal from "@/app/components/common/ReportModal";
 import { useRecentViews } from "@/app/store/recentViewsStore";
-import { useChannelPageStore } from "@/app/store/channelPageStore";
 import FlagIcon from "@mui/icons-material/Flag";
 import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
 import { useAdmin } from "@/app/hooks/useAdmin";
@@ -77,9 +76,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
   // 최근 본 게시물 관리
   const { addRecentView } = useRecentViews();
-
-  // 채널 페이지 스토어 (localStorage로 자동 저장/복원)
-  const { currentChannelSlug, currentPage, stories } = useChannelPageStore();
 
   // 스크랩 관련 상태
   const [isScraped, setIsScraped] = useState<boolean>(false);
@@ -268,7 +264,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
         return await axios.post(
           `${process.env.NEXT_PUBLIC_BASE_URL}/api/scrap/${params?.id}`,
           {},
-          { withCredentials: true }
+          { withCredentials: true },
         );
       } else {
         return await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/api/scrap/${params?.id}`, {
@@ -284,7 +280,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
       queryClient.invalidateQueries({ queryKey: ["scrap", "check", params?.id] });
       showMessage(
         action === "add" ? "스크랩되었습니다." : "스크랩이 취소되었습니다.",
-        action === "add" ? "success" : "info"
+        action === "add" ? "success" : "info",
       );
     },
     onError: (error: any) => {
@@ -303,7 +299,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
       return await axios.put(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/likeOrUnlike/${storyId}`,
         { userId: session?.user.id, vote, minRecommend: MIN_RECOMMEND_COUNT },
-        { withCredentials: true }
+        { withCredentials: true },
       );
     },
     //! onMutate의 동작 방식
@@ -371,7 +367,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
         case "change":
           showMessage(
             `${vote === "like" ? "추천" : "비추천"}으로 변경했습니다.`,
-            vote === "like" ? "success" : "error"
+            vote === "like" ? "success" : "error",
           );
           break;
       }
@@ -432,7 +428,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
         },
         (error) => {
           showMessage(`관리자 삭제 실패: ${error.message}`, "error");
-        }
+        },
       );
     }
   };
@@ -516,7 +512,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
         setSelectedImage(polaroidImages[index]);
       }
     },
-    [polaroidImages]
+    [polaroidImages],
   );
 
   // 각 카드에 안정적인 기울기(회전) 값을 부여하기 위한 유틸
@@ -696,7 +692,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
       const response = await axios.post(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/story/report/${params?.id}`,
         requestData,
-        { withCredentials: true }
+        { withCredentials: true },
       );
 
       if (response.status === 201) {
@@ -737,7 +733,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
         const matched = detail.StoryImage.find(
           (img) =>
             img.image_name.replace(/\.[^.]+$/, "").includes(base) ||
-            base.includes(img.image_name.replace(/\.[^.]+$/, ""))
+            base.includes(img.image_name.replace(/\.[^.]+$/, "")),
         );
         return matched
           ? imgTag.replace(/src="blob:[^"]*"/, `src="${process.env.NEXT_PUBLIC_BASE_URL}${matched.link}"`)
@@ -750,7 +746,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
       content = content
         .replace(
           /<source([^>]*)src="\/videoUpload\/([^"]+)"([^>]*)>/g,
-          `<source$1src="${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/$2"$3>`
+          `<source$1src="${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/$2"$3>`,
         )
         .replace(/src="\/videoUpload\/([^"]+)"/g, `src="${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/$1"`);
     }
@@ -810,7 +806,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
               />
             ))}
           </Box>
-        </Box>
+        </Box>,
       );
       group = [];
     };
@@ -834,7 +830,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 "& li": { margin: "6px 0", paddingLeft: "4px" },
               }}
               dangerouslySetInnerHTML={{ __html: sanitizeRichText(part) }}
-            />
+            />,
           );
         }
         return;
@@ -846,7 +842,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
       if (matched) {
         const indexInOrder = Math.max(
           0,
-          orderedImages.findIndex((im) => im.id === matched.id)
+          orderedImages.findIndex((im) => im.id === matched.id),
         );
         group.push({ img: matched, index: indexInOrder, keyIdx: idx, customWidth, customMargin });
         return;
@@ -881,7 +877,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
               handleImageClick(tempImage, 0);
             }}
           />
-        </Box>
+        </Box>,
       );
     });
 
@@ -901,7 +897,15 @@ export default function page({ params }: { params: { id: string; slug: string } 
   if (isError) return <ErrorView />;
 
   return (
-    <Box display="flex" justifyContent="center" alignItems="center" sx={{ padding: 1, overflow: "hidden" }}>
+    <Box
+      display="flex"
+      justifyContent="center"
+      alignItems="center"
+      sx={{
+        padding: { xs: 0, sm: 1 }, // 모바일에서는 padding 제거
+        overflow: "hidden",
+      }}
+    >
       {openConfirmDialog && (
         <ConfirmDialog
           open={openConfirmDialog}
@@ -914,39 +918,61 @@ export default function page({ params }: { params: { id: string; slug: string } 
         />
       )}
       {detail && (
-        <Card sx={{ width: "100%", boxShadow: 4, padding: 3, borderRadius: 2, bgcolor: "background.paper" }}>
+        <Card
+          sx={{
+            width: "100%",
+            boxShadow: { xs: 0, sm: 4 }, // 모바일에서 그림자 제거
+            padding: { xs: 0.5, sm: 3 }, // 모바일에서 padding 최소화
+            borderRadius: { xs: 0, sm: 2 }, // 모바일에서 borderRadius 제거
+            bgcolor: "background.paper",
+          }}
+        >
           <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Typography variant="h4" component="div" sx={{ fontWeight: "bold" }}>
+            {/* 제목 및 버튼 영역 */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                justifyContent: "space-between",
+                alignItems: { xs: "flex-start", sm: "flex-start" },
+                gap: 2,
+                mb: 1,
+              }}
+            >
+              <Typography variant="h4" component="div" sx={{ fontWeight: "bold", flex: 1 }}>
                 {detail.title}
               </Typography>
-              <StoryActions
-                currentUserId={session?.user?.id}
-                authorId={detail.User?.id}
-                category={detail.category}
-                storyId={detail.id}
-                isScraped={isScraped}
-                scrapLoading={scrapLoading}
-                onScrapClick={handleScrapClick}
-                onReportClick={handleReportClick}
-                editFlag={editFlag}
-                onEditClick={() => {
-                  setEditFlag(true);
-                  router.push(`/edit/story/${detail.id}`);
-                }}
-                onDeleteClick={() => handleDeleteClick(detail.id)}
-                hasAdminPermission={admin.hasAdminPermission({
-                  channelId: channelData?.id,
-                  creatorId: channelData?.creator?.id,
-                })}
-                adminLoading={admin.isLoading}
-                adminBadgeText={admin.getAdminBadgeText({
-                  channelId: channelData?.id,
-                  creatorId: channelData?.creator?.id,
-                })}
-                onAdminDeleteClick={() => handleAdminDeleteClick(detail.id)}
-              />
+
+              <Box sx={{ mt: { xs: 0, sm: 0.5 } }}>
+                <StoryActions
+                  currentUserId={session?.user?.id}
+                  authorId={detail.User?.id}
+                  category={detail.category}
+                  storyId={detail.id}
+                  isScraped={isScraped}
+                  scrapLoading={scrapLoading}
+                  onScrapClick={handleScrapClick}
+                  onReportClick={handleReportClick}
+                  editFlag={editFlag}
+                  onEditClick={() => {
+                    setEditFlag(true);
+                    router.push(`/edit/story/${detail.id}`);
+                  }}
+                  onDeleteClick={() => handleDeleteClick(detail.id)}
+                  hasAdminPermission={admin.hasAdminPermission({
+                    channelId: channelData?.id,
+                    creatorId: channelData?.creator?.id,
+                  })}
+                  adminLoading={admin.isLoading}
+                  adminBadgeText={admin.getAdminBadgeText({
+                    channelId: channelData?.id,
+                    creatorId: channelData?.creator?.id,
+                  })}
+                  onAdminDeleteClick={() => handleAdminDeleteClick(detail.id)}
+                />
+              </Box>
             </Box>
+
             <Typography
               variant="subtitle2"
               color="text.secondary"
@@ -957,7 +983,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                 bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "grey.100",
                 p: 1,
                 borderRadius: 1,
-                mb: 3,
+                mb: 1,
                 border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
                 boxShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.2)" : "none",
               }}
@@ -965,22 +991,37 @@ export default function page({ params }: { params: { id: string; slug: string } 
               <LocalOfferIcon fontSize="small" />
               종류: {detail.category}
             </Typography>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Box display="flex" alignItems="center" gap={2}>
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+                gap: 1,
+                mb: 3,
+              }}
+            >
+              <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 2 }}>
                 <Avatar
                   src={`${process.env.NEXT_PUBLIC_BASE_URL}${detail.User.avatar}`}
-                  sx={{ width: 50, height: 50, boxShadow: 2 }}
+                  sx={{ width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 }, boxShadow: 2 }}
                 />
                 <Box>
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: "bold", cursor: "pointer", display: "flex", alignItems: "center", gap: 1 }}
-                    onClick={(e) => handleUserNicknameClick(e, detail.User.nickname)}
-                  >
-                    작성자: {detail.User.nickname}
+                  <Box display="flex" alignItems="center" gap={0.5} flexWrap="wrap">
+                    <Typography
+                      variant="subtitle1"
+                      sx={{
+                        fontWeight: "bold",
+                        cursor: "pointer",
+                        fontSize: { xs: "0.875rem", sm: "1rem" },
+                      }}
+                      onClick={(e) => handleUserNicknameClick(e, detail.User.nickname)}
+                    >
+                      {detail.User.nickname}
+                    </Typography>
                     <LevelBadge level={detail.User.level} size="small" />
-                  </Typography>
-                  <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                  </Box>
+                  <Box sx={{ display: "flex", gap: 1, mt: 0.5 }}>
                     <Button
                       onClick={handleGoToMain}
                       size="small"
@@ -988,6 +1029,10 @@ export default function page({ params }: { params: { id: string; slug: string } 
                       sx={{
                         backgroundColor: "#ff9800",
                         "&:hover": { backgroundColor: "#f57c00" },
+                        fontSize: { xs: "0.7rem", sm: "0.8125rem" },
+                        minWidth: "auto",
+                        px: { xs: 1, sm: 1.5 },
+                        py: 0.25,
                       }}
                     >
                       메인으로
@@ -995,57 +1040,146 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   </Box>
                 </Box>
               </Box>
+
+              {/* 추천 및 작성일 정보 - 우측 정렬 */}
               <Box
                 sx={{
                   display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  background:
-                    theme.palette.mode === "dark"
-                      ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
-                      : "linear-gradient(135deg, #FFE08A, #FFC547)",
-                  borderRadius: "12px",
-                  boxShadow:
-                    theme.palette.mode === "dark"
-                      ? "0px 4px 15px rgba(139, 92, 246, 0.3)"
-                      : "0px 4px 10px rgba(0, 0, 0, 0.2)",
-                  padding: "6px 12px",
-                  width: 100,
-                  border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "none",
+                  flexDirection: "column",
+                  alignItems: "flex-end",
+                  gap: 0.5,
+                }}
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    background:
+                      theme.palette.mode === "dark"
+                        ? "linear-gradient(135deg, rgba(139, 92, 246, 0.8), rgba(6, 182, 212, 0.8))"
+                        : "linear-gradient(135deg, #FFE08A, #FFC547)",
+                    borderRadius: "8px",
+                    boxShadow:
+                      theme.palette.mode === "dark"
+                        ? "0px 2px 8px rgba(139, 92, 246, 0.2)"
+                        : "0px 2px 5px rgba(0, 0, 0, 0.1)",
+                    padding: "4px 8px",
+                    width: { xs: 70, sm: 100 },
+                    border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "none",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: "bold",
+                      color: theme.palette.mode === "dark" ? "#ffffff" : "#4A4A4A",
+                      fontSize: { xs: "11px", sm: "14px" },
+                    }}
+                  >
+                    추천
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: "bold",
+                      color: theme.palette.mode === "dark" ? "#ffffff" : "#4A4A4A",
+                      fontSize: { xs: "11px", sm: "14px" },
+                    }}
+                  >
+                    {likeCalculate}
+                  </Typography>
+                </Box>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                    textAlign: "right",
+                  }}
+                >
+                  {dayjs(detail.created_at).format("YYYY/MM/DD")}
+                </Typography>
+              </Box>
+            </Box>
+
+            {/* 폴라로이드 카드 프리뷰 (Masonry-like columns) */}
+            {polaroidImages.length > 0 && (
+              <Box
+                sx={{
+                  mb: { xs: 2, sm: 3 },
+                  mx: { xs: -0.5, sm: 0 }, // 모바일에서 좌우 여백 제거
                 }}
               >
                 <Typography
                   variant="h6"
                   sx={{
                     fontWeight: "bold",
-                    color: theme.palette.mode === "dark" ? "#ffffff" : "#4A4A4A",
-                    textTransform: "none",
-                    fontSize: "16px",
-                    textShadow: theme.palette.mode === "dark" ? "0 0 8px rgba(255, 255, 255, 0.3)" : "none",
+                    mb: 1.5,
+                    ml: { xs: 0.5, sm: 0 }, // 타이틀은 약간의 왼쪽 여백 유지
+                    color: theme.palette.mode === "dark" ? "#e5e7eb" : "#374151",
                   }}
                 >
-                  추천
+                  폴라로이드 프리뷰
                 </Typography>
-                <Typography
+                <Box
                   sx={{
-                    fontWeight: "bold",
-                    color: theme.palette.mode === "dark" ? "#ffffff" : "#4A4A4A",
-                    fontSize: "16px",
-                    textShadow: theme.palette.mode === "dark" ? "0 0 8px rgba(255, 255, 255, 0.3)" : "none",
+                    columnCount: { xs: 1, sm: 2, md: 3 },
+                    columnGap: { xs: 0.5, sm: 2 }, // 모바일에서 간격 최소화
+                    px: { xs: 0.5, sm: 0 }, // 모바일에서 최소 padding만 유지
                   }}
                 >
-                  {likeCalculate}
-                </Typography>
+                  {polaroidImages.map((img, idx) => {
+                    const src = `${process.env.NEXT_PUBLIC_BASE_URL}${img.link}`;
+                    const rotation = getPolaroidRotation(img.id, idx);
+                    return (
+                      <Box key={`polaroid-${img.id}-${idx}`} sx={{ breakInside: "avoid", mb: { xs: 1.5, sm: 2 } }}>
+                        <Box
+                          onClick={() => handleImageClick(img, idx)}
+                          sx={{
+                            cursor: "pointer",
+                            bgcolor: "#ffffff",
+                            border: "1px solid",
+                            borderColor: theme.palette.mode === "dark" ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+                            borderRadius: 1.5,
+                            boxShadow:
+                              theme.palette.mode === "dark"
+                                ? "0 6px 18px rgba(0,0,0,0.5)"
+                                : "0 8px 18px rgba(0,0,0,0.15)",
+                            p: 1,
+                            pt: 1,
+                            pb: 2.5,
+                            transform: `rotate(${rotation})`,
+                            transition: "transform 220ms ease, box-shadow 220ms ease",
+                            "&:hover": {
+                              transform: "translateY(-8px) rotate(0deg) scale(1.02)",
+                              boxShadow:
+                                theme.palette.mode === "dark"
+                                  ? "0 14px 30px rgba(0,0,0,0.65)"
+                                  : "0 16px 30px rgba(0,0,0,0.22)",
+                            },
+                          }}
+                        >
+                          <Box
+                            component="img"
+                            src={src}
+                            alt={img.image_name || "image"}
+                            loading="lazy"
+                            sx={{
+                              width: "100%",
+                              display: "block",
+                              borderRadius: 1,
+                              boxShadow:
+                                theme.palette.mode === "dark"
+                                  ? "0 1px 6px rgba(0,0,0,0.6)"
+                                  : "0 1px 6px rgba(0,0,0,0.15)",
+                            }}
+                          />
+                        </Box>
+                      </Box>
+                    );
+                  })}
+                </Box>
               </Box>
-              <Box textAlign="right">
-                <Typography variant="subtitle2" color="text.secondary">
-                  작성일: {dayjs(detail.created_at).format("YYYY/MM/DD HH:mm:ss")}
-                </Typography>
-                <Typography variant="subtitle2" color="text.secondary">
-                  조회수: {detail.read_count}
-                </Typography>
-              </Box>
-            </Box>
+            )}
 
             {/* 폴라로이드 카드 프리뷰 (Masonry-like columns) */}
             {polaroidImages.length > 0 && (
@@ -1136,12 +1270,22 @@ export default function page({ params }: { params: { id: string; slug: string } 
             {/* 본문 내용 - 이미지가 중간중간에 카드뷰로 표시됨 */}
             <Box
               sx={{
-                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
-                p: 2,
-                borderRadius: 1,
-                boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
-                mb: 3,
-                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+                bgcolor: {
+                  xs: "transparent", // 모바일에서 배경색 제거
+                  sm: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
+                },
+                p: { xs: 0, sm: 2 }, // 모바일에서 padding 제거
+                mx: { xs: -0.5, sm: 0 }, // 모바일에서 좌우로 확장
+                borderRadius: { xs: 0, sm: 1 }, // 모바일에서 borderRadius 제거
+                boxShadow: {
+                  xs: "none", // 모바일에서 그림자 제거
+                  sm: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
+                },
+                mb: { xs: 2, sm: 3 },
+                border: {
+                  xs: "none", // 모바일에서 테두리 제거
+                  sm: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+                },
               }}
             >
               {renderContentWithImageCards}
@@ -1207,7 +1351,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
               likeOrUnlike.mutate({ storyId: detail?.id, vote }); // API 호출
             }}
           />,
-          document.body
+          document.body,
         )}
 
       {/* 새로운 ImageViewer 컴포넌트 사용 */}

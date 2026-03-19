@@ -25,6 +25,17 @@ import { SuggestionImage } from 'src/entities/SuggestionImage.entity';
           done(null, `${baseName}_${Today()}${ext}`);
         },
       }),
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB 제한
+      },
+      fileFilter: (req, file, cb) => {
+        // 이미지 파일만 허용
+        if (file.mimetype.startsWith('image/')) {
+          cb(null, true);
+        } else {
+          cb(new Error('이미지 파일만 업로드 가능합니다.'), false);
+        }
+      },
     }),
     TypeOrmModule.forFeature([Suggestion, SuggestionImage, User]),
     AuthModule,

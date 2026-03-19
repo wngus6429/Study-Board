@@ -71,9 +71,11 @@ import { Likes } from 'src/entities/Likes.entity';
      * - 프로덕션 환경에서는 복잡한 시크릿 키 사용 필요
      * - 시크릿 키는 환경변수로 관리하는 것이 보안상 안전
      */
-    JwtModule.register({
-      secret: 'park', // TODO: 환경변수로 변경 권장 (process.env.JWT_SECRET)
-      signOptions: { expiresIn: TOKEN_EXPIRATION_TIME }, // 토큰 만료 시간 (1시간)
+    JwtModule.registerAsync({
+      useFactory: () => ({
+        secret: process.env.JWT_SECRET,
+        signOptions: { expiresIn: TOKEN_EXPIRATION_TIME }, // 토큰 만료 시간 (1시간)
+      }),
     }),
 
     // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -143,18 +145,17 @@ import { Likes } from 'src/entities/Likes.entity';
           done(null, uniqueFileName);
         },
       }),
-      // TODO: 추가 보안 설정 권장
-      // limits: {
-      //   fileSize: 5 * 1024 * 1024, // 5MB 제한
-      // },
-      // fileFilter: (req, file, cb) => {
-      //   // 이미지 파일만 허용
-      //   if (file.mimetype.startsWith('image/')) {
-      //     cb(null, true);
-      //   } else {
-      //     cb(new Error('이미지 파일만 업로드 가능합니다.'), false);
-      //   }
-      // },
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB 제한
+      },
+      fileFilter: (req, file, cb) => {
+        // 이미지 파일만 허용
+        if (file.mimetype.startsWith('image/')) {
+          cb(null, true);
+        } else {
+          cb(new Error('이미지 파일만 업로드 가능합니다.'), false);
+        }
+      },
     }),
   ],
 

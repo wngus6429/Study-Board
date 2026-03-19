@@ -93,7 +93,7 @@ import { AdminGuard } from '../auth/admin.guard';
         }
       },
       limits: {
-        fileSize: 1000 * 1024 * 1024, // 1000MB 제한
+        fileSize: 50 * 1024 * 1024, // 50MB 제한 (동영상 고려)
         files: 10, // 최대 10개 파일
       },
     }),

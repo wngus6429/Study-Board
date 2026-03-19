@@ -14,6 +14,7 @@ import {
 } from "@mui/material";
 import { Lock as LockIcon, Visibility, VisibilityOff, VpnKey as KeyIcon } from "@mui/icons-material";
 import Loading from "../common/Loading";
+import { verifySitePassword } from "../../actions/verifySitePassword";
 
 interface SitePasswordGateProps {
   children: React.ReactNode;
@@ -21,15 +22,9 @@ interface SitePasswordGateProps {
 
 //! - 역할: 전체 사이트(또는 라우트)에 간단한 접근 코드를 걸어 비공개로 유지할 때 사용하는
 //*   클라이언트 사이드 게이트 컴포넌트입니다. 인증되면 하위 children을 렌더링합니다.
-// - 동작: 환경변수(NEXT_PUBLIC_SITE_PASSWORD)와 입력값을 클라이언트에서 비교하고,
+// - 동작: 입력값을 서버 액션을 통해 검증하고,
 //   성공 시 로컬스토리지(`siteAccess`, `siteAccessTime`)에 인증 정보를 저장해 재접근을 허용합니다.
 //* - TTL: 현재 코드는 인증 후 3일(변수명은 sevenDays지만 값은 3일) 동안 유효하도록 처리합니다.
-// - 보안 주의: 클라이언트에 노출되는 환경변수(NEXT_PUBLIC_*)로 비밀번호를 넣으면 누구나
-//   빌드 산출물에서 확인 가능하므로 민감한 비밀번호는 서버에서 검증하거나 세션/쿠키 기반으로 처리하세요.
-// - 개선 제안:
-//   · 서버 사이드 라우트에서 검증 후 세션을 발급
-//   · 서버에서 해시 비교 및 요청률 제한 적용
-//   · 민감값은 NEXT_PUBLIC_ 접두어 없이 서버 환경변수로 관리
 
 const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ children }) => {
   const theme = useTheme();
@@ -38,9 +33,6 @@ const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ children }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-
-  // 사이트 비밀번호 (실제로는 환경변수로 관리하는 것이 좋습니다)
-  const SITE_PASSWORD = process.env.NEXT_PUBLIC_SITE_PASSWORD; // 이 비밀번호를 변경하세요
 
   useEffect(() => {
     // 페이지 로드 시 로컬스토리지에서 인증 상태 확인
@@ -63,7 +55,7 @@ const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ children }) => {
     setIsLoading(false);
   }, []);
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
 
     if (!password.trim()) {
@@ -71,7 +63,8 @@ const SitePasswordGate: React.FC<SitePasswordGateProps> = ({ children }) => {
       return;
     }
 
-    if (password === SITE_PASSWORD) {
+    const isValid = await verifySitePassword(password);
+    if (isValid) {
       setIsAuthenticated(true);
       setError("");
       // 로컬스토리지에 인증 정보 저장 (7일간 유효)

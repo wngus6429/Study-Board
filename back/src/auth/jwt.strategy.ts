@@ -57,7 +57,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
           return token;
         },
       ]),
-      secretOrKey: 'park', // JWT 시크릿 키를 'park'로 통일
+      secretOrKey: process.env.JWT_SECRET, // JWT 시크릿 키를 환경변수로 통일
     });
   }
 

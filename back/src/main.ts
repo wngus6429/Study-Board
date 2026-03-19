@@ -8,6 +8,7 @@ import { HttpExceptionFilter } from './httpException.FIlter';
 import { join } from 'path';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ServerOptions } from 'socket.io';
+import helmet from 'helmet';
 
 /**
  * 🔌 커스텀 Socket.IO 어댑터
@@ -63,8 +64,15 @@ async function bootstrap() {
   // 🔌 실시간 채팅을 위한 커스텀 Socket.IO 어댑터 등록
   app.useWebSocketAdapter(new CustomSocketIOAdapter(app));
 
-  // 🛡️ 전역 파이프라인 설정
-  app.useGlobalPipes(new ValidationPipe()); // DTO 자동 검증 및 변환
+  // 🛡️ 전역 파이프라인 설정 및 보안 미들웨어
+  app.use(helmet()); // 보안 헤더 설정
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // DTO에 없는 속성은 제거
+      forbidNonWhitelisted: true, // DTO에 없는 속성이 있으면 에러 반환
+      transform: true, // 클라이언트에서 넘어온 페이로드를 DTO 객체로 자동 변환
+    }),
+  ); // DTO 자동 검증 및 변환
   app.useGlobalFilters(new HttpExceptionFilter()); // 통일된 에러 응답 형식
 
   // 🌐 CORS(Cross-Origin Resource Sharing) 설정

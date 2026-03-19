@@ -97,7 +97,7 @@
 
 ```bash
 인바운드:
-- HTTP (9999) from sg-frontend
+- HTTP (8888) from sg-frontend
 - SSH (22) from 관리자 IP
 
 아웃바운드:
@@ -305,7 +305,7 @@ DB_PASSWORD=[RDS-비밀번호]
 DB_DATABASE=studyboard
 
 # 서버 설정
-PORT=9999
+PORT=8888
 NODE_ENV=production
 
 # AWS 설정
@@ -475,7 +475,7 @@ http {
 
         # 백엔드 API 프록시
         location /api {
-            proxy_pass http://[백엔드-서버-IP]:9999;
+            proxy_pass http://[백엔드-서버-IP]:8888;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection 'upgrade';
@@ -488,7 +488,7 @@ http {
 
         # 파일 업로드 경로들
         location ~ ^/(upload|userUpload|channelUpload|suggestionUpload) {
-            proxy_pass http://[백엔드-서버-IP]:9999;
+            proxy_pass http://[백엔드-서버-IP]:8888;
             proxy_http_version 1.1;
             proxy_set_header Host $host;
             proxy_set_header X-Real-IP $remote_addr;
@@ -636,7 +636,7 @@ pm2 restart study-board-backend
 # 헬스 체크
 echo "🏥 헬스 체크 중..."
 sleep 5
-curl -f http://localhost:9999/api || echo "⚠️  헬스 체크 실패"
+curl -f http://localhost:8888/api || echo "⚠️  헬스 체크 실패"
 
 echo "✅ 백엔드 배포 완료!"
 ```
@@ -801,7 +801,7 @@ sudo systemctl enable firewalld
 sudo firewall-cmd --permanent --add-port=22/tcp
 sudo firewall-cmd --permanent --add-port=80/tcp
 sudo firewall-cmd --permanent --add-port=3000/tcp  # 프론트엔드
-sudo firewall-cmd --permanent --add-port=9999/tcp  # 백엔드
+sudo firewall-cmd --permanent --add-port=8888/tcp  # 백엔드
 sudo firewall-cmd --reload
 ```
 
@@ -961,7 +961,7 @@ module.exports = {
       max_memory_restart: "1G",
       env: {
         NODE_ENV: "production",
-        PORT: 9999,
+        PORT: 8888,
       },
     },
     {

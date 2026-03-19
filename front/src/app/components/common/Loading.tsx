@@ -16,7 +16,7 @@ export default function Loading() {
         height: "100vh",
         backgroundColor: theme.palette.mode === "dark" ? "rgba(18, 18, 18, 0.3)" : "rgba(255, 255, 255, 0.3)",
         backdropFilter: "blur(1px)",
-        zIndex: 9999,
+        zIndex: 8888,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",

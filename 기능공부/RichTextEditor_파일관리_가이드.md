@@ -188,12 +188,12 @@ const handleSubmit = (e) => {
 useEffect(() => {
   if (storyDetail) {
     let content = storyDetail.content;
-    const baseUrl = "http://localhost:9999"; // 서버 주소
+    const baseUrl = "http://localhost:8888"; // 서버 주소
 
     // 기존 이미지들을 하나씩 처리
     storyDetail.StoryImage?.forEach((imageInfo) => {
       // 저장된 경로: /upload/image_20241201.jpg
-      // 실제 주소: http://localhost:9999/upload/image_20241201.jpg
+      // 실제 주소: http://localhost:8888/upload/image_20241201.jpg
 
       content = content.replace(`/upload/${imageInfo.image_name}`, `${baseUrl}/upload/${imageInfo.image_name}`);
     });
@@ -203,7 +203,7 @@ useEffect(() => {
 }, [storyDetail]);
 ```
 
-> **💡 포인트**: 데이터베이스에는 `/upload/image.jpg` 형태로 저장되어 있지만, 실제로 보여줄 때는 `http://localhost:9999/upload/image.jpg` 로 바꿔줘야 합니다!
+> **💡 포인트**: 데이터베이스에는 `/upload/image.jpg` 형태로 저장되어 있지만, 실제로 보여줄 때는 `http://localhost:8888/upload/image.jpg` 로 바꿔줘야 합니다!
 
 #### 💾 수정 내용 저장하기
 
@@ -217,10 +217,10 @@ useEffect(() => {
 ```typescript
 const handleUpdate = (e) => {
   let contentToSave = content;
-  const baseUrl = "http://localhost:9999";
+  const baseUrl = "http://localhost:8888";
 
   // 1. 절대 경로를 다시 상대 경로로 변환
-  // http://localhost:9999/upload/image.jpg → /upload/image.jpg
+  // http://localhost:8888/upload/image.jpg → /upload/image.jpg
   contentToSave = contentToSave.replace(new RegExp(`${baseUrl}/upload/`, "g"), "/upload/");
 
   // 2. 임시 주소들은 빈 문자열로 (서버에서 새 파일로 교체됨)
@@ -350,7 +350,7 @@ console.log("글 내용:", content);
 console.log("이미지 파일들:", storyImages);
 
 // 실제 파일이 있는지 확인
-// http://localhost:9999/upload/파일명.jpg 를 브라우저에서 직접 접속해보세요
+// http://localhost:8888/upload/파일명.jpg 를 브라우저에서 직접 접속해보세요
 ```
 
 #### 2️⃣ 글 수정하면 기존 이미지가 사라져요!
@@ -434,11 +434,14 @@ if (uploadedFiles.length + newFiles.length > MAX_FILES) {
 
 ```typescript
 // 5분마다 오래된 임시 파일들 정리
-setInterval(() => {
-  oldBlobUrls.forEach((url) => {
-    URL.revokeObjectURL(url); // 메모리에서 제거
-  });
-}, 5 * 60 * 1000);
+setInterval(
+  () => {
+    oldBlobUrls.forEach((url) => {
+      URL.revokeObjectURL(url); // 메모리에서 제거
+    });
+  },
+  5 * 60 * 1000,
+);
 ```
 
 ---

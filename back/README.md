@@ -18,9 +18,9 @@ npm run start:prod
 
 ## 🌐 서버 정보
 
-- **백엔드 서버**: http://localhost:9999
-- **API 문서**: http://localhost:9999/api (Swagger UI)
-- **Socket.IO**: http://localhost:9999/socket.io/
+- **백엔드 서버**: http://localhost:8888
+- **API 문서**: http://localhost:8888/api (Swagger UI)
+- **Socket.IO**: http://localhost:8888/socket.io/
 
 ## 🏛️ 주요 기능
 

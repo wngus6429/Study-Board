@@ -8,6 +8,7 @@ import { HttpExceptionFilter } from './httpException.FIlter';
 import { join } from 'path';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ServerOptions } from 'socket.io';
+import helmet from 'helmet';
 
 /**
  * 🔌 커스텀 Socket.IO 어댑터
@@ -25,7 +26,7 @@ class CustomSocketIOAdapter extends IoAdapter {
     const server = super.createIOServer(port, {
       ...options,
       cors: {
-        origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+        origin: process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3000'],
         methods: ['GET', 'POST'],
         credentials: true, // 쿠키 기반 인증 허용
       },
@@ -49,7 +50,7 @@ class CustomSocketIOAdapter extends IoAdapter {
  * 4. CORS 및 보안 설정
  * 5. 정적 파일 서빙 설정 (이미지 업로드)
  * 6. API 문서화 (Swagger)
- * 7. 서버 시작 (포트 9999)
+ * 7. 서버 시작 (포트 설정)
  */
 async function bootstrap() {
   // 📦 NestJS Express 애플리케이션 인스턴스 생성
@@ -58,14 +59,24 @@ async function bootstrap() {
   // 🔌 실시간 채팅을 위한 커스텀 Socket.IO 어댑터 등록
   app.useWebSocketAdapter(new CustomSocketIOAdapter(app));
 
+  // 🛡️ 보안 헤더 설정
+  // crossOriginResourcePolicy를 cross-origin으로 설정해야
+  // 프론트엔드(localhost:3000)에서 백엔드(localhost:8888)의 정적 파일(이미지 등)에 접근 가능
+  app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
+
   // 🛡️ 전역 파이프라인 설정
-  app.useGlobalPipes(new ValidationPipe()); // DTO 자동 검증 및 변환
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,        // DTO에 없는 속성 자동 제거
+      transform: true,        // payload를 DTO 객체로 자동 변환
+    }),
+  );
   app.useGlobalFilters(new HttpExceptionFilter()); // 통일된 에러 응답 형식
 
   // 🌐 CORS(Cross-Origin Resource Sharing) 설정
   // 프론트엔드(React)에서 백엔드 API 호출을 허용하기 위한 설정
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'], // 허용할 도메인
+    origin: process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3000'], // 허용할 도메인
     credentials: true, // 쿠키 기반 세션 인증 허용
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // 허용할 HTTP 메서드
     allowedHeaders:
@@ -114,16 +125,17 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document); // http://localhost:9999/api 에서 문서 확인 가능
+  const port = process.env.PORT || 8888;
+  SwaggerModule.setup('api', app, document); // http://localhost:${port}/api 에서 문서 확인 가능
 
   // 🚀 서버 시작
-  await app.listen(9999);
+  await app.listen(port);
 
   // 📊 서버 시작 로그
-  // console.log('🚀 Study Board 서버가 포트 9999에서 실행 중입니다.');
+  // console.log(`🚀 Study Board 서버가 포트 ${port}에서 실행 중입니다.`);
   // console.log('📡 Socket.IO 실시간 채팅 서버가 활성화되었습니다.');
-  // console.log('🔗 Socket.IO 엔드포인트: http://localhost:9999/socket.io/');
-  // console.log('📚 API 문서: http://localhost:9999/api');
+  // console.log(`🔗 Socket.IO 엔드포인트: http://localhost:${port}/socket.io/`);
+  // console.log(`📚 API 문서: http://localhost:${port}/api`);
   // console.log('🌐 프론트엔드 연결: http://localhost:3000');
 }
 

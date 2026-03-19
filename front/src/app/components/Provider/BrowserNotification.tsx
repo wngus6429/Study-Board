@@ -184,7 +184,7 @@ const BrowserNotification: React.FC<BrowserNotificationProps> = ({ children }) =
             top: 0,
             left: 0,
             right: 0,
-            zIndex: 9999,
+            zIndex: 8888,
             backgroundColor: "primary.main",
             color: "white",
             p: 2,

@@ -27,6 +27,16 @@ import { Today } from 'src/common/helper/today';
           done(null, `${baseName}_${Today()}${ext}`); // 파일명_날짜.확장자 형식
         },
       }),
+      limits: {
+        fileSize: 5 * 1024 * 1024, // 5MB 제한
+      },
+      fileFilter: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+          cb(null, true);
+        } else {
+          cb(new Error('이미지 파일만 업로드 가능합니다.'), false);
+        }
+      },
     }),
     TypeOrmModule.forFeature([Channels, ChannelImage, Subscription, User]),
     AuthModule,

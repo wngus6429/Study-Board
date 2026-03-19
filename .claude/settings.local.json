@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /c/Users/wngus/Documents/Study-Board/front/next.config*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}

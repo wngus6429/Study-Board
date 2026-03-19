@@ -65,7 +65,7 @@ export class ChannelChatWebSocket {
       console.log("🔌 WebSocket 연결 시도 중...");
 
       // XHR Polling 문제 해결을 위한 설정
-      this.socket = io("http://localhost:9999", {
+      this.socket = io(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8888", {
         // 전송 방식 설정 - polling을 먼저 시도하고 websocket으로 업그레이드
         transports: ["polling", "websocket"],
 
@@ -372,7 +372,7 @@ class WebSocketManager {
       this.isConnecting = true;
       console.log("🔌 WebSocket 연결 시도 중...");
 
-      this.socket = io("http://localhost:9999", {
+      this.socket = io(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:8888", {
         transports: ["polling", "websocket"],
         timeout: 20000,
         reconnection: true,

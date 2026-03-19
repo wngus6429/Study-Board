@@ -34,7 +34,7 @@
 │  │  │     EC2         │         │     EC2         │            │ │
 │  │  │                 │         │                 │            │ │
 │  │  │  - Next.js App  │         │  - NestJS API   │            │ │
-│  │  │  - Port 3000    │         │  - Port 9999    │            │ │
+│  │  │  - Port 3000    │         │  - Port 8888    │            │ │
 │  │  │  - Nginx        │         │  - PM2          │            │ │
 │  │  └─────────────────┘         └─────────────────┘            │ │
 │  │           │                           │                     │ │
@@ -87,7 +87,7 @@
 
 ┌─────────────────────────────────────┐
 │ Backend Target Group                │
-│ - Port: 9999                       │
+│ - Port: 8888                       │
 │ - Health Check: /api/health        │
 │ - Protocol: HTTP                   │
 │ - Target: Backend EC2 Instance     │
@@ -131,7 +131,7 @@ pm2 start ecosystem.config.js
 - Instance Type: t3.medium
 - Node.js: 18.x LTS
 - Package Manager: npm/yarn
-- Port: 9999
+- Port: 8888
 
 # 배포 설정
 - NestJS 프로덕션 빌드
@@ -200,7 +200,7 @@ Outbound Rules:
 
 ```
 Inbound Rules:
-- HTTP (9999): ALB Security Group
+- HTTP (8888): ALB Security Group
 - SSH (22): Your IP Address
 
 Outbound Rules:

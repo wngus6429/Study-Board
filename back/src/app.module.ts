@@ -1,12 +1,10 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { StoryModule } from './story/story.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import path, { join } from 'path';
+import { join } from 'path';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { Today } from './common/helper/today';
 import { SuggestionModule } from './suggestion/suggestion.module';
 import { CommentModule } from './comment/comment.module';
 import { NotificationModule } from './notification/notification.module';
@@ -45,6 +43,11 @@ import { ChannelChatModule } from './channel-chat/channel-chat.module';
  */
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      envFilePath: '.env',
+    }),
+
     /**
      * 🗄️ TypeORM 데이터베이스 설정
      *
@@ -60,18 +63,20 @@ import { ChannelChatModule } from './channel-chat/channel-chat.module';
      * - 로깅: 개발 시 쿼리 로그 출력
      * - 연결 유지: 서버 재시작 시에도 DB 연결 유지
      */
-    TypeOrmModule.forRoot({
-      type: 'mysql', // 데이터베이스 타입: MySQL
-      host: 'localhost', // 데이터베이스 호스트 (개발: localhost, 운영: RDS 등)
-      port: 3306, // MySQL 기본 포트
-      username: 'root', // 데이터베이스 사용자명
-      password: '6429', // 데이터베이스 비밀번호 (환경변수로 관리 권장)
-      database: 'board-study', // 사용할 데이터베이스명
-      entities: [__dirname + '/entities/*.entity{.ts,.js}'], // 엔티티 파일 경로 패턴
-      logging: false, // SQL 쿼리 로그 출력 (개발 시에만 true 권장)
-      synchronize: true, // 스키마 자동 동기화 (⚠️ 운영환경에서는 false 필수)
-      keepConnectionAlive: true, // 애플리케이션 재시작 시 DB 연결 유지
-      charset: 'utf8mb4_general_ci', // 문자셋: 이모지 및 다국어 지원
+    TypeOrmModule.forRootAsync({
+      useFactory: () => ({
+        type: 'mysql',
+        host: process.env.DB_HOST || 'localhost',
+        port: parseInt(process.env.DB_PORT || '3306', 10),
+        username: process.env.DB_USER || 'root',
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME || 'board-study',
+        entities: [__dirname + '/entities/*.entity{.ts,.js}'],
+        logging: false,
+        synchronize: process.env.DB_SYNC !== 'false', // EC2 .env에서 DB_SYNC=false로 끄기
+        keepConnectionAlive: true,
+        charset: 'utf8mb4_general_ci',
+      }),
     }),
 
     /**

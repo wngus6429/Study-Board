@@ -182,7 +182,7 @@ npm run migration:run
 5. **애플리케이션 실행**
 
 ```bash
-# 백엔드 서버 실행 (포트 9999)
+# 백엔드 서버 실행 (포트 8888)
 cd back
 npm run start:dev
 
@@ -194,7 +194,7 @@ npm run dev
 6. **접속 확인**
 
 - 프론트엔드: http://localhost:3000
-- 백엔드 API: http://localhost:9999
+- 백엔드 API: http://localhost:8888
 
 ---
 

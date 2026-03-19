@@ -111,13 +111,13 @@ cp front/env.example front/.env
 **월 예상 비용**: 약 **$68-73**
 
 | 서비스  | 인스턴스/설정  | 월 비용 |
-| ------- | -------------- | ------- |
+| ------- | -------------- | ------- | --- |
 | EC2     | t3.micro × 2   | ~$17    |
 | RDS     | db.t3.micro    | ~$13    |
 | ALB     | 1개            | ~$22    |
 | S3      | 저장소 + 전송  | ~$5-10  |
 | Route53 | 호스팅 영역    | ~$1     |
-| 기타    | NAT Gateway 등 | ~$10-20 |ㅕ
+| 기타    | NAT Gateway 등 | ~$10-20 | ㅕ  |
 
 > 💡 **절약 팁**: Reserved Instance 사용 시 약 30-40% 절약 가능
 
@@ -156,7 +156,7 @@ cp front/env.example front/.env
 #### 백엔드 보안 그룹
 
 ```
-- HTTP (9999) from Frontend SG
+- HTTP (8888) from Frontend SG
 - SSH (22) from 관리자 IP
 ```
 
@@ -255,7 +255,7 @@ DB_USERNAME=admin
 DB_PASSWORD=your-db-password
 DB_DATABASE=board-study
 
-PORT=9999
+PORT=8888
 NODE_ENV=production
 
 AWS_REGION=ap-northeast-2
@@ -288,7 +288,7 @@ docker rm story-board-backend || true
 # 새 컨테이너 실행
 docker run -d \
   --name story-board-backend \
-  -p 9999:9999 \
+  -p 8888:8888 \
   --env-file .env \
   --restart unless-stopped \
   story-board-backend
@@ -354,7 +354,7 @@ echo "프론트엔드 배포 완료"
 # 백엔드 타겟 그룹
 - 타겟 타입: Instances
 - 프로토콜: HTTP
-- 포트: 9999
+- 포트: 8888
 - 헬스 체크 경로: /api
 ```
 

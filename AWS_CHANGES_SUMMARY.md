@@ -78,7 +78,7 @@ DB_PORT=3306
 DB_USERNAME=your-db-username
 DB_PASSWORD=your-db-password
 DB_DATABASE=board-study
-PORT=9999
+PORT=8888
 NODE_ENV=production
 AWS_REGION=ap-northeast-2
 AWS_ACCESS_KEY_ID=your-access-key-id
@@ -167,7 +167,7 @@ docker-compose logs -f frontend
 
 # 서비스 접속
 - 프론트엔드: http://localhost:3000
-- 백엔드 API: http://localhost:9999
+- 백엔드 API: http://localhost:8888
 - MySQL: localhost:3306
 ```
 

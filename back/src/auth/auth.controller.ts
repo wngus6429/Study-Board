@@ -614,7 +614,7 @@ export class AuthController {
     try {
       console.log('🔄 리프레시 토큰 검증 시작');
       // 리프레시 토큰 검증 및 payload 추출
-      const payload = this.jwtService.verify(refreshToken, { secret: 'park' });
+      const payload = this.jwtService.verify(refreshToken, { secret: process.env.JWT_SECRET });
       console.log('🔄 리프레시 토큰 payload:', payload);
 
       // payload에서 추출한 id로 사용자 조회

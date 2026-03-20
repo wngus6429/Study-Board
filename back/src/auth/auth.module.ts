@@ -31,6 +31,7 @@ import { JwtStrategy } from './jwt.strategy';
 import { AdminGuard } from './admin.guard';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { MulterModule } from '@nestjs/platform-express';
+import { getMulterOptions } from '../common/utils/multer.options';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { Today } from 'src/common/helper/today';

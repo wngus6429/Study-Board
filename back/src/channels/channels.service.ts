@@ -213,7 +213,7 @@ export class ChannelsService {
     console.log('채널 이미지 업로드:', {
       channelId,
       userId,
-      fileName: imageFile.filename,
+      fileName: ((imageFile as any).key || imageFile.filename),
     });
 
     // 채널 존재 확인 및 권한 확인
@@ -250,8 +250,8 @@ export class ChannelsService {
 
     // 새 이미지 생성 및 저장
     const newChannelImage = this.channelImageRepository.create({
-      image_name: imageFile.filename,
-      link: `/channelUpload/${imageFile.filename}`,
+      image_name: ((imageFile as any).key || imageFile.filename),
+      link: ((imageFile as any).location || `/channelUpload/${imageFile.filename}`),
       Channel: channel,
     });
 

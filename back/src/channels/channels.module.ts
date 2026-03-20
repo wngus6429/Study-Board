@@ -1,6 +1,7 @@
 import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MulterModule } from '@nestjs/platform-express';
+import { getMulterOptions } from '../common/utils/multer.options';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { ChannelsController } from './channels.controller';

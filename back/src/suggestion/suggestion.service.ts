@@ -151,8 +151,8 @@ export class SuggestionService {
     if (files && files.length > 0) {
       const imageEntities = files.map((file) => {
         const image = new SuggestionImage();
-        image.image_name = file.filename;
-        image.link = `/suggestionUpload/${file.filename}`;
+        image.image_name = ((file as any).key || file.filename);
+        image.link = ((file as any).location || `/suggestionUpload/${file.filename}`);
         image.Suggestion = singleSuggestion;
         return image;
       });
@@ -223,8 +223,8 @@ export class SuggestionService {
     if (newImages && newImages.length > 0) {
       const newImageEntities = newImages.map((file) => {
         const image = new SuggestionImage();
-        image.image_name = file.filename;
-        image.link = `/suggestionUpload/${file.filename}`;
+        image.image_name = ((file as any).key || file.filename);
+        image.link = ((file as any).location || `/suggestionUpload/${file.filename}`);
         image.Suggestion = suggestion;
         return image;
       });

@@ -949,8 +949,8 @@ export class StoryService {
 
         if (file.mimetype.startsWith('image/')) {
           const imageEntity = new StoryImage();
-          imageEntity.image_name = file.filename;
-          imageEntity.link = `/upload/${file.filename}`;
+          imageEntity.image_name = ((file as any).key || file.filename);
+          imageEntity.link = ((file as any).location || `/upload/${file.filename}`);
           imageEntity.file_size = file.size;
           imageEntity.mime_type = file.mimetype;
           // imageEntity.upload_order = i; // 전체 파일 배열에서의 순서 (tiptap 사용으로 불필요)
@@ -959,8 +959,8 @@ export class StoryService {
           await this.imageRepository.save(imageEntity);
         } else if (file.mimetype.startsWith('video/')) {
           const videoEntity = new StoryVideo();
-          videoEntity.video_name = file.filename;
-          videoEntity.link = `/videoUpload/${file.filename}`;
+          videoEntity.video_name = ((file as any).key || file.filename);
+          videoEntity.link = ((file as any).location || `/videoUpload/${file.filename}`);
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
           // videoEntity.upload_order = i; // 전체 파일 배열에서의 순서 (tiptap 사용으로 불필요)
@@ -1043,8 +1043,8 @@ export class StoryService {
     if (noticeImageFiles.length > 0) {
       const imageEntities = noticeImageFiles.map((file) => {
         const imageEntity = new StoryImage();
-        imageEntity.image_name = file.filename;
-        imageEntity.link = `/upload/${file.filename}`;
+        imageEntity.image_name = ((file as any).key || file.filename);
+        imageEntity.link = ((file as any).location || `/upload/${file.filename}`);
         imageEntity.file_size = file.size;
         imageEntity.mime_type = file.mimetype;
         imageEntity.Story = savedStory;
@@ -1059,8 +1059,8 @@ export class StoryService {
     if (noticeVideoFiles.length > 0) {
       const videoEntities = noticeVideoFiles.map((file) => {
         const videoEntity = new StoryVideo();
-        videoEntity.video_name = file.filename;
-        videoEntity.link = `/videoUpload/${file.filename}`;
+        videoEntity.video_name = ((file as any).key || file.filename);
+        videoEntity.link = ((file as any).location || `/videoUpload/${file.filename}`);
         videoEntity.file_size = file.size;
         videoEntity.mime_type = file.mimetype;
         videoEntity.Story = savedStory;
@@ -1272,8 +1272,8 @@ export class StoryService {
       if (imageFiles.length > 0) {
         const imageEntities = imageFiles.map((file, index) => {
           const imageEntity = new StoryImage();
-          imageEntity.image_name = file.filename;
-          imageEntity.link = `/upload/${file.filename}`;
+          imageEntity.image_name = ((file as any).key || file.filename);
+          imageEntity.link = ((file as any).location || `/upload/${file.filename}`);
           imageEntity.file_size = file.size;
           imageEntity.mime_type = file.mimetype;
           // imageEntity.upload_order = maxOrder + 1 + index; // tiptap 사용으로 불필요
@@ -1287,7 +1287,7 @@ export class StoryService {
         imageFiles.forEach((file) => {
           updatedContent = updatedContent.replace(
             /src=""/,
-            `src="/upload/${file.filename}"`,
+            `src="${(file as any).location || `/upload/${((file as any).key || file.filename)}`}"`,
           );
         });
       }
@@ -1296,8 +1296,8 @@ export class StoryService {
       if (videoFiles.length > 0) {
         const videoEntities = videoFiles.map((file, index) => {
           const videoEntity = new StoryVideo();
-          videoEntity.video_name = file.filename;
-          videoEntity.link = `/videoUpload/${file.filename}`;
+          videoEntity.video_name = ((file as any).key || file.filename);
+          videoEntity.link = ((file as any).location || `/videoUpload/${file.filename}`);
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
           // videoEntity.upload_order = maxOrder + 1 + imageFiles.length + index; // tiptap 사용으로 불필요
@@ -1311,7 +1311,7 @@ export class StoryService {
         videoFiles.forEach((file) => {
           updatedContent = updatedContent.replace(
             /src=""/,
-            `src="/videoUpload/${file.filename}"`,
+            `src="${(file as any).location || `/videoUpload/${((file as any).key || file.filename)}`}"`,
           );
         });
       }

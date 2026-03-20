@@ -533,7 +533,7 @@ export class AuthService {
     });
 
     // 🖼️ 새 프로필 이미지 처리
-    if (profileImage && profileImage.filename) {
+    if (profileImage && ((profileImage as any).key || profileImage.filename)) {
       // 기존 이미지가 있으면 삭제
       if (user.UserImage) {
         console.log('🗑️ 기존 프로필 이미지 삭제:', user.UserImage.image_name);
@@ -542,8 +542,8 @@ export class AuthService {
 
       // 새 이미지 엔티티 생성
       const newUserImage = new UserImage();
-      newUserImage.image_name = profileImage.filename;
-      newUserImage.link = `/userUpload/${profileImage.filename}`;
+      newUserImage.image_name = ((profileImage as any).key || profileImage.filename);
+      newUserImage.link = ((profileImage as any).location || `/userUpload/${profileImage.filename}`);
       newUserImage.User = user; // 사용자와 관계 설정
 
       // 새 이미지 저장 및 사용자에 할당

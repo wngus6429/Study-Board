@@ -6,6 +6,22 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.amazonaws.com',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+      },
+      {
+        protocol: 'http',
+        hostname: '127.0.0.1',
+      }
+    ],
+  },
   async rewrites() {
     return [
       {
@@ -15,6 +31,18 @@ const nextConfig = {
       {
         source: "/videoUpload/:slug",
         destination: `${process.env.NEXT_PUBLIC_BASE_URL}/videoUpload/:slug`, // 동영상 파일
+      },
+      {
+        source: "/userUpload/:slug",
+        destination: `${process.env.NEXT_PUBLIC_BASE_URL}/userUpload/:slug`, 
+      },
+      {
+        source: "/suggestionUpload/:slug",
+        destination: `${process.env.NEXT_PUBLIC_BASE_URL}/suggestionUpload/:slug`, 
+      },
+      {
+        source: "/channelUpload/:slug",
+        destination: `${process.env.NEXT_PUBLIC_BASE_URL}/channelUpload/:slug`, 
       },
     ];
   },

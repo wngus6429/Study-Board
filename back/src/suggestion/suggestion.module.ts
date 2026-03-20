@@ -4,6 +4,7 @@ import { SuggestionService } from './suggestion.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { getMulterOptions } from '../common/utils/multer.options';
 import { diskStorage } from 'multer';
 import * as path from 'path';
 import { Today } from 'src/common/helper/today';

@@ -552,8 +552,8 @@ export class StorySqlService {
 
         for (const file of imageFiles) {
           await queryRunner.query(insertImageSql, [
-            file.filename,
-            `/upload/${file.filename}`,
+            ((file as any).key || file.filename),
+            ((file as any).location || `/upload/${file.filename}`),
             file.size,
             file.mimetype,
             savedStory.id,
@@ -570,8 +570,8 @@ export class StorySqlService {
 
         for (const file of videoFiles) {
           await queryRunner.query(insertVideoSql, [
-            file.filename,
-            `/videoUpload/${file.filename}`,
+            ((file as any).key || file.filename),
+            ((file as any).location || `/videoUpload/${file.filename}`),
             file.size,
             file.mimetype,
             savedStory.id,

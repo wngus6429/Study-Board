@@ -108,6 +108,10 @@ back/
 │   │   ├── logged-in-guard.ts   # ログイン検証ガード
 │   │   └── jwt.strategy.ts      # JWT 認証戦略
 │   ├── users/                   # 👤 ユーザー管理モジュール
+│   ├── board/                   # 📝 掲示板クリーンアーキテクチャ例モジュール
+│   │   ├── core/                # ドメインおよびアプリケーション層
+│   │   ├── infrastructure/      # インフラストラクチャ層（コントローラ、リポジトリなど）
+│   │   └── board.module.ts      # モジュール設定
 │   ├── story/                   # 📝 投稿モジュール
 │   │   ├── dto/                 # DTO クラス
 │   │   ├── story.controller.ts  # 投稿コントローラ（684行）
@@ -253,6 +257,26 @@ back/
 - `DELETE /api/story/:id` - 投稿削除
 - `PUT /api/story/likeOrUnlike/:id` - 推薦/非推薦
 - `GET /api/story/notices` - お知らせ一覧
+
+---
+
+### 📝 Board Module（掲示板 - クリーンアーキテクチャ学習用）
+
+パス: `/src/board/`  
+主な機能:
+
+- クリーンアーキテクチャ(Clean Architecture)構造適用の学習およびポートフォリオ用掲示板
+- 投稿 CRUD（作成、参照、詳細参照、更新、削除）
+- 階層分離: ドメイン(Domain)、アプリケーション(UseCase, Service, Port)、インフラストラクチャ(Controller, Repository, Mapper)
+- 依存性逆転の原則(DIP)適用によりコアビジネスロジックを保護
+
+主な API:
+
+- `GET /api/board-clean/list` - 投稿一覧
+- `GET /api/board-clean/:id` - 投稿詳細
+- `POST /api/board-clean/create` - 投稿作成
+- `PUT /api/board-clean/:id` - 投稿更新
+- `DELETE /api/board-clean/:id` - 投稿削除
 
 ---
 

@@ -108,6 +108,10 @@ back/
 │   │   ├── logged-in-guard.ts   # 로그인 검증 가드
 │   │   └── jwt.strategy.ts      # JWT 인증 전략
 │   ├── users/                   # 👤 사용자 관리 모듈
+│   ├── board/                   # 📝 게시판 클린 아키텍처 예제 모듈
+│   │   ├── core/                # 도메인 및 애플리케이션 계층
+│   │   ├── infrastructure/      # 인프라스트럭처 계층 (컨트롤러, 레포지토리 등)
+│   │   └── board.module.ts      # 모듈 설정
 │   ├── story/                   # 📝 게시글 모듈
 │   │   ├── dto/                 # DTO 클래스들
 │   │   ├── story.controller.ts  # 게시글 컨트롤러 (684줄)
@@ -253,6 +257,26 @@ back/
 - `DELETE /api/story/:id` - 게시글 삭제
 - `PUT /api/story/likeOrUnlike/:id` - 추천/비추천
 - `GET /api/story/notices` - 공지사항 목록
+
+---
+
+### 📝 Board Module (게시글 - 클린 아키텍처 학습용)
+
+**경로**: `/src/board/`
+**주요 기능**:
+
+- 클린 아키텍처(Clean Architecture) 구조 적용 학습 및 포트폴리오용 게시판
+- 게시글 CRUD (생성, 조회, 상세 조회, 수정, 삭제)
+- 계층 분리: 도메인(Domain), 애플리케이션(UseCase, Service, Port), 인프라스트럭처(Controller, Repository, Mapper)
+- 의존성 역전 원칙(DIP) 적용으로 핵심 비즈니스 로직 보호
+
+**주요 API**:
+
+- `GET /api/board-clean/list` - 게시글 목록 조회
+- `GET /api/board-clean/:id` - 게시글 상세 조회
+- `POST /api/board-clean/create` - 게시글 작성
+- `PUT /api/board-clean/:id` - 게시글 수정
+- `DELETE /api/board-clean/:id` - 게시글 삭제
 
 ---
 

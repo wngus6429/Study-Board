@@ -25,6 +25,7 @@ npm run start:prod
 ## 🏛️ 주요 기능
 
 - 📝 **게시글 시스템**: CRUD, 검색, 추천/비추천
+- 📝 **클린 아키텍처 게시판**: 아키텍처 학습용 게시판 CRUD (Domain, Application, Infrastructure 분리)
 - 🏢 **채널 시스템**: 채널 생성/관리, 구독
 - 💬 **실시간 채팅**: WebSocket 기반 채널 채팅
 - 🔔 **알림 시스템**: 실시간 알림

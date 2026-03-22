@@ -19,6 +19,8 @@ import dayjs from "dayjs";
 import { useRouter } from "next/navigation";
 import React, { ReactNode, useEffect, useState } from "react";
 import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import CampaignIcon from "@mui/icons-material/Campaign";
+import PriorityHighIcon from "@mui/icons-material/PriorityHigh";
 import { sanitizeRichText } from "@/app/utils/sanitizer";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
@@ -403,38 +405,65 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
       {notice && (
         <Card sx={{ width: "100%", boxShadow: 4, padding: 3, borderRadius: 2, bgcolor: "background.paper" }}>
           <CardContent>
-            <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-              <Typography variant="h4" component="div" sx={{ fontWeight: "bold" }}>
-                {notice.title}
-              </Typography>
-              {/* 공지사항에서는 수정/삭제 버튼을 일반적으로 제공하지 않습니다 */}
-            </Box>
-            <Typography
-              variant="subtitle2"
-              color="text.secondary"
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "grey.100",
-                p: 1,
-                borderRadius: 1,
-                mb: 3,
-                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
-                boxShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.2)" : "none",
-              }}
-            >
-              <LocalOfferIcon fontSize="small" />
-              종류: 공지사항
-            </Typography>
             <Box
               sx={{
                 display: "flex",
-                flexDirection: "row",
-                justifyContent: "space-between",
                 alignItems: "center",
-                gap: 1,
+                gap: 1.5,
+                bgcolor: theme.palette.mode === "dark" ? "rgba(239, 68, 68, 0.15)" : "#ffebee",
+                color: theme.palette.mode === "dark" ? "#fca5a5" : "#d32f2f",
+                p: 1.5,
+                borderRadius: 2,
                 mb: 3,
+                border: `1px solid ${theme.palette.mode === "dark" ? "rgba(239, 68, 68, 0.3)" : "#ffcdd2"}`,
+              }}
+            >
+              <CampaignIcon />
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ letterSpacing: 1 }}>
+                중요 공지사항
+              </Typography>
+            </Box>
+            <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={3}>
+              <Typography variant="h4" component="h1" sx={{ fontWeight: "900", wordBreak: "keep-all" }}>
+                {notice.title}
+              </Typography>
+              {(session?.user?.id === notice.User?.id ||
+                session?.user?.id === notice.Channel?.creator?.id) && (
+                <Box display="flex" gap={1}>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    onClick={() => router.push(`/edit/story/${notice.id}`)}
+                  >
+                    수정
+                  </Button>
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    color="error"
+                    onClick={() => {
+                      setDetailToDelete(notice.id);
+                      setOpenConfirmDialog(true);
+                    }}
+                  >
+                    삭제
+                  </Button>
+                </Box>
+              )}
+            </Box>
+            
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: { xs: "column", sm: "row" },
+                justifyContent: "space-between",
+                alignItems: { xs: "flex-start", sm: "center" },
+                borderTop: `1px solid ${theme.palette.divider}`,
+                borderBottom: `1px solid ${theme.palette.divider}`,
+                py: 2,
+                mb: 4,
+                gap: 2,
               }}
             >
               <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 2 }}>
@@ -491,13 +520,14 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
             {/* 컨텐츠와 이미지를 함께 렌더링 */}
             <Box
               sx={{
-                lineHeight: 1.7,
-                bgcolor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.6)" : "grey.50",
-                p: 2,
-                borderRadius: 1,
-                boxShadow: theme.palette.mode === "dark" ? "0 0 15px rgba(139, 92, 246, 0.2)" : 1,
-                mb: 3,
-                border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+                lineHeight: 1.8,
+                bgcolor: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.02)" : "#fafafa",
+                p: { xs: 3, md: 5 },
+                borderRadius: 2,
+                boxShadow: theme.palette.mode === "dark" ? "inset 0 0 10px rgba(0,0,0,0.5)" : "inset 0 0 10px rgba(0,0,0,0.02)",
+                mb: 4,
+                border: `1px solid ${theme.palette.mode === "dark" ? "rgba(255,255,255,0.1)" : "#e0e0e0"}`,
+                minHeight: "300px",
               }}
             >
               {renderContentWithImageCards()}

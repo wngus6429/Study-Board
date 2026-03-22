@@ -745,14 +745,20 @@ export class StoryService {
   async findEditStoryOne(id: number, userId?: string): Promise<any> {
     const findData = await this.storyRepository.findOne({
       where: { id },
-      relations: ['StoryImage', 'StoryVideo', 'User', 'Channel'],
+      relations: ['StoryImage', 'StoryVideo', 'User', 'Channel', 'Channel.creator'],
     });
     if (!findData) {
       throw new NotFoundException(`Story with ID ${id} not found`);
     }
     // 수정 권한 확인
-    if (findData.User.id !== userId) {
-      throw new ForbiddenException('수정 권한이 없습니다');
+    if (findData.isNotice && findData.Channel) {
+      if (findData.User.id !== userId && findData.Channel.creator.id !== userId) {
+        throw new ForbiddenException('수정 권한이 없습니다');
+      }
+    } else {
+      if (findData.User.id !== userId) {
+        throw new ForbiddenException('수정 권한이 없습니다');
+      }
     }
     const { User, ...editData } = findData;
     return editData;
@@ -837,7 +843,7 @@ export class StoryService {
       // 데이터 조회
       const findData = await queryRunner.manager.findOne(Story, {
         where: { id },
-        relations: ['StoryImage', 'StoryVideo', 'User', 'User.UserImage'],
+        relations: ['StoryImage', 'StoryVideo', 'User', 'User.UserImage', 'Channel', 'Channel.creator'],
       });
 
       if (!findData) {
@@ -1092,7 +1098,7 @@ export class StoryService {
   ): Promise<Story> {
     const story = await this.storyRepository.findOne({
       where: { id: storyId },
-      relations: ['StoryImage', 'StoryVideo', 'User'],
+      relations: ['StoryImage', 'StoryVideo', 'User', 'Channel', 'Channel.creator'],
     });
 
     if (!story) {
@@ -1100,8 +1106,14 @@ export class StoryService {
     }
 
     // 권한 확인
-    if (story.User.id !== userData.id) {
-      throw new ForbiddenException('본인의 글만 수정할 수 있습니다.');
+    if (story.isNotice && story.Channel) {
+      if (story.User.id !== userData.id && story.Channel.creator.id !== userData.id) {
+        throw new ForbiddenException('수정 권한이 없습니다.');
+      }
+    } else {
+      if (story.User.id !== userData.id) {
+        throw new ForbiddenException('본인의 글만 수정할 수 있습니다.');
+      }
     }
 
     // content에서 실제 사용되는 파일들 분석

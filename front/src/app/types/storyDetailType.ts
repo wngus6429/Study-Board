@@ -20,4 +20,10 @@ export interface StoryType {
   User: UserType;
   channelName?: string; // 채널 이름 추가
   channelSlug?: string; // 채널 슬러그 추가
+  Channel?: {
+    id: number;
+    channel_name: string;
+    slug: string;
+    creator?: UserType;
+  };
 }

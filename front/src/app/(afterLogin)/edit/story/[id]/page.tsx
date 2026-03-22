@@ -206,11 +206,21 @@ export default function EditPage({ params }: { params: { id: string } }) {
     onSuccess: () => {
       setLoading(false);
       showMessage("수정 성공", "success");
+      
+      // 캐시 무효화 (일반 게시글 + 공지사항 둘 다 무효화하여 캐시 꼬임 방지)
       queryClient.invalidateQueries({ queryKey: ["story", "detail", params.id] });
-      // 채널이 있으면 채널 상세 페이지로, 없으면 메인 페이지로
-      if (storyDetail?.Channel?.slug) {
+      queryClient.invalidateQueries({ queryKey: ["story", "notice", params.id] });
+      
+      // 공지사항인 경우 공지사항 상세 페이지로
+      if (storyDetail?.category === "notice") {
+        router.push(`/notice/${params.id}`);
+      } 
+      // 채널이 있으면 채널 상세 페이지로
+      else if (storyDetail?.Channel?.slug) {
         router.push(`/channels/${storyDetail.Channel.slug}/detail/story/${params.id}`);
-      } else {
+      } 
+      // 없으면 메인 페이지로
+      else {
         router.push(`/`);
       }
     },

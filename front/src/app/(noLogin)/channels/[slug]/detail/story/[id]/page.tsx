@@ -1109,17 +1109,6 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   mx: { xs: -0.5, sm: 0 }, // 모바일에서 좌우 여백 제거
                 }}
               >
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontWeight: "bold",
-                    mb: 1.5,
-                    ml: { xs: 0.5, sm: 0 }, // 타이틀은 약간의 왼쪽 여백 유지
-                    color: theme.palette.mode === "dark" ? "#e5e7eb" : "#374151",
-                  }}
-                >
-                  폴라로이드 프리뷰
-                </Typography>
                 <Box
                   sx={{
                     columnCount: { xs: 1, sm: 2, md: 3 },

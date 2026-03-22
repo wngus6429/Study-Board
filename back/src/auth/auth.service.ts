@@ -8,7 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/User.entity';
 import { SignupUserDto } from './dto/signup.user.dto';
 import { IsNull, Repository } from 'typeorm';
-import { Likes } from 'src/entities/Likes.entity';
+import { Likes } from '../entities/Likes.entity';
 import * as bcrypt from 'bcryptjs';
 import { SigninUserDto } from './dto/signin.user.dto';
 import {
@@ -16,9 +16,9 @@ import {
   ForgotPasswordResponseDto,
   ResetPasswordDto,
 } from './dto/forgot-password.dto';
-import { UserImage } from 'src/entities/UserImage.entity';
-import { Comments } from 'src/entities/Comments.entity';
-import { Story } from 'src/entities/Story.entity';
+import { UserImage } from '../entities/UserImage.entity';
+import { Comments } from '../entities/Comments.entity';
+import { Story } from '../entities/Story.entity';
 
 /**
  * 🔐 사용자 인증 서비스

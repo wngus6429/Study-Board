@@ -6,10 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
 import { DataSource, Repository, In } from 'typeorm';
-import { Comments } from 'src/entities/Comments.entity';
-import { Story } from 'src/entities/Story.entity';
-import { User } from 'src/entities/User.entity';
-import { Notification } from 'src/entities/Notification.entity';
+import { Comments } from '../entities/Comments.entity';
+import { Story } from '../entities/Story.entity';
+import { User } from '../entities/User.entity';
+import { Notification } from '../entities/Notification.entity';
 import { EXPERIENCE_RULES, getLevelByExperience } from '../constants/level';
 
 @Injectable()

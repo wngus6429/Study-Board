@@ -55,6 +55,7 @@
 - **추천/스크랩**: 게시글 추천 및 개인 스크랩 기능
 - **검색 기능**: 키워드 기반 게시글 검색
 - **고급 이미지 뷰어**: 확대/축소, 드래그, 키보드 네비게이션
+- **클린 아키텍처 적용**: 도메인/애플리케이션/인프라 계층이 분리된 학습용 게시판 예제 포함
 
 ### 🚫 블라인드 시스템
 
@@ -227,6 +228,7 @@ Study-Board/
 │   ├── 📁 src/
 │   │   ├── 📁 auth/             # 인증 모듈 (716줄)
 │   │   ├── 📁 users/            # 사용자 모듈
+│   │   ├── 📁 board/            # 📝 게시판 클린 아키텍처 학습용 모듈 (Domain/Application/Infrastructure)
 │   │   ├── 📁 story/            # 게시글 모듈 (2,190줄 서비스)
 │   │   ├── 📁 channels/         # 채널 모듈 (396줄 서비스)
 │   │   ├── 📁 blind/            # 블라인드 모듈
@@ -430,6 +432,23 @@ npm run build
   "channelId": "channel_id"
 }
 ```
+
+### 📝 클린 아키텍처 게시판 API (학습용)
+
+#### GET /api/board-clean/list
+게시글 목록 조회
+
+#### GET /api/board-clean/:id
+게시글 상세 조회
+
+#### POST /api/board-clean/create
+게시글 작성
+
+#### PUT /api/board-clean/:id
+게시글 수정
+
+#### DELETE /api/board-clean/:id
+게시글 삭제
 
 ### 💬 채팅 API
 

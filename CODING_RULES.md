@@ -139,6 +139,7 @@ Study-Board/
     │   │   ├── logged-in-guard.ts
     │   │   └── dto/
     │   ├── users/                  # 사용자 모듈
+    │   ├── board/                  # 클린 아키텍처 학습용 게시판 모듈
     │   ├── story/                  # 게시글 모듈 (2190줄)
     │   ├── blind/                  # 블라인드 모듈
     │   ├── channel-chat/           # 채널 채팅 모듈

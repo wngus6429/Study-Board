@@ -139,6 +139,7 @@ Study-Board/
     │   │   ├── logged-in-guard.ts
     │   │   └── dto/
     │   ├── users/                  # ユーザーモジュール
+    │   ├── board/                  # クリーンアーキテクチャ学習用掲示板モジュール
     │   ├── story/                  # 投稿モジュール（2190行）
     │   ├── blind/                  # ブラインドモジュール
     │   ├── channel-chat/           # チャンネルチャットモジュール

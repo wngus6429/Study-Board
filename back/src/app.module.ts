@@ -14,6 +14,7 @@ import { UsersModule } from './users/users.module';
 import { ScrapModule } from './scrap/scrap.module';
 import { BlindModule } from './blind/blind.module';
 import { ChannelChatModule } from './channel-chat/channel-chat.module';
+import { BoardModule } from './board/board.module';
 
 /**
  * 🏗️ 애플리케이션 루트 모듈

@@ -30,37 +30,66 @@ export const metadata: Metadata = {
 async function getInitialChannels() {
   try {
     // Next.js App Router의 서버 사이드에서 API 호출
-    // 이 함수는 서버 컴포넌트에서 실행되므로 서버에서 직접 백엔드 API를 호출
     const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels`, {
-      // 채널 목록은 자주 변경되지 않으므로 긴 캐시 시간 설정
-      next: {
-        revalidate: 1800, // 30분(1800초)마다 재검증
-        // 또는 revalidate: false로 설정하여 빌드 시에만 생성하고
-        // 채널 생성/수정/삭제 시에만 on-demand revalidation 사용 가능
-        // 장점: 서버 리소스 절약, 빠른 응답속도
-        // 단점: 새 채널이 바로 반영되지 않음 (최대 30분 지연)
-      },
-      headers: {
-        "Content-Type": "application/json",
-      },
+      next: { revalidate: 1800 },
+      headers: { "Content-Type": "application/json" },
     });
 
     if (!res.ok) {
       throw new Error("채널 데이터를 가져올 수 없습니다");
     }
 
-    return await res.json();
+    return { channels: await res.json(), isDbDisconnected: false };
   } catch (error) {
-    // API 호출 실패 시 빈 배열 반환하여 페이지가 크래시되지 않도록 처리
-    // 클라이언트 사이드에서 React Query가 다시 시도할 수 있음
-    console.error("초기 채널 데이터 로딩 실패:", error);
-    return [];
+    console.error("초기 채널 데이터 로딩 실패, 화면 구성을 위해 샘플 데이터가 렌더링됩니다:", error);
+    
+    // UI 확인용 아주 눈에 띄는 대형 샘플 데이터
+    const sampleChannels = [
+      {
+        id: -1,
+        channel_name: "⚠️ 1. [테스트] 프론트엔드 스터디",
+        slug: "sample-fe",
+        description: "현재 백엔드(DB)가 연결되지 않아 보이는 화면입니다. 채널 목록이 이런 형태의 카드 UI로 나옵니다.",
+        story_count: 55,
+        subscriber_count: 320,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_hidden: false,
+        creator: { id: "0", nickname: "테스트어드민", user_email: "test@test.com" }
+      },
+      {
+        id: -2,
+        channel_name: "⚠️ 2. [테스트] 백엔드 스터디",
+        slug: "sample-be",
+        description: "프론트엔드 작동 여부를 확인할 수 있습니다. 디자인이 꽤 예쁘게 들어갔네요!",
+        story_count: 12,
+        subscriber_count: 85,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_hidden: false,
+        creator: { id: "0", nickname: "테스트어드민", user_email: "test@test.com" }
+      },
+      {
+        id: -3,
+        channel_name: "⚠️ 3. [테스트] 일상/잡담 채널",
+        slug: "sample-daily",
+        description: "만약 DB가 정상 연결되어 있다면 실제 데이터가 여기 표시됩니다. 지금은 하드코딩된 더미 데이터입니다.",
+        story_count: 312,
+        subscriber_count: 1540,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        is_hidden: false,
+        creator: { id: "0", nickname: "테스트어드민", user_email: "test@test.com" }
+      }
+    ];
+
+    return { channels: sampleChannels, isDbDisconnected: true };
   }
 }
 
 export default async function ChannelsPage() {
   // 서버에서 초기 데이터 가져오기
-  const initialChannels = await getInitialChannels();
+  const { channels: initialChannels, isDbDisconnected } = await getInitialChannels();
 
   return (
     <>
@@ -109,7 +138,7 @@ export default async function ChannelsPage() {
         - JS 의존도 감소: 서버에서 렌더된 JSON-LD라 JS 실행이 제한된 크롤러도 의미를 해석 가능
       */}
       <Suspense fallback={<Loading />}>
-        <ChannelsClient initialChannels={initialChannels} />
+        <ChannelsClient initialChannels={initialChannels} isDbDisconnected={isDbDisconnected} />
       </Suspense>
     </>
   );

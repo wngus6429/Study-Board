@@ -44,9 +44,10 @@ import EditChannelImageDialog from "@/app/components/common/ChannelDialog/EditCh
 
 interface ChannelsClientProps {
   initialChannels: Channel[];
+  isDbDisconnected?: boolean;
 }
 
-const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
+const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientProps) => {
   const theme = useTheme();
   const router = useRouter();
   const { data: session } = useSession();
@@ -83,12 +84,14 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
     queryKey: ["channels"],
     queryFn: getChannels,
     initialData: initialChannels,
+    // DB 끊김 상태면 refetch를 막아 불필요한 요청 방지
+    enabled: !isDbDisconnected,
     // 30분 캐싱
     staleTime: 1000 * 60 * 30,
     refetchOnMount: false,
-    refetchOnReconnect: true,
+    refetchOnReconnect: !isDbDisconnected,
     refetchOnWindowFocus: false,
-    retry: 2,
+    retry: isDbDisconnected ? false : 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
@@ -195,11 +198,11 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
 
   // 에러 처리
   useEffect(() => {
-    if (isError) {
+    if (isError && !isDbDisconnected) {
       console.error("채널 목록 조회 실패:", error);
       showMessage("채널 목록을 불러오는데 실패했습니다.", "error");
     }
-  }, [isError, error, showMessage]);
+  }, [isError, error, showMessage, isDbDisconnected]);
 
   // 필터링된 채널 목록 (검색 및 숨김 처리 필터링)
   const filteredChannels = channels.filter((channel) => {
@@ -434,6 +437,38 @@ const ChannelsClient = ({ initialChannels }: ChannelsClientProps) => {
         paddingBottom: 6, // 하단에 여백 추가
       }}
     >
+      {/* 🔴 DB 연결 해제 경고 대형 배너 */}
+      {isDbDisconnected && (
+        <Box
+          sx={{
+            backgroundColor: theme.palette.mode === "dark" ? "rgba(220, 38, 38, 0.25)" : "#fef2f2",
+            border: theme.palette.mode === "dark" ? "2px solid rgba(220, 38, 38, 0.8)" : "2px solid #ef4444",
+            borderRadius: 3,
+            padding: 3,
+            marginBottom: 4,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: theme.palette.mode === "dark" ? "0 0 20px rgba(220, 38, 38, 0.3)" : "0 4px 15px rgba(239, 68, 68, 0.2)",
+            gap: 2,
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              color: theme.palette.mode === "dark" ? "#fca5a5" : "#b91c1c",
+              fontWeight: "bold",
+              textAlign: "center",
+              display: "flex",
+              alignItems: "center",
+              gap: 1.5,
+            }}
+          >
+            ⚠️ 서버(DB) 연결이 끊어졌습니다. UI 테스트를 위해 아래에 더미 샘플 채널이 표시됩니다.
+          </Typography>
+        </Box>
+      )}
+
       {/* 헤더 */}
       <Box
         sx={{

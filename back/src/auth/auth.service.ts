@@ -7,9 +7,10 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../entities/User.entity';
 import { SignupUserDto } from './dto/signup.user.dto';
-import { IsNull, Repository } from 'typeorm';
+import { IsNull, LessThan, Repository } from 'typeorm';
 import { Likes } from '../entities/Likes.entity';
 import * as bcrypt from 'bcryptjs';
+import * as crypto from 'crypto';
 import { SigninUserDto } from './dto/signin.user.dto';
 import {
   ForgotPasswordDto,
@@ -19,6 +20,12 @@ import {
 import { UserImage } from '../entities/UserImage.entity';
 import { Comments } from '../entities/Comments.entity';
 import { Story } from '../entities/Story.entity';
+import { PasswordResetToken } from '../entities/PasswordResetToken.entity';
+
+/**
+ * 비밀번호 재설정 토큰 유효 시간 (30분)
+ */
+const PASSWORD_RESET_TOKEN_TTL_MS = 30 * 60 * 1000;
 
 /**
  * 🔐 사용자 인증 서비스
@@ -50,6 +57,8 @@ export class AuthService {
     private readonly storyRepository: Repository<Story>,
     @InjectRepository(Likes)
     private readonly likesRepository: Repository<Likes>,
+    @InjectRepository(PasswordResetToken)
+    private readonly passwordResetTokenRepository: Repository<PasswordResetToken>,
 
     // private readonly jwtService: JwtService, // JWT 사용 시 주석 해제
   ) {}
@@ -799,13 +808,23 @@ export class AuthService {
 
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   /**
-   * 🔑 비밀번호 찾기 (이메일 확인)
+   * 🔑 비밀번호 찾기 (일회용 재설정 토큰 발급)
    *
-   * 사용자가 비밀번호를 잊었을 때 이메일로 계정 존재 여부를 확인합니다.
-   * 개인 프로젝트용 간단한 방식입니다.
+   * 사용자가 비밀번호를 잊었을 때 이메일 소유권을 확인하기 위한 일회용 토큰을 발급합니다.
+   *
+   * 보안 설계:
+   * - 암호학적 난수 토큰 (crypto.randomBytes 32바이트 = 64자 hex)
+   * - 만료 시간 30분
+   * - 기존 사용자의 미사용 토큰은 모두 폐기 (단일 활성 토큰 유지)
+   * - 만료된 토큰 정리 (자동 청소)
+   *
+   * 운영 환경:
+   * - 토큰은 반드시 이메일로만 전달되어야 함 (응답에는 절대 포함 금지)
+   * - 개발 환경(NODE_ENV !== 'production')에서만 응답에 resetToken을 포함
+   *   및 콘솔에 로깅하여 테스트 가능하도록 함
    *
    * @param forgotPasswordDto - 비밀번호 찾기 요청 데이터
-   * @returns 이메일 확인 결과
+   * @returns 이메일 확인 결과 및 (개발 환경 한정) 재설정 토큰
    */
   async forgotPassword(
     forgotPasswordDto: ForgotPasswordDto,
@@ -818,19 +837,62 @@ export class AuthService {
         where: { user_email, deleted_at: IsNull() },
       });
 
-      if (user) {
-        return {
-          message: '이메일을 확인했습니다. 새로운 비밀번호를 설정해주세요.',
-          success: true,
-          emailExists: true,
-        };
-      } else {
+      if (!user) {
         return {
           message: '등록되지 않은 이메일입니다.',
           success: false,
           emailExists: false,
         };
       }
+
+      // 🧹 해당 사용자의 기존 미사용 토큰 모두 폐기 (재요청 시 이전 토큰 무효화)
+      await this.passwordResetTokenRepository.delete({
+        User: { id: user.id },
+      });
+
+      // 🧹 시스템 전역 만료 토큰 청소 (선택적 최적화)
+      await this.passwordResetTokenRepository.delete({
+        expires_at: LessThan(new Date()),
+      });
+
+      // 🔐 암호학적으로 안전한 토큰 생성 (64자 hex)
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
+
+      // 💾 토큰 저장
+      const resetTokenEntity = this.passwordResetTokenRepository.create({
+        token,
+        User: user,
+        expires_at: expiresAt,
+        used: false,
+      });
+      await this.passwordResetTokenRepository.save(resetTokenEntity);
+
+      console.log(
+        `🔑 비밀번호 재설정 토큰 발급 - 사용자: ${user.nickname} (만료: ${expiresAt.toISOString()})`,
+      );
+
+      // 📧 TODO: 운영 환경에서는 반드시 이메일 발송으로 대체해야 함
+      //   - nodemailer 또는 AWS SES 등으로 user.user_email 에 토큰 링크 발송
+      //   - 응답에서 resetToken 필드 제거
+      const isProduction = process.env.NODE_ENV === 'production';
+      if (isProduction) {
+        // 운영: 토큰은 응답에 포함하지 않고 이메일로만 전달
+        return {
+          message: '비밀번호 재설정 안내를 이메일로 전송했습니다.',
+          success: true,
+          emailExists: true,
+        };
+      }
+
+      // 개발: 테스트 편의를 위해 토큰을 응답에 포함 (콘솔에도 로깅)
+      console.log(`🧪 [DEV] reset token for ${user.user_email}: ${token}`);
+      return {
+        message: '이메일을 확인했습니다. 새로운 비밀번호를 설정해주세요.',
+        success: true,
+        emailExists: true,
+        resetToken: token,
+      };
     } catch (error) {
       console.error('이메일 확인 중 오류:', error);
       return {
@@ -841,40 +903,99 @@ export class AuthService {
   }
 
   /**
-   * 🔄 비밀번호 재설정
+   * 🔄 비밀번호 재설정 (토큰 검증 기반)
    *
-   * 이메일 확인 후 새로운 비밀번호로 변경합니다.
+   * 발급된 일회용 토큰을 검증한 후 비밀번호를 변경합니다.
    *
-   * @param resetPasswordDto - 비밀번호 재설정 데이터
+   * 검증 절차:
+   * 1. 토큰 존재 확인
+   * 2. 토큰 미사용 상태 확인 (재사용 방지)
+   * 3. 토큰 만료 시간 확인
+   * 4. 토큰 소유자와 요청 이메일 일치 확인
+   * 5. 비밀번호 해시화 및 업데이트
+   * 6. 토큰 사용 처리 (used = true)
+   *
+   * @param resetPasswordDto - 비밀번호 재설정 데이터 (토큰 포함)
    * @returns 비밀번호 재설정 결과
    */
   async resetPassword(
     resetPasswordDto: ResetPasswordDto,
   ): Promise<ForgotPasswordResponseDto> {
-    const { user_email, new_password } = resetPasswordDto;
+    const { user_email, new_password, reset_token } = resetPasswordDto;
 
     try {
-      // 🔍 이메일로 사용자 조회
-      const user = await this.userRepository.findOne({
-        where: { user_email, deleted_at: IsNull() },
+      // 1️⃣ 토큰 조회 (사용자 관계 포함)
+      const tokenEntity = await this.passwordResetTokenRepository.findOne({
+        where: { token: reset_token },
+        relations: ['User'],
       });
 
-      if (!user) {
+      if (!tokenEntity || !tokenEntity.User) {
+        console.log('🚫 비밀번호 재설정 실패 - 유효하지 않은 토큰');
         return {
-          message: '등록되지 않은 이메일입니다.',
+          message: '유효하지 않은 재설정 토큰입니다.',
           success: false,
         };
       }
 
-      // 🔒 새 비밀번호 해시화
-      const hashedPassword = await bcrypt.hash(new_password, 10);
+      // 2️⃣ 재사용 방지
+      if (tokenEntity.used) {
+        console.log('🚫 비밀번호 재설정 실패 - 이미 사용된 토큰');
+        return {
+          message: '이미 사용된 재설정 토큰입니다.',
+          success: false,
+        };
+      }
 
-      // 💾 비밀번호 업데이트
-      await this.userRepository.update(user.id, {
-        password: hashedPassword,
+      // 3️⃣ 만료 검증
+      if (tokenEntity.expires_at.getTime() < Date.now()) {
+        console.log('🚫 비밀번호 재설정 실패 - 만료된 토큰');
+        return {
+          message:
+            '만료된 재설정 토큰입니다. 비밀번호 찾기를 다시 시도해주세요.',
+          success: false,
+        };
+      }
+
+      // 4️⃣ 이메일 소유자 일치 검증 (토큰 탈취/재배포 방어)
+      if (tokenEntity.User.user_email !== user_email) {
+        console.log('🚫 비밀번호 재설정 실패 - 토큰과 이메일 불일치');
+        return {
+          message: '토큰과 이메일 정보가 일치하지 않습니다.',
+          success: false,
+        };
+      }
+
+      // 5️⃣ 삭제된 계정인지 확인
+      const user = await this.userRepository.findOne({
+        where: { id: tokenEntity.User.id, deleted_at: IsNull() },
       });
+      if (!user) {
+        console.log('🚫 비밀번호 재설정 실패 - 존재하지 않는 사용자');
+        return {
+          message: '유효하지 않은 계정입니다.',
+          success: false,
+        };
+      }
 
-      console.log(`비밀번호 재설정 완료 - 사용자: ${user.nickname}`);
+      // 6️⃣ 비밀번호 해시화 및 업데이트
+      const hashedPassword = await bcrypt.hash(new_password, 10);
+      await this.userRepository.update(user.id, { password: hashedPassword });
+
+      // 7️⃣ 토큰 사용 처리 (재사용 방지)
+      tokenEntity.used = true;
+      await this.passwordResetTokenRepository.save(tokenEntity);
+
+      // 8️⃣ 해당 사용자의 다른 미사용 토큰도 모두 폐기 (교차 공격 차단)
+      await this.passwordResetTokenRepository
+        .createQueryBuilder()
+        .delete()
+        .from(PasswordResetToken)
+        .where('user_id = :userId', { userId: user.id })
+        .andWhere('used = :used', { used: false })
+        .execute();
+
+      console.log(`✅ 비밀번호 재설정 완료 - 사용자: ${user.nickname}`);
 
       return {
         message: '비밀번호가 성공적으로 변경되었습니다.',

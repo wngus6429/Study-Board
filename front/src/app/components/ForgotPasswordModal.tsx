@@ -47,6 +47,7 @@ interface ForgotPasswordModalProps {
 const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, onClose }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [email, setEmail] = useState("");
+  const [resetToken, setResetToken] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -66,6 +67,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, onClose
   const resetModal = () => {
     setActiveStep(0);
     setEmail("");
+    setResetToken("");
     setNewPassword("");
     setConfirmPassword("");
     setError("");
@@ -103,8 +105,18 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, onClose
       );
 
       if (response.data.success && response.data.emailExists) {
+        // 개발 환경: 서버가 resetToken 을 응답에 포함
+        // 운영 환경: 토큰은 이메일로만 전달되며, 사용자가 별도 화면에서 입력해야 함
+        if (response.data.resetToken) {
+          setResetToken(response.data.resetToken);
+        } else {
+          setResetToken("");
+        }
         setActiveStep(1);
-        showMessage("이메일을 확인했습니다. 새 비밀번호를 설정해주세요.", "success");
+        showMessage(
+          response.data.message || "이메일을 확인했습니다. 새 비밀번호를 설정해주세요.",
+          "success"
+        );
       } else {
         setError(response.data.message || "등록되지 않은 이메일입니다.");
       }
@@ -135,6 +147,11 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, onClose
       return;
     }
 
+    if (!resetToken.trim()) {
+      setError("재설정 토큰이 없습니다. 비밀번호 찾기를 다시 시도해주세요.");
+      return;
+    }
+
     setError("");
     setLoading(true);
 
@@ -144,6 +161,7 @@ const ForgotPasswordModal: React.FC<ForgotPasswordModalProps> = ({ open, onClose
         {
           user_email: email,
           new_password: newPassword,
+          reset_token: resetToken,
         },
         { withCredentials: true }
       );

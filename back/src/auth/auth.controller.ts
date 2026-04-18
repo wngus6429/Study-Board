@@ -25,6 +25,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   InternalServerErrorException,
   Param,
@@ -289,14 +290,20 @@ export class AuthController {
    */
   @Get('/:id')
   @UseGuards(AuthGuard())
-  @ApiOperation({ summary: '프로필 조회' })
+  @ApiOperation({ summary: '프로필 조회 (본인 전용)' })
   @ApiParam({ name: 'id', description: '사용자 ID' })
   @ApiResponse({ status: 200, description: '프로필 정보 반환' })
+  @ApiResponse({ status: 403, description: '본인 정보만 조회할 수 있음' })
   async userGet(
+    @GetUser() user: User,
     @Param('id') id: string,
   ): Promise<{ image: UserImage; nickname: string }> {
-    console.log('👤 프로필 정보 조회 요청 - 사용자 ID:', id);
-    return await this.authUserService.userGet(id);
+    // 🛡️ IDOR 방지: JWT 소유자와 URL 파라미터가 일치할 때만 조회 허용
+    if (id !== user.id) {
+      throw new ForbiddenException('본인의 프로필만 조회할 수 있습니다.');
+    }
+    console.log('👤 프로필 정보 조회 요청 - 사용자 ID:', user.id);
+    return await this.authUserService.userGet(user.id);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -330,12 +337,13 @@ export class AuthController {
   @ApiOperation({ summary: '사용자가 작성한 게시글 목록 조회 (페이지네이션)' })
   @ApiResponse({ status: 200, description: '게시글 목록 및 총 개수 반환' })
   async getUserPageStory(
+    @GetUser() user: User,
     @Body('offset') offset = 0,
     @Body('limit') limit = 10,
-    @Body('userId') userId: string,
   ): Promise<{ StoryResults: Partial<Story>[]; StoryTotal: number }> {
-    console.log('📝 사용자 작성 글 조회 요청:', { offset, limit, userId });
-    return await this.authUserService.userFindStory(offset, limit, userId);
+    // 🛡️ IDOR 방지: JWT 인증 사용자 본인의 글만 조회 (body.userId 무시)
+    console.log('📝 사용자 작성 글 조회 요청:', { offset, limit, userId: user.id });
+    return await this.authUserService.userFindStory(offset, limit, user.id);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -361,12 +369,13 @@ export class AuthController {
   @ApiOperation({ summary: '사용자가 작성한 댓글 목록 조회 (페이지네이션)' })
   @ApiResponse({ status: 200, description: '댓글 목록 및 총 개수 반환' })
   async getUserPageComments(
+    @GetUser() user: User,
     @Body('offset') offset = 0,
     @Body('limit') limit = 10,
-    @Body('userId') userId: string,
   ): Promise<{ CommentsResults: Partial<any>[]; CommentsTotal: number }> {
-    console.log('💬 사용자 작성 댓글 조회 요청:', { offset, limit, userId });
-    return await this.authUserService.userFindComments(offset, limit, userId);
+    // 🛡️ IDOR 방지: JWT 인증 사용자 본인의 댓글만 조회 (body.userId 무시)
+    console.log('💬 사용자 작성 댓글 조회 요청:', { offset, limit, userId: user.id });
+    return await this.authUserService.userFindComments(offset, limit, user.id);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -444,17 +453,25 @@ export class AuthController {
   @ApiOperation({ summary: '프로필 정보 수정 (이미지 업로드 포함)' })
   @ApiResponse({ status: 200, description: '수정된 프로필 정보 반환' })
   async userUpdate(
+    @GetUser() user: User,
     @Body() userData: any,
     @UploadedFile() profileImage: Express.Multer.File,
   ): Promise<any> {
+    // 🛡️ IDOR 방지: body.id 는 무시하고 JWT 소유자 id 로 강제 치환
+    const safeUserData = {
+      ...userData,
+      id: user.id,
+    };
+
     console.log('✏️ 프로필 업데이트 요청:', {
-      userData: userData,
+      userId: user.id,
+      nickname: safeUserData.nickname,
       hasImage: !!profileImage,
       imageSize: profileImage?.size,
     });
 
     const result = await this.authUserService.userUpdate(
-      userData,
+      safeUserData,
       profileImage,
     );
 
@@ -493,11 +510,10 @@ export class AuthController {
     status: 200,
     description: '이미지 삭제 성공, 기본 이미지로 변경',
   })
-  async deleteProfilePicture(@Body() userData: any): Promise<void> {
-    console.log('🗑️ 프로필 이미지 삭제 요청 - 사용자 ID:', userData.id);
-    // 테스트용 에러 발생 코드 (주석 처리됨)
-    // throw new InternalServerErrorException('의도한 실패');
-    await this.authUserService.deleteProfilePicture(userData.id);
+  async deleteProfilePicture(@GetUser() user: User): Promise<void> {
+    // 🛡️ IDOR 방지: body.id 무시, 항상 JWT 본인 id 로 삭제
+    console.log('🗑️ 프로필 이미지 삭제 요청 - 사용자 ID:', user.id);
+    await this.authUserService.deleteProfilePicture(user.id);
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -529,9 +545,16 @@ export class AuthController {
   @ApiOperation({ summary: '비밀번호 변경' })
   @ApiResponse({ status: 200, description: '비밀번호 변경 성공' })
   @ApiResponse({ status: 401, description: '현재 비밀번호 불일치' })
-  async changePassword(@Body() userData: any): Promise<void> {
-    console.log('🔒 비밀번호 변경 요청 - 사용자 ID:', userData.id);
-    await this.authUserService.changePassword(userData);
+  async changePassword(
+    @GetUser() user: User,
+    @Body() body: { password: string },
+  ): Promise<void> {
+    // 🛡️ IDOR 방지: body.id 무시, 항상 JWT 본인 id 로만 변경
+    console.log('🔒 비밀번호 변경 요청 - 사용자 ID:', user.id);
+    await this.authUserService.changePassword({
+      id: user.id,
+      password: body.password,
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -565,10 +588,15 @@ export class AuthController {
     description: '비밀번호 일치 여부 (true/false) 반환',
   })
   async verifyUser(
-    @Body(ValidationPipe) userData: { id: string; currentPassword: string },
+    @GetUser() user: User,
+    @Body() body: { currentPassword: string },
   ): Promise<boolean> {
-    console.log('🔍 비밀번호 검증 요청 - 사용자 ID:', userData.id);
-    return await this.authUserService.verifyUser(userData);
+    // 🛡️ IDOR 방지: body.id 무시, 항상 JWT 본인 id 로만 검증
+    console.log('🔍 비밀번호 검증 요청 - 사용자 ID:', user.id);
+    return await this.authUserService.verifyUser({
+      id: user.id,
+      currentPassword: body.currentPassword,
+    });
   }
 
   // ═══════════════════════════════════════════════════════════════════════════════════════

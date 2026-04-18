@@ -50,6 +50,17 @@ export class ResetPasswordDto {
   user_email: string;
 
   /**
+   * 비밀번호 재설정 토큰 (forgot-password 단계에서 발급된 일회용 토큰)
+   */
+  @ApiProperty({
+    description:
+      'forgot-password 단계에서 발급받은 일회용 토큰 (이메일로 전달되어야 함)',
+    example: 'a1b2c3d4e5f6...',
+  })
+  @IsNotEmpty({ message: '재설정 토큰이 필요합니다.' })
+  reset_token: string;
+
+  /**
    * 새로운 비밀번호
    */
   @ApiProperty({
@@ -96,4 +107,18 @@ export class ForgotPasswordResponseDto {
     required: false,
   })
   emailExists?: boolean;
+
+  /**
+   * 비밀번호 재설정 토큰 (개발 환경에서만 응답에 포함)
+   *
+   * ⚠️ 운영 환경에서는 이 필드를 응답으로 내려서는 안 되며,
+   * 반드시 이메일로 전달되어야 합니다.
+   */
+  @ApiProperty({
+    description:
+      '재설정 토큰 (개발 환경 전용, 운영에서는 이메일로만 전달되어야 함)',
+    example: 'a1b2c3d4e5f6...',
+    required: false,
+  })
+  resetToken?: string;
 }

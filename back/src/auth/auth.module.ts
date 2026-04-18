@@ -39,6 +39,7 @@ import { TOKEN_EXPIRATION_TIME } from 'src/constants/tokenTime';
 import { Story } from 'src/entities/Story.entity';
 import { Comments } from 'src/entities/Comments.entity';
 import { Likes } from 'src/entities/Likes.entity';
+import { PasswordResetToken } from 'src/entities/PasswordResetToken.entity';
 
 @Module({
   imports: [
@@ -97,7 +98,14 @@ import { Likes } from 'src/entities/Likes.entity';
      * - User ↔ Story: 1:N 관계 (작성한 글)
      * - User ↔ Comments: 1:N 관계 (작성한 댓글)
      */
-    TypeOrmModule.forFeature([User, UserImage, Story, Comments, Likes]),
+    TypeOrmModule.forFeature([
+      User,
+      UserImage,
+      Story,
+      Comments,
+      Likes,
+      PasswordResetToken,
+    ]),
 
     // ═══════════════════════════════════════════════════════════════════════════════════════
     // 📁 파일 업로드 모듈 설정 (Multer)

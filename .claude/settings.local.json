@@ -2,7 +2,9 @@
   "permissions": {
     "allow": [
       "Bash(ls /c/Users/wngus/Documents/Study-Board/front/next.config*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm install *)",
+      "Bash(npm run *)"
     ]
   }
 }

@@ -260,7 +260,7 @@ fileFilter: (req, file, cb) => {
 - [ ] **#4** `synchronize` 기본값 `false`로 변경
 - [ ] **#5** 운영 환경 CORS env 필수화
 - [ ] **#6** 운영용 쿠키 설정 (`sameSite: 'none'` + `secure`)
-- [ ] **#7** `@nestjs/throttler`로 로그인/비밀번호 API Rate Limit
+- [x] **#7** `@nestjs/throttler`로 로그인/비밀번호 API Rate Limit
 - [ ] **#8** Swagger 운영 차단
 
 ### 3주차 — Medium 정리

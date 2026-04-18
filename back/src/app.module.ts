@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { StoryModule } from './story/story.module';
 import { join } from 'path';
@@ -48,6 +50,9 @@ import { BoardModule } from './board/board.module';
       isGlobal: true,
       envFilePath: '.env',
     }),
+
+    // 전역 Rate Limit: 1분에 최대 100회 (일반 요청)
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 100 }]),
 
     /**
      * 🗄️ TypeORM 데이터베이스 설정
@@ -135,6 +140,10 @@ import { BoardModule } from './board/board.module';
      */
     BlindModule, // 게시글/댓글 신고, 블라인드 처리
     ScrapModule, // 게시글 스크랩, 북마크 기능
+  ],
+  providers: [
+    // ThrottlerGuard를 전역 가드로 등록
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],
 })
 export class AppModule {}

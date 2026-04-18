@@ -61,6 +61,7 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
+import { Throttle, SkipThrottle } from '@nestjs/throttler';
 
 @ApiTags('Auth')
 @Controller('api/auth')
@@ -121,6 +122,7 @@ export class AuthController {
    * }
    */
   @Post('signup')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 1분에 5회 제한
   @ApiOperation({ summary: '회원가입' })
   @ApiBody({ type: SignupUserDto })
   @ApiResponse({ status: 201, description: '회원가입 성공' })
@@ -158,6 +160,7 @@ export class AuthController {
    * }
    */
   @Post('signin')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 1분에 5회 제한 (브루트포스 방지)
   @ApiOperation({ summary: '로그인' })
   @ApiBody({ type: SigninUserDto })
   @ApiResponse({ status: 201, description: '로그인 성공' })
@@ -581,6 +584,7 @@ export class AuthController {
    * }
    */
   @Post('verifyPassword')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 1분에 5회 제한
   @UseGuards(AuthGuard())
   @ApiOperation({ summary: '현재 비밀번호 검증 (비밀번호 변경 전 확인용)' })
   @ApiResponse({
@@ -806,6 +810,7 @@ export class AuthController {
    * }
    */
   @Post('/forgot-password')
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 1분에 3회 제한 (더 엄격)
   @ApiOperation({ summary: '비밀번호 찾기 - 이메일 확인' })
   @ApiResponse({ status: 200, description: '이메일 확인 성공' })
   @ApiResponse({ status: 404, description: '등록된 이메일이 없음' })
@@ -838,6 +843,7 @@ export class AuthController {
    * }
    */
   @Post('reset-password')
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 1분에 3회 제한 (더 엄격)
   @ApiOperation({ summary: '비밀번호 재설정' })
   @ApiResponse({ status: 200, description: '비밀번호 재설정 성공' })
   @ApiResponse({ status: 404, description: '등록된 이메일이 없음' })

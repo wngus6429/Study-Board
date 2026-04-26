@@ -79,7 +79,7 @@ import { BoardModule } from './board/board.module';
         database: process.env.DB_NAME || 'board-study',
         entities: [__dirname + '/entities/*.entity{.ts,.js}'],
         logging: false,
-        synchronize: process.env.DB_SYNC !== 'false', // EC2 .env에서 DB_SYNC=false로 끄기
+        synchronize: process.env.DB_SYNC === 'true', // 운영에서는 기본 false, 로컬에서만 명시적으로 true
         keepConnectionAlive: true,
         charset: 'utf8mb4_general_ci',
       }),

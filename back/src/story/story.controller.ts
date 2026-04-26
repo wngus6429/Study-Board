@@ -16,7 +16,6 @@ import {
   UseInterceptors,
   UsePipes,
   ValidationPipe,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { CreateReportDto } from './dto/create-report.dto';
@@ -346,13 +345,12 @@ export class StoryController {
   @UsePipes(ValidationPipe)
   @ApiOperation({ summary: '게시글 수정용 데이터 조회' })
   @ApiParam({ name: 'id', description: '게시글 ID' })
-  @ApiQuery({ name: 'userId', required: true, type: String })
   @ApiResponse({ status: 200, description: '수정할 게시글 데이터 반환' })
   async getStoryEditStory(
     @Param('id', ParseIntPipe) id: number,
-    @Query('userId') userId: string,
+    @GetUser() user: User,
   ): Promise<any> {
-    const data = await this.storyService.findEditStoryOne(id, userId);
+    const data = await this.storyService.findEditStoryOne(id, user.id);
     return data;
   }
   //! ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
@@ -399,7 +397,8 @@ export class StoryController {
    * @returns 생성된 공지사항 정보
    */
   @Post('/notice/create')
-  @UseGuards(AuthGuard())
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
   @UsePipes(ValidationPipe)
   @UseInterceptors(FilesInterceptor('images'))
   @ApiOperation({ summary: '공지사항 작성' })
@@ -481,7 +480,6 @@ export class StoryController {
     description: '추찬 정보',
     schema: {
       properties: {
-        userId: { type: 'string' },
         vote: { type: 'string', enum: ['like', 'dislike'] },
         minRecommend: { type: 'number' },
       },
@@ -493,16 +491,17 @@ export class StoryController {
   })
   async storyLikeOrNot(
     @Param('id') storyId: number,
+    @GetUser() user: User,
     @Body()
-    body: { userId: string; vote: 'like' | 'dislike'; minRecommend: number },
+    body: { vote: 'like' | 'dislike'; minRecommend: number },
   ): Promise<{
     action: 'add' | 'remove' | 'change';
     vote: 'like' | 'dislike';
   }> {
-    console.log('좋아요/싫어요:', storyId, body);
+    console.log('좋아요/싫어요:', storyId, { userId: user.id, ...body });
     return await this.storyService.storyLikeUnLike(
       storyId,
-      body.userId,
+      user.id,
       body.vote,
       body.minRecommend,
     );
@@ -518,7 +517,8 @@ export class StoryController {
    * @returns 마이그레이션 결과 정보
    */
   @Post('/migrateToRecommendRanking')
-  @UseGuards(AuthGuard())
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
   @ApiOperation({ summary: '추찬 랜킹 테이블 마이그레이션 (관리자 전용)' })
   @ApiResponse({ status: 200, description: '마이그레이션 결과' })
   @ApiResponse({ status: 401, description: '관리자 권한 없음' })
@@ -526,11 +526,6 @@ export class StoryController {
     @GetUser() user: User,
     @Body() body: { minRecommend: number },
   ): Promise<{ success: boolean; migrated: number }> {
-    // 관리자 권한 확인 (실제 관리자 이메일로 변경하세요)
-    if (!user || user.user_email !== 'admin@example.com') {
-      throw new UnauthorizedException('관리자만 실행할 수 있는 기능입니다.');
-    }
-
     // 데이터 마이그레이션 서비스 호출
     const migrated = await this.storyService.migrateToRecommendRanking(
       body.minRecommend || 1,
@@ -598,18 +593,14 @@ export class StoryController {
    * @returns 신고 목록과 총 개수
    */
   @Get('/admin/reports')
-  @UseGuards(AuthGuard())
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
   async getReports(
     @GetUser() userData: User,
     @Query('offset') offset = 0,
     @Query('limit') limit = 20,
     @Query('status') status?: ReportStatus,
   ): Promise<{ reports: any[]; total: number }> {
-    // 관리자 권한 확인 (관리자 이메일로 확인)
-    // if (userData.user_email !== 'admin@example.com') {
-    //   throw new UnauthorizedException('관리자 권한이 필요합니다.');
-    // }
-
     console.log('신고 목록 조회 - 관리자:', userData.id, 'status:', status);
     return await this.storyService.getReports(offset, limit, status);
   }
@@ -624,18 +615,14 @@ export class StoryController {
    * @returns 업데이트된 신고 정보
    */
   @Put('/admin/reports/:id/review')
-  @UseGuards(AuthGuard())
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
   @UsePipes(ValidationPipe)
   async reviewReport(
     @Param('id', ParseIntPipe) reportId: number,
     @Body() reviewReportDto: ReviewReportDto,
     @GetUser() userData: User,
   ): Promise<Report> {
-    // 관리자 권한 확인 (관리자 이메일로 확인)
-    if (userData.user_email !== 'admin@example.com') {
-      throw new UnauthorizedException('관리자 권한이 필요합니다.');
-    }
-
     console.log('신고 검토:', reportId, reviewReportDto, userData.id);
     return await this.storyService.reviewReport(
       reportId,
@@ -653,7 +640,8 @@ export class StoryController {
    * @returns 신고 현황 정보
    */
   @Get('/admin/story/:id/reports')
-  @UseGuards(AuthGuard())
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
   async getStoryReports(
     @Param('id', ParseIntPipe) storyId: number,
     @GetUser() userData: User,
@@ -664,11 +652,6 @@ export class StoryController {
     rejected: number;
     reports: any[];
   }> {
-    // 관리자 권한 확인 (관리자 이메일로 확인)
-    if (userData.user_email !== 'admin@example.com') {
-      throw new UnauthorizedException('관리자 권한이 필요합니다.');
-    }
-
     console.log('게시글 신고 현황 조회:', storyId, userData.id);
     return await this.storyService.getStoryReports(storyId);
   }
@@ -682,16 +665,12 @@ export class StoryController {
    * @returns 성공 시 void
    */
   @Delete('/admin/story/:id/delete')
-  @UseGuards(AuthGuard())
+  @UseGuards(AdminGuard)
+  @SuperAdminRequired()
   async deleteReportedStory(
     @Param('id', ParseIntPipe) storyId: number,
     @GetUser() userData: User,
   ): Promise<void> {
-    // 관리자 권한 확인 (관리자 이메일로 확인)
-    if (userData.user_email !== 'admin@example.com') {
-      throw new UnauthorizedException('관리자 권한이 필요합니다.');
-    }
-
     console.log('신고된 게시글 삭제:', storyId, userData.id);
     return await this.storyService.deleteReportedStory(storyId, userData.id);
   }

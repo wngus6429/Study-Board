@@ -124,9 +124,11 @@ async function bootstrap() {
     .addTag('users', '사용자 검색 관련 API')
     .build();
 
-  const document = SwaggerModule.createDocument(app, config);
   const port = process.env.PORT || 8888;
-  SwaggerModule.setup('api', app, document); // http://localhost:${port}/api 에서 문서 확인 가능
+  if (process.env.NODE_ENV !== 'production') {
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document); // http://localhost:${port}/api 에서 문서 확인 가능
+  }
 
   // 🚀 서버 시작
   await app.listen(port);

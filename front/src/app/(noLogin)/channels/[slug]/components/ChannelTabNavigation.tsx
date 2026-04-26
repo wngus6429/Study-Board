@@ -41,7 +41,9 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
     <Box
       sx={{
         display: "flex",
-        alignItems: "center",
+        alignItems: { xs: "stretch", sm: "center" },
+        flexDirection: { xs: "column", sm: "row" },
+        gap: { xs: 1, sm: 0 },
         width: "100%",
         borderRadius: "16px",
         position: "relative",
@@ -118,16 +120,17 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
         scrollButtons={"auto"}
         sx={{
           flexGrow: 1,
+          width: "100%",
           position: "relative",
           zIndex: 2,
           "& .MuiTab-root": {
-            minWidth: "90px",
+            minWidth: { xs: "72px", sm: "90px" },
             maxWidth: "120px",
             width: "auto",
             fontWeight: 700,
-            fontSize: "1rem", // 폰트 크기 약간 줄임
-            py: 1,
-            px: 2, // 좌우 패딩 조정
+            fontSize: { xs: "0.82rem", sm: "1rem" }, // 폰트 크기 약간 줄임
+            py: { xs: 0.75, sm: 1 },
+            px: { xs: 1, sm: 2 }, // 좌우 패딩 조정
             position: "relative",
             overflow: "hidden",
             borderRadius: "12px",
@@ -187,7 +190,7 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
             "& .MuiTab-iconWrapper": {
               marginBottom: "2px",
               "& svg": {
-                fontSize: "20px", // 아이콘 크기 조정
+                fontSize: { xs: "18px", sm: "20px" }, // 아이콘 크기 조정
               },
             },
           },
@@ -224,9 +227,10 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
           sx={{
             display: "flex",
             gap: 0.5, // 버튼 간격 줄임
-            mr: 1,
+            mr: { xs: 0, sm: 1 },
             position: "relative",
             zIndex: 2,
+            justifyContent: "center",
           }}
         >
           <IconButton
@@ -351,6 +355,7 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
           onClick={onWritePost}
           sx={{
             mr: 2,
+            mx: { xs: 1, sm: 2 },
             position: "relative",
             zIndex: 2,
             borderRadius: "14px",
@@ -359,6 +364,7 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
             px: 2.5, // 좌우 패딩 줄임
             py: 1.2, // 상하 패딩 줄임
             minWidth: "100px", // 최소 너비 줄임
+            width: { xs: "calc(100% - 16px)", sm: "auto" },
             height: "44px", // 고정 높이로 다른 버튼들과 맞춤
             textTransform: "none",
             transition: "all 0.3s ease",

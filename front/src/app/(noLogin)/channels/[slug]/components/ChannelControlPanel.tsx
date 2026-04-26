@@ -53,7 +53,11 @@ const ChannelControlPanel: React.FC<ChannelControlPanelProps> = ({
       sx={{
         display: "flex",
         justifyContent: "space-between",
-        alignItems: "center",
+        alignItems: { xs: "stretch", md: "center" },
+        flexDirection: { xs: "column", md: "row" },
+        gap: { xs: 1.5, md: 0 },
+        width: "100%",
+        p: { xs: 1, sm: 1.5, md: 0 },
         borderRadius: "16px",
         position: "relative",
         overflow: "hidden",
@@ -120,15 +124,27 @@ const ChannelControlPanel: React.FC<ChannelControlPanelProps> = ({
       }}
     >
       {/* 왼쪽: 정렬 옵션과 추천 랭킹 버튼 - 건의사항 탭이 아닐 때만 표시 */}
-      <Box sx={{ flex: 1, display: "flex", gap: 2, position: "relative", zIndex: 2 }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          gap: { xs: 1, sm: 2 },
+          flexWrap: "wrap",
+          position: "relative",
+          zIndex: 2,
+          justifyContent: { xs: "center", md: "flex-start" },
+          width: "100%",
+        }}
+      >
         {currentTab !== "suggestion" && (
           <>
-            <FormControl size="small">
+            <FormControl size="small" sx={{ width: { xs: "100%", sm: "auto" }, maxWidth: { xs: "100%", sm: 160 } }}>
               <Select
                 value={sortOrder}
                 onChange={onSortChange}
                 sx={{
                   ml: 2,
+                  width: { xs: "100%", sm: "auto" },
                   borderRadius: "12px",
                   background:
                     theme.palette.mode === "dark"
@@ -169,6 +185,7 @@ const ChannelControlPanel: React.FC<ChannelControlPanelProps> = ({
               variant="contained"
               startIcon={<EmojiEventsIcon sx={{ fontSize: 24, filter: "drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3))" }} />}
               sx={{
+                flex: { xs: "1 1 160px", sm: "0 0 auto" },
                 borderRadius: "12px",
                 fontWeight: 700,
                 fontSize: "0.95rem",
@@ -220,12 +237,15 @@ const ChannelControlPanel: React.FC<ChannelControlPanelProps> = ({
           flex: 1,
           position: "relative",
           zIndex: 2,
+          width: "100%",
         }}
       >
         <Box
           sx={{
             borderRadius: "12px",
             p: 1,
+            width: { xs: "100%", md: "auto" },
+            maxWidth: "100%",
             background:
               theme.palette.mode === "dark"
                 ? "linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(6, 182, 212, 0.04))"
@@ -249,7 +269,16 @@ const ChannelControlPanel: React.FC<ChannelControlPanelProps> = ({
       </Box>
 
       {/* 오른쪽: 검색바 (건의사항 탭이 아닐 때) 또는 건의하기 버튼 (건의사항 탭일 때) */}
-      <Box sx={{ flex: 1, display: "flex", justifyContent: "flex-end", position: "relative", zIndex: 2 }}>
+      <Box
+        sx={{
+          flex: 1,
+          display: "flex",
+          justifyContent: { xs: "center", md: "flex-end" },
+          position: "relative",
+          zIndex: 2,
+          width: "100%",
+        }}
+      >
         {currentTab === "suggestion" && hasSession ? (
           <Button
             variant="contained"
@@ -307,6 +336,7 @@ const ChannelControlPanel: React.FC<ChannelControlPanelProps> = ({
                     ? "0 4px 15px rgba(139, 92, 246, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
                     : "0 4px 15px rgba(139, 92, 246, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.8)",
                 maxWidth: "320px",
+                width: "100%",
               }}
             >
               <SearchBar

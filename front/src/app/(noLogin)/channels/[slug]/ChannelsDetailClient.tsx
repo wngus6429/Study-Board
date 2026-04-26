@@ -931,7 +931,8 @@ const ChannelDetailPage = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                whiteSpace: "nowrap",
+                whiteSpace: { xs: "normal", sm: "nowrap" },
+                flexWrap: "wrap",
               }}
             >
               📅 생성일:
@@ -957,7 +958,8 @@ const ChannelDetailPage = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                whiteSpace: "nowrap",
+                whiteSpace: { xs: "normal", sm: "nowrap" },
+                flexWrap: "wrap",
               }}
             >
               👤 생성자:
@@ -979,7 +981,8 @@ const ChannelDetailPage = () => {
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
-                whiteSpace: "nowrap",
+                whiteSpace: { xs: "normal", sm: "nowrap" },
+                flexWrap: "wrap",
               }}
             >
               📊 통계:

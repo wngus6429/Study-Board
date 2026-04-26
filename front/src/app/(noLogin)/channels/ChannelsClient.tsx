@@ -433,7 +433,7 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
           theme.palette.mode === "dark"
             ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(16, 16, 32, 0.98))"
             : "linear-gradient(135deg, #f8f9fa, #e9ecef)",
-        padding: 3,
+        padding: { xs: 1, sm: 2, md: 3 },
         paddingBottom: 6, // 하단에 여백 추가
       }}
     >
@@ -444,8 +444,8 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
             backgroundColor: theme.palette.mode === "dark" ? "rgba(220, 38, 38, 0.25)" : "#fef2f2",
             border: theme.palette.mode === "dark" ? "2px solid rgba(220, 38, 38, 0.8)" : "2px solid #ef4444",
             borderRadius: 3,
-            padding: 3,
-            marginBottom: 4,
+            padding: { xs: 2, sm: 3 },
+            marginBottom: { xs: 2, sm: 4 },
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -462,6 +462,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
               display: "flex",
               alignItems: "center",
               gap: 1.5,
+              fontSize: { xs: "1rem", sm: "1.5rem" },
+              flexWrap: "wrap",
+              justifyContent: "center",
             }}
           >
             ⚠️ 서버(DB) 연결이 끊어졌습니다. UI 테스트를 위해 아래에 더미 샘플 채널이 표시됩니다.
@@ -474,20 +477,31 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
         sx={{
           background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
           borderRadius: 3,
-          padding: 3,
-          marginBottom: 3,
+          padding: { xs: 2, sm: 3 },
+          marginBottom: { xs: 2, sm: 3 },
           border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid rgba(0, 0, 0, 0.1)",
           boxShadow:
             theme.palette.mode === "dark" ? "0px 8px 32px rgba(139, 92, 246, 0.3)" : "0px 4px 20px rgba(0, 0, 0, 0.1)",
         }}
       >
-        <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: { xs: "stretch", sm: "center" },
+            flexDirection: { xs: "column", sm: "row" },
+            gap: { xs: 1.5, sm: 2 },
+            mb: 2,
+          }}
+        >
           <Typography
             variant="h4"
             sx={{
               color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
               fontWeight: "bold",
               textShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.5)" : "none",
+              fontSize: { xs: "1.5rem", sm: "2.125rem" },
+              wordBreak: "keep-all",
             }}
           >
             채널 목록 ({filteredChannels.length}개)
@@ -532,6 +546,7 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
                   : "0 4px 12px rgba(25, 118, 210, 0.3)",
               borderRadius: 2,
               px: 3,
+              width: { xs: "100%", sm: "auto" },
             }}
           >
             {createChannelMutation.isPending ? <CircularProgress size={20} sx={{ color: "inherit" }} /> : "채널 만들기"}

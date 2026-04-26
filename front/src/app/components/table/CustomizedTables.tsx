@@ -111,9 +111,12 @@ const CustomizedTables = ({ tableData, onRowClick }: CustomizedTablesProps): Rea
           borderRadius: 2,
           backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "background.paper",
           border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "none",
+          width: "100%",
+          maxWidth: "100%",
+          overflowX: "auto",
         }}
       >
-        <Table aria-label="customized table">
+        <Table aria-label="customized table" sx={{ minWidth: { xs: 760, md: "100%" } }}>
           <TableHead>
             <TableRow>
               <StyledTableCell sx={{ width: "100px", textAlign: "center" }}>번호</StyledTableCell>

@@ -8,9 +8,9 @@
 
 .content_wrapper {
   display: grid;
-  grid-template-columns: 100px 1000px 400px; /* NavMenuBar, 메인컨텐츠, RightView */
+  grid-template-columns: 100px minmax(0, 1000px) minmax(280px, 400px); /* NavMenuBar, 메인컨텐츠, RightView */
   gap: 15px;
-  width: 1465px; /* 전체 고정 너비 (100+1000+400+15*2 + 50px 여백) */
+  width: min(100%, 1465px); /* 전체 고정 너비 상한 */
   margin: 0 auto; /* 중앙 정렬 */
   padding: 0 20px 0 20px; /* 좌우 패딩 */
 }
@@ -29,8 +29,7 @@
   will-change: auto;
   transform: translateZ(0);
   backface-visibility: hidden;
-  /* 고정 너비로 레이아웃 변화 방지 */
-  width: 1000px;
+  width: 100%;
   max-width: 1000px;
 }
 
@@ -53,6 +52,7 @@
 
   .main_content {
     width: 100%;
+    max-width: 100%;
     order: 2;
   }
 
@@ -71,11 +71,17 @@
 
 @media (max-width: 768px) {
   .main_container {
-    padding: 10px 0;
+    padding: 8px 0;
   }
 
   .content_wrapper {
-    padding: 0 10px;
-    gap: 15px;
+    padding: 0 8px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .content_wrapper {
+    padding: 0 6px;
   }
 }

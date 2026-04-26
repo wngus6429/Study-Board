@@ -209,15 +209,17 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
     <Box
       component="form"
       onSubmit={handleUpdate}
-      padding={4}
       sx={{
-        width: "60%",
+        width: { xs: "100%", sm: "92%", md: "80%", lg: "60%" },
+        maxWidth: "760px",
         margin: "auto",
-        mt: 5,
+        mt: { xs: 2, sm: 4, md: 5 },
+        px: { xs: 2, sm: 3, md: 4 },
+        py: { xs: 3, sm: 4 },
         bgcolor: "background.paper",
         boxShadow: 3,
-        borderRadius: 3,
-        mb: 5,
+        borderRadius: { xs: 2, sm: 3 },
+        mb: { xs: 3, md: 5 },
       }}
     >
       <Typography
@@ -227,6 +229,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
           fontWeight: "bold",
           textAlign: "center",
           color: "primary.main",
+          fontSize: { xs: "1.85rem", sm: "2.125rem" },
         }}
       >
         건의사항 수정하기
@@ -254,7 +257,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
         value={selectedCategory}
       />
 
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 2, minWidth: 0 }}>
         <Typography variant="body1" sx={{ mb: 1, fontWeight: 500, mt: -1 }}>
           내용 (필수)
         </Typography>
@@ -274,6 +277,7 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
         sx={{
           display: "flex",
           justifyContent: "space-between",
+          gap: { xs: 1, sm: 2 },
           mt: 3,
         }}
       >
@@ -283,7 +287,6 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
           onClick={() => router.back()}
           sx={{
             flex: 1,
-            marginRight: 1,
             fontWeight: "bold",
           }}
         >
@@ -296,7 +299,6 @@ export default function EditSuggestionPage({ params }: { params: { id: string } 
           disabled={loading || title.length < 3 || content.length < 3}
           sx={{
             flex: 1,
-            marginLeft: 1,
             fontWeight: "bold",
           }}
           startIcon={loading && <CircularProgress size={20} color="inherit" />}

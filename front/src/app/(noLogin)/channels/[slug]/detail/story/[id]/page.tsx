@@ -1047,7 +1047,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "flex-end",
-                  gap: 0.5,
+                  gap: { xs: 0.75, sm: 0.5 },
                 }}
               >
                 <Box
@@ -1092,7 +1092,9 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   variant="caption"
                   color="text.secondary"
                   sx={{
-                    fontSize: { xs: "0.65rem", sm: "0.75rem" },
+                    fontSize: { xs: "0.78rem", sm: "0.85rem" },
+                    lineHeight: 1.2,
+                    fontWeight: 500,
                     textAlign: "right",
                   }}
                 >

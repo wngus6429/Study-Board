@@ -12,8 +12,9 @@
   top: 0;
   z-index: 1100;
   height: 70px; /* TopBar 높이 명시적으로 설정 */
-  padding: 8px 0; /* 상하 패딩 */
+  padding: 8px 16px; /* 상하 패딩 */
   transition: all 0.3s ease;
+  gap: 12px;
 }
 
 .container:hover {
@@ -43,11 +44,20 @@
 @media (max-width: 600px) {
   .container {
     justify-content: space-between;
-    padding: 6px 12px;
+    padding: 6px 8px 6px 10px;
     height: 64px;
+    gap: 6px;
   }
 
   .nav {
-    gap: 8px;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+}
+
+@media (max-width: 380px) {
+  .container {
+    padding-left: 6px;
+    padding-right: 4px;
   }
 }

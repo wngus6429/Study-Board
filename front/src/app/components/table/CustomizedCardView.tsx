@@ -184,7 +184,7 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
           </Typography>
         </Box>
       ) : (
-        <Grid container spacing={1} sx={{ p: 1 }}>
+        <Grid container spacing={{ xs: 1.5, sm: 1 }} sx={{ p: { xs: 0.5, sm: 1 } }}>
           {tableData.map((row) => (
             <Grid item xs={12} sm={6} md={4} key={row.id}>
               <Card elevation={4} onClick={() => handleCardClick(row.id)} sx={cardStyles}>
@@ -202,7 +202,7 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                           }}
                         />
                       )}
-                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+                      <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, minWidth: 0 }}>
                         {row.imageFlag && <ImageIcon sx={imageIconStyles} />}
                         {row.videoFlag && <VideoLibraryIcon sx={videoIconStyles} />}
                         <Typography variant="h6" gutterBottom sx={titleTextStyles}>
@@ -238,19 +238,20 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                 </CardContent>
 
                 {/* 이미지 영역: imageFlag가 true이고 firstImage가 존재할 경우 렌더링 */}
-                {row.imageFlag && row.firstImage ? (
-                  <CardMedia
-                    component="img"
-                    width="360"
-                    height="200"
-                    image={`${process.env.NEXT_PUBLIC_BASE_URL}${row.firstImage.link}`}
-                    alt={row.title}
-                  />
-                ) : row.videoFlag ? (
-                  <Image src="/assets/Video.png" alt="Video" width={360} height={200} />
-                ) : (
-                  <Image src="/assets/NoImage.PNG" alt="No Image" width={360} height={200} />
-                )}
+                <Box sx={{ position: "relative", width: "100%", aspectRatio: "16 / 9", overflow: "hidden" }}>
+                  {row.imageFlag && row.firstImage ? (
+                    <CardMedia
+                      component="img"
+                      image={`${process.env.NEXT_PUBLIC_BASE_URL}${row.firstImage.link}`}
+                      alt={row.title}
+                      sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                    />
+                  ) : row.videoFlag ? (
+                    <Image src="/assets/Video.png" alt="Video" fill sizes="(max-width: 600px) 100vw, 33vw" style={{ objectFit: "cover" }} />
+                  ) : (
+                    <Image src="/assets/NoImage.PNG" alt="No Image" fill sizes="(max-width: 600px) 100vw, 33vw" style={{ objectFit: "cover" }} />
+                  )}
+                </Box>
 
                 {/* 하단: 작성자, 번호 및 등록일 */}
                 <CardContent sx={{ pt: 1, flexGrow: 1 }}>

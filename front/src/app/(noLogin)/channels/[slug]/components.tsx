@@ -13,6 +13,9 @@ import {
 // 메인 컨테이너
 export const MainContainer = styled(Box)(({ theme }) => ({
   minHeight: "100vh",
+  width: "100%",
+  maxWidth: "100%",
+  overflowX: "hidden",
   background: theme.palette.mode === "dark" ? colors.gradient.background.dark : colors.gradient.background.light,
 }));
 
@@ -20,6 +23,8 @@ export const MainContainer = styled(Box)(({ theme }) => ({
 export const ChannelInfoCard = styled(Card)(({ theme }) => ({
   ...getMetallicCardStyle(theme),
   marginBottom: 0,
+  width: "100%",
+  maxWidth: "100%",
 }));
 
 // 그라디언트 버튼

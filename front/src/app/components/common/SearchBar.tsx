@@ -61,7 +61,8 @@ const SearchBar: React.FC<SearchBarProps> = ({
       sx={{
         display: "flex",
         alignItems: "center",
-        width: "300px",
+        width: "min(100%, 300px)",
+        minWidth: 0,
         backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "rgba(255, 255, 255, 0.9)",
         borderRadius: 2,
         border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.3)" : "1px solid rgba(0, 0, 0, 0.1)",
@@ -71,7 +72,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
       }}
     >
       {/* 검색 범위 선택 */}
-      <FormControl sx={{ minWidth: 100 }}>
+      <FormControl sx={{ minWidth: { xs: 82, sm: 100 }, flexShrink: 0 }}>
         <Select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
@@ -83,6 +84,7 @@ const SearchBar: React.FC<SearchBarProps> = ({
             },
             "& .MuiSelect-select": {
               color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
+              px: { xs: 1, sm: 1.75 },
             },
           }}
         >
@@ -104,12 +106,14 @@ const SearchBar: React.FC<SearchBarProps> = ({
         onChange={(e) => setQuery(e.target.value)}
         onKeyDown={handleKeyDown}
         sx={{
+          minWidth: 0,
           "& .MuiOutlinedInput-root": {
             "& fieldset": {
               border: "none",
             },
             "& input": {
               color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
+              px: { xs: 1, sm: 1.75 },
               "&::placeholder": {
                 color: theme.palette.mode === "dark" ? "#94a3b8" : "rgba(0, 0, 0, 0.6)",
                 opacity: 1,

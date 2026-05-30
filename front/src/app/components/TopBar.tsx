@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
-import { Avatar, Button, Menu, MenuItem, ListItemIcon, ListItemText, useTheme, useMediaQuery, Box as MuiBox } from "@mui/material";
+import { Avatar, Button, Divider, Menu, MenuItem, ListItemIcon, ListItemText, useTheme, useMediaQuery, Box as MuiBox } from "@mui/material";
 import { useRouter } from "next/navigation";
 import axios from "@/app/api/axios";
 import styles from "./style/TopBar.module.css";
@@ -26,6 +26,9 @@ import ReportIcon from "@mui/icons-material/Report";
 import LoginIcon from "@mui/icons-material/Login";
 import LogoutIcon from "@mui/icons-material/Logout";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import TranslateIcon from "@mui/icons-material/Translate";
+import CheckIcon from "@mui/icons-material/Check";
+import { useLanguageStore, type AppLanguage } from "../store/languageStore";
 
 export default function MenuBar() {
   const router = useRouter();
@@ -35,6 +38,7 @@ export default function MenuBar() {
   const { showMessage } = useMessage((state) => state);
   const { setUserImageUrl, TopBarImageDelete } = useUserImage();
   const { setCurrentPage } = usePageStore();
+  const { language, setLanguage } = useLanguageStore();
   const [settingsMenuAnchor, setSettingsMenuAnchor] = useState<null | HTMLElement>(null);
 
   console.log("유저", user);
@@ -196,6 +200,12 @@ export default function MenuBar() {
     handleSettingsMenuClose();
     // 신고 목록 페이지로 이동
     router.push("/reports");
+  };
+
+  const handleLanguageChange = (nextLanguage: AppLanguage) => {
+    setLanguage(nextLanguage);
+    handleSettingsMenuClose();
+    showMessage(nextLanguage === "ja" ? "日本語で表示します。" : "한국어로 표시합니다.", "success");
   };
 
   return (
@@ -606,6 +616,22 @@ export default function MenuBar() {
               <ListItemText primary={user.user.nickname} secondary="프로필 보기" />
             </MenuItem>
           )}
+          <Divider sx={{ my: 0.5 }} />
+          <MenuItem data-i18n-skip selected={language === "ja"} onClick={() => handleLanguageChange("ja")}>
+            <ListItemIcon>
+              <TranslateIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="日本語" secondary={language === "ja" ? "現在の表示言語" : "Japanese"} />
+            {language === "ja" && <CheckIcon fontSize="small" color="primary" />}
+          </MenuItem>
+          <MenuItem data-i18n-skip selected={language === "ko"} onClick={() => handleLanguageChange("ko")}>
+            <ListItemIcon>
+              <TranslateIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText primary="한국어" secondary={language === "ko" ? "현재 표시 언어" : "Korean"} />
+            {language === "ko" && <CheckIcon fontSize="small" color="primary" />}
+          </MenuItem>
+          <Divider sx={{ my: 0.5 }} />
           <MenuItem onClick={handleMessages}>
             <ListItemIcon>
               <MessageIcon fontSize="small" />

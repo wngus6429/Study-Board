@@ -14,6 +14,7 @@ import ScrollUpButton from "./components/common/ScrollUpButton";
 import ThemeProvider from "./components/Provider/ThemeProvider";
 import SitePasswordGate from "./components/Provider/SitePasswordGate";
 import BrowserNotification from "./components/Provider/BrowserNotification";
+import LanguageProvider from "./components/Provider/LanguageProvider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,37 +40,39 @@ export default function RootLayout({
 }>) {
   return (
     // 이거 alwaysScroll이라는 클래스를 만들어서 스크롤이 항상 보이게 설정, 아니면 스크롤 생기면 왼쪽으로 밀려나는 현상 발생
-    <html lang="en" className="alwaysScroll">
+    <html lang="ja" className="alwaysScroll">
       <body className={inter.className}>
         <ThemeProvider>
-          <RQProvider>
-            <AuthSession>
-              {/* <SitePasswordGate> */}
-              <BrowserNotification>
-                <SubscriptionProvider>
-                  {/* 상단 바 */}
-                  <TopBar />
-                  <div className={style.main_container}>
-                    <div className={style.content_wrapper}>
-                      {/* 왼쪽 네비게이션 */}
-                      <div className={style.nav_section}>
-                        <NavMenuBar />
+          <LanguageProvider>
+            <RQProvider>
+              <AuthSession>
+                {/* <SitePasswordGate> */}
+                <BrowserNotification>
+                  <SubscriptionProvider>
+                    {/* 상단 바 */}
+                    <TopBar />
+                    <div className={style.main_container}>
+                      <div className={style.content_wrapper}>
+                        {/* 왼쪽 네비게이션 */}
+                        <div className={style.nav_section}>
+                          <NavMenuBar />
+                        </div>
+                        {/* 메인 컨텐츠 */}
+                        <div className={style.main_content}>{children}</div>
+                        {/* 오른쪽 영역 */}
+                        <div className={style.right_section}>
+                          <RightView />
+                        </div>
                       </div>
-                      {/* 메인 컨텐츠 */}
-                      <div className={style.main_content}>{children}</div>
-                      {/* 오른쪽 영역 */}
-                      <div className={style.right_section}>
-                        <RightView />
-                      </div>
+                      <MessageView />
                     </div>
-                    <MessageView />
-                  </div>
-                  <ScrollUpButton />
-                </SubscriptionProvider>
-              </BrowserNotification>
-              {/* </SitePasswordGate> */}
-            </AuthSession>
-          </RQProvider>
+                    <ScrollUpButton />
+                  </SubscriptionProvider>
+                </BrowserNotification>
+                {/* </SitePasswordGate> */}
+              </AuthSession>
+            </RQProvider>
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -993,8 +993,7 @@ const ChannelDetailPage = () => {
                   fontWeight: 600,
                 }}
               >
-                구독자 {channelData.subscriber_count.toLocaleString()}명 · 게시글{" "}
-                {channelData.story_count.toLocaleString()}개
+                {`구독자 ${channelData.subscriber_count.toLocaleString()}명 · 게시글 ${channelData.story_count.toLocaleString()}개`}
               </Box>
             </Typography>
           </Box>

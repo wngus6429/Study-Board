@@ -504,7 +504,7 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
               wordBreak: "keep-all",
             }}
           >
-            채널 목록 ({filteredChannels.length}개)
+            {`채널 목록 (${filteredChannels.length}개)`}
             {isSuperAdmin && channels.filter((c) => c.is_hidden).length > 0 && (
               <Typography
                 component="span"
@@ -515,7 +515,7 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
                   fontWeight: "normal",
                 }}
               >
-                (숨김: {channels.filter((c) => c.is_hidden).length}개)
+                {`(숨김: ${channels.filter((c) => c.is_hidden).length}개)`}
               </Typography>
             )}
           </Typography>

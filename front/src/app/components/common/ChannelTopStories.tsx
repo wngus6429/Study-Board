@@ -87,7 +87,7 @@ export default function ChannelTopStories() {
       <Card sx={{ mb: 2, boxShadow: 2 }}>
         <CardContent sx={{ p: 2 }}>
           <Typography variant="h6" color="error">
-            ❌ 개념글 로딩 에러: {(error as Error).message}
+            {`❌ 개념글 로딩 에러: ${(error as Error).message}`}
           </Typography>
         </CardContent>
       </Card>

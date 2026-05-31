@@ -322,7 +322,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                 fontWeight: 600,
               }}
             >
-              구독자 {formatSubscriberCount(channelData.subscriber_count)}명
+              {`구독자 ${formatSubscriberCount(channelData.subscriber_count)}명`}
             </MetallicSubtitle>
           </Box>
 
@@ -333,7 +333,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                 color: theme.palette.mode === "dark" ? "#94a3b8" : "text.secondary",
               }}
             />
-            <MetallicSubtitle variant="body2">생성자: {channelData.creator?.nickname || "알수없음"}</MetallicSubtitle>
+            <MetallicSubtitle variant="body2">{`생성자: ${channelData.creator?.nickname || "알수없음"}`}</MetallicSubtitle>
             {/* 생성자에게 쪽지 보내기 버튼 */}
             {session?.user &&
               channelData.creator &&
@@ -361,7 +361,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
               )}
           </Box>
 
-          <MetallicSubtitle variant="body2">게시글 {channelData.story_count.toLocaleString()}개</MetallicSubtitle>
+          <MetallicSubtitle variant="body2">{`게시글 ${channelData.story_count.toLocaleString()}개`}</MetallicSubtitle>
         </Box>
       </Box>
     </Box>

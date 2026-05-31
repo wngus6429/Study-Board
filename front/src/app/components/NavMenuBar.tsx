@@ -266,7 +266,7 @@ const NavMenuBar: FC = () => {
                         color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)",
                       }}
                     >
-                      {channel.story_count}개 글
+                      {`${channel.story_count}개 글`}
                     </Typography>
                   </Box>
                 </ListItemButton>
@@ -372,7 +372,7 @@ const NavMenuBar: FC = () => {
               mt: 1,
             }}
           >
-            총 {navStoriesData?.total ?? navStoriesData?.results?.length ?? stories.length}개 게시글
+            {`총 ${navStoriesData?.total ?? navStoriesData?.results?.length ?? stories.length}개 게시글`}
           </Typography>
         </Box>
       )}

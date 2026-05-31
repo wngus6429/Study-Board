@@ -192,7 +192,7 @@ export default function ScrapsPage() {
         </Box>
         {scraps.length > 0 && (
           <Typography variant="body2" color="text.secondary">
-            총 {scrapsData?.total || 0}개의 스크랩
+            {`총 ${scrapsData?.total || 0}개의 스크랩`}
           </Typography>
         )}
       </Box>

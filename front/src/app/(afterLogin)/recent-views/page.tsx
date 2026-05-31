@@ -206,7 +206,7 @@ export default function RecentViewsPage() {
       {recentViews.length > 0 && (
         <Box sx={{ mt: 2, textAlign: "center" }}>
           <Typography variant="body2" color="text.secondary">
-            총 {recentViews.length}개의 게시물 (최대 30개까지 저장됩니다)
+            {`총 ${recentViews.length}개의 게시물 (최대 30개까지 저장됩니다)`}
           </Typography>
         </Box>
       )}

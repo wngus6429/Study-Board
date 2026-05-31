@@ -366,7 +366,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({ channelId, channelName, showM
               backgroundClip: "text",
             }}
           >
-            {channelName} 채널 자유채팅
+            {`${channelName} 채널 자유채팅`}
           </Typography>
 
           {/* 연결 상태 및 온라인 사용자 표시 */}
@@ -403,7 +403,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({ channelId, channelName, showM
                   fontSize: "0.75rem",
                 }}
               >
-                온라인: {onlineUsers.length}명
+                {`온라인: ${onlineUsers.length}명`}
               </Typography>
             )}
           </Box>

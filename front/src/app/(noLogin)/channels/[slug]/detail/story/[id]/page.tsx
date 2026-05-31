@@ -989,7 +989,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
               }}
             >
               <LocalOfferIcon fontSize="small" />
-              종류: {detail.category}
+              {`종류: ${detail.category}`}
             </Typography>
             <Box
               sx={{

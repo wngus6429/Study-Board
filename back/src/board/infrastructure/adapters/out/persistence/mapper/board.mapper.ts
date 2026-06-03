@@ -1,6 +1,6 @@
 import { Board } from '../../../../../core/domain/board.entity';
 import { Story } from '../../../../../../entities/Story.entity';
-import { User } from '../../../../../../entities/user.entity';
+import { User } from '../../../../../../entities/User.entity';
 
 /**
  * [Mapper]

@@ -3,7 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { PassportModule } from '@nestjs/passport';
 
 import { Story } from '../entities/Story.entity';
-import { User } from '../entities/user.entity';
+import { User } from '../entities/User.entity';
 import { AuthModule } from '../auth/auth.module'; // AuthGuard 사용을 위해 필요할 수 있음
 
 import { BoardController } from './infrastructure/adapters/in/web/board.controller';

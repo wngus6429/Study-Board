@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from '../../../../../common/decorators/get-user.decorator'; // 기존 데코레이터 경로 임시 지정 (경로에 맞게 수정 필요)
-import { User } from '../../../../../entities/user.entity'; // 기존 유저 엔티티
+import { User } from '../../../../../entities/User.entity'; // 기존 유저 엔티티
 import { BOARD_USE_CASE, BoardUseCase } from '../../../../core/application/ports/in/board.use-case';
 import { CreateBoardDto } from './dto/create-board.dto';
 import { UpdateBoardDto } from './dto/update-board.dto';

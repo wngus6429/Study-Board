@@ -17,8 +17,10 @@ export const authOptions: NextAuthOptions = {
       },
       async authorize(credentials) {
         try {
+          const apiBaseUrl = process.env.INTERNAL_API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
+
           // DB에 로그인 요청
-          const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/signinSession`, {
+          const res = await fetch(`${apiBaseUrl}/api/auth/signinSession`, {
             method: "POST",
             body: JSON.stringify(credentials),
             headers: { "Content-Type": "application/json" },

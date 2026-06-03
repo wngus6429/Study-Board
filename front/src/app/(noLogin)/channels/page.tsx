@@ -29,8 +29,10 @@ export const metadata: Metadata = {
 // 서버에서 초기 채널 데이터 가져오기
 async function getInitialChannels() {
   try {
+    const apiBaseUrl = process.env.INTERNAL_API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
+
     // Next.js App Router의 서버 사이드에서 API 호출
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels`, {
+    const res = await fetch(`${apiBaseUrl}/api/channels`, {
       next: { revalidate: 1800 },
       headers: { "Content-Type": "application/json" },
     });

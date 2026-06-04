@@ -63,16 +63,7 @@ function UserProfileEdit() {
       level: anotherUser?.user?.level ?? 1,
     };
   };
-  // 프로필 정보 미리 불러옴
-  if (status === "authenticated" && session?.user?.id) {
-    queryClient.prefetchQuery({
-      queryKey: ["userInfo", session.user.id],
-      queryFn: () => fetchUserDetail(session.user.id),
-    });
-  }
-
   // 세션이 인증된 상태에서만 요청을 수행합니다.
-  // 위에 프리패칭된 데이터를 사용, 키가 일치하니까. 새로고침 시에도 데이터가 날라가지 않음
   const {
     data: userDetail,
     error,
@@ -81,7 +72,7 @@ function UserProfileEdit() {
     queryKey: ["userInfo", session?.user.id],
     queryFn: () => {
       console.log("유즈쿼리");
-      fetchUserDetail(session?.user.id as string);
+      return fetchUserDetail(session?.user.id as string);
     },
     retry: 1,
     retryDelay: () => 2000,

@@ -24,6 +24,8 @@ export const getMulterOptions = (folder: string, fileSizeLimit = 10 * 1024 * 102
       storage: multerS3({
         s3,
         bucket: process.env.S3_BUCKET_NAME || '',
+        acl: 'public-read',
+        contentType: multerS3.AUTO_CONTENT_TYPE,
         key(req, file, cb) {
           const ext = path.extname(file.originalname);
           const uniqueFileName = `${folder}/${uuidv4()}${ext}`;

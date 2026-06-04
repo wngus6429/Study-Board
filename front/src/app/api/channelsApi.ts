@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "@/app/api/axios";
 
 // 채널 타입 정의
 export interface Channel {
@@ -122,9 +122,6 @@ export const uploadChannelImage = async (
     `${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${channelId}/upload-image`,
     formData,
     {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
       withCredentials: true,
     }
   );

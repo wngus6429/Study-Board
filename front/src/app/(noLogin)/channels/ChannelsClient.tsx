@@ -53,6 +53,14 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
   const { data: session } = useSession();
   const { showMessage } = useMessage();
   const queryClient = useQueryClient();
+  const getImageUrl = (link: string): string => {
+    if (/^https?:\/\//i.test(link)) {
+      return encodeURI(link);
+    }
+
+    const imagePath = link.startsWith("/") ? link : `/${link}`;
+    return `${process.env.NEXT_PUBLIC_BASE_URL}${encodeURI(imagePath)}`;
+  };
 
   // 관리자 권한 확인
   const isSuperAdmin = session?.user?.is_super_admin === true;
@@ -86,11 +94,10 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
     initialData: initialChannels,
     // DB 끊김 상태면 refetch를 막아 불필요한 요청 방지
     enabled: !isDbDisconnected,
-    // 30분 캐싱
-    staleTime: 1000 * 60 * 30,
-    refetchOnMount: false,
+    staleTime: 0,
+    refetchOnMount: "always",
     refetchOnReconnect: !isDbDisconnected,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: !isDbDisconnected,
     retry: isDbDisconnected ? false : 2,
     retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
@@ -120,7 +127,8 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
       setChannelImagePreview(null);
 
       // 채널 목록 다시 불러오기
-      queryClient.invalidateQueries({ queryKey: ["channels"] });
+      await queryClient.invalidateQueries({ queryKey: ["channels"] });
+      await queryClient.refetchQueries({ queryKey: ["channels"] });
     },
     onError: (error: any) => {
       console.error("채널 생성 실패:", error);
@@ -133,13 +141,14 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
   const uploadExistingChannelImageMutation = useMutation({
     mutationFn: ({ channelId, imageFile }: { channelId: number; imageFile: File }) =>
       uploadChannelImage(channelId, imageFile),
-    onSuccess: () => {
+    onSuccess: async () => {
       showMessage("채널 이미지가 업데이트되었습니다!", "success");
       setOpenEditImageDialog(false);
       setEditChannelId(null);
       setEditImageFile(null);
       setEditImagePreview(null);
-      queryClient.invalidateQueries({ queryKey: ["channels"] });
+      await queryClient.invalidateQueries({ queryKey: ["channels"] });
+      await queryClient.refetchQueries({ queryKey: ["channels"] });
     },
     onError: (error: any) => {
       console.error("채널 이미지 업로드 실패:", error);
@@ -640,7 +649,7 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
                     alignItems: "center",
                     justifyContent: "center",
                     backgroundImage: channel.ChannelImage?.link
-                      ? `url(${process.env.NEXT_PUBLIC_BASE_URL}${encodeURI(channel.ChannelImage.link)})`
+                      ? `url(${getImageUrl(channel.ChannelImage.link)})`
                       : "none",
                     backgroundSize: "cover",
                     backgroundPosition: "center",

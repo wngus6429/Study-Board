@@ -4,6 +4,8 @@ import { Suspense } from "react";
 import ChannelsClient from "./ChannelsClient";
 import Loading from "@/app/components/common/Loading";
 
+export const dynamic = "force-dynamic";
+
 // SEO를 위한 정적 메타데이터
 export const metadata: Metadata = {
   title: "채널 목록 - Hobby Channel",
@@ -33,7 +35,7 @@ async function getInitialChannels() {
 
     // Next.js App Router의 서버 사이드에서 API 호출
     const res = await fetch(`${apiBaseUrl}/api/channels`, {
-      next: { revalidate: 1800 },
+      cache: "no-store",
       headers: { "Content-Type": "application/json" },
     });
 

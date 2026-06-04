@@ -5,15 +5,15 @@ import { notFound } from "next/navigation";
 import ChannelDetailPage from "./ChannelsDetailClient";
 import Loading from "@/app/components/common/Loading";
 
+export const dynamic = "force-dynamic";
+
 // 서버에서 특정 채널 데이터 가져오기
 async function getChannelData(slug: string) {
   try {
     const apiBaseUrl = process.env.INTERNAL_API_BASE_URL || process.env.NEXT_PUBLIC_BASE_URL;
 
     const res = await fetch(`${apiBaseUrl}/api/channels/slug/${slug}`, {
-      next: {
-        revalidate: 1800, // 30분마다 재검증 (채널 정보는 상대적으로 자주 변경될 수 있음)
-      },
+      cache: "no-store",
       headers: {
         "Content-Type": "application/json",
       },

@@ -3,6 +3,9 @@ import * as multerS3 from 'multer-s3';
 import { S3Client } from '@aws-sdk/client-s3';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 export const getMulterOptions = (folder: string, fileSizeLimit = 10 * 1024 * 1024) => {
   const isProduction = process.env.NODE_ENV === 'production';

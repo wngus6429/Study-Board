@@ -71,6 +71,23 @@ export class AuthController {
     private jwtService: JwtService, // JWT 토큰 생성 및 검증을 위한 서비스
   ) {}
 
+  private shouldUseSecureCookies(): boolean {
+    if (process.env.COOKIE_SECURE !== undefined) {
+      return process.env.COOKIE_SECURE === 'true';
+    }
+
+    return process.env.NODE_ENV === 'production';
+  }
+
+  private getAuthCookieOptions(maxAge?: number) {
+    return {
+      httpOnly: true,
+      secure: this.shouldUseSecureCookies(),
+      sameSite: 'strict' as const,
+      ...(maxAge ? { maxAge } : {}),
+    };
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════════════════
   // 🔐 회원가입 엔드포인트
   // ═══════════════════════════════════════════════════════════════════════════════════════
@@ -185,19 +202,14 @@ export class AuthController {
     );
 
     // Access Token을 HttpOnly 쿠키에 저장 (XSS 공격 방지)
-    res.cookie('access_token', accessToken, {
-      httpOnly: true, // JavaScript로 접근 불가
-      secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송
-      sameSite: 'strict', // CSRF 공격 방지
-    });
+    res.cookie('access_token', accessToken, this.getAuthCookieOptions());
 
     // Refresh Token을 HttpOnly 쿠키에 저장
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7일 (밀리초)
-    });
+    res.cookie(
+      'refresh_token',
+      refreshToken,
+      this.getAuthCookieOptions(7 * 24 * 60 * 60 * 1000), // 7일 (밀리초)
+    );
 
     // 로그인 성공 응답
     res.status(200).json({ accessToken });
@@ -256,18 +268,10 @@ export class AuthController {
     console.log('🚪 로그아웃 요청');
 
     // Access Token 쿠키 삭제
-    res.clearCookie('access_token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-    });
+    res.clearCookie('access_token', this.getAuthCookieOptions());
 
     // Refresh Token 쿠키 삭제
-    res.clearCookie('refresh_token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-    });
+    res.clearCookie('refresh_token', this.getAuthCookieOptions());
 
     res.sendStatus(200);
   }
@@ -671,19 +675,14 @@ export class AuthController {
       );
 
       // 새로운 액세스 토큰을 쿠키에 설정
-      res.cookie('access_token', accessToken, {
-        httpOnly: true, // JavaScript에서 접근 불가
-        secure: process.env.NODE_ENV === 'production', // HTTPS에서만 전송
-        sameSite: 'strict', // CSRF 방지
-      });
+      res.cookie('access_token', accessToken, this.getAuthCookieOptions());
 
       // 새로운 리프레시 토큰을 쿠키에 설정 (7일 유효)
-      res.cookie('refresh_token', newRefreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7일
-      });
+      res.cookie(
+        'refresh_token',
+        newRefreshToken,
+        this.getAuthCookieOptions(7 * 24 * 60 * 60 * 1000), // 7일
+      );
 
       console.log('🔄 토큰 갱신 완료');
       return res.status(200).json({ message: '토큰이 갱신되었습니다.' });

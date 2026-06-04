@@ -13,7 +13,7 @@ import { AuthModule } from 'src/auth/auth.module';
 @Module({
   imports: [
     // 채널 이미지 업로드를 위한 Multer 설정
-    MulterModule.register(getMulterOptions('channelUpload')),
+    MulterModule.register(getMulterOptions('channelUpload', 20 * 1024 * 1024)),
     TypeOrmModule.forFeature([Channels, ChannelImage, Subscription, User]),
     AuthModule,
   ],

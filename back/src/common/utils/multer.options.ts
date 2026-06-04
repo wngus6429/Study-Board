@@ -4,7 +4,7 @@ import { S3Client } from '@aws-sdk/client-s3';
 import * as path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
-export const getMulterOptions = (folder: string) => {
+export const getMulterOptions = (folder: string, fileSizeLimit = 10 * 1024 * 1024) => {
   const isProduction = process.env.NODE_ENV === 'production';
 
   if (isProduction) {
@@ -27,7 +27,7 @@ export const getMulterOptions = (folder: string) => {
         },
       }),
       limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB limit
+        fileSize: fileSizeLimit,
       },
     };
   }
@@ -46,7 +46,7 @@ export const getMulterOptions = (folder: string) => {
       },
     }),
     limits: {
-      fileSize: 10 * 1024 * 1024, // 10MB limit
+      fileSize: fileSizeLimit,
     },
   };
 };

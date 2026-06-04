@@ -16,6 +16,7 @@ export const getMulterOptions = (folder: string, fileSizeLimit = 10 * 1024 * 102
       credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+        sessionToken: process.env.AWS_SESSION_TOKEN,
       },
     });
 

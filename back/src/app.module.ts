@@ -109,6 +109,10 @@ import { BoardModule } from './board/board.module';
       serveRoot: '/suggestionUpload', // HTTP 경로: /suggestionUpload/*
       rootPath: join(__dirname, '..', 'suggestionUpload'), // 건의사항 첨부 이미지
     }),
+    ServeStaticModule.forRoot({
+      serveRoot: '/channelUpload', // HTTP 경로: /channelUpload/*
+      rootPath: join(__dirname, '..', 'channelUpload'), // 채널 대표 이미지
+    }),
 
     /**
      * 🔐 인증 및 사용자 관리 모듈

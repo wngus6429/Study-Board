@@ -522,37 +522,34 @@ export default function MenuBar() {
           </Button>
         )}
 
-        {/* 설정 메뉴 - 로그인한 사용자에게만 표시 */}
-        {(isMobile || user?.user) && (
-          <IconButton
-            size="large"
-            edge="end"
-            aria-label="settings menu"
-            aria-haspopup="true"
-            color="inherit"
-            sx={{
-              color: "white",
-              borderRadius: "50%",
-              padding: "10px",
-              background:
-                theme.palette.mode === "dark"
-                  ? "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))"
-                  : "linear-gradient(135deg, rgba(25, 118, 210, 0.1), rgba(33, 150, 243, 0.1))",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(255, 255, 255, 0.1)",
-              transition: "all 0.3s ease",
-              marginRight: isMobile ? "12px" : 0,
-              "&:hover": {
-                backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(25, 118, 210, 0.2)",
-                transform: "rotate(90deg) scale(1.1)",
-                boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
-              },
-            }}
-            onClick={handleSettingsMenuOpen}
-          >
-            <Settings />
-          </IconButton>
-        )}
+        <IconButton
+          size="large"
+          edge="end"
+          aria-label="settings menu"
+          aria-haspopup="true"
+          color="inherit"
+          sx={{
+            color: "white",
+            borderRadius: "50%",
+            padding: "10px",
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))"
+                : "linear-gradient(135deg, rgba(25, 118, 210, 0.1), rgba(33, 150, 243, 0.1))",
+            backdropFilter: "blur(10px)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            transition: "all 0.3s ease",
+            marginRight: isMobile ? "12px" : 0,
+            "&:hover": {
+              backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.3)" : "rgba(25, 118, 210, 0.2)",
+              transform: "rotate(90deg) scale(1.1)",
+              boxShadow: "0 4px 15px rgba(0,0,0,0.2)",
+            },
+          }}
+          onClick={handleSettingsMenuOpen}
+        >
+          <Settings />
+        </IconButton>
 
         {/* 설정 드롭다운 메뉴 */}
         <Menu
@@ -600,23 +597,25 @@ export default function MenuBar() {
           }}
         >
           {user?.user && (
-            <MenuItem
-              onClick={() => {
-                handleSettingsMenuClose();
-                router.push("/setting/profile");
-              }}
-              sx={{ gap: 1 }}
-            >
-              <ListItemIcon>
-                <Avatar
-                  src={userImage ? `${process.env.NEXT_PUBLIC_BASE_URL}${userImage}` : "/assets/noprofileImage.png"}
-                  sx={{ width: 36, height: 36 }}
-                />
-              </ListItemIcon>
-              <ListItemText primary={user.user.nickname} secondary="프로필 보기" />
-            </MenuItem>
+            <>
+              <MenuItem
+                onClick={() => {
+                  handleSettingsMenuClose();
+                  router.push("/setting/profile");
+                }}
+                sx={{ gap: 1 }}
+              >
+                <ListItemIcon>
+                  <Avatar
+                    src={userImage ? `${process.env.NEXT_PUBLIC_BASE_URL}${userImage}` : "/assets/noprofileImage.png"}
+                    sx={{ width: 36, height: 36 }}
+                  />
+                </ListItemIcon>
+                <ListItemText primary={user.user.nickname} secondary="프로필 보기" />
+              </MenuItem>
+              <Divider sx={{ my: 0.5 }} />
+            </>
           )}
-          <Divider sx={{ my: 0.5 }} />
           <MenuItem data-i18n-skip selected={language === "ja"} onClick={() => handleLanguageChange("ja")}>
             <ListItemIcon>
               <TranslateIcon fontSize="small" />
@@ -632,48 +631,50 @@ export default function MenuBar() {
             {language === "ko" && <CheckIcon fontSize="small" color="primary" />}
           </MenuItem>
           <Divider sx={{ my: 0.5 }} />
-          <MenuItem onClick={handleMessages}>
-            <ListItemIcon>
-              <MessageIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>쪽지</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleRecentViews}>
-            <ListItemIcon>
-              <HistoryIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>최근에 봤던 게시물</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleScraps}>
-            <ListItemIcon>
-              <BookmarkIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>스크랩</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleBlinds}>
-            <ListItemIcon>
-              <VisibilityOffIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>블라인드</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleReports}>
-            <ListItemIcon>
-              <ReportIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>신고 목록</ListItemText>
-          </MenuItem>
           {user?.user ? (
-            <MenuItem
-              onClick={() => {
-                handleSettingsMenuClose();
-                logout();
-              }}
-            >
-              <ListItemIcon>
-                <LogoutIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>로그아웃</ListItemText>
-            </MenuItem>
+            <>
+              <MenuItem onClick={handleMessages}>
+                <ListItemIcon>
+                  <MessageIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>쪽지</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={handleRecentViews}>
+                <ListItemIcon>
+                  <HistoryIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>최근에 봤던 게시물</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={handleScraps}>
+                <ListItemIcon>
+                  <BookmarkIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>스크랩</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={handleBlinds}>
+                <ListItemIcon>
+                  <VisibilityOffIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>블라인드</ListItemText>
+              </MenuItem>
+              <MenuItem onClick={handleReports}>
+                <ListItemIcon>
+                  <ReportIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>신고 목록</ListItemText>
+              </MenuItem>
+              <MenuItem
+                onClick={() => {
+                  handleSettingsMenuClose();
+                  logout();
+                }}
+              >
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>로그아웃</ListItemText>
+              </MenuItem>
+            </>
           ) : (
             <>
               <MenuItem

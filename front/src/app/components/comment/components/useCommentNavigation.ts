@@ -16,16 +16,38 @@ export const useCommentNavigation = ({
   viewCount,
   CommentData,
 }: UseCommentNavigationProps) => {
-  // 특정 댓글로 스크롤하는 함수 (메모이제이션)
-  const scrollToComment = useCallback((commentId: string) => {
-    const element = document.getElementById(`comment-${commentId}`);
-    if (element) {
-      element.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
+  const highlightComment = useCallback((element: HTMLElement) => {
+    element.style.backgroundColor = "rgba(250, 204, 21, 0.22)";
+    element.style.border = "3px solid #facc15";
+    element.style.boxShadow = "0 0 0 4px rgba(250, 204, 21, 0.18)";
+
+    window.setTimeout(() => {
+      element.style.backgroundColor = "";
+      element.style.border = "";
+      element.style.boxShadow = "";
+    }, 2400);
   }, []);
+
+  // 댓글 DOM이 준비되는 즉시 찾아 스크롤과 하이라이트를 적용합니다.
+  const scrollToComment = useCallback((commentId: string) => {
+    const tryScroll = (remainingAttempts: number) => {
+      const element = document.getElementById(`comment-${commentId}`);
+      if (element) {
+        element.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+        highlightComment(element);
+        return;
+      }
+
+      if (remainingAttempts > 0) {
+        window.setTimeout(() => tryScroll(remainingAttempts - 1), 80);
+      }
+    };
+
+    requestAnimationFrame(() => tryScroll(12));
+  }, [highlightComment]);
 
   // 댓글이 포함된 페이지를 찾아서 이동하는 함수 (메모이제이션)
   const findAndNavigateToCommentPage = useCallback(
@@ -39,22 +61,12 @@ export const useCommentNavigation = ({
         // 해당 페이지로 이동
         if (page !== currentPage) {
           setCurrentPage(page);
-          // 페이지 변경 후 댓글 로딩을 기다린 후 스크롤
-          setTimeout(() => {
-            scrollToComment(commentId.toString());
-          }, 1500);
         } else {
-          // 이미 해당 페이지에 있다면 바로 스크롤
-          setTimeout(() => {
-            scrollToComment(commentId.toString());
-          }, 1000);
+          scrollToComment(commentId.toString());
         }
       } catch (error) {
         console.error("댓글 페이지를 찾는 중 오류 발생:", error);
-        // 오류 발생 시 현재 페이지에서 스크롤 시도
-        setTimeout(() => {
-          scrollToComment(commentId.toString());
-        }, 1000);
+        scrollToComment(commentId.toString());
       }
     },
     [currentPage, viewCount, scrollToComment, storyId, setCurrentPage]
@@ -62,12 +74,20 @@ export const useCommentNavigation = ({
 
   // URL 해시에서 댓글 ID 추출 및 스크롤 처리
   useEffect(() => {
-    const hash = window.location.hash;
-    if (hash.startsWith("#comment-")) {
-      const commentId = hash.replace("#comment-", "");
-      // 먼저 해당 댓글이 포함된 페이지를 찾아서 이동
-      findAndNavigateToCommentPage(parseInt(commentId));
-    }
+    const navigateFromHash = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith("#comment-")) {
+        const commentId = hash.replace("#comment-", "");
+        findAndNavigateToCommentPage(parseInt(commentId));
+      }
+    };
+
+    navigateFromHash();
+    window.addEventListener("hashchange", navigateFromHash);
+
+    return () => {
+      window.removeEventListener("hashchange", navigateFromHash);
+    };
   }, [findAndNavigateToCommentPage]);
 
   // 페이지 변경 후 해시 스크롤 처리
@@ -77,9 +97,7 @@ export const useCommentNavigation = ({
       const hash = window.location.hash;
       if (hash.startsWith("#comment-")) {
         const commentId = hash.replace("#comment-", "");
-        setTimeout(() => {
-          scrollToComment(commentId);
-        }, 500);
+        scrollToComment(commentId);
       }
     }
   }, [CommentData, scrollToComment]);

@@ -27,6 +27,34 @@ interface ApiCommentsResponse {
   CommentsTotal: number;
 }
 
+const PROFILE_STORY_PAGE_KEY = "profile-story-current-page";
+const PROFILE_COMMENTS_PAGE_KEY = "profile-comments-current-page";
+
+const getStoredProfilePage = (key: string) => {
+  if (typeof window === "undefined") {
+    return 1;
+  }
+
+  try {
+    const storedPage = Number(window.sessionStorage.getItem(key));
+    return Number.isInteger(storedPage) && storedPage > 0 ? storedPage : 1;
+  } catch {
+    return 1;
+  }
+};
+
+const setStoredProfilePage = (key: string, page: number) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(key, String(page));
+  } catch {
+    // sessionStorage를 사용할 수 없는 환경에서는 현재 세션 state만 유지합니다.
+  }
+};
+
 function UserProfileEdit() {
   const [nickname, setNickname] = useState("");
   const [profileImage, setProfileImage] = useState<any>(null);
@@ -83,8 +111,10 @@ function UserProfileEdit() {
     gcTime: 1000 * 30, // 30초간 가비지 컬렉션 방지
   });
 
-  const [storyCurrentPage, setStoryCurrentPage] = useState<number>(1);
-  const [commentsCurrentPage, setCommentsCurrentPage] = useState<number>(1);
+  const [storyCurrentPage, setStoryCurrentPage] = useState<number>(() => getStoredProfilePage(PROFILE_STORY_PAGE_KEY));
+  const [commentsCurrentPage, setCommentsCurrentPage] = useState<number>(() =>
+    getStoredProfilePage(PROFILE_COMMENTS_PAGE_KEY)
+  );
 
   const viewCount: number = USER_TABLE_VIEW_COUNT;
 
@@ -160,6 +190,28 @@ function UserProfileEdit() {
       setOriginalNickname(userDetail.nickname); // 원래 닉네임 저장
     }
   }, [userDetail]);
+
+  useEffect(() => {
+    setStoredProfilePage(PROFILE_STORY_PAGE_KEY, storyCurrentPage);
+  }, [storyCurrentPage]);
+
+  useEffect(() => {
+    setStoredProfilePage(PROFILE_COMMENTS_PAGE_KEY, commentsCurrentPage);
+  }, [commentsCurrentPage]);
+
+  useEffect(() => {
+    const storyPageCount = Math.ceil((UserStory?.StoryTotal || 0) / viewCount);
+    if (storyPageCount > 0 && storyCurrentPage > storyPageCount) {
+      setStoryCurrentPage(storyPageCount);
+    }
+  }, [UserStory?.StoryTotal, storyCurrentPage, viewCount]);
+
+  useEffect(() => {
+    const commentsPageCount = Math.ceil((UserComments?.CommentsTotal || 0) / viewCount);
+    if (commentsPageCount > 0 && commentsCurrentPage > commentsPageCount) {
+      setCommentsCurrentPage(commentsPageCount);
+    }
+  }, [UserComments?.CommentsTotal, commentsCurrentPage, viewCount]);
 
   const handleNicknameChange = (event: any) => {
     setNickname(event.target.value);
@@ -360,11 +412,13 @@ function UserProfileEdit() {
   const handleStoryPageClick = (selectedItem: { selected: number }) => {
     const newPage = selectedItem.selected + 1;
     setStoryCurrentPage(newPage);
+    setStoredProfilePage(PROFILE_STORY_PAGE_KEY, newPage);
   };
 
   const handleCommentsPageClick = (selectedItem: { selected: number }) => {
     const newPage = selectedItem.selected + 1;
     setCommentsCurrentPage(newPage);
+    setStoredProfilePage(PROFILE_COMMENTS_PAGE_KEY, newPage);
   };
 
   // 게시글 삭제 함수
@@ -460,20 +514,20 @@ function UserProfileEdit() {
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
+          flexDirection: "column",
           gap: 4,
           width: "100%",
-          maxWidth: "1400px",
-          alignItems: "flex-start",
+          maxWidth: "1120px",
+          alignItems: "center",
         }}
       >
-        {/* 왼쪽: 프로필 수정 영역 */}
-        <Box sx={{ width: "400px", flexShrink: 0 }}>
+        {/* 프로필 수정 영역 */}
+        <Box sx={{ width: "100%", maxWidth: "760px" }}>
           <Box
             sx={{
               bgcolor: "background.paper",
               boxShadow: 3,
-              p: 3,
+              p: { xs: 3, sm: 4 },
               borderRadius: 2,
             }}
           >
@@ -497,8 +551,14 @@ function UserProfileEdit() {
             <Box sx={{ mb: 3, px: 2 }}>
               <UserLevelProgress totalExperience={userDetail?.experience_points ?? 0} />
             </Box>
-            {/* 프로필 사진과 입력 요소들을 한 줄로 배치 */}
-            <Box display="flex" flexDirection="row" alignItems="flex-start" sx={{ gap: 3, mb: 3 }}>
+            {/* 프로필 사진과 입력 요소 */}
+            <Box
+              display="flex"
+              flexDirection={{ xs: "column", sm: "row" }}
+              alignItems={{ xs: "center", sm: "flex-start" }}
+              justifyContent="center"
+              sx={{ gap: { xs: 3, sm: 4 }, mb: 3 }}
+            >
               <Box
                 sx={{
                   width: 130,
@@ -646,8 +706,17 @@ function UserProfileEdit() {
                   }}
                 />
               </Box>
-              <Box sx={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 2 }}>
-                <Box display="flex" gap={1}>
+              <Box
+                sx={{
+                  flexGrow: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 2,
+                  width: "100%",
+                  maxWidth: { xs: "100%", sm: 460 },
+                }}
+              >
+                <Box display="flex" gap={1} sx={{ flexDirection: { xs: "column", sm: "row" } }}>
                   <Button variant="outlined" component="label" color="primary" sx={{ flexGrow: 1 }}>
                     사진 업로드
                     <input type="file" hidden onChange={handleImageChange} accept="image/*" />
@@ -668,32 +737,39 @@ function UserProfileEdit() {
                   variant="outlined"
                   fullWidth
                 />
-                <Button
-                  variant="contained"
-                  color="primary"
-                  fullWidth
-                  sx={{ py: 1.5, fontWeight: "bold" }}
-                  onClick={handleProfileSave}
-                  disabled={nicknameCheckLoading || mutation.isPending}
-                  startIcon={
-                    nicknameCheckLoading || mutation.isPending ? <CircularProgress size={20} color="inherit" /> : null
-                  }
-                >
-                  {nicknameCheckLoading ? "닉네임 확인 중..." : mutation.isPending ? "저장 중..." : "저장하기"}
-                </Button>
               </Box>
             </Box>
 
-            {/* 비밀번호 변경 버튼은 아래에 별도로 배치 */}
-            <Button
-              variant="contained"
-              color="error"
-              fullWidth
-              sx={{ py: 1.5, fontWeight: "bold" }}
-              onClick={handlePasswordChangeToggle}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 2,
+                flexDirection: { xs: "column", sm: "row" },
+              }}
             >
-              {verifyPassword || isVerified ? "비밀번호 변경 취소" : "비밀번호 변경"}
-            </Button>
+              <Button
+                variant="contained"
+                color="error"
+                fullWidth
+                sx={{ py: 1.5, fontWeight: "bold", flex: 1 }}
+                onClick={handlePasswordChangeToggle}
+              >
+                {verifyPassword || isVerified ? "비밀번호 변경 취소" : "비밀번호 변경"}
+              </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                fullWidth
+                sx={{ py: 1.5, fontWeight: "bold", flex: 1 }}
+                onClick={handleProfileSave}
+                disabled={nicknameCheckLoading || mutation.isPending}
+                startIcon={
+                  nicknameCheckLoading || mutation.isPending ? <CircularProgress size={20} color="inherit" /> : null
+                }
+              >
+                {nicknameCheckLoading ? "닉네임 확인 중..." : mutation.isPending ? "저장 중..." : "저장하기"}
+              </Button>
+            </Box>
 
             {verifyPassword && (
               <Box
@@ -782,8 +858,8 @@ function UserProfileEdit() {
           </Box>
         </Box>
 
-        {/* 오른쪽: 작성한 글 테이블 */}
-        <Box sx={{ flexGrow: 1 }}>
+        {/* 작성한 글 테이블 */}
+        <Box sx={{ width: "100%" }}>
           <Box
             sx={{
               bgcolor: "background.paper",
@@ -842,7 +918,7 @@ function UserProfileEdit() {
       </Box>
 
       {/* 두 번째 행: 작성한 댓글 테이블 (전체 너비) */}
-      <Box sx={{ width: "100%", maxWidth: "1400px" }}>
+      <Box sx={{ width: "100%", maxWidth: "1120px" }}>
         <Box
           sx={{
             bgcolor: "background.paper",

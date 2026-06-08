@@ -26,6 +26,7 @@ import {
 
 // 웹소켓 import
 import { ChannelChatWebSocket, WebSocketStatus } from "@/app/utils/websocket";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 interface ChannelChatProps {
   channelId: number;
@@ -515,7 +516,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({ channelId, channelName, showM
                         }}
                         src={
                           message.user.profile_image
-                            ? `${process.env.NEXT_PUBLIC_BASE_URL}${message.user.profile_image}`
+                            ? resolveMediaUrl(message.user.profile_image)
                             : undefined
                         }
                       >

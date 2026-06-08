@@ -12,6 +12,7 @@ import CustomizedUserCommentsTables from "@/app/components/table/CustomizedUserC
 import ProfilePagination from "@/app/components/common/ProfilePagination";
 import { Avatar, Box, Typography, CircularProgress, useTheme } from "@mui/material";
 import UserBadge from "@/app/components/common/UserBadge";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 interface ApiStoryResponse {
   StoryResults: any[];
@@ -198,11 +199,7 @@ export default function UserProfileDetail() {
                 </Typography>
                 <Box display="flex" flexDirection="column" alignItems="center" sx={{ gap: 2 }}>
                   <Avatar
-                    src={
-                      userDetail?.user?.image?.link
-                        ? `${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.user.image.link}`
-                        : "/assets/noprofileImage.png"
-                    }
+                    src={resolveMediaUrl(userDetail?.user?.image?.link) ?? "/assets/noprofileImage.png"}
                     sx={{
                       width: 120,
                       height: 120,

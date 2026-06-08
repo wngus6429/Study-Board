@@ -21,6 +21,7 @@ import { UserImage } from '../entities/UserImage.entity';
 import { Comments } from '../entities/Comments.entity';
 import { Story } from '../entities/Story.entity';
 import { PasswordResetToken } from '../entities/PasswordResetToken.entity';
+import { getFileName, getFileUrl } from '../common/utils/multer.options';
 
 /**
  * 비밀번호 재설정 토큰 유효 시간 (30분)
@@ -551,8 +552,8 @@ export class AuthService {
 
       // 새 이미지 엔티티 생성
       const newUserImage = new UserImage();
-      newUserImage.image_name = ((profileImage as any).key || profileImage.filename);
-      newUserImage.link = ((profileImage as any).location || `/userUpload/${profileImage.filename}`);
+      newUserImage.image_name = getFileName(profileImage);
+      newUserImage.link = getFileUrl(profileImage, 'userUpload');
       newUserImage.User = user; // 사용자와 관계 설정
 
       // 새 이미지 저장 및 사용자에 할당

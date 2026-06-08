@@ -6,6 +6,7 @@ import dayjs from "dayjs";
 import BlindWrapper from "../../BlindWrapper";
 import { useAdmin } from "../../../hooks/useAdmin";
 import { CommentListProps, Comment } from "./types";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 const CommentList = React.memo(
   ({
@@ -65,7 +66,7 @@ const CommentList = React.memo(
               {comment.nickname ? (
                 <>
                   <Avatar
-                    src={`${process.env.NEXT_PUBLIC_BASE_URL}${comment.link}`}
+                    src={resolveMediaUrl(comment.link)}
                     sx={{ width: 32, height: 32, mr: 1 }}
                   />
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>

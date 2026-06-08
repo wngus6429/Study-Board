@@ -46,6 +46,7 @@ import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
 import UserMenuPopover from "@/app/components/common/UserMenuPopover";
 import LevelBadge from "@/app/components/common/LevelBadge";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 // MODIFIED: SuggestionType 타입 사용 (건의사항 상세 데이터)
 // import { SuggestionType } from "@/app/types/suggestionDetailType";
 
@@ -341,7 +342,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
           if (matchingImage) {
             console.log("✅ 매칭된 이미지:", matchingImage);
-            return imgTag.replace(/src=""/, `src="${process.env.NEXT_PUBLIC_BASE_URL}${matchingImage.link}"`);
+            return imgTag.replace(/src=""/, `src="${resolveMediaUrl(matchingImage.link) ?? ""}"`);
           } else {
             console.warn("❌ 매칭 실패:", fileName);
           }
@@ -363,7 +364,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
           });
 
           if (matchingImage) {
-            return imgTag.replace(/src="blob:[^"]*"/, `src="${process.env.NEXT_PUBLIC_BASE_URL}${matchingImage.link}"`);
+            return imgTag.replace(/src="blob:[^"]*"/, `src="${resolveMediaUrl(matchingImage.link) ?? ""}"`);
           }
         }
         return "";
@@ -829,7 +830,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
               >
                 <Box display="flex" alignItems="center" gap={{ xs: 1.5, sm: 3 }}>
                   <Avatar
-                    src={`${process.env.NEXT_PUBLIC_BASE_URL}${detail.User.userImage}`}
+                    src={resolveMediaUrl(detail.User.userImage)}
                     sx={{
                       width: { xs: 50, sm: 70 },
                       height: { xs: 50, sm: 70 },
@@ -1061,7 +1062,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
           {selectedImage && (
             <Box
               component="img"
-              src={`${process.env.NEXT_PUBLIC_BASE_URL}${selectedImage.link}`}
+              src={resolveMediaUrl(selectedImage.link)}
               alt="Selected"
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}

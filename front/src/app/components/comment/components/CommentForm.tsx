@@ -2,6 +2,7 @@
 import React from "react";
 import { Box, TextField, Button, Typography, Avatar, useTheme } from "@mui/material";
 import { CommentFormProps } from "./types";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 const CommentForm: React.FC<CommentFormProps> = ({
   content,
@@ -36,7 +37,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
         <Box sx={{ display: "flex", alignItems: "center", marginBottom: 2 }}>
           {sessionUser?.image && (
             <Avatar
-              src={`${process.env.NEXT_PUBLIC_BASE_URL}${sessionUser.image}`}
+              src={resolveMediaUrl(sessionUser.image)}
               sx={{ width: 40, height: 40, marginRight: 1 }}
             />
           )}

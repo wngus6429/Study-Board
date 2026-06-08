@@ -483,7 +483,7 @@ export class AuthController {
     );
 
     return {
-      image: result.UserImage.link,
+      image: result.UserImage?.link ?? null,
       nickname: result.nickname,
     };
   }

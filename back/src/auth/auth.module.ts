@@ -32,9 +32,6 @@ import { AdminGuard } from './admin.guard';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { MulterModule } from '@nestjs/platform-express';
 import { getMulterOptions } from '../common/utils/multer.options';
-import { diskStorage } from 'multer';
-import * as path from 'path';
-import { Today } from 'src/common/helper/today';
 import { TOKEN_EXPIRATION_TIME } from 'src/constants/tokenTime';
 import { Story } from 'src/entities/Story.entity';
 import { Comments } from 'src/entities/Comments.entity';
@@ -131,33 +128,12 @@ import { PasswordResetToken } from 'src/entities/PasswordResetToken.entity';
      * // 저장: "프로필사진_20231201_143022.jpg"
      */
     MulterModule.register({
-      storage: diskStorage({
-        destination: './userUpload', // 파일 저장 경로
-        filename(req, file, done) {
-          const ext = path.extname(file.originalname); // 파일 확장자 추출
-
-          // 한글 파일명을 UTF-8로 올바르게 변환
-          const baseName = Buffer.from(
-            path.basename(file.originalname, ext),
-            'latin1',
-          ).toString('utf8');
-
-          // 고유한 파일명 생성: 원본명_타임스탬프.확장자
-          const uniqueFileName = `${baseName}_${Today()}${ext}`;
-
-          console.log('📁 파일 업로드:', {
-            original: file.originalname,
-            saved: uniqueFileName,
-            size: file.size,
-          });
-
-          done(null, uniqueFileName);
-        },
-      }),
-      limits: {
-        fileSize: 5 * 1024 * 1024, // 5MB 제한
-      },
-      fileFilter: (req, file, cb) => {
+      ...getMulterOptions('userUpload', 5 * 1024 * 1024),
+      fileFilter: (
+        _req: any,
+        file: Express.Multer.File,
+        cb: (error: Error | null, acceptFile: boolean) => void,
+      ) => {
         if (file.mimetype.startsWith('image/')) {
           cb(null, true);
         } else {

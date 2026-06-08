@@ -29,6 +29,7 @@ import PersonAddIcon from "@mui/icons-material/PersonAdd";
 import TranslateIcon from "@mui/icons-material/Translate";
 import CheckIcon from "@mui/icons-material/Check";
 import { useLanguageStore, type AppLanguage } from "../store/languageStore";
+import { resolveMediaUrl } from "../utils/mediaUrl";
 
 export default function MenuBar() {
   const router = useRouter();
@@ -112,7 +113,7 @@ export default function MenuBar() {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${user.user.id}`, {
           withCredentials: true,
         });
-        if (response.data.image.link != null) {
+        if (response.data.image?.link != null) {
           return response.data.image.link;
         }
       }
@@ -338,7 +339,7 @@ export default function MenuBar() {
         }}
       >
         <Avatar
-          src={userImage ? `${process.env.NEXT_PUBLIC_BASE_URL}${userImage}` : "/assets/noprofileImage.png"}
+          src={resolveMediaUrl(userImage) ?? "/assets/noprofileImage.png"}
           sx={{
             width: 56,
             height: 56,
@@ -607,7 +608,7 @@ export default function MenuBar() {
               >
                 <ListItemIcon>
                   <Avatar
-                    src={userImage ? `${process.env.NEXT_PUBLIC_BASE_URL}${userImage}` : "/assets/noprofileImage.png"}
+                    src={resolveMediaUrl(userImage) ?? "/assets/noprofileImage.png"}
                     sx={{ width: 36, height: 36 }}
                   />
                 </ListItemIcon>

@@ -49,6 +49,7 @@ import {
 } from "../../api/messagesApi";
 import { Message, SendMessageRequest } from "../../types/message";
 import Loading from "../../components/common/Loading";
+import { resolveMediaUrl } from "../../utils/mediaUrl";
 
 const MessagesPage = () => {
   const theme = useTheme();
@@ -438,7 +439,7 @@ const MessagesPage = () => {
                     >
                       <ListItemIcon>
                         <Avatar
-                          src={`${process.env.NEXT_PUBLIC_BASE_URL}${message.sender.profileImage}`}
+                          src={resolveMediaUrl(message.sender.profileImage)}
                           sx={{
                             width: 40,
                             height: 40,
@@ -530,7 +531,7 @@ const MessagesPage = () => {
                     >
                       <ListItemIcon>
                         <Avatar
-                          src={`${process.env.NEXT_PUBLIC_BASE_URL}${message.receiver.profileImage}`}
+                          src={resolveMediaUrl(message.receiver.profileImage)}
                           sx={{
                             width: 40,
                             height: 40,

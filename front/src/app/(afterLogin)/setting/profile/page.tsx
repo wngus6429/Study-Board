@@ -16,6 +16,7 @@ import CustomizedUserTables from "@/app/components/table/CustomizedUserStoryTabl
 import Pagination from "@/app/components/common/Pagination";
 import CustomizedUserCommentsTables from "@/app/components/table/CustomizedUserCommentsTables";
 import ProfilePagination from "@/app/components/common/ProfilePagination";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 interface ApiStoryResponse {
   StoryResults: any[];
@@ -182,9 +183,7 @@ function UserProfileEdit() {
 
   useEffect(() => {
     if (userDetail) {
-      const profileImageUrl = userDetail?.image?.link
-        ? `${process.env.NEXT_PUBLIC_BASE_URL}${userDetail.image.link}`
-        : null;
+      const profileImageUrl = resolveMediaUrl(userDetail?.image?.link) ?? null;
       setPreviewImage(profileImageUrl);
       setNickname(userDetail.nickname);
       setOriginalNickname(userDetail.nickname); // 원래 닉네임 저장
@@ -231,8 +230,8 @@ function UserProfileEdit() {
         return;
       }
 
-      if (file.size > 500 * 1024) {
-        showMessage("파일 크기가 너무 큽니다. 500KB 이하의 파일을 선택하세요.", "error");
+      if (file.size > 5 * 1024 * 1024) {
+        showMessage("파일 크기가 너무 큽니다. 5MB 이하의 파일을 선택하세요.", "error");
         return;
       }
       setProfileImage(file);

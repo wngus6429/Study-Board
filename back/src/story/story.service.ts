@@ -1,11 +1,12 @@
 import {
   BadRequestException,
   ForbiddenException,
+  GoneException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { ILike, In, Repository, DataSource } from 'typeorm';
+import { ILike, In, IsNull, Repository, DataSource } from 'typeorm';
 import { CreateStoryDto } from './dto/create-story.dto';
 import { User } from '../entities/User.entity';
 import { Story } from '../entities/Story.entity';
@@ -80,7 +81,7 @@ export class StoryService {
 
     // 채널 필터 조건 추가
     if (channelId) {
-      whereCondition.Channel = { id: Number(channelId) };
+      whereCondition.Channel = { id: Number(channelId), deleted_at: IsNull() };
     }
 
     console.log('🔍 findStory whereCondition:', {
@@ -156,7 +157,7 @@ export class StoryService {
 
     // 채널 필터 조건 추가
     if (channelId) {
-      whereCondition.Channel = { id: Number(channelId) };
+      whereCondition.Channel = { id: Number(channelId), deleted_at: IsNull() };
     }
 
     console.log('🔍 findCardStory whereCondition:', {
@@ -349,7 +350,7 @@ export class StoryService {
 
         // 채널 필터 추가
         if (channelId) {
-          whereCondition.Channel = { id: channelId };
+          whereCondition.Channel = { id: channelId, deleted_at: IsNull() };
           console.log('📝 [searchStory] 채널 필터 추가:', channelId);
         }
 
@@ -444,11 +445,14 @@ export class StoryService {
         // 배열인 경우, 각 조건에 Channel 필드 추가
         baseConditions = baseConditions.map((condition) => ({
           ...condition,
-          Channel: { id: channelId },
+          Channel: { id: channelId, deleted_at: IsNull() },
         }));
       } else {
         // 단일 객체인 경우
-        baseConditions = { ...baseConditions, Channel: { id: channelId } };
+        baseConditions = {
+          ...baseConditions,
+          Channel: { id: channelId, deleted_at: IsNull() },
+        };
       }
     }
 
@@ -588,7 +592,7 @@ export class StoryService {
 
         // 채널 필터 추가
         if (channelId) {
-          whereCondition.Channel = { id: channelId };
+          whereCondition.Channel = { id: channelId, deleted_at: IsNull() };
           console.log('📝 [searchStory] 채널 필터 추가:', channelId);
         }
 
@@ -683,11 +687,14 @@ export class StoryService {
         // 배열인 경우, 각 조건에 Channel 필드 추가
         baseConditions = baseConditions.map((condition) => ({
           ...condition,
-          Channel: { id: channelId },
+          Channel: { id: channelId, deleted_at: IsNull() },
         }));
       } else {
         // 단일 객체인 경우
-        baseConditions = { ...baseConditions, Channel: { id: channelId } };
+        baseConditions = {
+          ...baseConditions,
+          Channel: { id: channelId, deleted_at: IsNull() },
+        };
       }
     }
 
@@ -785,6 +792,7 @@ export class StoryService {
           'StoryVideo',
           'User',
           'User.UserImage',
+          'Channel',
           'Likes',
           'Likes.User', // Likes와 연결된 User 정보 포함
         ],
@@ -797,6 +805,9 @@ export class StoryService {
       if (!findData) {
         // 데이터가 없을 경우 404 에러 던지기
         throw new NotFoundException(`Story with ID ${id} not found`);
+      }
+      if (findData.Channel?.deleted_at) {
+        throw new GoneException('삭제된 채널의 게시글입니다.');
       }
 
       console.log('Story data:', findData);
@@ -1640,7 +1651,9 @@ export class StoryService {
 
     // 채널 필터 적용 - 수정된 조건
     if (channelId) {
-      query.andWhere('story.channelId = :channelId', { channelId });
+      query
+        .andWhere('story.channelId = :channelId', { channelId })
+        .andWhere('channel.deleted_at IS NULL');
     }
 
     // 쿼리 실행
@@ -1755,7 +1768,7 @@ export class StoryService {
 
     if (channelId) {
       // 특정 채널의 공지사항만 가져오기
-      whereCondition.Channel = { id: channelId };
+      whereCondition.Channel = { id: channelId, deleted_at: IsNull() };
     }
 
     // 공지사항만 가져오기 (isNotice가 true인 것만)

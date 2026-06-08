@@ -1,6 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  GoneException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { Channels } from '../entities/Channels.entity';
 import { ChannelImage } from '../entities/ChannelImage.entity';
 import { Subscription } from '../entities/Subscription.entity';
@@ -24,6 +29,7 @@ export class ChannelsService {
   async findAll(): Promise<Channels[]> {
     console.log('모든 채널 데이터 조회');
     return await this.channelsRepository.find({
+      where: { deleted_at: IsNull() },
       order: { id: 'ASC' },
       relations: ['creator', 'ChannelImage'], // 채널 이미지도 함께 조회
     });
@@ -43,6 +49,9 @@ export class ChannelsService {
         `ID ${id}에 해당하는 채널을 찾을 수 없습니다.`,
       );
     }
+    if (channel.deleted_at) {
+      throw new GoneException('삭제된 채널입니다.');
+    }
 
     return channel;
   }
@@ -61,6 +70,9 @@ export class ChannelsService {
         `슬러그 ${slug}에 해당하는 채널을 찾을 수 없습니다.`,
       );
     }
+    if (channel.deleted_at) {
+      throw new GoneException('삭제된 채널입니다.');
+    }
 
     return channel;
   }
@@ -78,6 +90,9 @@ export class ChannelsService {
       throw new NotFoundException(
         `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
       );
+    }
+    if (channel.deleted_at) {
+      throw new GoneException('삭제된 채널입니다.');
     }
 
     // 사용자 존재 확인
@@ -149,7 +164,7 @@ export class ChannelsService {
     console.log('사용자 구독 채널 목록 조회:', userId);
 
     const subscriptions = await this.subscriptionRepository.find({
-      where: { User: { id: userId } },
+      where: { User: { id: userId }, Channel: { deleted_at: IsNull() } },
       relations: ['Channel'],
     });
 
@@ -227,6 +242,9 @@ export class ChannelsService {
         `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
       );
     }
+    if (channel.deleted_at) {
+      throw new GoneException('삭제된 채널입니다.');
+    }
 
     // 채널 이미지 업로드 권한: 총관리자 또는 채널 생성자
     const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -238,7 +256,7 @@ export class ChannelsService {
     const isSuperAdmin = user.is_super_admin === true;
     const isChannelCreator = channel.creator.id === userId;
     if (!isSuperAdmin && !isChannelCreator) {
-      throw new NotFoundException(
+      throw new ForbiddenException(
         '채널 이미지를 업로드할 권한이 없습니다. 총관리자 또는 채널 생성자만 가능합니다.',
       );
     }
@@ -286,6 +304,9 @@ export class ChannelsService {
         `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
       );
     }
+    if (channel.deleted_at) {
+      throw new GoneException('삭제된 채널입니다.');
+    }
 
     // 채널 이미지 삭제 권한: 총관리자 또는 채널 생성자
     const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -297,7 +318,7 @@ export class ChannelsService {
     const isSuperAdmin = user.is_super_admin === true;
     const isChannelCreator = channel.creator.id === userId;
     if (!isSuperAdmin && !isChannelCreator) {
-      throw new NotFoundException(
+      throw new ForbiddenException(
         '채널 이미지를 삭제할 권한이 없습니다. 총관리자 또는 채널 생성자만 가능합니다.',
       );
     }
@@ -336,7 +357,49 @@ export class ChannelsService {
     );
   }
 
-  // 채널 삭제 기능은 비활성화되었습니다.
+  // 채널 논리 삭제
+  async deleteChannel(channelId: number, userId: string): Promise<void> {
+    console.log('채널 논리 삭제:', { channelId, userId });
+
+    const channel = await this.channelsRepository.findOne({
+      where: { id: channelId },
+      relations: ['creator'],
+    });
+
+    if (!channel) {
+      throw new NotFoundException(
+        `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
+      );
+    }
+    if (channel.deleted_at) {
+      return;
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(
+        `ID ${userId}에 해당하는 사용자를 찾을 수 없습니다.`,
+      );
+    }
+
+    const isSuperAdmin = user.is_super_admin === true;
+    const isChannelCreator = channel.creator.id === userId;
+    if (!isSuperAdmin && !isChannelCreator) {
+      throw new ForbiddenException(
+        '채널을 삭제할 권한이 없습니다. 총관리자 또는 채널 생성자만 가능합니다.',
+      );
+    }
+
+    channel.deleted_at = new Date();
+    channel.is_hidden = true;
+    await this.channelsRepository.save(channel);
+
+    console.log('채널 논리 삭제 완료:', {
+      channelId,
+      channelName: channel.channel_name,
+      deletedBy: user.user_email,
+    });
+  }
 
   // 채널 숨김 처리 (is_hidden = true)
   async hideChannel(channelId: number, userId: string): Promise<void> {
@@ -349,6 +412,9 @@ export class ChannelsService {
         `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
       );
     }
+    if (channel.deleted_at) {
+      throw new GoneException('삭제된 채널입니다.');
+    }
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(
@@ -358,7 +424,7 @@ export class ChannelsService {
     const isSuperAdmin = user.is_super_admin === true;
     const isChannelCreator = channel.creator.id === userId;
     if (!isSuperAdmin && !isChannelCreator) {
-      throw new NotFoundException(
+      throw new ForbiddenException(
         '채널을 숨김 처리할 권한이 없습니다. 총관리자 또는 채널 생성자만 숨김 처리할 수 있습니다.',
       );
     }
@@ -377,6 +443,9 @@ export class ChannelsService {
         `ID ${channelId}에 해당하는 채널을 찾을 수 없습니다.`,
       );
     }
+    if (channel.deleted_at) {
+      throw new GoneException('삭제된 채널입니다.');
+    }
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException(
@@ -386,7 +455,7 @@ export class ChannelsService {
     const isSuperAdmin = user.is_super_admin === true;
     const isChannelCreator = channel.creator.id === userId;
     if (!isSuperAdmin && !isChannelCreator) {
-      throw new NotFoundException(
+      throw new ForbiddenException(
         '채널을 표시할 권한이 없습니다. 총관리자 또는 채널 생성자만 표시할 수 있습니다.',
       );
     }

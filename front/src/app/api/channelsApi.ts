@@ -11,6 +11,7 @@ export interface Channel {
   created_at: string;
   updated_at: string;
   is_hidden?: boolean; // 채널 숨김 상태
+  deleted_at?: string | null; // 채널 논리 삭제 일시
   creator: {
     id: string;
     nickname: string;

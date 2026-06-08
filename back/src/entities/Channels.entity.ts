@@ -19,6 +19,7 @@ import { Suggestion } from './Suggestion.entity';
 @Entity() // 이 클래스가 데이터베이스의 엔티티임을 선언합니다.
 @Index(['creator', 'created_at']) // 생성자별 채널 조회 최적화
 @Index(['is_hidden', 'created_at']) // 공개 채널 목록 조회 최적화
+@Index(['deleted_at', 'created_at']) // 삭제되지 않은 채널 목록 조회 최적화
 export class Channels {
   @PrimaryGeneratedColumn() // 자동 증가하는 기본 키 컬럼
   id: number;
@@ -37,6 +38,9 @@ export class Channels {
 
   @Column({ default: false }) // 채널 숨김 여부
   is_hidden: boolean;
+
+  @Column({ type: 'timestamp', nullable: true, default: null }) // 논리 삭제 일시
+  deleted_at: Date | null;
 
   @ManyToOne(() => User, (user) => user.createdChannels, { nullable: false })
   creator: User;

@@ -24,6 +24,7 @@ import AddIcon from "@mui/icons-material/Add";
 import EditIcon from "@mui/icons-material/Edit";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import VisibilityIcon from "@mui/icons-material/Visibility";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
@@ -34,6 +35,7 @@ import {
   getChannels,
   createChannel,
   uploadChannelImage,
+  deleteChannel,
   deleteChannelImage,
   hideChannel,
   showChannel,
@@ -41,6 +43,7 @@ import {
 } from "@/app/api/channelsApi";
 import CreateChannelDialog from "@/app/components/common/ChannelDialog/CreateChannelDialog";
 import EditChannelImageDialog from "@/app/components/common/ChannelDialog/EditChannelImageDialog";
+import ConfirmDialog from "@/app/components/common/ConfirmDialog";
 
 interface ChannelsClientProps {
   initialChannels: Channel[];
@@ -81,6 +84,10 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
   const [openEditImageDialog, setOpenEditImageDialog] = useState(false);
   const [editImageFile, setEditImageFile] = useState<File | null>(null);
   const [editImagePreview, setEditImagePreview] = useState<string | null>(null);
+
+  // 채널 삭제 확인 모달 상태
+  const [deleteTargetChannel, setDeleteTargetChannel] = useState<Channel | null>(null);
+  const [openDeleteConfirmDialog, setOpenDeleteConfirmDialog] = useState(false);
 
   // 채널 목록 조회 쿼리 - 초기 데이터 사용
   const {
@@ -203,7 +210,22 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
     },
   });
 
-  // 채널 삭제 기능 제거됨
+  // 채널 논리 삭제 mutation
+  const deleteChannelMutation = useMutation({
+    mutationFn: (channelId: number) => deleteChannel(channelId),
+    onSuccess: async () => {
+      showMessage("채널이 삭제되었습니다.", "success");
+      setDeleteTargetChannel(null);
+      setOpenDeleteConfirmDialog(false);
+      await queryClient.invalidateQueries({ queryKey: ["channels"] });
+      await queryClient.refetchQueries({ queryKey: ["channels"] });
+    },
+    onError: (error: any) => {
+      console.error("채널 삭제 실패:", error);
+      const errorMessage = error.response?.data?.message || "채널 삭제에 실패했습니다.";
+      showMessage(errorMessage, "error");
+    },
+  });
 
   // 에러 처리
   useEffect(() => {
@@ -429,7 +451,28 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
     }
   };
 
-  // 채널 삭제 기능 제거됨
+  // 채널 삭제 핸들러
+  const handleDeleteChannel = (channel: Channel) => {
+    const isChannelCreator = session?.user?.id === channel.creator.id;
+    if (!isSuperAdmin && !isChannelCreator) {
+      showMessage("채널을 삭제할 권한이 없습니다. 총관리자 또는 채널 생성자만 가능합니다.", "warning");
+      return;
+    }
+
+    setDeleteTargetChannel(channel);
+    setOpenDeleteConfirmDialog(true);
+  };
+
+  const handleConfirmDeleteChannel = () => {
+    if (!deleteTargetChannel) return;
+    deleteChannelMutation.mutate(deleteTargetChannel.id);
+  };
+
+  const handleCancelDeleteChannel = () => {
+    if (deleteChannelMutation.isPending) return;
+    setDeleteTargetChannel(null);
+    setOpenDeleteConfirmDialog(false);
+  };
 
   if (isLoading && !initialChannels.length) {
     return <Loading />;
@@ -898,6 +941,29 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
                           </IconButton>
                         </Tooltip>
                       )}
+                      <Tooltip title="채널 삭제">
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteChannel(channel);
+                          }}
+                          sx={{
+                            color: theme.palette.mode === "dark" ? "#ef4444" : "#dc2626",
+                            "&:hover": {
+                              background:
+                                theme.palette.mode === "dark" ? "rgba(239, 68, 68, 0.1)" : "rgba(220, 38, 38, 0.1)",
+                            },
+                          }}
+                          disabled={deleteChannelMutation.isPending}
+                        >
+                          {deleteChannelMutation.isPending && deleteTargetChannel?.id === channel.id ? (
+                            <CircularProgress size={16} />
+                          ) : (
+                            <DeleteIcon fontSize="small" />
+                          )}
+                        </IconButton>
+                      </Tooltip>
                     </Box>
                   )}
                 </Box>
@@ -906,6 +972,18 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
           </Grid>
         ))}
       </Grid>
+
+      {openDeleteConfirmDialog && deleteTargetChannel && (
+        <ConfirmDialog
+          open={openDeleteConfirmDialog}
+          title="채널 삭제"
+          description={`"${deleteTargetChannel.channel_name}" 채널을 삭제하시겠습니까?\n\n삭제된 채널은 목록에서 사라지고 URL로도 접근할 수 없습니다. 게시글과 데이터는 물리적으로 삭제되지 않습니다.`}
+          onConfirm={handleConfirmDeleteChannel}
+          onCancel={handleCancelDeleteChannel}
+          confirmText={deleteChannelMutation.isPending ? "삭제 중..." : "삭제"}
+          cancelText="취소"
+        />
+      )}
 
       {/* 채널 생성 다이얼로그 */}
       <CreateChannelDialog

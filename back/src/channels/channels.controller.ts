@@ -146,7 +146,18 @@ export class ChannelsController {
     return await this.channelsService.getUserSubscriptions(req.user.id);
   }
 
-  // 채널 삭제 기능은 비활성화되었습니다.
+  @Delete(':id')
+  @UseGuards(AuthGuard())
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '채널 논리 삭제 (총관리자 또는 채널 생성자만 가능)' })
+  @ApiResponse({ status: 200, description: '채널 삭제 성공' })
+  @ApiResponse({ status: 403, description: '삭제 권한 없음' })
+  @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
+  @HttpCode(HttpStatus.OK)
+  async deleteChannel(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    await this.channelsService.deleteChannel(id, req.user.id);
+    return { message: '채널이 삭제되었습니다.' };
+  }
 
   @Patch('/:id/hide')
   @UseGuards(AuthGuard())

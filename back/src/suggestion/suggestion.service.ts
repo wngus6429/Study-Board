@@ -1,11 +1,12 @@
 import {
   ForbiddenException,
+  GoneException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectDataSource, InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource, In } from 'typeorm';
+import { Repository, DataSource, In, IsNull } from 'typeorm';
 import { User } from 'src/entities/User.entity';
 import { Suggestion } from 'src/entities/Suggestion.entity';
 import { SuggestionImage } from 'src/entities/SuggestionImage.entity';
@@ -40,7 +41,7 @@ export class SuggestionService {
 
     // 채널 필터링
     if (channelId) {
-      whereCondition.Channel = { id: Number(channelId) };
+      whereCondition.Channel = { id: Number(channelId), deleted_at: IsNull() };
     }
 
     // 사용자 필터링 (내가 작성한 건의사항만)
@@ -101,10 +102,13 @@ export class SuggestionService {
   async findSuggestionOne(id: number): Promise<any> {
     const suggestion = await this.suggestionRepository.findOne({
       where: { id },
-      relations: ['SuggestionImage', 'User', 'User.UserImage'],
+      relations: ['SuggestionImage', 'User', 'User.UserImage', 'Channel'],
     });
     if (!suggestion) {
       throw new NotFoundException(`Suggestion with ID ${id} not found`);
+    }
+    if (suggestion.Channel?.deleted_at) {
+      throw new GoneException('삭제된 채널의 건의사항입니다.');
     }
     // 조회수 증가 등 추가 로직이 필요하면 여기서 처리 (현재는 생략)
     const { SuggestionImage, User, ...rest } = suggestion;

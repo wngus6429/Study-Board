@@ -165,6 +165,8 @@ export default function page({ params }: { params: { id: string; slug: string } 
     if (isError && !isDeleted) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
         router.replace("/not-found"); // 404 페이지로 이동
+      } else if (axios.isAxiosError(error) && error.response?.status === 410) {
+        return;
       } else {
         showMessage("오류가 발생했습니다. 다시 시도해주세요.", "error");
       }
@@ -835,6 +837,32 @@ export default function page({ params }: { params: { id: string; slug: string } 
 
   // 페이지 렌더링 - 조건부 렌더링을 JSX에서 처리
   if (isLoading) return <Loading />;
+  if (isError && axios.isAxiosError(error) && error.response?.status === 410) {
+    return (
+      <Box
+        sx={{
+          minHeight: "60vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          px: 2,
+          textAlign: "center",
+        }}
+      >
+        <Box>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+            삭제된 채널의 게시글입니다
+          </Typography>
+          <Typography color="text.secondary" sx={{ mb: 3 }}>
+            이 채널은 삭제되어 더 이상 게시글을 볼 수 없습니다.
+          </Typography>
+          <Button variant="contained" onClick={() => router.push("/channels")}>
+            채널 목록으로
+          </Button>
+        </Box>
+      </Box>
+    );
+  }
   if (isError) return <ErrorView />;
 
   return (

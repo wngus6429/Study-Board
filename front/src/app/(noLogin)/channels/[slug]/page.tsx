@@ -20,6 +20,9 @@ async function getChannelData(slug: string) {
     });
 
     if (!res.ok) {
+      if (res.status === 410) {
+        return { deleted: true };
+      }
       if (res.status === 404) {
         return null; // 채널이 존재하지 않음
       }
@@ -41,6 +44,17 @@ export async function generateMetadata({ params }: { params: { slug: string } })
     return {
       title: "채널을 찾을 수 없습니다 - Hobby Channel",
       description: "요청하신 채널을 찾을 수 없습니다.",
+    };
+  }
+
+  if (channelData.deleted) {
+    return {
+      title: "削除されたチャンネル - Hobby Channel",
+      description: "削除されたため、これ以上アクセスできないチャンネルです。",
+      robots: {
+        index: false,
+        follow: false,
+      },
     };
   }
 
@@ -95,6 +109,33 @@ export default async function ChannelPage({ params }: { params: { slug: string }
   // 채널이 존재하지 않으면 404 페이지로 리다이렉트
   if (!channelData) {
     notFound();
+  }
+
+  if (channelData.deleted) {
+    return (
+      <main
+        style={{
+          minHeight: "60vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "32px 16px",
+        }}
+      >
+        <section
+          style={{
+            width: "100%",
+            maxWidth: 560,
+            textAlign: "center",
+          }}
+        >
+          <h1 style={{ margin: "0 0 12px", fontSize: 28 }}>삭제된 채널입니다</h1>
+          <p style={{ margin: 0, color: "#666", lineHeight: 1.7 }}>
+            이 채널은 관리자 또는 채널 생성자에 의해 삭제되어 더 이상 접근할 수 없습니다.
+          </p>
+        </section>
+      </main>
+    );
   }
 
   // 공통 값들 미리 계산

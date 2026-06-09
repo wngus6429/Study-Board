@@ -3,6 +3,7 @@ import React from "react";
 import { Box, TextField, Button, Typography, Avatar, useTheme } from "@mui/material";
 import { CommentFormProps } from "./types";
 import { resolveMediaUrl } from "@/app/utils/mediaUrl";
+import { useLanguageStore } from "@/app/store/languageStore";
 
 const CommentForm: React.FC<CommentFormProps> = ({
   content,
@@ -13,6 +14,8 @@ const CommentForm: React.FC<CommentFormProps> = ({
   refetch,
 }) => {
   const theme = useTheme();
+  const language = useLanguageStore((state) => state.language);
+  const isJapanese = language === "ja";
 
   if (!isLoggedIn) {
     return null;
@@ -56,7 +59,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
           multiline
           minRows={2}
           maxRows={4}
-          placeholder="나쁜말 쓰면 큰일남"
+          placeholder={isJapanese ? "コメントを入力してください" : "나쁜말 쓰면 큰일남"}
           value={content}
           onChange={(e) => setContent(e.target.value)}
           sx={{ marginBottom: 1 }}
@@ -69,7 +72,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
               marginBottom: 2,
             }}
           >
-            내 마음에 안들면 댓글 삭제
+            {isJapanese ? "不適切なコメントは削除される場合があります" : "내 마음에 안들면 댓글 삭제"}
           </Typography>
           <Button
             onClick={handleSubmit}
@@ -94,7 +97,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
               },
             }}
           >
-            댓글 작성
+            {isJapanese ? "コメント投稿" : "댓글 작성"}
           </Button>
         </Box>
       </Box>
@@ -103,7 +106,9 @@ const CommentForm: React.FC<CommentFormProps> = ({
       {!sessionUser?.nickname && (
         <Box sx={{ mt: 2, textAlign: "center" }}>
           <Typography variant="body2" color="error">
-            댓글 작성을 위한, 로그인 정보를 가져오는 중 문제가 발생했습니다.
+            {isJapanese
+              ? "コメント投稿に必要なログイン情報の取得中に問題が発生しました。"
+              : "댓글 작성을 위한, 로그인 정보를 가져오는 중 문제가 발생했습니다."}
           </Typography>
           <Button
             variant={theme.palette.mode === "dark" ? "contained" : "outlined"}
@@ -121,7 +126,7 @@ const CommentForm: React.FC<CommentFormProps> = ({
               }),
             }}
           >
-            다시 시도
+            {isJapanese ? "再試行" : "다시 시도"}
           </Button>
         </Box>
       )}

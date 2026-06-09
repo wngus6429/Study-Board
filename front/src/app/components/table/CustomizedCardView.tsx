@@ -11,6 +11,7 @@ import Image from "next/image";
 import relativeTime from "dayjs/plugin/relativeTime";
 import BlindWrapper from "../BlindWrapper";
 import UserBadge from "@/app/components/common/UserBadge";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 dayjs.extend(relativeTime);
 
@@ -242,7 +243,7 @@ const CustomizedCardView = ({ tableData, onRowClick }: CustomizedCardViewProps):
                   {row.imageFlag && row.firstImage ? (
                     <CardMedia
                       component="img"
-                      image={`${process.env.NEXT_PUBLIC_BASE_URL}${row.firstImage.link}`}
+                      image={resolveMediaUrl(row.firstImage.link)}
                       alt={row.title}
                       sx={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />

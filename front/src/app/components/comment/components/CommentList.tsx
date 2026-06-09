@@ -7,6 +7,7 @@ import BlindWrapper from "../../BlindWrapper";
 import { useAdmin } from "../../../hooks/useAdmin";
 import { CommentListProps, Comment } from "./types";
 import { resolveMediaUrl } from "@/app/utils/mediaUrl";
+import { useLanguageStore } from "@/app/store/languageStore";
 
 const CommentList = React.memo(
   ({
@@ -28,6 +29,8 @@ const CommentList = React.memo(
 
     const theme = useTheme();
     const admin = useAdmin(); // 관리자 훅
+    const language = useLanguageStore((state) => state.language);
+    const isJapanese = language === "ja";
 
     return (
       <Box>
@@ -123,7 +126,7 @@ const CommentList = React.memo(
                   fullWidth
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
-                  placeholder="댓글 수정..."
+                  placeholder={isJapanese ? "コメントを編集..." : "댓글 수정..."}
                   size="small"
                 />
                 <Box sx={{ mt: 1, display: "flex", gap: 1 }}>
@@ -136,7 +139,7 @@ const CommentList = React.memo(
                       setEditContent("");
                     }}
                   >
-                    저장
+                    {isJapanese ? "保存" : "저장"}
                   </Button>
                   <Button
                     size="small"
@@ -146,7 +149,7 @@ const CommentList = React.memo(
                       setEditContent("");
                     }}
                   >
-                    취소
+                    {isJapanese ? "キャンセル" : "취소"}
                   </Button>
                 </Box>
               </Box>
@@ -205,7 +208,7 @@ const CommentList = React.memo(
                       }),
                     }}
                   >
-                    답글
+                    {isJapanese ? "返信" : "답글"}
                   </Button>
                 )}
                 {/* 로그인 상태이고 댓글 작성자일 때 수정 버튼 표시 */}
@@ -231,7 +234,7 @@ const CommentList = React.memo(
                           }),
                         }}
                       >
-                        수정
+                        {isJapanese ? "編集" : "수정"}
                       </Button>
                     )}
                   </>
@@ -262,7 +265,13 @@ const CommentList = React.memo(
                     }}
                     disabled={admin.isLoading}
                   >
-                    {admin.isSuperAdmin ? "관리자 삭제" : "삭제"}
+                    {admin.isSuperAdmin
+                      ? isJapanese
+                        ? "管理者削除"
+                        : "관리자 삭제"
+                      : isJapanese
+                        ? "削除"
+                        : "삭제"}
                   </Button>
                 )}
               </Box>
@@ -275,7 +284,7 @@ const CommentList = React.memo(
                   fullWidth
                   value={localReplyContent}
                   onChange={(e) => setLocalReplyContent(e.target.value)}
-                  placeholder="답글을 입력하세요..."
+                  placeholder={isJapanese ? "返信を入力してください..." : "답글을 입력하세요..."}
                   size="small"
                 />
                 <Button
@@ -297,7 +306,7 @@ const CommentList = React.memo(
                     }),
                   }}
                 >
-                  댓글 작성
+                  {isJapanese ? "コメント投稿" : "댓글 작성"}
                 </Button>
               </Box>
             )}

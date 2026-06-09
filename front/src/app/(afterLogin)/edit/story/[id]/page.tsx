@@ -123,6 +123,18 @@ export default function EditPage({ params }: { params: { id: string } }) {
             `src="${imageUrl}" title="${baseFileName}.jpg"`
           );
         });
+
+        let fallbackImageIndex = 0;
+        processedContent = processedContent.replace(/<img[^>]*src="(?:blob:[^"]*|)"[^>]*>/gi, (imgTag: string) => {
+          const imageInfo = storyDetail.StoryImage?.[fallbackImageIndex++];
+          const imageUrl = resolveMediaUrl(imageInfo?.link) ?? "";
+
+          if (!imageUrl) {
+            return imgTag;
+          }
+
+          return imgTag.replace(/src="(?:blob:[^"]*|)"/i, `src="${imageUrl}"`);
+        });
       }
 
       // 동영상 처리를 개선
@@ -177,8 +189,14 @@ export default function EditPage({ params }: { params: { id: string } }) {
 
       // 혹시 이미 상대 경로로 저장된 것들도 처리
       if (baseUrl) {
-        processedContent = processedContent.replace(/src="\/upload\/([^"]+)"/g, `src="${baseUrl}/upload/$1"`);
-        processedContent = processedContent.replace(/src="\/videoUpload\/([^"]+)"/g, `src="${baseUrl}/videoUpload/$1"`);
+        processedContent = processedContent.replace(
+          /src="\/upload\/([^"]+)"/g,
+          (_match: string, fileName: string) => `src="${resolveMediaUrl(`/upload/${fileName}`) ?? ""}"`
+        );
+        processedContent = processedContent.replace(
+          /src="\/videoUpload\/([^"]+)"/g,
+          (_match: string, fileName: string) => `src="${resolveMediaUrl(`/videoUpload/${fileName}`) ?? ""}"`
+        );
       }
 
       console.log("4. 최종 처리된 컨텐츠:", processedContent);

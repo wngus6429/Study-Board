@@ -17,6 +17,7 @@ import CommentForm from "./components/CommentForm";
 import CommentPagination from "./components/CommentPagination";
 import { useCommentHandlers } from "./components/useCommentHandlers";
 import { useCommentNavigation } from "./components/useCommentNavigation";
+import { useLanguageStore } from "@/app/store/languageStore";
 
 const CommentsView = ({ channelId, channelCreatorId }: CommentsViewProps = {}) => {
   // URL 파라미터에서 스토리 ID 가져오기
@@ -24,6 +25,8 @@ const CommentsView = ({ channelId, channelCreatorId }: CommentsViewProps = {}) =
   const { data: session, status } = useSession();
   const theme = useTheme();
   const admin = useAdmin();
+  const language = useLanguageStore((state) => state.language);
+  const isJapanese = language === "ja";
 
   // 댓글 작성 내용
   const [content, setContent] = useState("");
@@ -127,18 +130,28 @@ const CommentsView = ({ channelId, channelCreatorId }: CommentsViewProps = {}) =
     >
       {/* 로딩 및 에러 처리 */}
       {isLoading && <Loading />}
-      {isError && <Alert severity="error">댓글을 불러오는 중 에러가 발생했습니다. 잠시 후 다시 시도해주세요.</Alert>}
+      {isError && (
+        <Alert severity="error">
+          {isJapanese
+            ? "コメントの読み込み中にエラーが発生しました。しばらくしてからもう一度お試しください。"
+            : "댓글을 불러오는 중 에러가 발생했습니다. 잠시 후 다시 시도해주세요."}
+        </Alert>
+      )}
 
       {/* 삭제 확인 다이얼로그 */}
       {openConfirmDialog && (
         <ConfirmDialog
           open={openConfirmDialog}
-          title="댓글 삭제"
-          description="댓글을 삭제하시겠습니까? 삭제된 댓글은 복구할 수 없습니다."
+          title={isJapanese ? "コメント削除" : "댓글 삭제"}
+          description={
+            isJapanese
+              ? "コメントを削除しますか？削除されたコメントは復元できません。"
+              : "댓글을 삭제하시겠습니까? 삭제된 댓글은 복구할 수 없습니다."
+          }
           onConfirm={confirmDelete}
           onCancel={cancelDelete}
-          confirmText="삭제"
-          cancelText="취소"
+          confirmText={isJapanese ? "削除" : "삭제"}
+          cancelText={isJapanese ? "キャンセル" : "취소"}
         />
       )}
 
@@ -146,12 +159,16 @@ const CommentsView = ({ channelId, channelCreatorId }: CommentsViewProps = {}) =
       {adminDeleteDialog.open && (
         <ConfirmDialog
           open={adminDeleteDialog.open}
-          title="🛡️ 관리자 권한으로 댓글 삭제"
-          description={`다음 댓글을 삭제하시겠습니까?\n\n"${adminDeleteDialog.content}"\n\n⚠️ 이 작업은 되돌릴 수 없습니다.`}
+          title={isJapanese ? "🛡️ 管理者権限でコメント削除" : "🛡️ 관리자 권한으로 댓글 삭제"}
+          description={
+            isJapanese
+              ? `次のコメントを削除しますか？\n\n"${adminDeleteDialog.content}"\n\n⚠️ この操作は取り消せません。`
+              : `다음 댓글을 삭제하시겠습니까?\n\n"${adminDeleteDialog.content}"\n\n⚠️ 이 작업은 되돌릴 수 없습니다.`
+          }
           onConfirm={confirmAdminDelete}
           onCancel={cancelAdminDelete}
-          confirmText={admin.isLoading ? "삭제 중..." : "삭제"}
-          cancelText="취소"
+          confirmText={admin.isLoading ? (isJapanese ? "削除中..." : "삭제 중...") : isJapanese ? "削除" : "삭제"}
+          cancelText={isJapanese ? "キャンセル" : "취소"}
         />
       )}
 
@@ -165,15 +182,16 @@ const CommentsView = ({ channelId, channelCreatorId }: CommentsViewProps = {}) =
           ml: 1,
         }}
       >
-        댓글
+        {isJapanese ? "コメント" : "댓글"}
       </Typography>
 
       {/* 댓글이 없을 때 메시지 */}
       {comments.length === 0 && !isLoading && (
         <Box sx={{ textAlign: "center", padding: 2 }}>
           <Typography variant="body1" color="textSecondary">
-            아직 댓글이 없습니다.
-            <br />첫 번째 댓글을 작성해보세요!
+            {isJapanese ? "まだコメントはありません。" : "아직 댓글이 없습니다."}
+            <br />
+            {isJapanese ? "最初のコメントを投稿してみましょう！" : "첫 번째 댓글을 작성해보세요!"}
           </Typography>
         </Box>
       )}

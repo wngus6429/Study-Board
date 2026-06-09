@@ -17,7 +17,7 @@ const ScrollUpButton = () => {
       sx={{
         position: "fixed",
         bottom: 64,
-        right: 50,
+        right: { xs: 12, sm: 50 },
         background:
           theme.palette.mode === "dark"
             ? "linear-gradient(45deg, #8b5cf6, #06b6d4)"

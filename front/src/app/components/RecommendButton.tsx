@@ -62,7 +62,7 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
           overflow: "hidden",
         }}
       >
-        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: 1 }}>
+        <Box sx={{ display: "flex", gap: 2, justifyContent: "center", mt: -1 }}>
           {/* 추천 카운트 */}
           <Box sx={{ textAlign: "center" }}>
             <motion.div
@@ -111,7 +111,7 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
                 }}
                 onClick={() => handleClick("like")}
               >
-                추천
+                Good
               </Button>
             </motion.div>
           </Box>
@@ -161,7 +161,7 @@ export default function RecommendButtonsWithCount({ like, dislike, likeFunc }: R
                 }}
                 onClick={() => handleClick("dislike")}
               >
-                비추
+                Bad
               </Button>
             </motion.div>
           </Box>

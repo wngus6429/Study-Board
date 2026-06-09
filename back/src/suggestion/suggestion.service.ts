@@ -12,6 +12,7 @@ import { Suggestion } from 'src/entities/Suggestion.entity';
 import { SuggestionImage } from 'src/entities/SuggestionImage.entity';
 import * as fs from 'fs';
 import * as path from 'path';
+import { getFileName, getFileUrl } from '../common/utils/multer.options';
 
 @Injectable()
 export class SuggestionService {
@@ -25,6 +26,17 @@ export class SuggestionService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
   ) {}
+
+  private deleteLocalSuggestionFile(storedName: string): void {
+    if (!storedName || storedName.includes('/') || storedName.includes('\\')) {
+      return;
+    }
+
+    const filePath = path.join(__dirname, '../../suggestionUpload', storedName);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  }
   // ㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡㅡ
   // 건의사항 목록 조회 (채널별 + 사용자별 필터 적용)
   async findSuggestion(
@@ -155,8 +167,8 @@ export class SuggestionService {
     if (files && files.length > 0) {
       const imageEntities = files.map((file) => {
         const image = new SuggestionImage();
-        image.image_name = ((file as any).key || file.filename);
-        image.link = ((file as any).location || `/suggestionUpload/${file.filename}`);
+        image.image_name = getFileName(file);
+        image.link = getFileUrl(file, 'suggestionUpload');
         image.Suggestion = singleSuggestion;
         return image;
       });
@@ -227,8 +239,8 @@ export class SuggestionService {
     if (newImages && newImages.length > 0) {
       const newImageEntities = newImages.map((file) => {
         const image = new SuggestionImage();
-        image.image_name = ((file as any).key || file.filename);
-        image.link = ((file as any).location || `/suggestionUpload/${file.filename}`);
+        image.image_name = getFileName(file);
+        image.link = getFileUrl(file, 'suggestionUpload');
         image.Suggestion = suggestion;
         return image;
       });
@@ -263,14 +275,7 @@ export class SuggestionService {
     // 첨부된 이미지 파일 삭제
     if (suggestion.SuggestionImage && suggestion.SuggestionImage.length > 0) {
       for (const image of suggestion.SuggestionImage) {
-        const filePath = path.join(
-          __dirname,
-          '../../suggestionUpload',
-          image.image_name,
-        );
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+        this.deleteLocalSuggestionFile(image.image_name);
       }
     }
     await this.suggestionRepository.delete(suggestionId);

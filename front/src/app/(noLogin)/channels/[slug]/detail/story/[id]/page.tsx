@@ -44,6 +44,7 @@ import { MIN_RECOMMEND_COUNT } from "@/app/const/VIEW_COUNT";
 import { useAdmin } from "@/app/hooks/useAdmin";
 import { getChannelBySlug } from "@/app/api/channelsApi";
 import { addBlindUser } from "@/app/api/blind";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 export default function page({ params }: { params: { id: string; slug: string } }): ReactNode {
   // const params = useParams(); // Next.js 13 이상에서 App Directory를 사용하면, page 컴포넌트는 URL 매개변수(파라미터)를 props로 받을 수 있습니다.
@@ -679,7 +680,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
             base.includes(img.image_name.replace(/\.[^.]+$/, "")),
         );
         return matched
-          ? imgTag.replace(/src="blob:[^"]*"/, `src="${process.env.NEXT_PUBLIC_BASE_URL}${matched.link}"`)
+          ? imgTag.replace(/src="blob:[^"]*"/, `src="${resolveMediaUrl(matched.link) ?? ""}"`)
           : "";
       });
     }
@@ -972,7 +973,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
             >
               <Box display="flex" alignItems="center" gap={{ xs: 1, sm: 2 }}>
                 <Avatar
-                  src={`${process.env.NEXT_PUBLIC_BASE_URL}${detail.User.avatar}`}
+                  src={resolveMediaUrl(detail.User.avatar)}
                   sx={{ width: { xs: 40, sm: 50 }, height: { xs: 40, sm: 50 }, boxShadow: 2 }}
                 />
                 <Box>
@@ -1088,7 +1089,7 @@ export default function page({ params }: { params: { id: string; slug: string } 
                   }}
                 >
                   {polaroidImages.map((img, idx) => {
-                    const src = `${process.env.NEXT_PUBLIC_BASE_URL}${img.link}`;
+                    const src = resolveMediaUrl(img.link) ?? "";
                     const rotation = getPolaroidRotation(img.id, idx);
                     return (
                       <Box key={`polaroid-${img.id}-${idx}`} sx={{ breakInside: "avoid", mb: { xs: 1.5, sm: 2 } }}>

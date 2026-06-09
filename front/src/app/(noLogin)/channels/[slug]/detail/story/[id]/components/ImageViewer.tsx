@@ -8,6 +8,7 @@ import {
   ZoomOut as ZoomOutIcon,
 } from "@mui/icons-material";
 import { StoryImageType } from "@/app/types/imageTypes";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 /**
  * 이미지 뷰어 컴포넌트의 Props 인터페이스
@@ -313,7 +314,7 @@ const ImageViewer: React.FC<ImageViewerProps> = ({
         {selectedImage && (
           <Box
             component="img"
-            src={`${process.env.NEXT_PUBLIC_BASE_URL}${selectedImage.link}`}
+            src={resolveMediaUrl(selectedImage.link)}
             alt="Selected"
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}

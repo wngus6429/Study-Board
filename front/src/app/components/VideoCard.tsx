@@ -7,6 +7,7 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import FullscreenIcon from "@mui/icons-material/Fullscreen";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExit";
+import { resolveMediaUrl } from "../utils/mediaUrl";
 
 interface VideoCardProps {
   video: StoryVideoType;
@@ -177,7 +178,7 @@ const VideoCard: React.FC<VideoCardProps> = React.memo(({ video, isLastOddVideo 
           return { xs: "100%", sm: "calc(50% - 8px)" }; // 가로 영상은 기본 크기
         })(),
         aspectRatio: loaded ? videoAspectRatio.toString() : "16/9",
-        maxHeight: isVertical && "600px", // 세로 영상 최대 높이를 더 크게
+        maxHeight: isVertical ? "600px" : undefined, // 세로 영상 최대 높이를 더 크게
         borderRadius: "12px",
         overflow: "hidden",
         cursor: "pointer",
@@ -193,7 +194,7 @@ const VideoCard: React.FC<VideoCardProps> = React.memo(({ video, isLastOddVideo 
     >
       <video
         ref={videoRef}
-        src={`${process.env.NEXT_PUBLIC_BASE_URL}${video.link}`}
+        src={resolveMediaUrl(video.link)}
         style={{
           width: "100%",
           height: "100%",

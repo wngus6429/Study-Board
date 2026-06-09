@@ -5,12 +5,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Story } from '../entities/Story.entity';
 import { AuthModule } from 'src/auth/auth.module';
 import { MulterModule } from '@nestjs/platform-express';
-import { getMulterOptions } from '../common/utils/multer.options';
-import { diskStorage } from 'multer';
-import * as path from 'path';
+import { getStoryMulterOptions } from '../common/utils/multer.options';
 import { StoryImage } from 'src/entities/StoryImage.entity';
 import { StoryVideo } from 'src/entities/StoryVideo.entity';
-import { Today } from 'src/common/helper/today';
 import { UserImage } from 'src/entities/UserImage.entity';
 import { User } from 'src/entities/User.entity';
 import { Comments } from 'src/entities/Comments.entity';
@@ -39,26 +36,7 @@ import { AdminGuard } from '../auth/admin.guard';
      * - 최대 파일 크기: 1000MB
      */
     MulterModule.register({
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          // 파일 타입에 따라 저장 폴더 결정
-          if (file.mimetype.startsWith('image/')) {
-            cb(null, './upload'); // 이미지는 upload 폴더에
-          } else if (file.mimetype.startsWith('video/')) {
-            cb(null, './videoUpload'); // 동영상은 videoUpload 폴더에
-          } else {
-            cb(new Error('지원하지 않는 파일 타입입니다.'), '');
-          }
-        },
-        filename(req, file, done) {
-          const ext = path.extname(file.originalname);
-          const baseName = Buffer.from(
-            path.basename(file.originalname, ext),
-            'latin1',
-          ).toString('utf8'); // 한글 파일명을 UTF-8로 변환
-          done(null, `${baseName}_${Today()}${ext}`);
-        },
-      }),
+      ...getStoryMulterOptions(1000 * 1024 * 1024, 10),
       fileFilter: (req, file, callback) => {
         // 허용되는 파일 타입 정의
         const allowedMimeTypes = [
@@ -92,10 +70,6 @@ import { AdminGuard } from '../auth/admin.guard';
             false,
           );
         }
-      },
-      limits: {
-        fileSize: 1000 * 1024 * 1024, // 1000MB 제한
-        files: 10, // 최대 10개 파일
       },
     }),
     /**

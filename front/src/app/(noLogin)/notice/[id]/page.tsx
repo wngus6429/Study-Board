@@ -38,6 +38,7 @@ import UserMenuPopover from "@/app/components/common/UserMenuPopover";
 import SendMessageModal from "@/app/components/common/SendMessageModal";
 import { useRecentViews } from "@/app/store/recentViewsStore";
 import CommentsView from "@/app/components/comment/CommentsView";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 import Link from "next/link";
 
 export default function page({ params }: { params: { id: string } }): ReactNode {
@@ -670,7 +671,7 @@ export default function page({ params }: { params: { id: string } }): ReactNode 
           {selectedImage && (
             <Box
               component="img"
-              src={`${process.env.NEXT_PUBLIC_BASE_URL}${selectedImage.link}`}
+              src={resolveMediaUrl(selectedImage.link)}
               alt={selectedImage.image_name}
               sx={{
                 maxWidth: "100%",

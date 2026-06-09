@@ -23,6 +23,7 @@ import { CreateReportDto } from './dto/create-report.dto';
 import { ReviewReportDto } from './dto/review-report.dto';
 import { NotificationService } from '../notification/notification.service';
 import { EXPERIENCE_RULES, getLevelByExperience } from '../constants/level';
+import { getFileName, getFileUrl } from '../common/utils/multer.options';
 
 /**
  * Story 서비스
@@ -53,6 +54,47 @@ export class StoryService {
     private reportRepository: Repository<Report>,
     private notificationService: NotificationService,
   ) {}
+
+  private extractUsedUploadNames(content: string, folder: string): string[] {
+    const usedNames = new Set<string>();
+    const matches = content.match(
+      new RegExp(`src="[^"]*/${folder}/([^"]+)"`, 'g'),
+    );
+
+    matches?.forEach((match) => {
+      const pathMatch = match.match(new RegExp(`/${folder}/([^"]+)`));
+      const fileName = pathMatch?.[1];
+      if (fileName) {
+        usedNames.add(fileName);
+        usedNames.add(`${folder}/${fileName}`);
+      }
+    });
+
+    return Array.from(usedNames);
+  }
+
+  private isStoredFileUsed(
+    content: string,
+    usedNames: string[],
+    storedName: string,
+  ): boolean {
+    return (
+      usedNames.includes(storedName) ||
+      usedNames.includes(path.basename(storedName)) ||
+      content.includes(storedName)
+    );
+  }
+
+  private deleteLocalUploadFile(folder: string, storedName: string): void {
+    if (!storedName || storedName.includes('/') || storedName.includes('\\')) {
+      return;
+    }
+
+    const filePath = path.join(__dirname, `../../${folder}`, storedName);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  }
 
   /**
    * 테이블 형태 게시글 목록 조회
@@ -966,8 +1008,8 @@ export class StoryService {
 
         if (file.mimetype.startsWith('image/')) {
           const imageEntity = new StoryImage();
-          imageEntity.image_name = ((file as any).key || file.filename);
-          imageEntity.link = ((file as any).location || `/upload/${file.filename}`);
+          imageEntity.image_name = getFileName(file);
+          imageEntity.link = getFileUrl(file, 'upload');
           imageEntity.file_size = file.size;
           imageEntity.mime_type = file.mimetype;
           // imageEntity.upload_order = i; // 전체 파일 배열에서의 순서 (tiptap 사용으로 불필요)
@@ -976,8 +1018,8 @@ export class StoryService {
           await this.imageRepository.save(imageEntity);
         } else if (file.mimetype.startsWith('video/')) {
           const videoEntity = new StoryVideo();
-          videoEntity.video_name = ((file as any).key || file.filename);
-          videoEntity.link = ((file as any).location || `/videoUpload/${file.filename}`);
+          videoEntity.video_name = getFileName(file);
+          videoEntity.link = getFileUrl(file, 'videoUpload');
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
           // videoEntity.upload_order = i; // 전체 파일 배열에서의 순서 (tiptap 사용으로 불필요)
@@ -1060,8 +1102,8 @@ export class StoryService {
     if (noticeImageFiles.length > 0) {
       const imageEntities = noticeImageFiles.map((file) => {
         const imageEntity = new StoryImage();
-        imageEntity.image_name = ((file as any).key || file.filename);
-        imageEntity.link = ((file as any).location || `/upload/${file.filename}`);
+        imageEntity.image_name = getFileName(file);
+        imageEntity.link = getFileUrl(file, 'upload');
         imageEntity.file_size = file.size;
         imageEntity.mime_type = file.mimetype;
         imageEntity.Story = savedStory;
@@ -1076,8 +1118,8 @@ export class StoryService {
     if (noticeVideoFiles.length > 0) {
       const videoEntities = noticeVideoFiles.map((file) => {
         const videoEntity = new StoryVideo();
-        videoEntity.video_name = ((file as any).key || file.filename);
-        videoEntity.link = ((file as any).location || `/videoUpload/${file.filename}`);
+        videoEntity.video_name = getFileName(file);
+        videoEntity.link = getFileUrl(file, 'videoUpload');
         videoEntity.file_size = file.size;
         videoEntity.mime_type = file.mimetype;
         videoEntity.Story = savedStory;
@@ -1137,19 +1179,13 @@ export class StoryService {
     );
 
     // content에서 사용되는 이미지 파일명들 추출
-    const usedImagePaths = [];
-    const imageMatches = content.match(/src="[^"]*\/upload\/([^"]+)"/g);
-    if (imageMatches) {
-      imageMatches.forEach((match) => {
-        const pathMatch = match.match(/\/upload\/([^"]+)/);
-        if (pathMatch) {
-          usedImagePaths.push(pathMatch[1]);
-        }
-      });
-    }
+    const usedImagePaths = this.extractUsedUploadNames(content, 'upload');
 
     // content에서 사용되는 동영상 파일명들 추출
-    const usedVideoPaths = [];
+    const usedVideoPaths = this.extractUsedUploadNames(
+      content,
+      'videoUpload',
+    );
 
     // 1. video 태그의 src 속성에서 동영상 파일 찾기
     const videoMatches = content.match(/src="[^"]*\/videoUpload\/([^"]+)"/g);
@@ -1200,12 +1236,13 @@ export class StoryService {
 
     // 삭제할 이미지 찾기 (content에서 사용되지 않는 것들)
     const imagesToDelete = story.StoryImage.filter(
-      (img) => !usedImagePaths.includes(img.image_name),
+      (img) => !this.isStoredFileUsed(content, usedImagePaths, img.image_name),
     );
 
     // 삭제할 동영상 찾기 (content에서 사용되지 않는 것들)
     const videosToDelete = story.StoryVideo.filter(
-      (video) => !usedVideoPaths.includes(video.video_name),
+      (video) =>
+        !this.isStoredFileUsed(content, usedVideoPaths, video.video_name),
     );
 
     console.log(
@@ -1243,10 +1280,7 @@ export class StoryService {
     if (imagesToDelete.length > 0) {
       for (const image of imagesToDelete) {
         // 파일 시스템에서 이미지 파일 삭제
-        const filePath = path.join(__dirname, '../../upload', image.image_name);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+        this.deleteLocalUploadFile('upload', image.image_name);
       }
       // 데이터베이스에서 이미지 삭제
       await this.imageRepository.remove(imagesToDelete);
@@ -1256,14 +1290,7 @@ export class StoryService {
     if (videosToDelete.length > 0) {
       for (const video of videosToDelete) {
         // 파일 시스템에서 동영상 파일 삭제
-        const filePath = path.join(
-          __dirname,
-          '../../videoUpload',
-          video.video_name,
-        );
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+        this.deleteLocalUploadFile('videoUpload', video.video_name);
       }
       // 데이터베이스에서 동영상 삭제
       await this.videoRepository.remove(videosToDelete);
@@ -1295,8 +1322,8 @@ export class StoryService {
       if (imageFiles.length > 0) {
         const imageEntities = imageFiles.map((file, index) => {
           const imageEntity = new StoryImage();
-          imageEntity.image_name = ((file as any).key || file.filename);
-          imageEntity.link = ((file as any).location || `/upload/${file.filename}`);
+          imageEntity.image_name = getFileName(file);
+          imageEntity.link = getFileUrl(file, 'upload');
           imageEntity.file_size = file.size;
           imageEntity.mime_type = file.mimetype;
           // imageEntity.upload_order = maxOrder + 1 + index; // tiptap 사용으로 불필요
@@ -1310,7 +1337,7 @@ export class StoryService {
         imageFiles.forEach((file) => {
           updatedContent = updatedContent.replace(
             /src=""/,
-            `src="${(file as any).location || `/upload/${((file as any).key || file.filename)}`}"`,
+            `src="${getFileUrl(file, 'upload')}"`,
           );
         });
       }
@@ -1319,8 +1346,8 @@ export class StoryService {
       if (videoFiles.length > 0) {
         const videoEntities = videoFiles.map((file, index) => {
           const videoEntity = new StoryVideo();
-          videoEntity.video_name = ((file as any).key || file.filename);
-          videoEntity.link = ((file as any).location || `/videoUpload/${file.filename}`);
+          videoEntity.video_name = getFileName(file);
+          videoEntity.link = getFileUrl(file, 'videoUpload');
           videoEntity.file_size = file.size;
           videoEntity.mime_type = file.mimetype;
           // videoEntity.upload_order = maxOrder + 1 + imageFiles.length + index; // tiptap 사용으로 불필요
@@ -1334,7 +1361,7 @@ export class StoryService {
         videoFiles.forEach((file) => {
           updatedContent = updatedContent.replace(
             /src=""/,
-            `src="${(file as any).location || `/videoUpload/${((file as any).key || file.filename)}`}"`,
+            `src="${getFileUrl(file, 'videoUpload')}"`,
           );
         });
       }
@@ -1419,24 +1446,14 @@ export class StoryService {
     // 이미지 파일 삭제
     if (story.StoryImage && story.StoryImage.length > 0) {
       story.StoryImage.forEach((image) => {
-        const filePath = path.join(__dirname, '../../upload', image.image_name);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath); // 파일 삭제
-        }
+        this.deleteLocalUploadFile('upload', image.image_name);
       });
     }
 
     // 동영상 파일 삭제
     if (story.StoryVideo && story.StoryVideo.length > 0) {
       story.StoryVideo.forEach((video) => {
-        const filePath = path.join(
-          __dirname,
-          '../../videoUpload',
-          video.video_name,
-        );
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath); // 파일 삭제
-        }
+        this.deleteLocalUploadFile('videoUpload', video.video_name);
       });
     }
 

@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useRef } from "react";
 import { CardMedia } from "@mui/material";
 import { StoryImageType } from "@/app/types/imageTypes";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 interface ImageCardProps {
   img: StoryImageType;
@@ -20,11 +21,12 @@ const ImageCard: React.FC<ImageCardProps> = React.memo(
 
     // 이미지 URL을 메모이제이션
     const imageSrc = useMemo(() => {
+      const resolvedUrl = resolveMediaUrl(img.link) ?? "";
       const lowerLink = img.link.toLowerCase();
       if (lowerLink.endsWith(".gif")) {
-        return `${process.env.NEXT_PUBLIC_BASE_URL}${img.link}`;
+        return resolvedUrl;
       }
-      return `${process.env.NEXT_PUBLIC_BASE_URL}${img.link}?timestamp=${timestampRef.current}`;
+      return `${resolvedUrl}${resolvedUrl.includes("?") ? "&" : "?"}timestamp=${timestampRef.current}`;
     }, [img.link]);
 
     const handleImageLoad = (e: React.SyntheticEvent<HTMLImageElement, Event>) => {

@@ -14,6 +14,7 @@ import { DEFAULT_SELECT_OPTION, WRITE_SELECT_OPTIONS } from "@/app/const/WRITE_C
 import CustomSelect from "@/app/components/common/CustomSelect";
 import { useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
+import { resolveMediaUrl } from "@/app/utils/mediaUrl";
 
 export default function EditPage({ params }: { params: { id: string } }) {
   const queryClient = useQueryClient();
@@ -92,6 +93,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
       if (baseUrl && storyDetail.StoryImage && storyDetail.StoryImage.length > 0) {
         // StoryImage 배열을 이용해 blob URL을 실제 파일 경로로 매핑
         storyDetail.StoryImage.forEach((imageInfo: any, index: number) => {
+          const imageUrl = resolveMediaUrl(imageInfo.link) ?? "";
           // 파일명에서 타임스탬프와 확장자 제거한 기본 이름 추출
           const baseFileName = imageInfo.image_name.replace(/_\d{8}\.(jpg|jpeg|png|gif|webp)$/i, "");
 
@@ -101,24 +103,24 @@ export default function EditPage({ params }: { params: { id: string } }) {
           const escapedFileName = baseFileName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
           processedContent = processedContent.replace(
             new RegExp(`alt="${escapedFileName}[^"]*"[^>]*src="blob:[^"]*"`, "gi"),
-            `alt="${baseFileName}.jpg" src="${baseUrl}${imageInfo.link}"`
+            `alt="${baseFileName}.jpg" src="${imageUrl}"`
           );
 
           // title 속성으로도 찾기
           processedContent = processedContent.replace(
             new RegExp(`title="${escapedFileName}[^"]*"[^>]*src="blob:[^"]*"`, "gi"),
-            `title="${baseFileName}.jpg" src="${baseUrl}${imageInfo.link}"`
+            `title="${baseFileName}.jpg" src="${imageUrl}"`
           );
 
           // src가 먼저 오는 경우
           processedContent = processedContent.replace(
             new RegExp(`src="blob:[^"]*"[^>]*alt="${escapedFileName}[^"]*"`, "gi"),
-            `src="${baseUrl}${imageInfo.link}" alt="${baseFileName}.jpg"`
+            `src="${imageUrl}" alt="${baseFileName}.jpg"`
           );
 
           processedContent = processedContent.replace(
             new RegExp(`src="blob:[^"]*"[^>]*title="${escapedFileName}[^"]*"`, "gi"),
-            `src="${baseUrl}${imageInfo.link}" title="${baseFileName}.jpg"`
+            `src="${imageUrl}" title="${baseFileName}.jpg"`
           );
         });
       }
@@ -130,6 +132,7 @@ export default function EditPage({ params }: { params: { id: string } }) {
         console.log("StoryVideo 배열:", storyDetail.StoryVideo);
 
         storyDetail.StoryVideo.forEach((videoInfo: any, index: number) => {
+          const videoUrl = resolveMediaUrl(videoInfo.link) ?? "";
           console.log(`\n--- 동영상 ${index + 1} 처리 ---`);
           console.log("videoInfo:", videoInfo);
 
@@ -139,23 +142,23 @@ export default function EditPage({ params }: { params: { id: string } }) {
           // 1. <source> 태그의 빈 src 또는 blob URL을 실제 URL로 교체
           processedContent = processedContent.replace(
             /<source([^>]*)src=""([^>]*)/g,
-            `<source$1src="${baseUrl}${videoInfo.link}"$2`
+            `<source$1src="${videoUrl}"$2`
           );
 
           processedContent = processedContent.replace(
             /<source([^>]*)src="blob:[^"]*"([^>]*)/g,
-            `<source$1src="${baseUrl}${videoInfo.link}"$2`
+            `<source$1src="${videoUrl}"$2`
           );
 
           // 2. <video> 태그의 빈 src 또는 blob URL을 실제 URL로 교체
           processedContent = processedContent.replace(
             /<video([^>]*)src=""([^>]*)/g,
-            `<video$1src="${baseUrl}${videoInfo.link}"$2`
+            `<video$1src="${videoUrl}"$2`
           );
 
           processedContent = processedContent.replace(
             /<video([^>]*)src="blob:[^"]*"([^>]*)/g,
-            `<video$1src="${baseUrl}${videoInfo.link}"$2`
+            `<video$1src="${videoUrl}"$2`
           );
 
           // 3. 파일명 정보 업데이트 (🎬로 시작하는 부분)

@@ -5,28 +5,13 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from 'src/auth/auth.module';
 import { MulterModule } from '@nestjs/platform-express';
 import { getMulterOptions } from '../common/utils/multer.options';
-import { diskStorage } from 'multer';
-import * as path from 'path';
-import { Today } from 'src/common/helper/today';
 import { User } from 'src/entities/User.entity';
 import { Suggestion } from 'src/entities/Suggestion.entity';
 import { SuggestionImage } from 'src/entities/SuggestionImage.entity';
 
 @Module({
   imports: [
-    MulterModule.register({
-      storage: diskStorage({
-        destination: './suggestionUpload',
-        filename(req, file, done) {
-          const ext = path.extname(file.originalname);
-          const baseName = Buffer.from(
-            path.basename(file.originalname, ext),
-            'latin1',
-          ).toString('utf8'); // 한글 파일명을 UTF-8로 변환
-          done(null, `${baseName}_${Today()}${ext}`);
-        },
-      }),
-    }),
+    MulterModule.register(getMulterOptions('suggestionUpload')),
     TypeOrmModule.forFeature([Suggestion, SuggestionImage, User]),
     AuthModule,
   ],

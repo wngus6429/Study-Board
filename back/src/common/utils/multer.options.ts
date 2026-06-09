@@ -55,6 +55,72 @@ export const getMulterOptions = (folder: string, fileSizeLimit = 10 * 1024 * 102
   };
 };
 
+export const getStoryMulterOptions = (
+  fileSizeLimit = 1000 * 1024 * 1024,
+  fileLimit = 10,
+) => {
+  const isProduction = process.env.NODE_ENV === 'production';
+
+  if (isProduction) {
+    const s3 = new S3Client({
+      region: process.env.AWS_REGION || 'ap-northeast-2',
+      credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+        sessionToken: process.env.AWS_SESSION_TOKEN,
+      },
+    });
+
+    return {
+      storage: multerS3({
+        s3,
+        bucket: process.env.S3_BUCKET_NAME || '',
+        key(req, file, cb) {
+          const ext = path.extname(file.originalname);
+          const folder = file.mimetype.startsWith('video/')
+            ? 'videoUpload'
+            : 'upload';
+          cb(null, `${folder}/${uuidv4()}${ext}`);
+        },
+      }),
+      limits: {
+        fileSize: fileSizeLimit,
+        files: fileLimit,
+      },
+    };
+  }
+
+  return {
+    storage: diskStorage({
+      destination: (req, file, cb) => {
+        if (file.mimetype.startsWith('image/')) {
+          cb(null, './upload');
+        } else if (file.mimetype.startsWith('video/')) {
+          cb(null, './videoUpload');
+        } else {
+          cb(new Error('지원하지 않는 파일 타입입니다.'), '');
+        }
+      },
+      filename(req, file, cb) {
+        const ext = path.extname(file.originalname);
+        const baseName = Buffer.from(
+          path.basename(file.originalname, ext),
+          'latin1',
+        ).toString('utf8');
+        const now = new Date();
+        const timestamp = `${now.getFullYear()}${(now.getMonth() + 1)
+          .toString()
+          .padStart(2, '0')}${now.getDate().toString().padStart(2, '0')}`;
+        cb(null, `${baseName}_${timestamp}${ext}`);
+      },
+    }),
+    limits: {
+      fileSize: fileSizeLimit,
+      files: fileLimit,
+    },
+  };
+};
+
 export const getFileUrl = (file: any, folder: string): string => {
   if (file.location) {
     return file.location;

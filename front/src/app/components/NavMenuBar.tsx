@@ -115,14 +115,14 @@ const NavMenuBar: FC = () => {
       }
       router.push(`/channels/${currentChannelSlug}/detail/story/${storyId}`);
     },
-    [router, currentChannelSlug, pathInfo.currentUrlChannelSlug, currentCategory, navPage]
+    [router, currentChannelSlug, pathInfo.currentUrlChannelSlug, currentCategory, navPage],
   );
   const handleStorySelect = useCallback(
     (storyId: number) => {
       handleStoryClick(storyId);
       closeDrawerIfNeeded();
     },
-    [handleStoryClick, closeDrawerIfNeeded]
+    [handleStoryClick, closeDrawerIfNeeded],
   );
 
   // 스타일 객체들을 useMemo로 최적화
@@ -146,7 +146,7 @@ const NavMenuBar: FC = () => {
       backdropFilter: "blur(10px)",
       zIndex: { xl: 999 },
     }),
-    [theme.palette.mode]
+    [theme.palette.mode],
   );
 
   const titleStyles = useMemo(
@@ -156,7 +156,7 @@ const NavMenuBar: FC = () => {
       // mb: 1,
       px: 1,
     }),
-    [theme.palette.mode]
+    [theme.palette.mode],
   );
 
   const avatarStyles = useMemo(
@@ -170,7 +170,7 @@ const NavMenuBar: FC = () => {
           ? "linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(6, 182, 212, 0.6))"
           : "linear-gradient(135deg, #1976d2, #42a5f5)",
     }),
-    [theme.palette.mode]
+    [theme.palette.mode],
   );
 
   const listItemButtonStyles = useMemo(
@@ -181,7 +181,7 @@ const NavMenuBar: FC = () => {
         backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(0, 0, 0, 0.04)",
       },
     }),
-    [theme.palette.mode]
+    [theme.palette.mode],
   );
 
   const storyListItemButtonStyles = useMemo(
@@ -193,7 +193,7 @@ const NavMenuBar: FC = () => {
         backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(0, 0, 0, 0.04)",
       },
     }),
-    [theme.palette.mode]
+    [theme.palette.mode],
   );
 
   const chipStyles = useMemo(
@@ -206,7 +206,7 @@ const NavMenuBar: FC = () => {
         px: 0.5,
       },
     }),
-    [theme.palette.mode]
+    [theme.palette.mode],
   );
 
   const dividerStyles = useMemo(
@@ -214,7 +214,7 @@ const NavMenuBar: FC = () => {
       my: 2,
       borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.2)" : "rgba(0, 0, 0, 0.1)",
     }),
-    [theme.palette.mode]
+    [theme.palette.mode],
   );
 
   useEffect(() => {
@@ -226,7 +226,7 @@ const NavMenuBar: FC = () => {
   }, [session?.user, loadSubscriptions, clearSubscriptions]);
 
   const navContent = (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <Box sx={{ display: "flex", flexDirection: "column" }}>
       <Box>
         <Typography variant="subtitle2" sx={titleStyles}>
           구독한 채널

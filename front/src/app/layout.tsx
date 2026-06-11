@@ -12,7 +12,6 @@ import SubscriptionProvider from "./components/Provider/SubscriptionProvider";
 import style from "./layout.module.css";
 import ScrollUpButton from "./components/common/ScrollUpButton";
 import ThemeProvider from "./components/Provider/ThemeProvider";
-import SitePasswordGate from "./components/Provider/SitePasswordGate";
 import BrowserNotification from "./components/Provider/BrowserNotification";
 import LanguageProvider from "./components/Provider/LanguageProvider";
 
@@ -40,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     // 이거 alwaysScroll이라는 클래스를 만들어서 스크롤이 항상 보이게 설정, 아니면 스크롤 생기면 왼쪽으로 밀려나는 현상 발생
-    <html lang="ja" className="alwaysScroll">
+    <html lang="ko" className="alwaysScroll">
       <body className={inter.className}>
         <ThemeProvider>
           <LanguageProvider>

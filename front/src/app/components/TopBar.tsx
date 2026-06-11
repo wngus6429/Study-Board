@@ -31,6 +31,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import { useLanguageStore, type AppLanguage } from "../store/languageStore";
 import { resolveMediaUrl } from "../utils/mediaUrl";
 import { translateKoreanText } from "../i18n/translations";
+import { useAuthUiStore } from "../store/authUiStore";
 
 export default function MenuBar() {
   const router = useRouter();
@@ -43,10 +44,14 @@ export default function MenuBar() {
   const { setUserImageUrl, TopBarImageDelete } = useUserImage();
   const { setCurrentPage } = usePageStore();
   const clearSubscriptions = useSubscriptionStore((state) => state.clearSubscriptions);
+  const hasLocalLogout = useAuthUiStore((state) => state.hasLocalLogout);
+  const markLocalLogout = useAuthUiStore((state) => state.markLocalLogout);
   const { language, setLanguage } = useLanguageStore();
   const [settingsMenuAnchor, setSettingsMenuAnchor] = useState<null | HTMLElement>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const topBarText = (text: string) => (language === "ja" ? translateKoreanText(text) : text);
+  const isAuthenticated = status === "authenticated" && Boolean(user?.user) && !hasLocalLogout && !isLoggingOut;
+  const currentUser = isAuthenticated ? user?.user : null;
 
   // 현대적인 버튼 스타일
   const modernButtonStyle = {
@@ -111,10 +116,10 @@ export default function MenuBar() {
     data: userImage,
     refetch,
   } = useQuery({
-    queryKey: ["userTopImage", user?.user.id],
+    queryKey: ["userTopImage", currentUser?.id],
     queryFn: async () => {
-      if (user?.user != null) {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${user.user.id}`, {
+      if (currentUser != null) {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/${currentUser.id}`, {
           withCredentials: true,
         });
         if (response.data.image?.link != null) {
@@ -124,12 +129,12 @@ export default function MenuBar() {
     },
     // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
     // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
-    enabled: status === "authenticated" && !isLoggingOut,
+    enabled: isAuthenticated,
     staleTime: Infinity,
   });
 
   // 유저 활동 총합 (닉네임 기준)
-  const { data: activityTotals } = useUserActivityTotals(isLoggingOut ? undefined : user?.user?.nickname);
+  const { data: activityTotals } = useUserActivityTotals(currentUser?.nickname);
 
   // 프로필 사진 삭제 시 refetch를 트리거하는 이벤트를 전달받을 수 있도록 설정
   useEffect(() => {
@@ -143,7 +148,12 @@ export default function MenuBar() {
     if (isLoggingOut) return;
 
     setIsLoggingOut(true);
+    markLocalLogout();
     handleSettingsMenuClose();
+    queryClient.removeQueries({ queryKey: ["userTopImage"] });
+    queryClient.removeQueries({ queryKey: ["userActivityTotals"] });
+    clearSubscriptions();
+    setUserImageUrl("");
 
     try {
       const logoutResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {
@@ -156,10 +166,6 @@ export default function MenuBar() {
       }
 
       await signOut({ redirect: false, callbackUrl: "/channels" });
-      queryClient.removeQueries({ queryKey: ["userTopImage"] });
-      queryClient.removeQueries({ queryKey: ["userActivityTotals"] });
-      clearSubscriptions();
-      setUserImageUrl("");
       showMessage(topBarText("로그아웃 성공"), "warning");
       if (pathname !== "/channels") {
         router.replace("/channels");
@@ -430,13 +436,13 @@ export default function MenuBar() {
         }}
       >
         {/* 로그인한 사용자에게만 알림 아이콘 표시 */}
-        {user?.user && (
+        {isAuthenticated && (
           <>
             <NotificationDropdown />
           </>
         )}
 
-        {!isMobile && !user?.user && (
+        {!isMobile && !isAuthenticated && (
           <Button
             size="medium"
             variant="contained"
@@ -461,7 +467,7 @@ export default function MenuBar() {
           </Button>
         )}
 
-        {!isMobile && user?.user && (
+        {!isMobile && isAuthenticated && (
           <Button
             size="medium"
             variant="contained"
@@ -487,7 +493,7 @@ export default function MenuBar() {
           </Button>
         )}
 
-        {!isMobile && !user?.user && (
+        {!isMobile && !isAuthenticated && (
           <Button
             size="medium"
             variant="contained"
@@ -513,7 +519,7 @@ export default function MenuBar() {
           </Button>
         )}
 
-        {!isMobile && user?.user && (
+        {!isMobile && isAuthenticated && (
           <Button
             size="medium"
             variant="contained"
@@ -615,7 +621,7 @@ export default function MenuBar() {
             },
           }}
         >
-          {user?.user && (
+          {currentUser && (
             <>
               <MenuItem
                 onClick={() => {
@@ -630,7 +636,7 @@ export default function MenuBar() {
                     sx={{ width: 36, height: 36 }}
                   />
                 </ListItemIcon>
-                <ListItemText primary={user.user.nickname} secondary={topBarText("프로필 보기")} />
+                <ListItemText primary={currentUser.nickname} secondary={topBarText("프로필 보기")} />
               </MenuItem>
               <Divider sx={{ my: 0.5 }} />
             </>
@@ -650,7 +656,7 @@ export default function MenuBar() {
             {language === "ko" && <CheckIcon fontSize="small" color="primary" />}
           </MenuItem>
           <Divider sx={{ my: 0.5 }} />
-          {user?.user ? (
+          {isAuthenticated ? (
             <>
               <MenuItem onClick={handleMessages}>
                 <ListItemIcon>

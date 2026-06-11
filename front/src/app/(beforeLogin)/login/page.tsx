@@ -6,6 +6,7 @@ import axios from "axios";
 import { signIn, useSession } from "next-auth/react";
 import { useMessage } from "@/app/store/messageStore";
 import ForgotPasswordModal from "@/app/components/ForgotPasswordModal";
+import { useAuthUiStore } from "@/app/store/authUiStore";
 
 // 로그인 화면
 const LoginPage = () => {
@@ -14,8 +15,9 @@ const LoginPage = () => {
   const [error, setError] = useState("");
   const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
   const router = useRouter();
-  const { showMessage, hideMessage } = useMessage((state) => state);
-  const { data: session, update, status } = useSession();
+  const { showMessage } = useMessage((state) => state);
+  const { update } = useSession();
+  const clearLocalLogout = useAuthUiStore((state) => state.clearLocalLogout);
   const theme = useTheme();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -48,10 +50,10 @@ const LoginPage = () => {
         return;
       }
       // 로그인 성공 메시지
+      clearLocalLogout();
       showMessage("로그인 성공", "success");
       // 세션 업데이트 및 페이지 이동
       await update();
-      router.refresh();
       router.push("/channels");
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
@@ -64,9 +66,10 @@ const LoginPage = () => {
 
   const handleGoogleLogin = async (): Promise<void> => {
     try {
+      clearLocalLogout();
       // NextAuth 구글 로그인 시작 (리다이렉트)
       await signIn("google", { callbackUrl: "/channels" });
-    } catch (err) {
+    } catch {
       setError("Google 로그인 중 오류가 발생했습니다.");
     }
   };

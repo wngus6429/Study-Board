@@ -57,12 +57,12 @@ export const lightTheme = createTheme({
       contrastText: "#ffffff",
     },
     background: {
-      default: "#f8fafc",
-      paper: "#ffffff",
+      default: "#edf4ff",
+      paper: "#fffefa",
     },
     text: {
-      primary: "#1e293b",
-      secondary: "#64748b",
+      primary: "#172033",
+      secondary: "#52627a",
     },
   },
   components: {
@@ -73,6 +73,49 @@ export const lightTheme = createTheme({
           backgroundColor: "#ffffff",
           color: "#1e293b",
           boxShadow: "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)",
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 16,
+          transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+          backgroundColor: "#fffefa",
+          border: "1px solid rgba(148, 163, 184, 0.28)",
+          "&:hover": {
+            border: "1px solid rgba(79, 70, 229, 0.28)",
+            boxShadow: "0 12px 28px rgba(79, 70, 229, 0.12)",
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          "& .MuiOutlinedInput-root": {
+            "& fieldset": {
+              borderColor: "rgba(79, 70, 229, 0.22)",
+            },
+            "&:hover fieldset": {
+              borderColor: "rgba(79, 70, 229, 0.36)",
+            },
+            "&.Mui-focused fieldset": {
+              borderColor: "#4f46e5",
+              boxShadow: "0 0 0 3px rgba(79, 70, 229, 0.12)",
+            },
+          },
+        },
+      },
+    },
+    MuiAvatar: {
+      styleOverrides: {
+        root: {
+          border: "2px solid rgba(79, 70, 229, 0.16)",
+          "&:hover": {
+            border: "2px solid rgba(79, 70, 229, 0.32)",
+            boxShadow: "0 8px 18px rgba(79, 70, 229, 0.16)",
+          },
         },
       },
     },

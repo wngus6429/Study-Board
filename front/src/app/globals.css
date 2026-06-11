@@ -1,8 +1,9 @@
 :root {
-  --background: #f8fafc;
-  --foreground: #1e293b;
-  --primary: #6366f1;
+  --background: linear-gradient(135deg, #edf4ff 0%, #f7fbff 48%, #fff7ed 100%);
+  --foreground: #172033;
+  --primary: #4f46e5;
   --secondary: #ec4899;
+  color-scheme: light;
 }
 
 /* 다크모드 CSS 변수 */
@@ -11,13 +12,7 @@
   --foreground: #e2e8f0;
   --primary: #8b5cf6;
   --secondary: #06b6d4;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f0f23;
-    --foreground: #e2e8f0;
-  }
+  color-scheme: dark;
 }
 
 html,
@@ -33,12 +28,25 @@ body {
 body {
   color: var(--foreground);
   background: var(--background);
+  background-attachment: fixed;
   font-family: "Inter", "Roboto", "Helvetica", "Arial", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
   /* 레이아웃 안정성을 위한 속성들 */
   will-change: auto;
+}
+
+html[data-theme="light"] body {
+  color: #172033 !important;
+  background: linear-gradient(135deg, #edf4ff 0%, #f7fbff 48%, #fff7ed 100%) !important;
+  background-attachment: fixed !important;
+}
+
+html[data-theme="dark"] body {
+  color: #e2e8f0 !important;
+  background: #0f0f23 !important;
+  background-attachment: fixed !important;
 }
 
 /* 스크롤바 스타일 (라이트모드 기본) */
@@ -131,8 +139,3 @@ li {
   padding-left: 4px;
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-}

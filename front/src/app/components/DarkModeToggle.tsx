@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { IconButton, Tooltip, useTheme } from "@mui/material";
+import { IconButton, Tooltip } from "@mui/material";
 import { Brightness4, Brightness7 } from "@mui/icons-material";
 import { useThemeStore } from "../store/themeStore";
 import { styled } from "@mui/material/styles";
@@ -76,7 +76,6 @@ const StyledToggleButton = styled(IconButton)(({ theme }) => ({
 
 const DarkModeToggle: React.FC = () => {
   const { isDarkMode, toggleTheme } = useThemeStore();
-  const theme = useTheme();
 
   return (
     <Tooltip title={isDarkMode ? "라이트 모드로 전환" : "다크 모드로 전환"} placement="bottom" arrow>

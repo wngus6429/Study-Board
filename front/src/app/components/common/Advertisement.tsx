@@ -14,7 +14,7 @@ export default function Advertisement() {
       /> */}
       {/* 광고가 올자리 */}
       <Image
-        src="/assets/right.jpg"
+        src="/assets/right.png"
         alt="Right Icon"
         width={0}
         height={0}

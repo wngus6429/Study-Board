@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
-import { Avatar, Button, Divider, Menu, MenuItem, ListItemIcon, ListItemText, useTheme, useMediaQuery, Box as MuiBox } from "@mui/material";
+import { Avatar, Button, Divider, Menu, MenuItem, ListItemIcon, ListItemText, useTheme, useMediaQuery } from "@mui/material";
 import { useRouter } from "next/navigation";
 import axios from "@/app/api/axios";
 import styles from "./style/TopBar.module.css";
@@ -14,7 +14,6 @@ import { useMessage } from "../store/messageStore";
 import { useUserImage } from "../store/userImageStore";
 import usePageStore from "../store/pageStore";
 import NotificationDropdown from "./NotificationDropdown";
-import ChannelNotificationDropdown from "./ChannelNotificationDropdown";
 import DarkModeToggle from "./DarkModeToggle";
 import UserBadge from "@/app/components/common/UserBadge";
 import { useUserActivityTotals } from "@/app/components/api/useUserActivityTotals";
@@ -104,7 +103,6 @@ export default function MenuBar() {
 
   const {
     data: userImage,
-    error,
     refetch,
   } = useQuery({
     queryKey: ["userTopImage", user?.user.id],
@@ -133,7 +131,7 @@ export default function MenuBar() {
     if (TopBarImageDelete) {
       refetch();
     }
-  }, [TopBarImageDelete]);
+  }, [TopBarImageDelete, refetch]);
 
   const logout = async () => {
     // TODO 둘다 성공해야 로그아웃 성공되게끔. Promise.all 사용
@@ -157,7 +155,7 @@ export default function MenuBar() {
     if (userImage) {
       setUserImageUrl(userImage);
     }
-  }, [userImage]);
+  }, [userImage, setUserImageUrl]);
 
   const handleSettingsMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setSettingsMenuAnchor(event.currentTarget);
@@ -165,12 +163,6 @@ export default function MenuBar() {
 
   const handleSettingsMenuClose = () => {
     setSettingsMenuAnchor(null);
-  };
-
-  const handleDisplaySettings = () => {
-    handleSettingsMenuClose();
-    // 표시설정 페이지로 이동 로직 추가
-    console.log("표시설정 클릭됨");
   };
 
   const handleMessages = () => {
@@ -530,7 +522,7 @@ export default function MenuBar() {
           aria-haspopup="true"
           color="inherit"
           sx={{
-            color: "white",
+            color: theme.palette.mode === "dark" ? "#f8fafc" : "#334155",
             borderRadius: "50%",
             padding: "10px",
             background:
@@ -538,7 +530,10 @@ export default function MenuBar() {
                 ? "linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(59, 130, 246, 0.2))"
                 : "linear-gradient(135deg, rgba(25, 118, 210, 0.1), rgba(33, 150, 243, 0.1))",
             backdropFilter: "blur(10px)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
+            border:
+              theme.palette.mode === "dark"
+                ? "1px solid rgba(255, 255, 255, 0.1)"
+                : "1px solid rgba(79, 70, 229, 0.18)",
             transition: "all 0.3s ease",
             marginRight: isMobile ? "12px" : 0,
             "&:hover": {

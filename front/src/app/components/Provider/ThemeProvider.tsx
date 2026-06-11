@@ -1,6 +1,7 @@
 "use client";
-import React, { useLayoutEffect, useCallback } from "react";
-import { ThemeProvider as MuiThemeProvider, CssBaseline } from "@mui/material";
+import React, { useLayoutEffect, useMemo } from "react";
+import { CssBaseline } from "@mui/material";
+import { createTheme, ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
 import { useThemeStore } from "../../store/themeStore";
 import { lightTheme, darkTheme } from "../../theme/theme";
 
@@ -10,26 +11,13 @@ interface ThemeProviderProps {
 
 export default function ThemeProvider({ children }: ThemeProviderProps) {
   const { isDarkMode } = useThemeStore();
+  const themeMode = isDarkMode ? "dark" : "light";
 
-  const currentTheme = isDarkMode ? darkTheme : lightTheme;
-
-  // 테마 전환 최적화를 위한 useLayoutEffect 사용
-  const updateTheme = useCallback(() => {
-    const html = document.documentElement;
-
-    // DOM 변경을 한 번에 batch 처리
-    requestAnimationFrame(() => {
-      if (isDarkMode) {
-        html.setAttribute("data-theme", "dark");
-      } else {
-        html.removeAttribute("data-theme");
-      }
-    });
-  }, [isDarkMode]);
+  const currentTheme = useMemo(() => createTheme(themeMode === "dark" ? darkTheme : lightTheme), [themeMode]);
 
   useLayoutEffect(() => {
-    updateTheme();
-  }, [updateTheme]);
+    document.documentElement.setAttribute("data-theme", themeMode);
+  }, [themeMode]);
 
   return (
     <MuiThemeProvider theme={currentTheme}>

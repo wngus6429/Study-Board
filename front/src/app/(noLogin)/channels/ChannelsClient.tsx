@@ -50,6 +50,19 @@ interface ChannelsClientProps {
   isDbDisconnected?: boolean;
 }
 
+interface ApiErrorLike {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+}
+
+const getApiErrorMessage = (error: unknown, fallback: string) => {
+  const apiError = error as ApiErrorLike;
+  return apiError.response?.data?.message || fallback;
+};
+
 const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientProps) => {
   const theme = useTheme();
   const router = useRouter();
@@ -118,7 +131,7 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
         try {
           await uploadChannelImage(data.channel.id, channelImageFile);
           showMessage("채널과 이미지가 성공적으로 생성되었습니다!", "success");
-        } catch (imageError: any) {
+        } catch (imageError: unknown) {
           console.error("채널 이미지 업로드 실패:", imageError);
           showMessage("채널은 생성되었지만 이미지 업로드에 실패했습니다.", "warning");
         }
@@ -137,9 +150,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
       await queryClient.invalidateQueries({ queryKey: ["channels"] });
       await queryClient.refetchQueries({ queryKey: ["channels"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error("채널 생성 실패:", error);
-      const errorMessage = error.response?.data?.message || "채널 생성에 실패했습니다.";
+      const errorMessage = getApiErrorMessage(error, "채널 생성에 실패했습니다.");
       showMessage(errorMessage, "error");
     },
   });
@@ -157,9 +170,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
       await queryClient.invalidateQueries({ queryKey: ["channels"] });
       await queryClient.refetchQueries({ queryKey: ["channels"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error("채널 이미지 업로드 실패:", error);
-      const errorMessage = error.response?.data?.message || "이미지 업로드에 실패했습니다.";
+      const errorMessage = getApiErrorMessage(error, "이미지 업로드에 실패했습니다.");
       showMessage(errorMessage, "error");
     },
   });
@@ -175,9 +188,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
       setEditImagePreview(null);
       queryClient.invalidateQueries({ queryKey: ["channels"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error("채널 이미지 삭제 실패:", error);
-      const errorMessage = error.response?.data?.message || "이미지 삭제에 실패했습니다.";
+      const errorMessage = getApiErrorMessage(error, "이미지 삭제에 실패했습니다.");
       showMessage(errorMessage, "error");
     },
   });
@@ -189,9 +202,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
       showMessage("채널이 숨김 처리되었습니다!", "success");
       queryClient.invalidateQueries({ queryKey: ["channels"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error("채널 숨김 처리 실패:", error);
-      const errorMessage = error.response?.data?.message || "채널 숨김 처리에 실패했습니다.";
+      const errorMessage = getApiErrorMessage(error, "채널 숨김 처리에 실패했습니다.");
       showMessage(errorMessage, "error");
     },
   });
@@ -203,9 +216,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
       showMessage("채널이 표시되었습니다!", "success");
       queryClient.invalidateQueries({ queryKey: ["channels"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error("채널 표시 처리 실패:", error);
-      const errorMessage = error.response?.data?.message || "채널 표시 처리에 실패했습니다.";
+      const errorMessage = getApiErrorMessage(error, "채널 표시 처리에 실패했습니다.");
       showMessage(errorMessage, "error");
     },
   });
@@ -220,9 +233,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
       await queryClient.invalidateQueries({ queryKey: ["channels"] });
       await queryClient.refetchQueries({ queryKey: ["channels"] });
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       console.error("채널 삭제 실패:", error);
-      const errorMessage = error.response?.data?.message || "채널 삭제에 실패했습니다.";
+      const errorMessage = getApiErrorMessage(error, "채널 삭제에 실패했습니다.");
       showMessage(errorMessage, "error");
     },
   });
@@ -484,7 +497,7 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
         background:
           theme.palette.mode === "dark"
             ? "linear-gradient(135deg, rgba(26, 26, 46, 0.95), rgba(16, 16, 32, 0.98))"
-            : "linear-gradient(135deg, #f8f9fa, #e9ecef)",
+            : "linear-gradient(135deg, rgba(237, 244, 255, 0.96), rgba(248, 251, 255, 0.98) 48%, rgba(255, 247, 237, 0.94))",
         padding: { xs: 1, sm: 2, md: 3 },
         paddingBottom: 6, // 하단에 여백 추가
       }}
@@ -527,13 +540,16 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
       {/* 헤더 */}
       <Box
         sx={{
-          background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
+          background:
+            theme.palette.mode === "dark"
+              ? "rgba(26, 26, 46, 0.95)"
+              : "linear-gradient(135deg, rgba(255, 254, 250, 0.96), rgba(240, 247, 255, 0.96))",
           borderRadius: 3,
           padding: { xs: 2, sm: 3 },
           marginBottom: { xs: 2, sm: 3 },
-          border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid rgba(0, 0, 0, 0.1)",
+          border: theme.palette.mode === "dark" ? "1px solid rgba(139, 92, 246, 0.4)" : "1px solid rgba(79, 70, 229, 0.16)",
           boxShadow:
-            theme.palette.mode === "dark" ? "0px 8px 32px rgba(139, 92, 246, 0.3)" : "0px 4px 20px rgba(0, 0, 0, 0.1)",
+            theme.palette.mode === "dark" ? "0px 8px 32px rgba(139, 92, 246, 0.3)" : "0px 12px 32px rgba(79, 70, 229, 0.12)",
         }}
       >
         <Box
@@ -549,9 +565,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
           <Typography
             variant="h4"
             sx={{
-              color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
+              color: theme.palette.mode === "dark" ? "#ffffff" : "#10172a",
               fontWeight: "bold",
-              textShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.5)" : "none",
+              textShadow: theme.palette.mode === "dark" ? "0 0 10px rgba(139, 92, 246, 0.5)" : "0 1px 0 rgba(255, 255, 255, 0.8)",
               fontSize: { xs: "1.5rem", sm: "2.125rem" },
               wordBreak: "keep-all",
             }}
@@ -620,9 +636,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
           }}
           sx={{
             "& .MuiOutlinedInput-root": {
-              backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "#f8f9fa",
+              backgroundColor: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.8)" : "rgba(248, 251, 255, 0.92)",
               "& fieldset": {
-                borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(0, 0, 0, 0.2)",
+                borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.5)" : "rgba(79, 70, 229, 0.22)",
               },
               "&:hover fieldset": {
                 borderColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.8)" : "#1976d2",
@@ -632,9 +648,9 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
               },
             },
             "& .MuiOutlinedInput-input": {
-              color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
+              color: theme.palette.mode === "dark" ? "#ffffff" : "#172033",
               "&::placeholder": {
-                color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
+                color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(82, 98, 122, 0.75)",
               },
             },
           }}
@@ -648,14 +664,17 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
             <Card
               sx={{
                 height: "100%",
-                background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.95)" : "#ffffff",
+                background:
+                  theme.palette.mode === "dark"
+                    ? "rgba(26, 26, 46, 0.95)"
+                    : "linear-gradient(180deg, #fffefa 0%, #f8fbff 100%)",
                 border: channel.is_hidden
                   ? theme.palette.mode === "dark"
                     ? "2px solid rgba(239, 68, 68, 0.5)"
                     : "2px solid rgba(220, 38, 38, 0.5)"
                   : theme.palette.mode === "dark"
                     ? "1px solid rgba(139, 92, 246, 0.3)"
-                    : "1px solid rgba(0, 0, 0, 0.1)",
+                    : "1px solid rgba(148, 163, 184, 0.36)",
                 borderRadius: 3,
                 overflow: "hidden",
                 cursor: "pointer",
@@ -666,14 +685,14 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
                   boxShadow:
                     theme.palette.mode === "dark"
                       ? "0px 12px 40px rgba(139, 92, 246, 0.4)"
-                      : "0px 8px 30px rgba(0, 0, 0, 0.15)",
+                      : "0px 14px 32px rgba(37, 99, 235, 0.16)",
                   border: channel.is_hidden
                     ? theme.palette.mode === "dark"
                       ? "2px solid rgba(239, 68, 68, 0.8)"
                       : "2px solid rgba(220, 38, 38, 0.8)"
                     : theme.palette.mode === "dark"
                       ? "1px solid rgba(139, 92, 246, 0.6)"
-                      : "1px solid rgba(25, 118, 210, 0.3)",
+                      : "1px solid rgba(59, 130, 246, 0.42)",
                 },
               }}
               onClick={() => handleChannelClick(channel.slug)}
@@ -809,7 +828,7 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
                   sx={{
                     fontWeight: "bold",
                     mb: 1,
-                    color: theme.palette.mode === "dark" ? "#ffffff" : "#1a1a2e",
+                    color: theme.palette.mode === "dark" ? "#ffffff" : "#10172a",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
@@ -835,7 +854,7 @@ const ChannelsClient = ({ initialChannels, isDbDisconnected }: ChannelsClientPro
                 <Typography
                   variant="body2"
                   sx={{
-                    color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "text.secondary",
+                    color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.7)" : "#52627a",
                     mb: 2,
                     height: 40,
                     overflow: "hidden",

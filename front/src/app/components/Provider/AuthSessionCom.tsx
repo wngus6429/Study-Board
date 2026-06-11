@@ -15,5 +15,5 @@ type Props = {
 //*   옵션(session, refetchInterval 등)을 전달해서 조정할 수 있습니다.
 
 export default function AuthSession({ children }: Props) {
-  return <SessionProvider>{children}</SessionProvider>;
+  return <SessionProvider refetchOnWindowFocus={false}>{children}</SessionProvider>;
 }

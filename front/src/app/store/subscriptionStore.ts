@@ -1,6 +1,15 @@
 import { create } from "zustand";
 import { getUserSubscriptions, Channel } from "../api/channelsApi";
 
+const getApiStatus = (error: unknown) => {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (error as { response?: { status?: number } }).response;
+    return response?.status;
+  }
+
+  return undefined;
+};
+
 interface SubscriptionState {
   subscribedChannels: Channel[];
   loading: boolean;
@@ -22,10 +31,10 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   isInitialized: false,
 
   loadSubscriptions: async () => {
-    const { isInitialized } = get();
+    const { isInitialized, loading } = get();
 
     // 이미 한 번 로드되었으면 스킵
-    if (isInitialized) {
+    if (isInitialized || loading) {
       return;
     }
 
@@ -33,11 +42,11 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       set({ loading: true, error: null });
       const channels = await getUserSubscriptions();
       set({ subscribedChannels: channels, loading: false, isInitialized: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       // 401 Unauthorized 에러는 로그인이 필요한 상황이므로 에러로 처리하지 않음
-      if (error?.response?.status === 401) {
+      if (getApiStatus(error) === 401) {
         console.log("로그인이 필요한 API입니다. 구독 데이터를 불러올 수 없습니다.");
-        set({ loading: false, error: null });
+        set({ subscribedChannels: [], loading: false, error: null, isInitialized: true });
         return;
       }
 
@@ -71,6 +80,6 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   },
 
   clearSubscriptions: () => {
-    set({ subscribedChannels: [], error: null, isInitialized: false });
+    set({ subscribedChannels: [], loading: false, error: null, isInitialized: false });
   },
 }));

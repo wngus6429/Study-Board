@@ -23,12 +23,26 @@ export default function SubscriptionProvider({ children }: { children: React.Rea
   const { data: session, status } = useSession();
   const { subscribedChannels, loading, loadSubscriptions, clearSubscriptions } = useSubscriptionStore();
   const hasLoadedRef = useRef(false);
+  const sessionUserId = session?.user?.id;
 
   useEffect(() => {
+    if (status === "loading") {
+      return;
+    }
+
+    if (status === "unauthenticated") {
+      if (subscribedChannels.length > 0) {
+        console.log("🧹 로그아웃 감지 - 구독 정보를 초기화합니다.");
+        clearSubscriptions();
+      }
+      hasLoadedRef.current = false;
+      return;
+    }
+
     // 로그인된 상태이고, 아직 구독 정보를 로드하지 않았다면 로드
     if (
       status === "authenticated" &&
-      session?.user &&
+      sessionUserId &&
       !loading &&
       subscribedChannels.length === 0 &&
       !hasLoadedRef.current
@@ -37,14 +51,7 @@ export default function SubscriptionProvider({ children }: { children: React.Rea
       hasLoadedRef.current = true;
       loadSubscriptions();
     }
-
-    // 로그아웃된 상태라면 구독 정보 초기화
-    if (status === "unauthenticated" && subscribedChannels.length > 0) {
-      console.log("🧹 로그아웃 감지 - 구독 정보를 초기화합니다.");
-      hasLoadedRef.current = false;
-      clearSubscriptions();
-    }
-  }, [session?.user, subscribedChannels.length]);
+  }, [status, sessionUserId, loading, subscribedChannels.length, loadSubscriptions, clearSubscriptions]);
 
   return <>{children}</>;
 }

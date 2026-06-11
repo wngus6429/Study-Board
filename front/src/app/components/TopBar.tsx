@@ -4,15 +4,16 @@ import Box from "@mui/material/Box";
 import IconButton from "@mui/material/IconButton";
 import Settings from "@mui/icons-material/Settings";
 import { Avatar, Button, Divider, Menu, MenuItem, ListItemIcon, ListItemText, useTheme, useMediaQuery } from "@mui/material";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import axios from "@/app/api/axios";
 import styles from "./style/TopBar.module.css";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMessage } from "../store/messageStore";
 import { useUserImage } from "../store/userImageStore";
 import usePageStore from "../store/pageStore";
+import { useSubscriptionStore } from "../store/subscriptionStore";
 import NotificationDropdown from "./NotificationDropdown";
 import DarkModeToggle from "./DarkModeToggle";
 import UserBadge from "@/app/components/common/UserBadge";
@@ -29,19 +30,24 @@ import TranslateIcon from "@mui/icons-material/Translate";
 import CheckIcon from "@mui/icons-material/Check";
 import { useLanguageStore, type AppLanguage } from "../store/languageStore";
 import { resolveMediaUrl } from "../utils/mediaUrl";
+import { translateKoreanText } from "../i18n/translations";
 
 export default function MenuBar() {
   const router = useRouter();
+  const pathname = usePathname();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const { data: user, status } = useSession();
+  const queryClient = useQueryClient();
   const { showMessage } = useMessage((state) => state);
   const { setUserImageUrl, TopBarImageDelete } = useUserImage();
   const { setCurrentPage } = usePageStore();
+  const clearSubscriptions = useSubscriptionStore((state) => state.clearSubscriptions);
   const { language, setLanguage } = useLanguageStore();
   const [settingsMenuAnchor, setSettingsMenuAnchor] = useState<null | HTMLElement>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const topBarText = (text: string) => (language === "ja" ? translateKoreanText(text) : text);
 
-  console.log("유저", user);
   // 현대적인 버튼 스타일
   const modernButtonStyle = {
     borderRadius: "12px",
@@ -118,12 +124,12 @@ export default function MenuBar() {
     },
     // F5 새로고침 시 세션이 인증된 상태에서만 요청을 수행합니다.
     // 이거 안하니까. F5 새로고침 시 세션이 인증되지 않은 상태에서 API요청을 수행해서 안 불러옴
-    enabled: status === "authenticated",
+    enabled: status === "authenticated" && !isLoggingOut,
     staleTime: Infinity,
   });
 
   // 유저 활동 총합 (닉네임 기준)
-  const { data: activityTotals } = useUserActivityTotals(user?.user?.nickname);
+  const { data: activityTotals } = useUserActivityTotals(isLoggingOut ? undefined : user?.user?.nickname);
 
   // 프로필 사진 삭제 시 refetch를 트리거하는 이벤트를 전달받을 수 있도록 설정
   useEffect(() => {
@@ -134,20 +140,35 @@ export default function MenuBar() {
   }, [TopBarImageDelete, refetch]);
 
   const logout = async () => {
-    // TODO 둘다 성공해야 로그아웃 성공되게끔. Promise.all 사용
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+    handleSettingsMenuClose();
+
     try {
-      // Promise.all을 사용하여 로그아웃 요청과 Next-Auth signOut을 병렬로 수행
-      const [logoutResponse] = await Promise.all([
-        await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {}, { withCredentials: true }),
-        await signOut(),
-      ]);
-      if (logoutResponse.status === 200) {
-        showMessage("로그아웃 성공", "warning");
-        router.refresh();
+      const logoutResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+
+      if (!logoutResponse.ok) {
+        console.warn("백엔드 로그아웃 응답이 성공 상태가 아닙니다:", logoutResponse.status);
+      }
+
+      await signOut({ redirect: false, callbackUrl: "/channels" });
+      queryClient.removeQueries({ queryKey: ["userTopImage"] });
+      queryClient.removeQueries({ queryKey: ["userActivityTotals"] });
+      clearSubscriptions();
+      setUserImageUrl("");
+      showMessage(topBarText("로그아웃 성공"), "warning");
+      if (pathname !== "/channels") {
+        router.replace("/channels");
       }
     } catch (error) {
-      // 에러 처리
       console.error("로그아웃 실패:", error);
+      showMessage(topBarText("로그아웃 실패"), "error");
+    } finally {
+      setIsLoggingOut(false);
     }
   };
 
@@ -402,6 +423,7 @@ export default function MenuBar() {
       </Box>
       )}
       <nav
+        data-i18n-skip
         className={styles.nav}
         style={{
           gap: isMobile ? "8px" : undefined,
@@ -435,7 +457,7 @@ export default function MenuBar() {
               },
             }}
           >
-            로그인
+            {topBarText("로그인")}
           </Button>
         )}
 
@@ -445,6 +467,7 @@ export default function MenuBar() {
             variant="contained"
             onClick={logout}
             color="error"
+            disabled={isLoggingOut}
             sx={{
               ...modernButtonStyle,
               background:
@@ -460,7 +483,7 @@ export default function MenuBar() {
               },
             }}
           >
-            로그아웃
+            {topBarText(isLoggingOut ? "로그아웃 중..." : "로그아웃")}
           </Button>
         )}
 
@@ -486,7 +509,7 @@ export default function MenuBar() {
               },
             }}
           >
-            회원가입
+            {topBarText("회원가입")}
           </Button>
         )}
 
@@ -511,7 +534,7 @@ export default function MenuBar() {
               },
             }}
           >
-            프로필
+            {topBarText("프로필")}
           </Button>
         )}
 
@@ -607,7 +630,7 @@ export default function MenuBar() {
                     sx={{ width: 36, height: 36 }}
                   />
                 </ListItemIcon>
-                <ListItemText primary={user.user.nickname} secondary="프로필 보기" />
+                <ListItemText primary={user.user.nickname} secondary={topBarText("프로필 보기")} />
               </MenuItem>
               <Divider sx={{ my: 0.5 }} />
             </>
@@ -633,42 +656,43 @@ export default function MenuBar() {
                 <ListItemIcon>
                   <MessageIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>쪽지</ListItemText>
+                <ListItemText>{topBarText("쪽지")}</ListItemText>
               </MenuItem>
               <MenuItem onClick={handleRecentViews}>
                 <ListItemIcon>
                   <HistoryIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>최근에 봤던 게시물</ListItemText>
+                <ListItemText>{topBarText("최근에 봤던 게시물")}</ListItemText>
               </MenuItem>
               <MenuItem onClick={handleScraps}>
                 <ListItemIcon>
                   <BookmarkIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>스크랩</ListItemText>
+                <ListItemText>{topBarText("스크랩")}</ListItemText>
               </MenuItem>
               <MenuItem onClick={handleBlinds}>
                 <ListItemIcon>
                   <VisibilityOffIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>블라인드</ListItemText>
+                <ListItemText>{topBarText("블라인드")}</ListItemText>
               </MenuItem>
               <MenuItem onClick={handleReports}>
                 <ListItemIcon>
                   <ReportIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>신고 목록</ListItemText>
+                <ListItemText>{topBarText("신고 목록")}</ListItemText>
               </MenuItem>
               <MenuItem
                 onClick={() => {
                   handleSettingsMenuClose();
                   logout();
                 }}
+                disabled={isLoggingOut}
               >
                 <ListItemIcon>
                   <LogoutIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>로그아웃</ListItemText>
+                <ListItemText>{topBarText(isLoggingOut ? "로그아웃 중..." : "로그아웃")}</ListItemText>
               </MenuItem>
             </>
           ) : (
@@ -682,7 +706,7 @@ export default function MenuBar() {
                 <ListItemIcon>
                   <LoginIcon fontSize="small" />
                 </ListItemIcon>
-                <ListItemText>로그인</ListItemText>
+                <ListItemText>{topBarText("로그인")}</ListItemText>
               </MenuItem>
               <MenuItem
                 onClick={() => {
@@ -736,8 +760,8 @@ export default function MenuBar() {
                   />
                 </ListItemIcon>
                 <ListItemText
-                  primary="회원가입"
-                  secondary="30초 만에 취향 커뮤니티 합류"
+                  primary={topBarText("회원가입")}
+                  secondary={topBarText("30초 만에 취향 커뮤니티 합류")}
                   primaryTypographyProps={{
                     fontWeight: 800,
                     fontSize: "0.95rem",
@@ -763,7 +787,7 @@ export default function MenuBar() {
                     border: theme.palette.mode === "dark" ? "1px solid rgba(253, 230, 138, 0.5)" : "1px solid rgba(124, 58, 237, 0.3)",
                   }}
                 >
-                  무료
+                  {topBarText("무료")}
                 </Box>
               </MenuItem>
             </>

@@ -363,7 +363,7 @@ const ChannelTabNavigation: React.FC<ChannelTabNavigationProps> = ({
             fontSize: "0.95rem", // 폰트 크기 약간 줄임
             px: 2.5, // 좌우 패딩 줄임
             py: 1.2, // 상하 패딩 줄임
-            minWidth: "100px", // 최소 너비 줄임
+            minWidth: "110px", // 최소 너비 줄임
             width: { xs: "calc(100% - 16px)", sm: "auto" },
             height: "44px", // 고정 높이로 다른 버튼들과 맞춤
             textTransform: "none",

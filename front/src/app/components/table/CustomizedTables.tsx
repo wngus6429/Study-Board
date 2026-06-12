@@ -132,7 +132,6 @@ const CustomizedTables = ({ tableData, onRowClick }: CustomizedTablesProps): Rea
               <StyledTableCell sx={{ width: "100px", textAlign: "center" }}>
                 <Box sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <ThumbUpAltIcon fontSize="small" sx={{ mr: 0.5 }} />
-                  추천
                 </Box>
               </StyledTableCell>
             </TableRow>

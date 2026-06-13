@@ -1,6 +1,5 @@
 "use client";
 import { FC, useEffect, useMemo, useCallback, memo, useState } from "react";
-import Link from "next/link";
 import {
   Box,
   List,
@@ -9,8 +8,6 @@ import {
   Typography,
   Divider,
   Chip,
-  Avatar,
-  CircularProgress,
   Button,
   Drawer,
   IconButton,
@@ -27,18 +24,20 @@ import axios from "axios";
 import { getChannelBySlug } from "@/app/api/channelsApi";
 import MenuBookRoundedIcon from "@mui/icons-material/MenuBookRounded";
 import CloseRoundedIcon from "@mui/icons-material/CloseRounded";
+import SubscribedChannelsPanel from "./common/SubscribedChannelsPanel";
 
 const NavMenuBar: FC = () => {
   const theme = useTheme();
   const router = useRouter();
   const pathname = usePathname();
-  const { subscribedChannels, loading, error, loadSubscriptions, clearSubscriptions } = useSubscriptionStore();
+  const { loadSubscriptions, clearSubscriptions } = useSubscriptionStore();
   const { currentChannelSlug, currentPage, currentCategory, stories } = useChannelPageStore();
   const { data: session } = useSession();
   const { isUserBlinded } = useBlindStore();
   // Nav 전용 페이지 상태 (메인과 분리)
   const [navPage, setNavPage] = useState<number>(currentPage || 1);
   const isCompactLayout = useMediaQuery(theme.breakpoints.down("md"));
+  const isStackedLayout = useMediaQuery("(max-width:1500px)");
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
   const closeDrawerIfNeeded = useCallback(() => {
     if (isCompactLayout) {
@@ -49,8 +48,9 @@ const NavMenuBar: FC = () => {
   // 현재 경로에서 채널 슬러그와 상세페이지 여부 확인 - useMemo로 최적화
   const pathInfo = useMemo(() => {
     const isChannelDetailPage = pathname?.includes("/channels/") && pathname?.includes("/detail/");
+    const isChannelIndexPage = Boolean(pathname?.match(/^\/channels\/[^/]+$/));
     const currentUrlChannelSlug = pathname?.match(/\/channels\/([^\/]+)/)?.[1];
-    return { isChannelDetailPage, currentUrlChannelSlug };
+    return { isChannelDetailPage, isChannelIndexPage, currentUrlChannelSlug };
   }, [pathname]);
 
   // 현재 보고 있는 채널의 스토리 목록 표시 여부 결정 - useMemo로 최적화
@@ -159,31 +159,6 @@ const NavMenuBar: FC = () => {
     [theme.palette.mode],
   );
 
-  const avatarStyles = useMemo(
-    () => ({
-      width: 24,
-      height: 24,
-      mr: 1,
-      fontSize: "0.8rem",
-      background:
-        theme.palette.mode === "dark"
-          ? "linear-gradient(135deg, rgba(139, 92, 246, 0.6), rgba(6, 182, 212, 0.6))"
-          : "linear-gradient(135deg, #1976d2, #42a5f5)",
-    }),
-    [theme.palette.mode],
-  );
-
-  const listItemButtonStyles = useMemo(
-    () => ({
-      borderRadius: 1,
-      py: 0.5,
-      "&:hover": {
-        backgroundColor: theme.palette.mode === "dark" ? "rgba(139, 92, 246, 0.1)" : "rgba(0, 0, 0, 0.04)",
-      },
-    }),
-    [theme.palette.mode],
-  );
-
   const storyListItemButtonStyles = useMemo(
     () => ({
       borderRadius: 1,
@@ -225,67 +200,13 @@ const NavMenuBar: FC = () => {
     }
   }, [session?.user, loadSubscriptions, clearSubscriptions]);
 
+  if (pathInfo.isChannelIndexPage && isStackedLayout) {
+    return null;
+  }
+
   const navContent = (
     <Box sx={{ display: "flex", flexDirection: "column" }}>
-      <Box>
-        <Typography variant="subtitle2" sx={titleStyles}>
-          구독한 채널
-        </Typography>
-
-        {loading ? (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-            <CircularProgress size={20} />
-          </Box>
-        ) : subscribedChannels.length > 0 ? (
-          <List dense>
-            {subscribedChannels.map((channel) => (
-              <ListItem key={channel.id} disablePadding>
-                <ListItemButton
-                  component={Link}
-                  href={`/channels/${channel.slug}`}
-                  sx={listItemButtonStyles}
-                  onClick={closeDrawerIfNeeded}
-                >
-                  <Avatar sx={avatarStyles}>{channel.channel_name.charAt(0)}</Avatar>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography
-                      variant="body2"
-                      sx={{
-                        color: theme.palette.mode === "dark" ? "#e2e8f0" : "inherit",
-                        fontWeight: 500,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {channel.channel_name}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.6)" : "rgba(0, 0, 0, 0.6)",
-                      }}
-                    >
-                      {`${channel.story_count}개 글`}
-                    </Typography>
-                  </Box>
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        ) : (
-          <Typography
-            variant="caption"
-            sx={{
-              color: theme.palette.mode === "dark" ? "rgba(255, 255, 255, 0.5)" : "rgba(0, 0, 0, 0.5)",
-              px: 1,
-              display: "block",
-            }}
-          >
-            구독한 채널이 없습니다
-          </Typography>
-        )}
-      </Box>
+      <SubscribedChannelsPanel variant="plain" onChannelClick={closeDrawerIfNeeded} />
 
       {shouldShowStories && <Divider sx={dividerStyles} />}
 

@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import CommentsView from "../comment/CommentsView";
 import Advertisement from "./Advertisement";
 import ChannelTopStories from "./ChannelTopStories";
+import SubscribedChannelsPanel from "./SubscribedChannelsPanel";
 import { useComment } from "@/app/store/commentStore";
 import { getChannelBySlug } from "@/app/api/channelsApi";
 
@@ -15,11 +16,13 @@ export default function RightView() {
 
   // 현재 경로가 채널 페이지인지 확인
   const isChannelPage = pathname?.startsWith("/channels/");
+  const isChannelStoryDetailPage = Boolean(pathname?.match(/^\/channels\/[^/]+\/detail\/story\/[^/]+$/));
+  const isChannelIndexPage = Boolean(pathname?.match(/^\/channels\/[^/]+$/));
 
   // URL에서 채널 slug 추출
   const channelSlug = isChannelPage && pathname ? pathname.split("/")[2] : null;
 
-  // 반응형: 1500px 이하에서는 댓글을 기본 표시
+  // 게시글 상세에서는 1500px 이하일 때 댓글을 본문 아래에 표시
   useEffect(() => {
     if (typeof window === "undefined" || !window.matchMedia) return;
     const media = window.matchMedia("(max-width: 1500px)");
@@ -29,7 +32,7 @@ export default function RightView() {
     return () => media.removeEventListener?.("change", update);
   }, []);
 
-  const shouldShowComments = isChannelPage && (isCommentOpen || isTabletLayout);
+  const shouldShowComments = isChannelStoryDetailPage && (isCommentOpen || isTabletLayout);
 
   // 채널 정보 조회
   const { data: channelData } = useQuery({
@@ -46,6 +49,7 @@ export default function RightView() {
   return (
     <>
       {isChannelPage && <ChannelTopStories />}
+      {isChannelIndexPage && isTabletLayout && <SubscribedChannelsPanel />}
       <Advertisement />
     </>
   );

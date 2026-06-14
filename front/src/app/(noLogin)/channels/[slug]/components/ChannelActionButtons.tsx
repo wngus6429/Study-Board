@@ -124,7 +124,9 @@ const ChannelActionButtons: React.FC<ChannelActionButtonsProps> = ({
             }}
           >
             <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 0.3 }}>
-              <Box sx={{ fontSize: "1rem", fontWeight: 800 }}>{showChat ? "채팅 종료" : "실시간채팅"}</Box>
+              <Box sx={{ fontSize: "1rem", fontWeight: 800, lineHeight: 1.25, whiteSpace: "pre-line" }}>
+                {showChat ? "채팅 종료" : "실시간채팅"}
+              </Box>
               <Box sx={{ fontSize: "0.7rem", opacity: 0.9, fontWeight: 600 }}>
                 {showChat ? "클릭하여 나가기" : "참여하기"}
               </Box>

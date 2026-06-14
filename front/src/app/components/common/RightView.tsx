@@ -6,11 +6,9 @@ import CommentsView from "../comment/CommentsView";
 import Advertisement from "./Advertisement";
 import ChannelTopStories from "./ChannelTopStories";
 import SubscribedChannelsPanel from "./SubscribedChannelsPanel";
-import { useComment } from "@/app/store/commentStore";
 import { getChannelBySlug } from "@/app/api/channelsApi";
 
 export default function RightView() {
-  const { isCommentOpen } = useComment();
   const [isTabletLayout, setIsTabletLayout] = useState(false);
   const pathname = usePathname();
 
@@ -32,7 +30,7 @@ export default function RightView() {
     return () => media.removeEventListener?.("change", update);
   }, []);
 
-  const shouldShowComments = isChannelStoryDetailPage && (isCommentOpen || isTabletLayout);
+  const shouldShowComments = isChannelStoryDetailPage;
 
   // 채널 정보 조회
   const { data: channelData } = useQuery({

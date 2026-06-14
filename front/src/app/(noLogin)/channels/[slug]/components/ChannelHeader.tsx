@@ -43,7 +43,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
 }) => {
   const theme = useTheme();
   const router = useRouter();
-  const descriptionText = `${channelData.creator?.nickname || "알수없음"}님이 만든 채널입니다. 다양한 주제로 소통해보세요! ✨`;
+  const descriptionText = `${channelData.creator?.nickname || "알수없음"}님이 만든 채널입니다.\n다양한 주제로 소통해보세요! ✨`;
 
   if (isMobileViewOnly) {
     const mobileStats = [
@@ -123,6 +123,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
                 mt: 0.5,
                 color: theme.palette.mode === "dark" ? "#cbd5f5" : "#4b5563",
                 lineHeight: 1.4,
+                whiteSpace: "pre-line",
               }}
             >
               {descriptionText}
@@ -303,6 +304,7 @@ const ChannelHeader: React.FC<ChannelHeaderProps> = ({
             mb: 1,
             maxWidth: "500px",
             lineHeight: 1.5,
+            whiteSpace: "pre-line",
           }}
         >
           {descriptionText}

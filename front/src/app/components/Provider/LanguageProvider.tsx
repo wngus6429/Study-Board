@@ -1,14 +1,12 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { useLanguageStore } from "@/app/store/languageStore";
 import { translateKoreanText } from "@/app/i18n/translations";
 
 const SKIP_TAGS = new Set(["SCRIPT", "STYLE", "NOSCRIPT", "CODE", "PRE", "TEXTAREA"]);
 const TRANSLATABLE_ATTRIBUTES = ["aria-label", "title", "placeholder", "alt"];
 const INITIAL_TRANSLATION_DELAY_MS = 250;
-const MUTATION_TRANSLATION_DELAY_MS = 120;
 
 function shouldSkipElement(element: Element | null): boolean {
   if (!element) {
@@ -61,11 +59,11 @@ function translateElement(root: ParentNode) {
 }
 
 export default function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
   const language = useLanguageStore((state) => state.language);
   const rafId = useRef<number | null>(null);
   const timeoutId = useRef<number | null>(null);
   const observerRef = useRef<MutationObserver | null>(null);
+  const isTranslatingRef = useRef(false);
   const [isReady, setIsReady] = useState(language !== "ja");
 
   useEffect(() => {
@@ -113,8 +111,43 @@ export default function LanguageProvider({ children }: { children: React.ReactNo
 
     scheduleTranslation(INITIAL_TRANSLATION_DELAY_MS, true);
 
-    const observer = new MutationObserver(() => {
-      scheduleTranslation(MUTATION_TRANSLATION_DELAY_MS);
+    const observer = new MutationObserver((records) => {
+      if (isTranslatingRef.current) {
+        return;
+      }
+
+      isTranslatingRef.current = true;
+
+      try {
+        const targets = new Set<ParentNode>();
+        records.forEach((record) => {
+          if (record.type === "childList") {
+            record.addedNodes.forEach((node) => {
+              if (node.nodeType === Node.TEXT_NODE && node.parentElement) {
+                targets.add(node.parentElement);
+              }
+
+              if (node instanceof Element) {
+                targets.add(node);
+              }
+            });
+            return;
+          }
+
+          if (record.type === "characterData" && record.target.parentElement) {
+            targets.add(record.target.parentElement);
+            return;
+          }
+
+          if (record.type === "attributes" && record.target instanceof Element) {
+            targets.add(record.target);
+          }
+        });
+
+        targets.forEach((target) => translateElement(target));
+      } finally {
+        isTranslatingRef.current = false;
+      }
     });
 
     observer.observe(document.body, {
@@ -131,7 +164,7 @@ export default function LanguageProvider({ children }: { children: React.ReactNo
       observerRef.current = null;
       clearPendingTranslation();
     };
-  }, [language, pathname]);
+  }, [language]);
 
   useEffect(() => {
     return () => {

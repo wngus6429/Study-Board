@@ -96,6 +96,36 @@ export class StoryService {
     }
   }
 
+  private replaceTransientUploadSources(
+    content: string,
+    files: Express.Multer.File[],
+  ): string {
+    let updatedContent = content || '';
+
+    files.forEach((file) => {
+      if (file.mimetype.startsWith('image/')) {
+        updatedContent = updatedContent.replace(
+          /(<img\b[^>]*\bsrc=")(?:blob:[^"]*|)("[^>]*>)/i,
+          `$1${getFileUrl(file, 'upload')}$2`,
+        );
+        return;
+      }
+
+      if (file.mimetype.startsWith('video/')) {
+        updatedContent = updatedContent.replace(
+          /(<source\b[^>]*\bsrc=")(?:blob:[^"]*|)("[^>]*>)/i,
+          `$1${getFileUrl(file, 'videoUpload')}$2`,
+        );
+        updatedContent = updatedContent.replace(
+          /(<video\b[^>]*\bsrc=")(?:blob:[^"]*|)("[^>]*>)/i,
+          `$1${getFileUrl(file, 'videoUpload')}$2`,
+        );
+      }
+    });
+
+    return updatedContent;
+  }
+
   /**
    * 테이블 형태 게시글 목록 조회
    *
@@ -1001,6 +1031,8 @@ export class StoryService {
 
     console.log('글 작성 파일 업로드', files);
 
+    let updatedContent = content;
+
     // 파일 업로드 순서 처리 - 전체 파일 배열에서의 순서를 기준으로 설정
     if (files && files.length > 0) {
       for (let i = 0; i < files.length; i++) {
@@ -1027,6 +1059,12 @@ export class StoryService {
 
           await this.videoRepository.save(videoEntity);
         }
+      }
+
+      updatedContent = this.replaceTransientUploadSources(content, files);
+      if (updatedContent !== content) {
+        savedStory.content = updatedContent;
+        await this.storyRepository.save(savedStory);
       }
     }
 
@@ -1098,6 +1136,8 @@ export class StoryService {
 
     console.log('공지사항 작성 파일 업로드', files);
 
+    let updatedContent = content;
+
     // 이미지 파일 처리
     if (noticeImageFiles.length > 0) {
       const imageEntities = noticeImageFiles.map((file) => {
@@ -1128,6 +1168,14 @@ export class StoryService {
 
       console.log('공지사항 작성 저장 전 동영상 엔티티:', videoEntities);
       await this.videoRepository.save(videoEntities);
+    }
+
+    if (files && files.length > 0) {
+      updatedContent = this.replaceTransientUploadSources(content, files);
+      if (updatedContent !== content) {
+        savedStory.content = updatedContent;
+        await this.storyRepository.save(savedStory);
+      }
     }
 
     return savedStory;

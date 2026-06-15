@@ -2,7 +2,18 @@ import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean;
+  skipAuthRedirect?: boolean;
 };
+
+declare module "axios" {
+  export interface AxiosRequestConfig {
+    skipAuthRedirect?: boolean;
+  }
+
+  export interface InternalAxiosRequestConfig {
+    skipAuthRedirect?: boolean;
+  }
+}
 
 const AUTH_REFRESH_SKIP_PATHS = new Set([
   "/api/auth/refresh",
@@ -66,11 +77,15 @@ instance.interceptors.response.use(
       return Promise.reject(error);
     }
 
+    const shouldRedirectOnAuthFailure = !originalRequest.skipAuthRedirect;
+
     // 리프레시 토큰 요청 자체가 실패한 경우
     // 이 경우는 무한 루프를 방지하기 위해 바로 로그인 페이지로 이동
     if (requestPath === "/api/auth/refresh") {
       console.log("리프레시 토큰 요청 실패, 로그인 페이지로 이동");
-      redirectToLogin();
+      if (shouldRedirectOnAuthFailure) {
+        redirectToLogin();
+      }
       return Promise.reject(error);
     }
 
@@ -105,7 +120,9 @@ instance.interceptors.response.use(
         // 리프레시 토큰도 만료되었거나 유효하지 않은 경우
         console.log("리프레시 토큰 갱신 실패:", refreshError);
         // 로그인 페이지로 이동
-        redirectToLogin();
+        if (shouldRedirectOnAuthFailure) {
+          redirectToLogin();
+        }
         return Promise.reject(refreshError);
       }
     }

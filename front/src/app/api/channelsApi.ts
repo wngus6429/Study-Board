@@ -1,4 +1,5 @@
 import axios from "@/app/api/axios";
+import publicAxios from "@/app/api/publicAxios";
 
 // 채널 타입 정의
 export interface Channel {
@@ -35,17 +36,13 @@ export interface ChannelSubscription {
 
 // 모든 채널 조회
 export const getChannels = async (): Promise<Channel[]> => {
-  const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels`, {
-    withCredentials: true,
-  });
+  const response = await publicAxios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels`);
   return response.data;
 };
 
 // 특정 채널 조회
 export const getChannel = async (id: number): Promise<Channel> => {
-  const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${id}`, {
-    withCredentials: true,
-  });
+  const response = await publicAxios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/${id}`);
   return response.data;
 };
 
@@ -54,9 +51,7 @@ export const getChannelBySlug = async (slug: string): Promise<Channel> => {
   // 로딩 테스트를 위한 2초 지연
   // await new Promise((resolve) => setTimeout(resolve, 2000));
 
-  const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/slug/${slug}`, {
-    withCredentials: true,
-  });
+  const response = await publicAxios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/slug/${slug}`);
   return response.data;
 };
 
@@ -84,6 +79,7 @@ export const unsubscribeChannel = async (id: number): Promise<{ message: string 
 export const getUserSubscriptions = async (): Promise<Channel[]> => {
   const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channels/user/subscriptions`, {
     withCredentials: true,
+    skipAuthRedirect: true,
   });
   return response.data;
 };

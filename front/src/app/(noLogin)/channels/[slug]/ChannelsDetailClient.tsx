@@ -25,6 +25,7 @@ import usePageStore from "@/app/store/pageStore";
 import { useSubscriptionStore } from "@/app/store/subscriptionStore";
 import { useChannelNotificationStore } from "@/app/store/channelNotificationStore";
 import { useChannelPageStore } from "@/app/store/channelPageStore";
+import { useAuthUiStore } from "@/app/store/authUiStore";
 import { TABLE_VIEW_COUNT } from "@/app/const/VIEW_COUNT";
 import CustomizedTables from "@/app/components/table/CustomizedTables";
 import CustomizedCardView from "@/app/components/table/CustomizedCardView";
@@ -66,7 +67,9 @@ const ChannelDetailPage = () => {
   const router = useRouter(); // 라우터 인스턴스 가져오기
   const params = useParams(); // 파라미터 가져오기
   const channelSlug = params?.slug as string; // 채널 슬러그 가져오기
-  const { data: session } = useSession(); // 세션 데이터 가져오기
+  const { data: sessionData } = useSession(); // 세션 데이터 가져오기
+  const hasLocalLogout = useAuthUiStore((state) => state.hasLocalLogout);
+  const session = hasLocalLogout ? null : sessionData;
   const { showMessage } = useMessage(); // 메시지 표시 함수 가져오기
   const queryClient = useQueryClient(); // 쿼리 클라이언트 인스턴스 가져오기
   const { currentPage, setCurrentPage } = usePageStore(); // 페이지 스토어 상태 가져오기

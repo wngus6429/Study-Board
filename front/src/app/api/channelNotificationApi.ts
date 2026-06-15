@@ -23,6 +23,7 @@ export const unsubscribeFromChannelNotifications = async (channelId: number): Pr
 export const getMyChannelNotificationSubscriptions = async (): Promise<any[]> => {
   const response = await axios.get(`${process.env.NEXT_PUBLIC_BASE_URL}/api/channel-notifications/my-subscriptions`, {
     withCredentials: true,
+    skipAuthRedirect: true,
   });
   return response.data;
 };
@@ -31,7 +32,7 @@ export const getMyChannelNotificationSubscriptions = async (): Promise<any[]> =>
 export const getChannelNotificationStatus = async (channelId: number): Promise<{ isSubscribed: boolean }> => {
   const response = await axios.get(
     `${process.env.NEXT_PUBLIC_BASE_URL}/api/channel-notifications/status/${channelId}`,
-    { withCredentials: true }
+    { withCredentials: true, skipAuthRedirect: true }
   );
   return response.data;
 };

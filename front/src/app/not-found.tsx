@@ -1,5 +1,6 @@
 "use client";
 import { Box, Typography, Button } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import { useRouter } from "next/navigation";
 
 const NotFoundPage = () => {
@@ -13,17 +14,22 @@ const NotFoundPage = () => {
     <Box
       sx={{
         width: "100%",
+        minHeight: "calc(100vh - 70px)",
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
         alignItems: "center",
         textAlign: "center",
-        backgroundColor: "#f5f5f5",
-        padding: 4,
+        background: (theme) =>
+          `radial-gradient(circle at 50% 35%, ${alpha(
+            theme.palette.primary.main,
+            theme.palette.mode === "dark" ? 0.12 : 0.1,
+          )}, transparent 42%), ${theme.palette.background.default}`,
+        padding: { xs: 3, sm: 4 },
       }}
     >
       <img src="/assets/nn.png" alt="Not Found" style={{ width: "300px", height: "auto", marginBottom: "20px" }} />
-      <Typography variant="h6" sx={{ marginBottom: 3, color: "#616161" }}>
+      <Typography variant="h6" sx={{ marginBottom: 3, color: "text.secondary" }}>
         페이지를 찾을 수 없습니다.
       </Typography>
       <Button

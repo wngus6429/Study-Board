@@ -16,8 +16,7 @@ import usePageStore from "../store/pageStore";
 import { useSubscriptionStore } from "../store/subscriptionStore";
 import NotificationDropdown from "./NotificationDropdown";
 import DarkModeToggle from "./DarkModeToggle";
-import UserBadge from "@/app/components/common/UserBadge";
-import { useUserActivityTotals } from "@/app/components/api/useUserActivityTotals";
+
 import MessageIcon from "@mui/icons-material/Message";
 import HistoryIcon from "@mui/icons-material/History";
 import BookmarkIcon from "@mui/icons-material/Bookmark";
@@ -133,8 +132,7 @@ export default function MenuBar() {
     staleTime: Infinity,
   });
 
-  // 유저 활동 총합 (닉네임 기준)
-  const { data: activityTotals } = useUserActivityTotals(currentUser?.nickname);
+
 
   // 프로필 사진 삭제 시 refetch를 트리거하는 이벤트를 전달받을 수 있도록 설정
   useEffect(() => {
@@ -405,27 +403,7 @@ export default function MenuBar() {
             },
           }}
         />
-        {/* 레벨 뱃지를 아바타 오른쪽 하단에 표시 */}
-        {activityTotals && (
-          <Box
-            sx={{
-              position: "absolute",
-              bottom: -2,
-              right: -2,
-              zIndex: 3,
-              background: theme.palette.mode === "dark" ? "rgba(26, 26, 46, 0.9)" : "rgba(255, 255, 255, 0.9)",
-              borderRadius: "50%",
-              padding: "2px",
-              border:
-                theme.palette.mode === "dark"
-                  ? "1px solid rgba(139, 92, 246, 0.3)"
-                  : "1px solid rgba(218, 165, 32, 0.4)",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-            }}
-          >
-            <UserBadge totals={activityTotals} size="small" showText={false} />
-          </Box>
-        )}
+
       </Box>
       )}
       <nav

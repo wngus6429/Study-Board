@@ -3,6 +3,7 @@ import { Metadata } from "next";
 import { Suspense } from "react";
 import ChannelsClient from "./ChannelsClient";
 import Loading from "@/app/components/common/Loading";
+import { serializeJsonLd } from "@/app/utils/jsonLd";
 
 export const dynamic = "force-dynamic";
 
@@ -101,7 +102,7 @@ export default async function ChannelsPage() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
+          __html: serializeJsonLd({
             "@context": "https://schema.org",
             "@type": "CollectionPage",
             name: "채널 목록",
@@ -129,7 +130,7 @@ export default async function ChannelsPage() {
         - itemListElement: 상위 5개 채널만 노출해 문서 크기 최소화(slice(0, 5)) ㅡ 크롤링용, 유저는 다 보임
         - 각 item: Organization(채널)로 name/description/url 제공
         - url: `NEXT_PUBLIC_BASE_URL` + 채널 slug로 절대경로 구성
-        - JSON은 문자열로 주입해야 하므로 JSON.stringify + dangerouslySetInnerHTML 사용
+        - serializeJsonLd로 HTML 종료 태그를 이스케이프한 JSON을 삽입
         주의/확장
         - description이 없을 수 있어 기본값("채널 설명")을 사용
         - slug나 BASE_URL 누락 시 잘못된 URL이 생성될 수 있으니 환경변수 확인

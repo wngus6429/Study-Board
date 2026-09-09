@@ -25,6 +25,7 @@ import {
 } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ChannelsService } from './channels.service';
+import { toPublicChannel } from './dto/public-channel.dto';
 import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('channels')
@@ -37,7 +38,7 @@ export class ChannelsController {
   @ApiResponse({ status: 200, description: '채널 목록 조회 성공' })
   async findAllChannels() {
     console.log('채널 목록 조회');
-    return await this.channelsService.findAll();
+    return (await this.channelsService.findAll()).map(toPublicChannel);
   }
 
   @Get(':id')
@@ -46,7 +47,7 @@ export class ChannelsController {
   @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
   async findOneChannel(@Param('id', ParseIntPipe) id: number) {
     console.log('채널 상세 조회:', id);
-    return await this.channelsService.findOne(id);
+    return toPublicChannel(await this.channelsService.findOne(id));
   }
 
   @Get('slug/:slug')
@@ -55,7 +56,7 @@ export class ChannelsController {
   @ApiResponse({ status: 404, description: '채널을 찾을 수 없음' })
   async findChannelBySlug(@Param('slug') slug: string) {
     console.log('채널 슬러그 조회:', slug);
-    return await this.channelsService.findBySlug(slug);
+    return toPublicChannel(await this.channelsService.findBySlug(slug));
   }
 
   @Post('/create')
@@ -101,7 +102,7 @@ export class ChannelsController {
     );
     return {
       message: '새 채널이 생성되었습니다.',
-      channel,
+      channel: toPublicChannel(channel),
     };
   }
 

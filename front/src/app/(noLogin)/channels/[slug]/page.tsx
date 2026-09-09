@@ -4,6 +4,7 @@ import { Suspense, useMemo } from "react";
 import { notFound } from "next/navigation";
 import ChannelDetailPage from "./ChannelsDetailClient";
 import Loading from "@/app/components/common/Loading";
+import { serializeJsonLd } from "@/app/utils/jsonLd";
 
 export const dynamic = "force-dynamic";
 
@@ -193,7 +194,7 @@ export default async function ChannelPage({ params }: { params: { slug: string }
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: JSON.stringify(structuredData),
+          __html: serializeJsonLd(structuredData),
         }}
       />
 

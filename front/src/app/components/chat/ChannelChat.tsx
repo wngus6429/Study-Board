@@ -20,7 +20,6 @@ import {
   getChannelChatMessages,
   sendChannelChatMessage,
   joinChannelChat,
-  leaveChannelChat,
   ChannelChatMessage,
 } from "@/app/api/channelChatApi";
 
@@ -42,6 +41,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({ channelId, channelName, showM
   // 채팅 상태 관리
   const [chatMessages, setChatMessages] = useState<ChannelChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
+  const wsConnectionRef = useRef<ChannelChatWebSocket | null>(null);
   const [wsConnection, setWsConnection] = useState<ChannelChatWebSocket | null>(null);
   const [wsStatus, setWsStatus] = useState<WebSocketStatus>("disconnected");
   const [isLoadingMessages, setIsLoadingMessages] = useState(false);
@@ -51,24 +51,20 @@ const ChannelChat: React.FC<ChannelChatProps> = ({ channelId, channelName, showM
   // 스크롤 자동 이동을 위한 ref
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // 컴포넌트 마운트 시 채팅 초기화
+  // Close the exact socket on logout/account changes, including pending loads.
   useEffect(() => {
-    if (channelId && session?.user) {
-      loadChatMessages();
+    let isCancelled = false;
+    setChatMessages([]);
+    setWsConnection(null);
+    if (channelId && session?.user?.id) {
+      void loadChatMessages(() => isCancelled);
     }
-
     return () => {
-      disconnectWebSocket();
+      isCancelled = true;
+      wsConnectionRef.current?.disconnect();
+      wsConnectionRef.current = null;
     };
-  }, [channelId, session?.user]);
-
-  // 채널 변경 시 웹소켓 재연결
-  useEffect(() => {
-    if (channelId && wsConnection) {
-      disconnectWebSocket();
-      loadChatMessages();
-    }
-  }, [channelId]);
+  }, [channelId, session?.user?.id]);
 
   // 새 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
@@ -81,7 +77,7 @@ const ChannelChat: React.FC<ChannelChatProps> = ({ channelId, channelName, showM
   };
 
   // 채팅 메시지 로드 및 웹소켓 연결
-  const loadChatMessages = async () => {
+  const loadChatMessages = async (isCancelled: () => boolean) => {
     if (!channelId || !session?.user) return;
 
     setIsLoadingMessages(true);
@@ -90,18 +86,21 @@ const ChannelChat: React.FC<ChannelChatProps> = ({ channelId, channelName, showM
       // API로 기존 채팅 메시지 로드
       console.log("📥 채팅 메시지 로드 시작");
       const response = await getChannelChatMessages(channelId, 1, 50);
+      if (isCancelled()) return;
       setChatMessages(response.messages);
 
       // 채널 입장 알림
       await joinChannelChat(channelId);
+      if (isCancelled()) return;
 
       // 웹소켓 연결 설정
-      if (!wsConnection) {
+      if (!wsConnectionRef.current) {
         setupWebSocketConnection();
       }
 
       console.log("✅ 채팅 로드 완료:", response.messages.length, "개 메시지");
     } catch (error) {
+      if (isCancelled()) return;
       console.error("❌ 채팅 메시지 로드 실패:", error);
       showMessage("채팅을 불러오는데 실패했습니다.", "error");
 
@@ -138,20 +137,15 @@ const ChannelChat: React.FC<ChannelChatProps> = ({ channelId, channelName, showM
       ];
       setChatMessages(dummyMessages);
     } finally {
-      setIsLoadingMessages(false);
+      if (!isCancelled()) setIsLoadingMessages(false);
     }
   };
 
   // 웹소켓 연결 설정
   const setupWebSocketConnection = () => {
-    if (!channelId || wsConnection || !session?.user) return;
+    if (!channelId || wsConnectionRef.current || !session?.user) return;
 
     console.log("🔌 웹소켓 연결 설정 시작");
-
-    const userInfo = {
-      id: session.user.id,
-      nickname: session.user.nickname || session.user.name || "사용자",
-    };
 
     const ws = new ChannelChatWebSocket(
       channelId,
@@ -233,53 +227,17 @@ const ChannelChat: React.FC<ChannelChatProps> = ({ channelId, channelName, showM
           console.error("❌ 웹소켓 에러:", error);
           showMessage(error, "error");
         },
-      },
-      userInfo
+      }
     );
 
-    // 연결 시도
-    ws.connect();
+    wsConnectionRef.current = ws;
     setWsConnection(ws);
-
-    // 연결 상태 모니터링 (60초마다)
-    const connectionMonitor = setInterval(() => {
-      const status = ws.getStatus();
-      const isConnected = ws.isConnected();
-
-      console.log(`🔍 연결 상태 체크: ${status}, 연결됨: ${isConnected}`);
-
-      // 연결이 끊어져 있고, 재연결 시도 중이 아닐 때만 재연결
-      if (!isConnected && status !== "connecting" && status !== "error") {
-        console.warn("⚠️ 웹소켓 연결 끊어짐 - 재연결 시도");
-        ws.connect().catch((error) => {
-          console.error("❌ 모니터링 재연결 실패:", error);
-        });
+    // Socket.IO owns network reconnection; cleanup permanently closes this instance.
+    void ws.connect().catch((error) => {
+      if (wsConnectionRef.current === ws) {
+        console.error("채팅 연결 실패:", error);
       }
-    }, 60000);
-
-    // 컴포넌트 언마운트 시 모니터링 정리
-    return () => {
-      clearInterval(connectionMonitor);
-    };
-  };
-
-  // 웹소켓 연결 해제
-  const disconnectWebSocket = async () => {
-    if (wsConnection) {
-      wsConnection.disconnect();
-      setWsConnection(null);
-    }
-
-    if (channelId) {
-      try {
-        await leaveChannelChat(channelId);
-      } catch (error) {
-        console.error("채널 나가기 실패:", error);
-      }
-    }
-
-    setOnlineUsers([]);
-    setTypingUsers([]);
+    });
   };
 
   // 채팅 메시지 전송

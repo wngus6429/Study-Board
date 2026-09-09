@@ -193,6 +193,7 @@ export class AuthService {
     const user = await this.userRepository.findOne({
       where: { user_email },
       relations: ['UserImage'], // 프로필 이미지 정보도 함께 조회
+      select: ['id', 'user_email', 'nickname', 'password', 'is_super_admin'],
     });
 
     if (!user) {
@@ -618,7 +619,10 @@ export class AuthService {
     }
 
     // 👤 사용자 조회
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userRepository.findOne({
+      where: { id },
+      select: ['id', 'password'],
+    });
     if (!user) {
       console.log('🚫 비밀번호 검증 실패 - 존재하지 않는 사용자:', id);
       throw new ConflictException('유저가 존재하지 않습니다.');

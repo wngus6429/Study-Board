@@ -27,6 +27,7 @@
  * @version 1.0.0
  */
 
+import { Exclude } from 'class-transformer';
 import {
   BaseEntity,
   Column,
@@ -128,7 +129,8 @@ export class User extends BaseEntity {
    * - VARCHAR(100) 타입
    * - NOT NULL (필수 입력)
    */
-  @Column('varchar', { name: 'password', length: 100 })
+  @Exclude({ toPlainOnly: true })
+  @Column('varchar', { name: 'password', length: 100, select: false })
   password: string;
 
   // ═══════════════════════════════════════════════════════════════════════════════════════

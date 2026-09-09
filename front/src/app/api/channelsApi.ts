@@ -16,7 +16,6 @@ export interface Channel {
   creator: {
     id: string;
     nickname: string;
-    user_email: string;
   };
   // 채널 대표 이미지 (옵셔널)
   ChannelImage?: {

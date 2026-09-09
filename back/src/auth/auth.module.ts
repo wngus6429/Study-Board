@@ -191,6 +191,6 @@ import { PasswordResetToken } from 'src/entities/PasswordResetToken.entity';
    * // 다른 모듈에서 JWT 인증이 필요한 경우:
    * // @UseGuards(AuthGuard()) 데코레이터 사용 가능
    */
-  exports: [JwtStrategy, PassportModule],
+  exports: [JwtStrategy, PassportModule, JwtModule],
 })
 export class AuthModule {}

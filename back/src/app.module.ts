@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { StoryModule } from './story/story.module';
 import { join } from 'path';
@@ -146,6 +146,7 @@ import { BoardModule } from './board/board.module';
     ScrapModule, // 게시글 스크랩, 북마크 기능
   ],
   providers: [
+    { provide: APP_INTERCEPTOR, useClass: ClassSerializerInterceptor },
     // ThrottlerGuard를 전역 가드로 등록
     { provide: APP_GUARD, useClass: ThrottlerGuard },
   ],

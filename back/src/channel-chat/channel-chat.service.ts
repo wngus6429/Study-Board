@@ -4,7 +4,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { ChannelChatMessage } from '../entities/ChannelChatMessage.entity';
 import { Channels } from '../entities/Channels.entity';
 import { User } from '../entities/User.entity';
@@ -28,7 +28,7 @@ export class ChannelChatService {
   ) {
     // 채널 존재 확인
     const channel = await this.channelsRepository.findOne({
-      where: { id: channelId },
+      where: { id: channelId, deleted_at: IsNull() },
     });
 
     if (!channel) {
@@ -77,7 +77,7 @@ export class ChannelChatService {
   ) {
     // 채널 존재 확인
     const channel = await this.channelsRepository.findOne({
-      where: { id: channelId },
+      where: { id: channelId, deleted_at: IsNull() },
     });
 
     if (!channel) {
@@ -86,7 +86,7 @@ export class ChannelChatService {
 
     // 사용자 존재 확인
     const user = await this.userRepository.findOne({
-      where: { id: userId },
+      where: { id: userId, deleted_at: IsNull() },
       relations: ['UserImage'],
     });
 
@@ -164,7 +164,7 @@ export class ChannelChatService {
   async joinChannelChat(channelId: number, userId: string) {
     // 채널 존재 확인
     const channel = await this.channelsRepository.findOne({
-      where: { id: channelId },
+      where: { id: channelId, deleted_at: IsNull() },
     });
 
     if (!channel) {
@@ -173,7 +173,7 @@ export class ChannelChatService {
 
     // 사용자 존재 확인
     const user = await this.userRepository.findOne({
-      where: { id: userId },
+      where: { id: userId, deleted_at: IsNull() },
     });
 
     if (!user) {

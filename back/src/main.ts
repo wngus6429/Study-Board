@@ -9,6 +9,7 @@ import { join } from 'path';
 import { IoAdapter } from '@nestjs/platform-socket.io';
 import { ServerOptions } from 'socket.io';
 import helmet from 'helmet';
+import { getCorsOrigins } from './common/utils/cors-origins';
 
 /**
  * 🔌 커스텀 Socket.IO 어댑터
@@ -26,7 +27,7 @@ class CustomSocketIOAdapter extends IoAdapter {
     const server = super.createIOServer(port, {
       ...options,
       cors: {
-        origin: process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3000'],
+        origin: getCorsOrigins(),
         methods: ['GET', 'POST'],
         credentials: true, // 쿠키 기반 인증 허용
       },
@@ -76,7 +77,7 @@ async function bootstrap() {
   // 🌐 CORS(Cross-Origin Resource Sharing) 설정
   // 프론트엔드(React)에서 백엔드 API 호출을 허용하기 위한 설정
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3000'], // 허용할 도메인
+    origin: getCorsOrigins(), // 허용할 도메인
     credentials: true, // 쿠키 기반 세션 인증 허용
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'], // 허용할 HTTP 메서드
     allowedHeaders:

@@ -39,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     // 이거 alwaysScroll이라는 클래스를 만들어서 스크롤이 항상 보이게 설정, 아니면 스크롤 생기면 왼쪽으로 밀려나는 현상 발생
-    <html lang="ko" className="alwaysScroll">
+    <html lang="ko" className="alwaysScroll" data-appearance="classic">
       <body className={inter.className}>
         <ThemeProvider>
           <LanguageProvider>
@@ -57,7 +57,9 @@ export default function RootLayout({
                           <NavMenuBar />
                         </div>
                         {/* 메인 컨텐츠 */}
-                        <div className={style.main_content}>{children}</div>
+                        <main id="main-content" className={style.main_content}>
+                          {children}
+                        </main>
                         {/* 오른쪽 영역 */}
                         <div className={style.right_section}>
                           <RightView />

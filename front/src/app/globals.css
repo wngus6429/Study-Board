@@ -39,7 +39,12 @@ body {
 
 html[data-theme="light"] body {
   color: #172033 !important;
-  background: linear-gradient(135deg, #edf4ff 0%, #f7fbff 48%, #fff7ed 100%) !important;
+  background: linear-gradient(
+    135deg,
+    #edf4ff 0%,
+    #f7fbff 48%,
+    #fff7ed 100%
+  ) !important;
   background-attachment: fixed !important;
 }
 
@@ -139,3 +144,116 @@ li {
   padding-left: 4px;
 }
 
+/* Optional orbital appearance */
+:where(html[data-appearance="orbital"]) {
+  --background: #f3f4ef;
+  --foreground: #22332f;
+  --primary: #476546;
+  --secondary: #73658c;
+  --surface: #ffffff;
+  --surface-raised: #eaf0e5;
+  --border: #dce2d8;
+  --muted: #66736a;
+  color-scheme: light;
+}
+html[data-appearance="orbital"][data-theme="dark"] {
+  --background: #10191b;
+  --foreground: #e8eee6;
+  --primary: #c5e994;
+  --secondary: #b6a4d8;
+  --surface: #192427;
+  --surface-raised: #2c3c36;
+  --border: #34433f;
+  --muted: #a8b8b0;
+  color-scheme: dark;
+}
+:where(html[data-appearance="orbital"]) * {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+html[data-appearance="orbital"],
+:where(html[data-appearance="orbital"]) body {
+  max-width: 100%;
+}
+:where(html[data-appearance="orbital"]) .alwaysScroll {
+  overflow-y: scroll;
+}
+:where(html[data-appearance="orbital"]) body {
+  color: var(--foreground) !important;
+  background: var(--background) !important;
+  font-family: Arial, "Noto Sans KR", "Malgun Gothic", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+html[data-appearance="orbital"][data-theme] body {
+  color: var(--foreground) !important;
+  background: var(--background) !important;
+}
+:where(html[data-appearance="orbital"]) ::selection {
+  background: #c5e994;
+  color: #152327;
+}
+:where(html[data-appearance="orbital"]) :focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 3px;
+}
+:where(html[data-appearance="orbital"]) ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+:where(html[data-appearance="orbital"]) ::-webkit-scrollbar-track {
+  background: var(--background);
+}
+:where(html[data-appearance="orbital"]) ::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 5px;
+}
+:where(html[data-appearance="orbital"]) ::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
+}
+:where(html[data-appearance="orbital"]) img,
+:where(html[data-appearance="orbital"]) video,
+:where(html[data-appearance="orbital"]) canvas,
+:where(html[data-appearance="orbital"]) svg,
+:where(html[data-appearance="orbital"]) table {
+  max-width: 100%;
+}
+:where(html[data-appearance="orbital"]) a {
+  color: inherit;
+  text-decoration: none;
+}
+:where(html[data-appearance="orbital"]) ol,
+:where(html[data-appearance="orbital"]) ul {
+  padding-left: 24px;
+  margin: 12px 0;
+  list-style-position: outside;
+}
+:where(html[data-appearance="orbital"]) ol {
+  list-style-type: decimal;
+}
+:where(html[data-appearance="orbital"]) ul {
+  list-style-type: disc;
+}
+:where(html[data-appearance="orbital"]) li {
+  margin: 6px 0;
+  padding-left: 4px;
+}
+@media (prefers-reduced-motion: reduce) {
+  :where(html[data-appearance="orbital"]) *,
+  :where(html[data-appearance="orbital"]) *::before,
+  :where(html[data-appearance="orbital"]) *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:where(html[data-appearance="orbital"]) body {
+  background-attachment: scroll !important;
+}
+
+html[data-appearance="orbital"] body {
+  font-family: Arial, "Noto Sans KR", "Malgun Gothic", sans-serif;
+}

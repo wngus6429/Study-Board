@@ -1,26 +1,10 @@
-import React from "react";
-import Image from "next/image";
+"use client";
+import dynamic from "next/dynamic";
+import { useAppearanceStore } from "@/app/store/appearanceStore";
+import Classic from "./AdvertisementClassic";
 
+const Orbital = dynamic(() => import("./AdvertisementOrbital"));
 export default function Advertisement() {
-  return (
-    <div style={{ width: "100%" }}>
-      {/* <Image
-        src="/assets/right3.png"
-        alt="Right Icon"
-        width={0}
-        height={0}
-        sizes="100vw"
-        style={{ width: "100%", height: "auto" }}
-      /> */}
-      {/* 광고가 올자리 */}
-      <Image
-        src="/assets/right.png"
-        alt="Right Icon"
-        width={0}
-        height={0}
-        sizes="100vw"
-        style={{ width: "100%", height: "auto" }}
-      />
-    </div>
-  );
+  const appearance = useAppearanceStore((state) => state.appearance);
+  return appearance === "orbital" ? <Orbital /> : <Classic />;
 }
